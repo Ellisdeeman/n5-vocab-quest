@@ -1,0 +1,21 @@
+N5 Vocab Quest — audio credits
+
+Words, kana and most example sentences: synthesized with Microsoft's neural TTS voice ja-JP-NanamiNeural,
+generated via the open-source edge-tts client (https://github.com/rany2/edge-tts). Generated for personal, non-commercial learning use.
+
+Human recordings from Tatoeba (https://tatoeba.org), used under their per-recording licenses:
+  h/137485.mp3  sentence #137485 (https://tatoeba.org/en/sentences/show/137485)  speaker: huizi99  license: CC BY-NC 4.0  audio id 12513
+  h/142089.mp3  sentence #142089 (https://tatoeba.org/en/sentences/show/142089)  speaker: huizi99  license: CC BY-NC 4.0  audio id 12548
+  h/142339.mp3  sentence #142339 (https://tatoeba.org/en/sentences/show/142339)  speaker: Mizu  license: CC BY-NC 4.0  audio id 12549
+  h/145180.mp3  sentence #145180 (https://tatoeba.org/en/sentences/show/145180)  speaker: yomi  license: CC BY-NC 4.0  audio id 12554
+  h/187729.mp3  sentence #187729 (https://tatoeba.org/en/sentences/show/187729)  speaker: yomi  license: CC BY-NC 4.0  audio id 12643
+  h/196459.mp3  sentence #196459 (https://tatoeba.org/en/sentences/show/196459)  speaker: huizi99  license: CC BY-NC 4.0  audio id 12669
+  h/196626.mp3  sentence #196626 (https://tatoeba.org/en/sentences/show/196626)  speaker: huizi99  license: CC BY-NC 4.0  audio id 12670
+  h/199334.mp3  sentence #199334 (https://tatoeba.org/en/sentences/show/199334)  speaker: huizi99  license: CC BY-NC 4.0  audio id 12676
+  h/200102.mp3  sentence #200102 (https://tatoeba.org/en/sentences/show/200102)  speaker: huizi99  license: CC BY-NC 4.0  audio id 12683
+  h/202043.mp3  sentence #202043 (https://tatoeba.org/en/sentences/show/202043)  speaker: yomi  license: CC BY-NC 4.0  audio id 12696
+  h/234490.mp3  sentence #234490 (https://tatoeba.org/en/sentences/show/234490)  speaker: huizi99  license: CC BY-NC 4.0  audio id 12752
+  h/2311962.mp3  sentence #2311962 (https://tatoeba.org/en/sentences/show/2311962)  speaker: yomi  license: CC BY-NC 4.0  audio id 125557
+  h/2312105.mp3  sentence #2312105 (https://tatoeba.org/en/sentences/show/2312105)  speaker: yomi  license: CC BY-NC 4.0  audio id 125563
+
+Sentence texts: Tatoeba contributors, CC BY 2.0 FR.
