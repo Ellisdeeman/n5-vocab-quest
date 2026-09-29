@@ -25,8 +25,8 @@ const root=r=>fs.writeFileSync('/tmp/swt/ROOT',r);
  let nb=await ev(()=>window.__N5&&__N5.BUILD).catch(()=>null);
  if(nb===oldBuild){await p.reload();await p.waitForTimeout(1000);nb=await ev(()=>__N5.BUILD);}
  ok(`${FROM}: open old app picks up the new build`,nb&&nb!==oldBuild,`${oldBuild}->${nb}`);
- for(let i=0;i<30;i++){const st=await ev(async()=>{const r=await navigator.serviceWorker.getRegistration();return {a:r&&r.active&&r.active.scriptURL,w:!!(r&&r.waiting),i:!!(r&&r.installing),k:await caches.keys()}});if(st.k.includes('n5vq-page-v4'))break;if(i%5==0)console.log('  sw',JSON.stringify(st));await p.waitForTimeout(1000);if(i==10){await p.reload();await p.waitForTimeout(800);}}
- const keys=await ev(()=>caches.keys());ok(`${FROM}: SW v4 active, old page cache dropped`,keys.includes('n5vq-page-v4')&&!keys.some(k=>/page-v[23]$/.test(k)),JSON.stringify(cachesBefore)+' -> '+JSON.stringify(keys));
+ for(let i=0;i<30;i++){const st=await ev(async()=>{const r=await navigator.serviceWorker.getRegistration();return {a:r&&r.active&&r.active.scriptURL,w:!!(r&&r.waiting),i:!!(r&&r.installing),k:await caches.keys()}});if(st.k.includes('n5vq-page-v5'))break;if(i%5==0)console.log('  sw',JSON.stringify(st));await p.waitForTimeout(1000);if(i==10){await p.reload();await p.waitForTimeout(800);}}
+ const keys=await ev(()=>caches.keys());ok(`${FROM}: SW v5 active, old page cache dropped`,keys.includes('n5vq-page-v5')&&!keys.some(k=>/page-v[234]$/.test(k)),JSON.stringify(cachesBefore)+' -> '+JSON.stringify(keys));
  ok(`${FROM}: progress intact`,await ev(()=>Object.keys(__N5.S().cards).length>=400&&!!__N5.JS().cards['一']));
  await tap('#tabLevels');await tap('.lvlist .lvcard[data-lv=n5]');await p.waitForFunction(()=>/Kanji · 79/.test((document.querySelector('#kjOpen')||{}).textContent||''));
  await tap('#kjOpen');await p.waitForSelector('.kjtile');await tap('.kjtile[data-c="九"]');await p.waitForSelector('.modal .kjsvg .kjst');
@@ -35,6 +35,11 @@ const root=r=>fs.writeFileSync('/tmp/swt/ROOT',r);
  // cached kanji data: new versions stored, old dropped
  const dk=await ev(async()=>{const c=await caches.open('n5vq-data-v1');return (await c.keys()).map(r=>new URL(r.url).pathname+new URL(r.url).search).filter(u=>/kanji-n5/.test(u))});
  ok(`${FROM}: data cache holds only the new kanji-n5 files`,dk.length===2&&dk.some(u=>/-s\.json/.test(u)),JSON.stringify(dk));
+ // slow network (server takes 15 s): the SW serves the cached page after ~4 s instead of a white screen that never loads
+ fs.writeFileSync('/tmp/swt/DELAY','15');const ts=Date.now();await p.reload({waitUntil:'load',timeout:30000}).catch(e=>console.log('  slow nav',e.message.slice(0,60)));
+ await p.waitForFunction(()=>window.__N5,null,{timeout:30000}).catch(()=>{});const slow=Date.now()-ts;fs.writeFileSync('/tmp/swt/DELAY','0');
+ ok('slow network: cached app shows within ~6 s (SW navigation timeout)',slow<7500,slow+'ms');
+ await p.waitForTimeout(12000);
  // offline: cached level works, uncached strokes fall back to the static character, uncached list shows retry
  root('offline');
  await p.reload().catch(e=>console.log('  offline nav',e.message.slice(0,80)));await p.waitForTimeout(1200);

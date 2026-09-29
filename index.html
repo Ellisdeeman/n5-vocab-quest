@@ -365,6 +365,12 @@ body{overflow-x:clip}
 .alrow input[type=url]{font-size:16px;min-height:40px;width:min(210px,48vw);border-radius:10px;border:.5px solid var(--sep);background:var(--card2);color:var(--label);padding:0 10px}
 @media (max-width:430px){.alcard{flex-wrap:wrap}.alcard .albtns{flex-direction:row;width:100%;justify-content:flex-end}}
 @media (max-width:360px){#themeSeg,#themeSeg2{min-width:0!important}#themeSeg button,#themeSeg2 button{padding-left:8px;padding-right:8px}}
+.mode.dim{opacity:.55}
+.updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + var(--safe-b));z-index:65;display:flex;align-items:center;gap:10px;background:var(--card);color:var(--label);border-radius:999px;padding:6px 6px 6px 16px;box-shadow:0 8px 30px rgba(0,0,0,.22);font-weight:600;font-size:.9rem;max-width:calc(100vw - 24px);white-space:nowrap}
+.updbar .iconbtn{width:36px;height:36px;font-size:1rem;color:var(--label2)}
+body.studying .updbar{bottom:calc(12px + var(--safe-b))}
+.errtoast{position:fixed;left:12px;right:12px;top:calc(8px + var(--safe-t));z-index:80;display:flex;gap:8px;align-items:flex-start;background:#3a1010;color:#fff;border-radius:14px;padding:10px 6px 10px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:.85rem;max-width:560px;margin:0 auto;word-break:break-word}
+.errtoast small{color:#f5c6c6}.errtoast .muted{color:#d9a0a0}.errtoast .iconbtn{color:#fff;width:36px;height:36px;flex:none}
 </style>
 </head>
 <body>
@@ -2372,7 +2378,7 @@ async function ensureDueLevels() {   // load every level that has saved cards (n
 function dueRow(key, icon, name, r, sub = "") {
   const c = /^n\d$/.test(key) ? `var(--${key})` : key.startsWith("kanji:") ? `var(--${key.slice(6)})` : key === "leech" ? "var(--bad)" : key.startsWith("kana") ? "var(--mint)" : key.startsWith("set:") ? setColor({ id: key.slice(4) }) : "var(--tint)";
   return `<div class="duerow" data-key="${esc(key)}"><span class="ic ${/^n\d$/.test(key) ? "lvic" : ""}" style="--c:${c}">${/^n\d$/.test(key) ? `<b style="font-size:.8rem">${LNAME(key)}</b>` : icon}</span><span class="grow"><b>${name}</b>${sub ? ` <small class="muted">${sub}</small>` : ""}<br><small>${dueStatus(r)}</small></span>
-    <button class="btn small ${r.ids.length ? "" : "ghost"}" data-review="${esc(key)}" ${r.ids.length ? "" : "disabled"}>Review all due${r.ids.length ? ` (${batchOf(r.ids.length)})` : ""}</button></div>`;
+    <button class="btn small ${r.ids.length ? "" : "ghost"}" data-review="${esc(key)}">${r.ids.length ? `Review all due (${batchOf(r.ids.length)})` : "Nothing due"}</button></div>`;
 }
 function dueSections() {
   const secs = {};
@@ -2404,7 +2410,7 @@ function renderDue() {
     <div class="hero ${total ? "" : "done"}"><div class="ic">${total ? "⏰" : "✅"}</div><div><h2>${total ? `${total} reviews due` : "All caught up!"}</h2>
       <p>${total ? `${vAll.ids.length} words · ${jAll.ids.length} kanji · ${kAll.ids.length} kana — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
       <div class="seg dueseg" id="dueBatch">${["20", "50", "all"].map(b => `<button class="${(S.dueBatch || "all") === b ? "on" : ""}" data-b="${b}">${b === "all" ? "All" : "Batch " + b}</button>`).join("")}</div></div>
-      <button class="btn" data-review="all" ${total ? "" : "disabled"}>Review everything due</button></div>
+      <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button></div>
     <div class="panel duepanel"><h2>Levels</h2>
       ${dueRow("kana:h", "あ", "Kana · Hiragana", secs["kana:h"].r)}${dueRow("kana:k", "ア", "Kana · Katakana", secs["kana:k"].r)}
       ${LEVELS.map(l => { const sec = secs[l], sets = LV[l].sets.map(s => ["set:" + s.id, secs["set:" + s.id]]).filter(x => x[1]), dueSets = sets.filter(x => x[1].r.ids.length);
@@ -2421,20 +2427,67 @@ function renderDue() {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review); });
   updateDueBadge();
 }
-function startDueReview(key, back = dueView) {
+/* upcoming (not yet due) items of a section, soonest first — for "Review ahead" */
+function aheadScan(key, n = 20) {
+  const now = Date.now(), pick = (entries) => entries.filter(([, x]) => x && x.due > now).sort((a, b) => a[1].due - b[1].due).slice(0, n).map(([id]) => id);
+  if (key === "all") return { v: pick(Object.entries(S.cards)).map(Number), j: pick(Object.entries(JS.cards)), k: pick(Object.entries(KS.cards).filter(([id]) => KITEMS[id])) };
+  if (/^n\d$/.test(key)) { const lo = LOFF[key]; return { v: pick(Object.entries(S.cards).filter(([id]) => +id >= lo && +id < lo + 10000)).map(Number) }; }
+  if (key.startsWith("kanji:")) { const l = key.slice(6); return { j: pick(Object.entries(JS.cards).filter(([, x]) => x.l === l)) }; }
+  if (key.startsWith("kana:")) { const sc = key.slice(5); return { k: pick(Object.entries(KS.cards).filter(([id]) => KITEMS[id] && KITEMS[id].s === sc)) }; }
+  if (key.startsWith("set:")) { const st = SETS.find(x => x.id === key.slice(4)); const set = new Set(st ? st.ids : []); return { v: pick(Object.entries(S.cards).filter(([id]) => set.has(+id))).map(Number) }; }
+  if (key === "leech") return { v: pick(Object.entries(S.cards).filter(([id]) => isLeech(+id))).map(Number) };
+  return {};
+}
+/* nothing due: say so clearly and offer Review ahead / Practice anyway (never a silent no-op) */
+function nothingDueSheet(key, back) {
+  const secs = dueSections(), s = key === "all" ? null : secs[key];
+  const nx = key === "all" ? [dueScan().next, kanaDueScan().next, kjDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0] : s && s.r.next;
+  const ah = aheadScan(key), nAhead = (ah.v || []).length + (ah.j || []).length + (ah.k || []).length;
+  const name = key === "all" ? "anything" : s ? s.name : key;
+  const lvl = /^n\d$/.test(key) ? key : key.startsWith("kanji:") ? key.slice(6) : null;
+  const md = document.createElement("div"); md.className = "modal"; md.id = "nothingDue";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Nothing due"><h2>✅ Nothing due${key === "all" ? "" : ` · ${esc(name)}`}</h2>
+    <p class="muted">${nx != null ? `Next review ${fmtIn(nx)}.` : "You haven't studied anything here yet."}</p>
+    <div class="btnrow" style="flex-direction:column;align-items:stretch">
+      ${nAhead ? `<button class="btn" id="ndAhead">Review ahead (${nAhead})</button>` : ""}
+      <button class="btn ${nAhead ? "sec" : ""}" id="ndPractice">Practice anyway</button>
+      <button class="btn ghost" id="ndClose">Close</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "ndClose") md.remove(); };
+  const ahead = md.querySelector("#ndAhead");
+  if (ahead) ahead.onclick = () => { md.remove(); runItems((ah.v || []).filter(id => WORDS[id]).map(id => ({ id, mode: "mixed" })).concat((ah.j || []).filter(c => KJ[c]).map(c => ({ j: 1, id: c }))), ah.k || [], "⏰ Review ahead", back); };
+  md.querySelector("#ndPractice").onclick = () => { md.remove();
+    if (key.startsWith("kana")) return go(() => kanaSession("k2r"));
+    if (key.startsWith("kanji:")) { const l = key.slice(6); return go(kanjiPageFn(l)); }
+    const pool = lvl && LV[lvl].loaded ? LV[lvl].ids : unlockedIds();
+    go(() => quiz("mixed", pool, `🎲 Practice${lvl ? " · " + LNAME(lvl) : ""}`, back)); };
+}
+function runItems(items, kana, title, back) {
+  if (!items.length && !kana.length) { toast("Nothing to review yet"); return; }
+  const kanaPart = () => go(() => kanaDueSession(kana, title, back));
+  if (items.length) go(() => dueSession(items, title, back, kana.length ? () => kanaPart() : null)); else kanaPart();
+}
+async function startDueReview(key, back = dueView) {
+  // make sure every level / kanji list with saved cards is loaded, so the count and the queue always agree
+  const needs = LEVELS.some(l => !LV[l].loaded && levelStats(l).seen > 0) || kjLevelsWithCards().some(l => !KJL[l].loaded);
+  if (needs) { toast("Loading…"); await ensureDueLevels(); }
   const secs = dueSections();
   if (key === "all") {
+    if (!totalDue()) return nothingDueSheet("all", back);
     const v = dueScan().ids.filter(id => WORDS[id]).concat(kjDueScan().ids.filter(c => KJ[c]).map(c => ({ j: 1, id: c }))), k = kanaDueScan().ids;
+    if (!v.length && !k.length) { toast("Couldn't load the due items — offline? Try again when connected"); return; }
     const kanaPart = () => k.length ? go(() => kanaDueSession(k, "⏰ Kana due reviews", back)) : go(back);
     if (v.length) go(() => dueSession(v, "⏰ Everything due", back, k.length ? () => { toast(`Words done — now ${batchOf(k.length)} kana`); kanaPart(); } : null));
     else kanaPart();
     return;
   }
-  const s = secs[key]; if (!s || !s.r.ids.length) { toast("Nothing due here"); return; }
+  const s = secs[key]; if (!s || !s.r.ids.length) return nothingDueSheet(key, back);
   const title = `⏰ ${s.lvl ? LNAME(s.lvl) + " · " : ""}${s.name} · due`;
   if (s.kind === "j") { const run = () => go(() => dueSession(s.r.ids.filter(c => KJ[c]).map(c => ({ j: 1, id: c })), title, back)); if (KJL[s.kl].loaded) run(); else loadKanji(s.kl).then(ok => ok ? run() : toast("Couldn't load kanji — offline?")); return; }
   if (s.kind === "k") go(() => kanaDueSession(s.r.ids, title, back));
-  else go(() => dueSession(s.r.ids.filter(id => WORDS[id]), title, back));
+  else { const ids = s.r.ids.filter(id => WORDS[id]);
+    if (!ids.length) { toast(`Couldn't load ${s.lvl ? LNAME(s.lvl) : "these"} words — offline? Try again when connected`); return; }
+    go(() => dueSession(ids, title, back)); }
 }
 function dueFinishCard(correct, n, back, extra = "") {
   $("#qhost").innerHTML = `<div class="card"><div class="qtype">Reviews done!</div><div class="big">✅</div><p>${correct}/${n} correct${extra}</p>
@@ -2747,6 +2800,8 @@ function kjRender(mode, k, onAnswer) {
     opts = shuffle([k, ...kjDistractors(k, 3, x => x.mean !== k.mean)]); label = o => esc(o.c); }
   else { const e = k.ex[rand(k.ex.length)]; word = e; qtype = `How do you read this word? <small class="muted">(uses ${esc(k.c)})</small>`; prompt = `<div class="prompt jp">${esc(e[1])}</div><div class="sub">${esc(e[3])}</div>`;
     const others = []; const seenR = new Set([e[2]]);
+    // the same spelling can have several valid readings (九: きゅう / く, ～人: じん / にん): none of them may be offered as a "wrong" option
+    for (const c in KJ) for (const x of (KJ[c].ex || [])) if (x[1] === e[1]) seenR.add(x[2]);
     const cand = k.ex.concat(...(k.la || []).map(c => (KJ[c] && KJ[c].ex) || []), ...shuffle(KJL[k.lvl].list).slice(0, 30).map(c => KJ[c].ex || []));
     for (const x of cand) { if (!seenR.has(x[2])) { seenR.add(x[2]); others.push({ c: x[2], r: x[2] }); } if (others.length >= 3) break; }
     opts = shuffle([{ c: "__ok", r: e[2] }, ...others]); label = o => `<span class="jp">${esc(o.r)}</span>`; }
@@ -2790,17 +2845,17 @@ function kanjiView(l) {
     <p class="subtitle">${st.total} kanji, easiest first · ${st.mast} mastered · ${st.seen} learned · ${un} unlocked${st.due ? ` · <b>${st.due} due</b>` : ""}</p>
     <div class="hero"><div class="ic">字</div><div><h2>${fresh.length ? `Learn ${fresh.length} new kanji` : un < list.length ? "Next batch locked" : "All kanji learned"}</h2>
       <p>${fresh.length ? `Next up: <span class="jp" style="font-size:1.2rem">${fresh.map(esc).join(" ")}</span> — learn card with stroke order, then a quick quiz.` : un < list.length ? `Get ${Math.ceil(un * 0.8)} of your ${un} unlocked kanji past the first review to unlock ${Math.min(KJ_BATCH, list.length - un)} more.` : "Keep them fresh with reviews and practice."}</p></div>
-      <button class="btn" id="kjLearnBtn" ${fresh.length ? "" : "disabled"}>Learn ▶</button></div>
+      <button class="btn ${fresh.length ? "" : "ghost"}" id="kjLearnBtn">Learn ▶</button></div>
     <div class="panel duepanel">${dueRow("kanji:" + l, "字", `Kanji due · ${LNAME(l)}`, due)}</div>
     <div class="sechead">Practice learned kanji</div>
-    <div class="grid">${Object.entries(KJ_MODES).map(([m, t]) => `<button class="mode" data-km="${m}" ${learned.length ? "" : "disabled"}><div class="ic jp">${{ k2m: "意", k2r: "音", m2k: "字", wr: "語" }[m]}</div><h3>${t}</h3><p>${learned.length ? `${Math.min(20, learned.length)} questions` : "learn some kanji first"}</p></button>`).join("")}</div>
+    <div class="grid">${Object.entries(KJ_MODES).map(([m, t]) => `<button class="mode ${learned.length ? "" : "dim"}" data-km="${m}"><div class="ic jp">${{ k2m: "意", k2r: "音", m2k: "字", wr: "語" }[m]}</div><h3>${t}</h3><p>${learned.length ? `${Math.min(20, learned.length)} questions` : "learn some kanji first"}</p></button>`).join("")}</div>
     <div class="sechead">All ${LNAME(l)} kanji · easiest → hardest</div>
     <div class="kjgrid">${list.map((c, i) => { const x = JS.cards[c]; return `<button class="kjtile ${i >= un ? "locked" : ""} ${x ? "b" + Math.min(5, x.box) : ""}" data-c="${esc(c)}" aria-label="${esc(c)} ${esc(KJ[c].mean)}${i >= un ? " (locked)" : ""}">${esc(c)}</button>`; }).join("")}</div>
     <p class="muted" style="font-size:.8rem">Order: stroke count, frequency and school grade, with components taught before the kanji that contain them. Tap any kanji for its card.</p>`;
   bindBack(levelPageFn(l)); setTab("levels");
-  $("#kjLearnBtn").onclick = () => { sfx.click(); go(() => kanjiLearnSession(l, me)); };
+  $("#kjLearnBtn").onclick = () => { sfx.click(); if (!kjNewFor(l, KJ_BATCH).length) return kanjiLearnSession(l, me); go(() => kanjiLearnSession(l, me)); };
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
-  view.querySelectorAll("button.mode[data-km]").forEach(b => b.onclick = () => { sfx.click(); go(() => kanjiPractice(l, b.dataset.km, me)); });
+  view.querySelectorAll("button.mode[data-km]").forEach(b => b.onclick = () => { sfx.click(); if (!list.some(c => JS.cards[c])) return kanjiPractice(l, b.dataset.km, me); go(() => kanjiPractice(l, b.dataset.km, me)); });
   view.querySelectorAll(".kjtile").forEach(b => b.onclick = () => kjModal(b.dataset.c));
 }
 function kjSession(items, title, back, doneMsg) {
@@ -2814,13 +2869,13 @@ function kjSession(items, title, back, doneMsg) {
 }
 function kanjiLearnSession(l, back) {
   const fresh = kjNewFor(l, KJ_BATCH);
-  if (!fresh.length) { toast("No new kanji unlocked right now"); return go(back); }
+  if (!fresh.length) { const un = kjUnlockedCount(l), n = KJL[l].list.length; toast(un < n ? `Next batch locked — get ${Math.ceil(un * 0.8)} of your ${un} kanji past their first review` : `All ${LNAME(l)} kanji learned — review or practice them`); return; }
   const items = fresh.map(c => ({ j: 1, id: c, mode: "learn" })).concat(shuffle(fresh).map(c => ({ j: 1, id: c, mode: "k2m" })), shuffle(fresh).map(c => ({ j: 1, id: c, mode: KJ[c].ex.length ? "wr" : "m2k" })));
   kjSession(items, `字 Learn ${LNAME(l)} kanji`, back, ` · ${fresh.length} new kanji learned`);
 }
 function kanjiPractice(l, mode, back) {
   const learned = KJL[l].list.filter(c => JS.cards[c]);
-  if (!learned.length) { toast("Learn some kanji first"); return go(back); }
+  if (!learned.length) { toast("Learn some kanji first — tap Learn ▶"); return; }
   const pick = learned.slice().sort((a, b) => jcard(a).box - jcard(b).box || Math.random() - 0.5).slice(0, 20);
   kjSession(shuffle(pick).map(c => ({ j: 1, id: c, mode })), `字 ${KJ_MODES[mode]} · ${LNAME(l)}`, back, "");
 }
@@ -2931,22 +2986,62 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
 if (HAS_SPEECH) setTimeout(() => { loadVoices(); }, 800);
 if (location.protocol !== "file:") { const before = canAudio(); probeAudio(() => { if (canAudio() !== before && (curView === home || curView === kanaHome)) go(curView); }); }
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
-/* iOS keeps a Home-Screen app's page alive for days, so a new version would never load: on resume, compare the
-   build id of the live index.html with ours and reload (right away on a non-study screen, else after the session) */
-const BUILD = "be7b7baaaaff";
-let lastUpdCheck = 0, updWait = null;
-async function checkForUpdate(force) {
-  if (location.protocol === "file:" || (!force && Date.now() - lastUpdCheck < 60e3)) return; lastUpdCheck = Date.now();
+/* iOS keeps a Home-Screen app's page alive for days, so a new version would never load: on resume, compare the build id
+   of the live index.html with ours. The page is only reloaded when that can't interrupt anything — right after the app
+   comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
+   e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
+   "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
+const BUILD = "0424fbece5fa";
+let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
+addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
+addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
+const quietMoment = () => !studyScreen && !document.querySelector(".modal") && lastTapAt < lastVisibleAt && Date.now() - lastVisibleAt < 5000;
+async function applyUpdate() {
+  flushTime(); save();
+  // let the new service worker take over first (iOS could otherwise hang the reload mid-swap), but never wait > 3 s
   try {
-    const t = await (await fetch("./?build=" + Date.now(), { cache: "no-store" })).text(), m = /const BUILD = "([0-9a-f]{8,})"/.exec(t);
-    if (!m || m[1] === BUILD) return;
-    try { const g = await navigator.serviceWorker.getRegistration(); if (g) g.update().catch(() => {}); } catch (e) {}
-    const doReload = () => { if (!studyScreen && !document.querySelector(".modal")) { flushTime(); save(); location.reload(); return true; } return false; };
-    if (!doReload() && !updWait) updWait = setInterval(() => { if (doReload()) clearInterval(updWait); }, 2000);
+    const g = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (g && (g.installing || g.waiting)) await new Promise(res => { navigator.serviceWorker.addEventListener("controllerchange", res, { once: true }); setTimeout(res, 3000); });
+  } catch (e) {}
+  location.reload();
+}
+function showUpdateBar() {
+  if ($("#updBar")) return;
+  const d = document.createElement("div"); d.id = "updBar"; d.className = "updbar"; d.setAttribute("role", "status");
+  d.innerHTML = `<span>✨ New version ready</span><button class="btn small" id="updGo">Update</button><button class="iconbtn" id="updX" aria-label="Later">✕</button>`;
+  document.body.appendChild(d);
+  d.querySelector("#updGo").onclick = () => { if (studyScreen && !confirm("Update now? Your answers so far are saved.")) return; applyUpdate(); };
+  d.querySelector("#updX").onclick = () => d.remove();
+}
+async function checkForUpdate(force) {
+  if (location.protocol === "file:") return;
+  if (!updReady && (force || Date.now() - lastUpdCheck >= 60e3)) {
+    lastUpdCheck = Date.now();
+    try {
+      const t = await (await fetch("./?build=" + Date.now(), { cache: "no-store" })).text(), m = /const BUILD = "([0-9a-f]{8,})"/.exec(t);
+      if (m && m[1] !== BUILD) { updReady = true; try { const g = await navigator.serviceWorker.getRegistration(); if (g) g.update().catch(() => {}); } catch (e) {} }
+    } catch (e) {}
+  }
+  if (!updReady) return;
+  if (quietMoment()) applyUpdate(); else showUpdateBar();
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { lastVisibleAt = Date.now(); checkForUpdate(); } });
+/* tiny on-screen error reporter: real-device errors become visible (message + build id), dismissible */
+const errSeen = new Set();
+function reportError(msg) {
+  msg = String(msg || "Unknown error").slice(0, 240);
+  if (/ResizeObserver|sw\.js load failed|Load failed|NetworkError|Failed to fetch|AbortError|NotAllowedError|play\(\)|The operation was aborted|Script error\.?$/i.test(msg) || errSeen.has(msg)) return;
+  errSeen.add(msg);
+  try {
+    const d = document.createElement("div"); d.className = "errtoast"; d.setAttribute("role", "alert");
+    d.innerHTML = `<div><b>Something went wrong</b><br><small>${esc(msg)}</small><br><small class="muted">build ${BUILD.slice(0, 8)}</small></div><button class="iconbtn" aria-label="Dismiss">✕</button>`;
+    d.querySelector("button").onclick = () => d.remove();
+    document.body.appendChild(d); setTimeout(() => d.remove(), 20000);
   } catch (e) {}
 }
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkForUpdate(); });
-window.__N5 = { combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
+addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
+window.__N5 = { kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

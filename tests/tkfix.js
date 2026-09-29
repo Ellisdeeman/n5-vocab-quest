@@ -57,6 +57,13 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
  await p.evaluate(()=>Promise.all(document.getAnimations().filter(a=>!a.effect||!a.effect.target||!a.effect.target.classList.contains('kjst')).map(a=>a.finished.catch(()=>0))));
  const box2=await p.evaluate(()=>{const b=document.querySelector('.modal .box').getBoundingClientRect(),d=document.querySelector('#kjClose').getBoundingClientRect();return {bb:Math.round(b.bottom),db:Math.round(d.bottom),h:innerHeight,sw:document.documentElement.scrollWidth}});
  ok('320x568: Done visible, no overflow',box2.db<=box2.bb&&box2.bb<=box2.h&&box2.sw<=320,JSON.stringify(box2));
+ await p.evaluate(()=>document.querySelectorAll('.modal').forEach(m=>m.remove()));
+ // word-reading question never offers a second valid reading of the same word as a "wrong" option
+ await p.tap('#tabLevels');await p.waitForTimeout(200);await p.tap('.lvlist .lvcard[data-lv=n5]');await p.waitForSelector('#kjOpen');await p.waitForFunction(()=>__N5.KJL.n5.loaded);
+ await p.tap('#kjOpen');await p.waitForSelector('button.mode[data-km=wr]');await p.tap('button.mode[data-km=k2m]').catch(()=>{});await p.waitForTimeout(300);
+ const amb=await p.evaluate(()=>{if(!document.querySelector('#qhost')){const h=document.createElement('div');h.id='qhost';document.body.appendChild(h);}let bad=[];for(const c of ['九','人'])for(let i=0;i<40;i++){__N5.kjRender('wr',__N5.KJ[c],()=>{});const pr=document.querySelector('#qhost .prompt').textContent;const o=[...document.querySelectorAll('#qhost .choice')].map(b=>b.textContent.replace(/^\d/,''));
+   const valid=new Set();for(const k in __N5.KJ)for(const x of __N5.KJ[k].ex||[])if(x[1]===pr)valid.add(x[2]);if(o.filter(x=>valid.has(x)).length!==1)bad.push(pr+':'+o.join('/'));}return bad.slice(0,3);});
+ ok('word reading: exactly one valid reading among the options (九 きゅう/く, ～人 じん/にん)',Array.isArray(amb)&&amb.length===0,JSON.stringify(amb));
  ok('no page errors',p.errs.length===0,JSON.stringify(p.errs.slice(0,3)));
  console.log('SUMMARY',BR,R.filter(x=>x).length,'/',R.length);await b.close();
 })().catch(e=>{console.log('CRASH',e.message.slice(0,500));process.exit(1)});
