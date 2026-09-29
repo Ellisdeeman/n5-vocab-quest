@@ -310,6 +310,15 @@ body{overflow-x:clip}
 .lvmix{color:var(--lc);font-size:22px;display:flex}
 .settingspage .box{background:var(--card);border-radius:var(--r);padding:4px 16px;box-shadow:var(--shadow);max-height:none!important;overflow:visible!important}
 .settingspage .box>h2:first-child{display:none}
+.gseg{flex-wrap:wrap;min-width:0;max-width:100%}.gseg button{min-width:44px;min-height:36px}
+#gMin{margin-left:auto}.box .row input[type=number]{font-size:16px;min-height:40px;width:84px}
+.pathbar{margin:10px 0 6px;padding:10px 12px;border-radius:14px;background:var(--fill)}
+.pathsteps{display:flex;align-items:center;gap:0;flex-wrap:nowrap;overflow:hidden;margin-bottom:6px}
+.pathsteps span{font-size:.72rem;font-weight:700;padding:3px 7px;border-radius:999px;color:var(--label2);background:transparent;white-space:nowrap}
+.pathsteps span.done{color:var(--c)}.pathsteps span.cur{background:var(--c);color:#fff}.pathsteps span.ov{outline:2px dashed var(--c);outline-offset:-2px}
+.pathsteps i{flex:1;min-width:4px;height:2px;background:var(--sep)}
+.pathtxt{font-size:.82rem;color:var(--label2);margin-bottom:6px}.pathtxt b{color:var(--label)}
+.newtag{display:inline-block;font-size:.7rem;font-weight:800;color:#fff;background:var(--accent);border-radius:6px;padding:1px 6px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -1048,7 +1057,7 @@ function renderTyping(w, onAnswer, opts = {}) {
 let cleanup = null;
 let curView = null;
 let curTab = "home";
-const TAB_OF = () => new Map([[home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"]]);
+const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", a.length === 1 ? `var(--${a[0]})` : "var(--indigo)"); }
 function go(fn) { curView = fn; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
@@ -1087,7 +1096,7 @@ function runSession(cfg) {
   const next = () => {
     clearTimeout(advancing); advancing = null; answered = false;
     let id, mode;
-    if (finite) { const it = cfg.nextItem(); if (!it) { progress(); cfg.onFinish(); return; } id = it.id; mode = it.mode; }
+    if (finite) { const it = cfg.nextItem(); if (!it) { progress(); cfg.onFinish(); return; } if (it.k) return nextKana(it); id = it.id; mode = it.mode; }
     else { id = pickNext(cfg.pool); mode = cfg.mode; }
     const w = WORDS[id];
     if (!w) { if (finite) { cfg.onItemDone(true, id, mode, true); return next(); } return; }   // word from a level that isn't loaded
@@ -1110,6 +1119,27 @@ function runSession(cfg) {
       : (mode === "listen" && S.listenType) ? renderTyping(w, onAnswer, { listen: true, peekNote: cfg.peekNote })
       : renderMC(mode, w, onAnswer, { peekNote: cfg.peekNote });
   };
+  const nextKana = it => {   // kana item inside a mixed (path) session
+    const K = KITEMS[it.id];
+    if (!K) { cfg.onItemDone(true, it.id, "kana", true); return next(); }
+    const seen = !!KS.cards[K.id], modes = ["k2r", "r2k"];
+    if (seen && canAudio()) modes.push("listen"); if (kcard(K.id).box >= 1) modes.push("type");
+    let mode = it.mode && (it.mode !== "listen" || canAudio()) ? it.mode : modes[rand(modes.length)];
+    if (!seen && mode !== "k2r") mode = "k2r";
+    const pool = KALL.filter(id => (KITEMS[id].s === K.s && KITEMS[id].g !== "ext") || id === K.id);
+    const onA = (ok, el, info) => {
+      answered = true; total++; if (ok) right++;
+      kGrade(K.id, ok);
+      comboHit(ok, el, 5, !!(info && info.idk));
+      cfg.onItemDone(ok, K.id, "kana:" + mode);
+      progress();
+      const fb = $("#fb"), nb = document.createElement("div"); nb.className = "btnrow"; nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb);
+      $("#nextBtn").onclick = next;
+      if (ok && S.autoAdvance) advancing = setTimeout(next, 1100);
+    };
+    q = mode === "type" ? kRenderType(K, onA) : kRenderMC(mode, K, pool, onA);
+    if (!seen) { const qt = $("#qhost .qtype"); if (qt) qt.insertAdjacentHTML("afterbegin", `<span class="newtag">NEW</span> `); }
+  };
   const onKey = e => {
     if (document.querySelector(".modal")) return;
     if (e.target.tagName === "TEXTAREA" || (e.target.tagName === "INPUT" && !e.target.disabled)) return;
@@ -1128,9 +1158,9 @@ function quiz(mode, pool = ALL_IDS, title, back) {
 }
 
 /* ---------- Daily session ---------- */
-function newWordsForToday(n, exclude) {
+function newWordsForToday(n, exclude, levels = activeLevels()) {
   // per selected level: unseen words from unlocked sets first (in set order), then locked ones; levels are interleaved round-robin
-  const lists = activeLevels().map(l => { const L = LV[l].sets, ordered = L.filter(setUnlocked).concat(L.filter(s => !setUnlocked(s))), out = [];
+  const lists = levels.filter(l => LV[l].loaded).map(l => { const L = LV[l].sets, ordered = L.filter(setUnlocked).concat(L.filter(s => !setUnlocked(s))), out = [];
     for (const s of ordered) for (const id of s.ids) if (!S.cards[id] && !exclude.has(id)) out.push(id);
     return out; });
   const out = [];
@@ -1147,30 +1177,43 @@ function buildDaily() {
   let size = reviews.length + news.length * 2;
   const weak = ALL_IDS.filter(id => S.cards[id] && !used.has(id)).sort((a, b) => card(a).box - card(b).box || card(a).due - card(b).due);
   const extra = weak.slice(0, Math.max(0, target - size));
-  const revItems = shuffle(reviews.concat(extra)).map(id => ({ id, mode: "mixed" }));
+  const revItems = shuffle(reviews.map(id => ({ id, mode: "mixed", rev: 1 })).concat(extra.map(id => ({ id, mode: "mixed" }))));
   const items = [];
   news.forEach((id, k) => { items.push({ id, mode: "meaning", isNew: 1 }); if (revItems.length) items.push(revItems.shift()); });
   items.push(...revItems);
   shuffle(news).forEach(id => items.push({ id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
   return { date: todayStr(), levels: activeLevels().join(","), items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length + extra.length };
 }
-function ensureDaily() {
-  const D = S.daily, untouched = D && D.pos === 0 && !D.done;
-  if (!D || D.date !== todayStr() || (untouched && (D.levels || "n5") !== activeLevels().join(","))) { S.daily = buildDaily(); save(); }
-  return S.daily;
+/* one "Today's session" per level selection (N5 alone, N4 alone, a mixed deck...), so switching levels never
+   hijacks or hides a session in progress; sessions from previous days are dropped */
+function dailies() {
+  if (!S.dailies || typeof S.dailies !== "object") S.dailies = {};
+  if (S.daily) { const k = S.daily.levels || "n5"; if (!S.dailies[k]) S.dailies[k] = S.daily; delete S.daily; }
+  const t = todayStr(); for (const k in S.dailies) if (!S.dailies[k] || S.dailies[k].date !== t) delete S.dailies[k];
+  return S.dailies;
 }
-function dailySession() {
-  const D = ensureDaily();
+function ensureDaily(k = activeLevels().join(",")) {
+  const m = dailies(); let D = m[k];
+  // an untouched session is rebuilt so it reflects what is due right now (e.g. after doing Due Reviews first)
+  if (!D || D.date !== todayStr() || (D.pos === 0 && !D.done)) { D = m[k] = k === "path" ? buildPath() : buildDaily(); D.levels = k; save(); }
+  return D;
+}
+function dailySession(back, key) {
+  const D = ensureDaily(key);
+  // skip due-review items that were already reviewed elsewhere since the session was built (they're no longer due)
+  const stale = it => it && it.rev && (it.k ? KS.cards[it.id] && kcard(it.id).due > Date.now() : S.cards[it.id] && card(it.id).due > Date.now());
+  const skipStale = () => { while (stale(D.items[D.pos])) D.items.splice(D.pos, 1); };
   if (!D.items.length) { toast("Nothing to study — every word is learned?! 🎉"); return go(home); }
   runSession({
     title: "📅 Today's session",
-    items: true,
+    items: true, back: typeof back === "function" ? back : home,
     progress: () => ({ done: D.pos, total: D.items.length }),
-    nextItem: () => D.items[D.pos] || null,
+    nextItem: () => { skipStale(); return D.items[D.pos] || null; },
     onItemDone: (ok, id, mode, skipped) => {
       const it = D.items[D.pos]; D.pos++;
       if (skipped) { save(); return; }
       if (ok) D.correct++;
+      else if (it && it.k) { if (!D.retried.includes("k:" + id)) { D.retried.push("k:" + id); D.items.push({ k: 1, id }); } }
       else if (!D.retried.includes(id)) { D.retried.push(id); D.items.push({ id, mode: it.mode === "typing" ? "typing" : "meaning" }); }
       save();
     },
@@ -1179,29 +1222,39 @@ function dailySession() {
       $("#qhost").innerHTML = `<div class="card"><div class="qtype">Done for today!</div><div class="big">✅</div>
         <p>${D.correct} correct answers · ${D.newCount} new words · 🔥 ${currentStreak()}-day streak</p><p class="sub">+50 XP session bonus</p>
         <div class="btnrow"><button class="btn" id="homeBtn">Home</button><button class="btn ghost" id="moreBtn">Extra practice</button></div></div>`;
-      $("#homeBtn").onclick = () => go(home);
-      $("#moreBtn").onclick = () => go(() => quiz("mixed", unlockedIds(), "🎲 Extra practice"));
+      $("#homeBtn").onclick = () => go(typeof back === "function" ? back : home);
+      $("#moreBtn").onclick = () => go(() => quiz("mixed", unlockedIds(), "🎲 Extra practice", typeof back === "function" ? back : undefined));
     }
   });
 }
 
+function dailyHeroHTML(D, path = false) {
+  const dots = Array.from({ length: 7 }, (_, k) => { const d = daysAgo(6 - k); return `<span class="${S.dailyHistory[d] ? "on" : ""}" title="${d}">${["S", "M", "T", "W", "T", "F", "S"][new Date(d + "T12:00").getDay()]}</span>`; }).join("");
+  return `<div class="hero ${D.done ? "done" : ""}"><div class="ic">${D.done ? "✅" : "📅"}</div>
+    <div><h2>${D.done ? "Done for today!" : "Today's session"} <span class="lvtag">${esc(path ? PNAME(D.stage || pathState().cur) : levelLabel())}</span></h2>
+    <p>${D.done ? `Great work — come back tomorrow to keep your 🔥 ${currentStreak()}-day streak.` : `${D.pos}/${D.items.length} done · ${D.reviewCount} reviews${path ? " (all levels & kana)" : ""} + ${D.newCount} new ${path ? "items" : "words"} · mixed modes`}</p>
+    ${path ? pathHTML() : ""}<div class="dots">${dots}</div></div>
+    <button class="btn" id="dailyBtn">${D.done ? (path && totalDue() ? "Review due" : "Extra practice") : D.pos ? "Continue ▶" : "Start ▶"}</button></div>`;
+}
+function bindDailyBtn(D, back, key) {
+  const b = $("#dailyBtn"); if (!b) return;
+  b.onclick = () => { sfx.click(); go(D.done ? (key === "path" ? () => dueOrPractice() : () => quiz("mixed", unlockedIds(), "🎲 Extra practice", back)) : () => dailySession(back, key)); };
+}
+function dueOrPractice() { if (totalDue()) dueView(); else { const ps = pathState(); if (ps.cur === "kana") kanaSession("k2r"); else if (LV[ps.cur].loaded) quiz("mixed", LV[ps.cur].ids.filter(id => S.cards[id]).concat(LV[ps.cur].ids).slice(0, 400), "🎲 Extra practice"); else quiz("mixed", unlockedIds(), "🎲 Extra practice"); } }
 /* ---------- Home ---------- */
 function home() {
   const m = masteredCount(), seen = seenCount(), total = ALL_IDS.length, now = Date.now();
   const due = ALL_IDS.filter(id => S.cards[id] && card(id).due <= now).length;
   const pct = m / total, C = 2 * Math.PI * 40;
   const counts = [0, 0, 0, 0, 0, 0]; ALL_IDS.forEach(id => counts[Math.min(5, card(id).box)]++);
-  const D = ensureDaily(), leeches = leechIds().length;
+  const pathReady = ensurePathLevels(() => { if (curView === home) go(home); });
+  const D = pathReady ? ensureDaily("path") : null, leeches = leechIds().length;
   const dots = Array.from({ length: 7 }, (_, k) => { const d = daysAgo(6 - k); return `<span class="${S.dailyHistory[d] ? "on" : ""}" title="${d}">${["S", "M", "T", "W", "T", "F", "S"][new Date(d + "T12:00").getDay()]}</span>`; }).join("");
   const unlockedCount = SETS.filter(setUnlocked).length, act = activeLevels();
   view.innerHTML = `
   <div class="largetitle">Today</div><p class="subtitle">${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} · studying <b>${esc(levelLabel())}</b></p>
   ${levelPickerHTML()}
-  <div class="hero ${D.done ? "done" : ""}"><div class="ic">${D.done ? "✅" : "📅"}</div>
-    <div><h2>${D.done ? "Done for today!" : "Today's session"} <span class="lvtag">${esc(levelLabel())}</span></h2>
-    <p>${D.done ? `Great work — come back tomorrow to keep your 🔥 ${currentStreak()}-day streak.` : `${D.pos}/${D.items.length} done · ${D.reviewCount} reviews + ${D.newCount} new words · mixed modes`}</p>
-    <div class="dots">${dots}</div></div>
-    <button class="btn" id="dailyBtn">${D.done ? "Extra practice" : D.pos ? "Continue ▶" : "Start ▶"}</button></div>
+  ${D ? dailyHeroHTML(D, true) : `<div class="hero"><div class="ic">📅</div><div><h2>Today's session</h2><p>Loading your path…</p></div><button class="btn" disabled>Start ▶</button></div>`}
   ${goalPanelHTML()}
   <div class="sechead">Study</div>
   <div class="grid">
@@ -1218,7 +1271,6 @@ function home() {
     <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${unlockedCount} unlocked</p></button>
     <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing + mnemonics</p></button>
     <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
-    <button class="mode" data-m="kana"><div class="ic jp">あア</div><h3>Kana Dojo</h3><p>Hiragana & katakana · ${kanaSummary()}</p></button>
   </div>
   <div class="panel">
     <h2>Progress <span class="lvtag">${esc(levelLabel())}</span></h2>
@@ -1241,10 +1293,10 @@ function home() {
   map.appendChild(frag);
   map.onclick = e => { if (e.target.dataset.id) wordModal(WORDS[+e.target.dataset.id]); };
   bindLevelPicker(); bindGoalPanel();
-  $("#dailyBtn").onclick = () => { sfx.click(); go(D.done ? () => quiz("mixed", unlockedIds(), "🎲 Extra practice") : dailySession); };
+  if (D) bindDailyBtn(D, home, "path");
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, kana: kanaHome };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView };
     go(() => special[m] ? special[m]() : quiz(m));
   });
 }
@@ -1261,28 +1313,28 @@ function lvRing(label, frac, color, size = 44) {
 }
 function kanaCardHTML(list) {
   const k = kanaStats(), tot = k.total || 1;
-  if (list) return `<div class="lvcard" data-lv="kana" role="button" tabindex="0" aria-label="Open Kana level (Kana Dojo)">${lvRing("かな", k.mast / tot, "var(--kana)")}
+  if (list) return `<div class="lvcard" data-lv="kana" role="button" tabindex="0" aria-label="Open Kana level">${lvRing("かな", k.mast / tot, "var(--kana)")}
       <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">Kana · ${k.total} characters</b><small>${k.mast} mastered · ${k.seen} seen${k.due ? ` · ${k.due} due` : ""} · hiragana & katakana</small>
       <span class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></span></span><span class="lvchk" aria-hidden="true">${I("chevronR")}</span></div>`;
-  return `<div class="lvcard" data-lv="kana" role="button" tabindex="0" title="Kana Dojo"><b>Kana</b><small>${k.mast}/${k.total} mastered</small><div class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></div><small class="muted">${k.seen} seen${k.due ? ` · ${k.due} due` : ""}</small></div>`;
+  return `<div class="lvcard" data-lv="kana" role="button" tabindex="0" title="Open Kana"><b>Kana</b><small>${k.mast}/${k.total} mastered</small><div class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></div><small class="muted">${k.seen} seen${k.due ? ` · ${k.due} due` : ""}</small></div>`;
 }
 function levelPickerHTML(list = false) {
   const act = activeLevels(), all = act.length === LEVELS.length;
   if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
-      return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Study ${LNAME(l)} only">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`)}
+      return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Open ${LNAME(l)}">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`)}
         <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">${LNAME(l)} · ${st.total} words</b><small>${st.mast} mastered · ${st.seen} seen${st.due ? ` · ${st.due} due` : ""}${LV[l].loaded || l === "n5" ? "" : " · tap to download"}</small>
         <span class="minibar"><i style="width:${st.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${st.mast / tot * 100}%"></i></span></span>
         <button class="lvchk" data-tog="${l}" aria-label="${on ? "Remove" : "Add"} ${LNAME(l)} ${on ? "from" : "to"} the mixed deck">${on ? "☑" : "☐"}</button></div>`; }).join("")}
       <div class="lvcard ${all ? "on" : ""}" data-lv="all" role="button" tabindex="0" aria-label="Mixed: all levels"><span class="lvring" style="--lc:var(--indigo)"><span class="lvmix">🎲</span></span><span class="lvtxt"><b style="font-size:1rem;color:var(--label)">Mixed · all levels</b><small>${Object.keys(S.cards).length} words seen in total</small></span></div></div>
-    <p class="lvhelp">Tap a level to study it. Tick the box to combine levels into one mixed deck. Currently: <b>${esc(levelLabel())}</b>.</p>`;
+    <p class="lvhelp">Tap a level to open it (Today&rsquo;s session, due reviews, all modes). Tick the box to combine levels into one mixed deck. Currently: <b>${esc(levelLabel())}</b>.</p>`;
   const card_ = l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
-    return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" title="Study ${LNAME(l)} only"><b>${LNAME(l)}</b>
+    return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" title="Open ${LNAME(l)}"><b>${LNAME(l)}</b>
       <small>${st.mast}/${st.total} mastered</small><div class="minibar"><i style="width:${st.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${st.mast / tot * 100}%"></i></div>
       <small class="muted">${st.seen} seen${st.due ? ` · ${st.due} due` : ""}${LV[l].loaded || l === "n5" ? "" : " · ⬇"}</small>
       <button class="lvchk" data-tog="${l}" title="${on ? "Remove from" : "Add to"} mixed deck" aria-label="combine ${LNAME(l)}">${on ? "☑" : "☐"}</button></div>`; };
   return `<div class="lvpanel"><div class="lvgrid">${kanaCardHTML(false)}${LEVELS.map(card_).join("")}
     <div class="lvcard mixall ${all ? "on" : ""}" data-lv="all" role="button" tabindex="0"><b>🎲 Mixed</b><small>all levels</small><small class="muted">${Object.keys(S.cards).length} seen</small></div></div>
-    <p class="muted lvhelp">Studying <b>${esc(levelLabel())}</b> · tap a level to study it, tick ☐ to combine levels into a mixed deck.</p></div>`;
+    <p class="muted lvhelp">Studying <b>${esc(levelLabel())}</b> · tap a level to open it, tick ☐ to combine levels into a mixed deck.</p></div>`;
 }
 function bindLevelPicker() {
   view.querySelectorAll(".lvcard").forEach(c => {
@@ -1290,13 +1342,13 @@ function bindLevelPicker() {
       sfx.click();
       if (c.dataset.lv === "kana") { go(kanaHome); return; }
       const t = e.target.closest("[data-tog]");
-      if (t) { const l = t.dataset.tog, cur = activeLevels(); setLevels(cur.includes(l) ? cur.filter(x => x !== l) : cur.concat(l)); return; }
-      setLevels(c.dataset.lv === "all" ? LEVELS.slice() : [c.dataset.lv]);
+      if (t) { e.stopPropagation(); const l = t.dataset.tog, cur = activeLevels(); setLevels(cur.includes(l) ? cur.filter(x => x !== l) : cur.concat(l)); return; }
+      if (c.dataset.lv === "all") setLevels(LEVELS.slice()); else openLevel(c.dataset.lv);   // tap a level = open its page (and study it alone)
     };
     c.onclick = act; c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(e); } };
   });
 }
-async function setLevels(ls) {
+async function setLevels(ls, render = true) {
   ls = LEVELS.filter(l => ls.includes(l)); if (!ls.length) { toast("Keep at least one level selected"); return; }
   const need = ls.filter(l => !LV[l].loaded);
   if (need.length) toast(`Loading ${need.map(LNAME).join(", ")}…`);
@@ -1304,8 +1356,51 @@ async function setLevels(ls) {
   if (good.length < ls.length) toast(`⚠️ Couldn't load ${ls.filter((l, i) => !ok[i]).map(LNAME).join(", ")} — offline? Open once online (or use "Download" in Settings).`);
   if (!good.length) return;
   S.levels = good; save(); refreshPool();
-  if (curView === home || curView === levelsView || !curView) go(curView || home);
+  if (render && (curView === home || curView === levelsView || !curView)) go(curView || home);
   renderCredits();
+  return good.length === ls.length;
+}
+/* ---------- Level page (N5...N1), presented like the Kana level ---------- */
+const LPAGE = {};
+const levelPageFn = l => LPAGE[l] || (LPAGE[l] = () => levelPage(l));
+let levelBusy = false;
+async function openLevel(l) {
+  if (levelBusy) return; levelBusy = true;
+  try {
+    if (activeLevels().join(",") !== l) { if (!(await setLevels([l], false))) return; }
+    else if (!LV[l].loaded && !(await loadLevel(l))) { toast(`⚠️ Couldn't load ${LNAME(l)} — offline?`); return; }
+    go(levelPageFn(l));
+  } finally { levelBusy = false; }
+}
+function levelPage(l) {
+  if (!LV[l].loaded || activeLevels().join(",") !== l) { setTimeout(() => openLevel(l)); view.innerHTML = `<div class="panel"><p>Loading ${LNAME(l)}…</p></div>`; return; }
+  const me = levelPageFn(l), st = levelStats(l), tot = st.total || 1, D = ensureDaily(), sec = dueSections()[l], leeches = leechIds().length;
+  view.innerHTML = topbar("Levels") + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`, 52)}${LNAME(l)}</div>
+    <p class="subtitle">${st.total} words · ${st.mast} mastered · ${st.seen} seen${st.due ? ` · <b>${st.due} due</b>` : ""}</p>
+    ${dailyHeroHTML(D)}
+    <div class="panel duepanel">${dueRow(l, "", `Due reviews · ${LNAME(l)}`, sec.r)}</div>
+    <div class="sechead">Study ${LNAME(l)}</div>
+    <div class="grid">
+      <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
+      <button class="mode" data-m="reverse"><div class="ic">🔄</div><h3>Reverse</h3><p>English → Japanese</p></button>
+      <button class="mode" data-m="reading"><div class="ic">📖</div><h3>Reading Quiz</h3><p>Kanji → kana (${KANJI_IDS.length} words)</p></button>
+      <button class="mode" data-m="typing"><div class="ic">⌨️</div><h3>Typing</h3><p>See English, type Japanese</p></button>
+      ${canAudio() ? `<button class="mode" data-m="listen"><div class="ic">🎧</div><h3>Listening</h3><p>Hear it, pick the meaning</p></button>` : ""}
+      <button class="mode" data-m="speed"><div class="ic">⚡</div><h3>Speed Round</h3><p>60 seconds! Best: ${S.bestSpeed}</p></button>
+      <button class="mode" data-m="match"><div class="ic">🧩</div><h3>Matching Pairs</h3><p>Match 6 words to meanings</p></button>
+      <button class="mode" data-m="mixed"><div class="ic">🎲</div><h3>Mixed Quiz</h3><p>All question types</p></button>
+      <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${SETS.filter(setUnlocked).length} unlocked</p></button>
+      <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing</p></button>
+      <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
+    </div>`;
+  bindBack(levelsView); setTab("levels");
+  bindDailyBtn(D, me);
+  view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
+  view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
+    sfx.click(); const m = b.dataset.m;
+    const special = { speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me) };
+    go(() => special[m] ? special[m]() : quiz(m, ALL_IDS, undefined, me));
+  });
 }
 /* ---------- Levels tab ---------- */
 function levelsView() {
@@ -1323,13 +1418,13 @@ function levelsView() {
 }
 
 /* ---------- Speed round ---------- */
-function speed() {
+function speed(back) {
   studyScreen = true;
   const DUR = 60;
   view.innerHTML = topbar("⚡ Speed Round", `<span class="timer" id="tleft">${DUR}</span>`) +
     `<div class="topbar"><div class="timebar"><div id="tbar" style="width:100%"></div></div><b id="sscore">0 pts</b></div>
      <div id="qhost"><div class="card"><div class="prompt en">Ready?</div><p class="sub">Answer as many JP → EN questions as you can in ${DUR} seconds.<br>Correct: +1 · Wrong: −2 s · 🤷 I don't know (key 0): −1 s</p><button class="btn" id="startBtn">Start!</button></div></div>`;
-  bindBack();
+  bindBack(typeof back === "function" ? back : undefined);
   let t0, timer, q = null, score = 0, wrongs = 0, skips = 0, penalty = 0, over = false, lastTick = DUR;
   const remaining = () => Math.max(0, DUR - (Date.now() - t0) / 1000 - penalty);
   const next = () => {
@@ -1350,7 +1445,7 @@ function speed() {
     const best = score > S.bestSpeed; if (best) { S.bestSpeed = score; save(); confetti(200); }
     addXP(score * 2);
     $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>correct · ${wrongs} wrong${skips ? ` · ${skips} skipped` : ""}${best ? " · <b>🏆 New best!</b>" : ` · best ${S.bestSpeed}`}</p><p class="sub">Bonus +${score * 2} XP</p><button class="btn" id="again">Play again</button></div>`;
-    $("#again").onclick = () => go(speed);
+    $("#again").onclick = () => go(() => speed(back));
   };
   $("#startBtn").onclick = () => {
     t0 = Date.now(); next();
@@ -1506,21 +1601,28 @@ function settings(page = false) {
       ${can ? `<button class="btn small" id="dlAll">Download</button>` : ""}</div>`; })()}
     <div class="row"><span>🎯 Daily study goal<br><small class="muted">${TS.goalMin} min${TS.goalItems ? ` · ${TS.goalItems} items` : ""}${TS.goalNew ? ` · ${TS.goalNew} new words` : ""}</small></span><button class="btn small sec" id="goalSet">Change</button></div>
     ${sw("unlockAll", "🔓 Unlock all word sets", "Skip progressive unlocking")}
+    <div class="row"><span>🧭 Today's session path<br><small class="muted">Auto: Kana → N5 → … → N1, advancing as you master each stage</small></span><select id="pathFocus" style="min-height:40px;font-size:16px">${["auto", ...PATH].map(v => `<option value="${v}" ${(S.pathFocus || "auto") === v ? "selected" : ""}>${v === "auto" ? "Auto path" : "Focus: " + PNAME(v)}</option>`).join("")}</select></div>
+    <div class="row"><span>🎯 Advance when mastered<br><small class="muted">share of a stage at "mastered" before the path moves on</small></span><span class="seg" id="pathAdv">${[70, 80, 90].map(v => `<button class="${(+S.pathAdv || 80) === v ? "on" : ""}" data-v="${v}">${v}%</button>`).join("")}</span></div>
+    <div class="row"><span>🔀 Overlap<br><small class="muted">start mixing in the next stage at 70% mastered</small></span><button class="switch ${S.pathOverlap === false ? "" : "on"}" id="pathOv" role="switch" aria-checked="${S.pathOverlap !== false}" aria-label="Overlap"></button></div>
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
     <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small" id="resetBtn" style="background:var(--bad)">Reset</button></div>
-    <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana Dojo SRS & unlocks</small></span><button class="btn small" id="resetKana" style="background:var(--bad)">Reset</button></div>
+    <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small" id="resetKana" style="background:var(--bad)">Reset</button></div>
     <div style="text-align:right;margin-top:12px"><button class="btn" id="closeS">Done</button></div></div>`;
   if (page) { view.innerHTML = `<div class="largetitle">Settings</div><p class="subtitle">Saved on this device</p>`; view.appendChild(md); } else document.body.appendChild(md);
   md.querySelectorAll(".switch").forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = !S[k]; b.classList.toggle("on", S[k]); save(); updateHeader(); if (k === "sound" && S.sound) sfx.good(); });
   md.querySelector("#newPer").onchange = e => {
     S.newPerDay = Math.max(0, Math.min(40, parseInt(e.target.value, 10) || 0)); e.target.value = S.newPerDay;
-    if (S.daily && S.daily.date === todayStr() && S.daily.pos === 0 && !S.daily.done) S.daily = null; // rebuild untouched session
+    const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; // rebuild untouched sessions
     save();
   };
   md.querySelector("#resetBtn").onclick = () => {
     if (confirm("Really reset ALL progress (including notes)? This cannot be undone.")) { const keep = { sound: S.sound, romaji: S.romaji, speech: S.speech, autoSpeak: S.autoSpeak, newPerDay: S.newPerDay, autoAdvance: S.autoAdvance, levels: S.levels }; S = Object.assign(defaultState(), keep); save(); md.remove(); toast("Progress reset"); go(home); }
   };
   const dl = md.querySelector("#dlAll"); if (dl) dl.onclick = () => { const ls = [...md.querySelectorAll(".dlLv:checked")].map(x => x.value); if (!ls.length) { toast("Pick at least one level"); return; } downloadAllAudio(dl, md.querySelector("#dlInfo"), ls); };
+  const dropUntouched = () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; };
+  md.querySelector("#pathFocus").onchange = e => { S.pathFocus = e.target.value; dropUntouched(); save(); toast(S.pathFocus === "auto" ? "Auto path" : `Today's session focuses on ${PNAME(S.pathFocus)}`); };
+  md.querySelector("#pathAdv").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.pathAdv = +b.dataset.v; dropUntouched(); save(); md.querySelectorAll("#pathAdv button").forEach(x => x.classList.toggle("on", x === b)); };
+  md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
   md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
@@ -1621,7 +1723,7 @@ function kCheckUnlocks() {
   }
 }
 function kGrade(id, ok) {
-  trackItem(false);
+  trackItem(!KS.cards[id]);
   const it = KITEMS[id], wasM = kMasteredRow(it.s, it.g);
   const c = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, kcard(id));
   if (ok) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; } else { c.box = 1; c.bad++; }
@@ -1715,7 +1817,8 @@ function kanaHome() {
   const cnt = s => { const ids = KALL.filter(id => KITEMS[id].s === s && (KITEMS[id].g !== "ext" || KS.ext)); return `${ids.filter(id => kcard(id).box >= MASTER_BOX).length}/${ids.length}`; };
   const pool = kPool();
   const kst = kanaStats();
-  view.innerHTML = topbar("Levels") + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing("かな", kst.mast / (kst.total || 1), "var(--kana)", 52)}Kana</div><p class="subtitle">Kana Dojo · hiragana & katakana · ${pool.length} selected · ${kst.mast}/${kst.total} mastered${kst.due ? ` · <b>${kst.due} due</b>` : ""}</p>` + `
+  view.innerHTML = topbar("Levels") + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing("かな", kst.mast / (kst.total || 1), "var(--kana)", 52)}Kana</div><p class="subtitle">Hiragana & katakana · ${kst.total} characters · ${kst.mast} mastered · ${kst.seen} seen${kst.due ? ` · <b>${kst.due} due</b>` : ""}</p>` + (() => { const sc = dueSections(); return `<div class="panel duepanel">${dueRow("kana:h", "あ", "Due reviews · Hiragana", sc["kana:h"].r)}${dueRow("kana:k", "ア", "Due reviews · Katakana", sc["kana:k"].r)}</div>`; })() + `<div class="sechead">Study Kana · ${pool.length} selected</div>
+
     <div class="seg" id="kseg">${[["h", "ひらがな Hiragana"], ["k", "カタカナ Katakana"], ["m", "Mixed"]].map(([k, t]) => `<button data-s="${k}" class="${KS.script === k ? "on" : ""}">${t}</button>`).join("")}</div>
     <p class="muted" style="margin:6px 0">Mastered: hiragana ${cnt("h")} · katakana ${cnt("k")}</p>
     <div class="grid">
@@ -1733,6 +1836,7 @@ function kanaHome() {
       <div class="row"><span>✨ Include extended katakana (ティ, ファ, ヴ…)</span><button class="switch ${KS.ext ? "on" : ""}" data-kk="ext"></button></div>
       <div id="krows"></div></div>`;
   bindBack(levelsView);
+  view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, kanaHome); });
   $("#kseg").onclick = e => { const b = e.target.closest("button"); if (!b) return; KS.script = b.dataset.s; ksave(); sfx.click(); go(kanaHome); };
   view.querySelectorAll("[data-kk]").forEach(b => b.onclick = () => { const k = b.dataset.kk; KS[k] = !KS[k]; ksave(); go(kanaHome); });
   const rows = $("#krows"), scripts = kScripts();
@@ -1985,7 +2089,7 @@ const timeDefault = () => ({ goalMin: 15, goalItems: 0, goalNew: 0, days: {} });
 let TS;
 try { TS = Object.assign(timeDefault(), JSON.parse(localStorage.getItem(TKEY) || "{}")); } catch (e) { TS = timeDefault(); }
 if (!TS.days || typeof TS.days !== "object") TS.days = {};
-let studyScreen = false, lastAct = Date.now(), tDirty = 0;
+let studyScreen = false, lastAct = Date.now(), tDirty = 0, lastTick = Date.now(), tickCarry = 0, lastDayShown = null;
 function tsave() { try { localStorage.setItem(TKEY, JSON.stringify(TS)); } catch (e) {} tDirty = 0; }
 const tday = (d = todayStr()) => TS.days[d] || (TS.days[d] = { sec: 0, items: 0, newW: 0 });
 const tget = d => TS.days[d] || { sec: 0, items: 0, newW: 0 };
@@ -2011,16 +2115,36 @@ function goalStreak() {
 }
 function trackItem(isNew) { const x = tday(); x.items++; if (isNew) x.newW++; tsave(); checkGoal(); }
 const markActive = () => { lastAct = Date.now(); };
-["pointerdown", "keydown", "touchstart", "wheel"].forEach(ev => addEventListener(ev, markActive, { passive: true, capture: true }));
+// iOS: touchend/click/input cover taps and on-screen-keyboard typing (IME composition doesn't always send keydown)
+["pointerdown", "pointerup", "keydown", "touchstart", "touchend", "click", "input", "wheel", "scroll"].forEach(ev => addEventListener(ev, markActive, { passive: true, capture: true }));
 const isTracking = () => studyScreen && document.visibilityState === "visible" && Date.now() - lastAct < IDLE_MS;
-setInterval(() => {
-  if (!isTracking()) return;
-  const x = tday(); x.sec++; tDirty++;
-  if (tDirty >= 10) tsave();
-  if (x.sec % 60 === 0) { checkGoal(); updateTimePill(); }
-}, 1000);
-document.addEventListener("visibilitychange", () => { if (tDirty) tsave(); if (document.visibilityState === "visible") markActive(); });
-addEventListener("pagehide", () => { if (tDirty) tsave(); });
+/* Wall-clock based: timers get throttled/paused on iOS (low-power mode, app switcher, locked screen), so each tick
+   adds the real elapsed time, capped at 5 s so a suspended/backgrounded gap is never counted as study. */
+function timeTick() {
+  const now = Date.now(), dt = Math.min(5000, Math.max(0, now - lastTick)); lastTick = now;
+  const d = todayStr();
+  if (lastDayShown !== d) { const first = lastDayShown === null; lastDayShown = d; if (!first) onDayChange(); }
+  if (!isTracking()) { tickCarry = 0; return; }
+  tickCarry += dt; const add = Math.floor(tickCarry / 1000); if (!add) return; tickCarry -= add * 1000;
+  const x = tday(d), before = Math.floor(x.sec / 60); x.sec += add; tDirty += add;
+  if (tDirty >= 5) tsave();
+  if (Math.floor(x.sec / 60) !== before) { checkGoal(); updateTimePill(); }
+}
+setInterval(timeTick, 1000);
+function onDayChange() {   // local midnight passed while the app stayed open: refresh header + non-study screens
+  if (tDirty) tsave(); updateTimePill();
+  if (!studyScreen && typeof curView === "function" && [home, statsView, dueView].includes(curView)) go(curView);
+}
+function flushTime() { timeTick(); if (tDirty) tsave(); }
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") { lastTick = Date.now(); tickCarry = 0; markActive(); updateTimePill(); if (typeof updateDueBadge === "function") updateDueBadge();
+    // returning to the app (iOS keeps standalone apps alive for days): refresh non-study screens so rings/counts aren't stale
+    if (!studyScreen && typeof curView === "function" && [home, statsView, dueView].includes(curView) && !document.querySelector(".modal")) go(curView);
+  } else flushTime();
+});
+addEventListener("pagehide", flushTime);
+addEventListener("freeze", flushTime);
+addEventListener("blur", () => { if (tDirty) tsave(); });
 const fmtMin = s => s >= 3600 ? `${Math.floor(s / 3600)}h ${Math.round(s % 3600 / 60)}m` : `${Math.round(s / 60)}m`;
 function updateTimePill() { const el = $("#sTime"); if (el) el.textContent = `${Math.floor(tget(todayStr()).sec / 60)}/${TS.goalMin}m`; }
 
@@ -2051,22 +2175,24 @@ function goalSettings(after) {
   const md = document.createElement("div"); md.className = "modal";
   const custom = !GOAL_OPTS.includes(TS.goalMin);
   md.innerHTML = `<div class="box" style="text-align:left"><h2 style="margin-top:0">🎯 Daily goal</h2>
-    <p class="muted" style="font-size:.85rem">Active study time counts while you're on a quiz / game screen with the tab visible (pauses after 60 s without input). Shared by all levels and Kana Dojo.</p>
-    <div class="row"><span>⏱️ Minutes per day</span><span class="seg" id="gMin">${GOAL_OPTS.map(m => `<button class="${m === TS.goalMin ? "on" : ""}" data-m="${m}">${m}</button>`).join("")}<button class="${custom ? "on" : ""}" data-m="custom">…</button></span></div>
-    <div class="row" id="gCustomRow" style="${custom ? "" : "display:none"}"><span>Custom minutes</span><input type="number" id="gCustom" min="1" max="600" value="${TS.goalMin}"></div>
-    <div class="row"><span>🔁 Items reviewed per day<br><small class="muted">0 = no item goal</small></span><input type="number" id="gItems" min="0" max="2000" value="${TS.goalItems}"></div>
-    <div class="row"><span>🆕 New words per day<br><small class="muted">0 = no new-word goal</small></span><input type="number" id="gNew" min="0" max="200" value="${TS.goalNew}"></div>
+    <p class="muted" style="font-size:.85rem">Active study time counts while you're on a quiz / game screen with the tab visible (pauses after 60 s without input). Shared by all levels, including Kana.</p>
+    <div class="row"><span>⏱️ Minutes per day</span><span class="seg gseg" id="gMin">${GOAL_OPTS.map(m => `<button class="${m === TS.goalMin ? "on" : ""}" data-m="${m}">${m}</button>`).join("")}<button class="${custom ? "on" : ""}" data-m="custom">…</button></span></div>
+    <div class="row" id="gCustomRow" style="${custom ? "" : "display:none"}"><span>Custom minutes</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gCustom" min="1" max="600" value="${TS.goalMin}"></div>
+    <div class="row"><span>🔁 Items reviewed per day<br><small class="muted">0 = no item goal</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gItems" min="0" max="2000" value="${TS.goalItems}"></div>
+    <div class="row"><span>🆕 New words per day<br><small class="muted">0 = no new-word goal</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gNew" min="0" max="200" value="${TS.goalNew}"></div>
     <div style="text-align:right;margin-top:12px"><button class="btn" id="gDone">Done</button></div></div>`;
   document.body.appendChild(md);
   const setMin = v => { TS.goalMin = Math.max(1, Math.min(600, v | 0 || 15)); tsave(); };
   md.querySelector("#gMin").onclick = e => { const b = e.target.closest("button"); if (!b) return; md.querySelectorAll("#gMin button").forEach(x => x.classList.toggle("on", x === b));
     if (b.dataset.m === "custom") { md.querySelector("#gCustomRow").style.display = ""; md.querySelector("#gCustom").focus(); } else { md.querySelector("#gCustomRow").style.display = "none"; setMin(+b.dataset.m); } };
-  md.querySelector("#gCustom").onchange = e => { setMin(parseInt(e.target.value, 10)); e.target.value = TS.goalMin; };
+  md.querySelector("#gCustom").onchange = e => { if (md.querySelector("#gCustomRow").style.display === "none") return; setMin(parseInt(e.target.value, 10)); e.target.value = TS.goalMin; };
+  md.querySelector("#gCustom").oninput = e => { const v = parseInt(e.target.value, 10); if (v >= 1) setMin(v); };
   md.querySelector("#gItems").onchange = e => { TS.goalItems = Math.max(0, Math.min(2000, parseInt(e.target.value, 10) || 0)); e.target.value = TS.goalItems; tsave(); };
   md.querySelector("#gNew").onchange = e => { TS.goalNew = Math.max(0, Math.min(200, parseInt(e.target.value, 10) || 0)); e.target.value = TS.goalNew; tsave(); };
   md.onclick = e => { if (e.target === md || e.target.id === "gDone") { md.querySelectorAll("input").forEach(i => i.dispatchEvent(new Event("change"))); md.remove(); checkGoal(); after ? after() : go(curView || home); } };
 }
-function statsView(range) { historyView(range || 7, true); }
+let statsRange = 7;
+function statsView(range) { historyView(range || statsRange, true); }
 function historyView(range = 7, asTab = false) {
   const days = Array.from({ length: range }, (_, k) => daysAgo(range - 1 - k)), vals = days.map(d => tget(d).sec);
   const all = Object.entries(TS.days).filter(([, x]) => x.sec > 0 || x.items > 0);
@@ -2076,7 +2202,7 @@ function historyView(range = 7, asTab = false) {
   const metDays = days.filter(goalMet).length;
   const segH = `<span class="seg" id="hseg" style="min-width:180px"><button class="${range === 7 ? "on" : ""}" data-r="7">7 days</button><button class="${range === 30 ? "on" : ""}" data-r="30">30 days</button></span>`;
   const L = levelOf(S.xp), lo = xpForLevel(L), hi = xpForLevel(L + 1);
-  view.innerHTML = (asTab ? `<div class="largetitle">Stats</div><p class="subtitle">Shared across all levels and Kana Dojo</p>
+  view.innerHTML = (asTab ? `<div class="largetitle">Stats</div><p class="subtitle">Shared across all levels, including Kana</p>
     <div class="stathead"><div class="st"><small>⭐ Level</small><b>${L}</b><div class="minibar"><i style="width:${(S.xp - lo) / (hi - lo) * 100}%;background:var(--yellow)"></i></div><small>${S.xp} XP · ${hi - S.xp} to Lv ${L + 1}</small></div>
       <div class="st"><small>🔥 Streak</small><b>${currentStreak()} d</b><small>study days in a row</small></div>
       <div class="st"><small>🏆 Mastered</small><b>${Object.values(S.cards).filter(c => c.box >= MASTER_BOX).length}</b><small>words, all levels</small></div></div>
@@ -2102,7 +2228,7 @@ function historyView(range = 7, asTab = false) {
     $("#themeSeg2").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); view.querySelectorAll("#themeSeg2 button").forEach(x => x.classList.toggle("on", x === b)); };
     bindGoalPanel();
   } else bindBack();
-  $("#hseg").onclick = e => { const b = e.target.closest("button"); if (b) { const r = +b.dataset.r; go(asTab ? statsView : () => historyView(r)); if (asTab) historyView(r, true); } };
+  $("#hseg").onclick = e => { const b = e.target.closest("button"); if (b) { const r = +b.dataset.r; if (asTab) { statsRange = r; go(statsView); } else go(() => historyView(r)); } };
 }
 
 /* ================= Due reviews: per level / word set / leeches / kana, review only what's due ================= */
@@ -2179,23 +2305,23 @@ function renderDue() {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review); });
   updateDueBadge();
 }
-function startDueReview(key) {
+function startDueReview(key, back = dueView) {
   const secs = dueSections();
   if (key === "all") {
     const v = dueScan().ids.filter(id => WORDS[id]), k = kanaDueScan().ids;
-    const kanaPart = () => k.length ? go(() => kanaDueSession(k, "⏰ Kana due reviews", dueView)) : go(dueView);
-    if (v.length) go(() => dueSession(v, "⏰ Everything due", dueView, k.length ? () => { toast(`Words done — now ${batchOf(k.length)} kana`); kanaPart(); } : null));
+    const kanaPart = () => k.length ? go(() => kanaDueSession(k, "⏰ Kana due reviews", back)) : go(back);
+    if (v.length) go(() => dueSession(v, "⏰ Everything due", back, k.length ? () => { toast(`Words done — now ${batchOf(k.length)} kana`); kanaPart(); } : null));
     else kanaPart();
     return;
   }
   const s = secs[key]; if (!s || !s.r.ids.length) { toast("Nothing due here"); return; }
   const title = `⏰ ${s.lvl ? LNAME(s.lvl) + " · " : ""}${s.name} · due`;
-  if (s.kind === "k") go(() => kanaDueSession(s.r.ids, title, dueView));
-  else go(() => dueSession(s.r.ids.filter(id => WORDS[id]), title, dueView));
+  if (s.kind === "k") go(() => kanaDueSession(s.r.ids, title, back));
+  else go(() => dueSession(s.r.ids.filter(id => WORDS[id]), title, back));
 }
 function dueFinishCard(correct, n, back, extra = "") {
   $("#qhost").innerHTML = `<div class="card"><div class="qtype">Reviews done!</div><div class="big">✅</div><p>${correct}/${n} correct${extra}</p>
-    <div class="btnrow"><button class="btn" id="dueBack">⏰ Due reviews</button><button class="btn ghost" id="homeBtn2">Home</button></div></div>`;
+    <div class="btnrow"><button class="btn" id="dueBack">${back && back !== dueView ? "Done" : "⏰ Due reviews"}</button><button class="btn ghost" id="homeBtn2">Home</button></div></div>`;
   sfx.level(); confetti(120);
   $("#dueBack").onclick = () => go(back || dueView); $("#homeBtn2").onclick = () => go(home);
 }
@@ -2248,6 +2374,80 @@ function kanaDueSession(ids, title, back) {
   cleanup = () => { removeEventListener("keydown", onKey); clearTimeout(adv); };
   next();
 }
+
+/* ================= Guided path: Home's "Today's session" runs Kana → N5 → N4 → N3 → N2 → N1 =================
+   New items come from the current frontier stage; due reviews from EVERY stage studied so far (vocab + kana) come
+   first. The frontier advances when a stage reaches S.pathAdv % mastered; with overlap on, the next stage's new
+   items start mixing in (half of the new slots) once the current one reaches S.pathOverlapAt %. */
+const PATH = ["kana", ...LEVELS];
+const PNAME = st => st === "kana" ? "Kana" : LNAME(st);
+const kanaPathOrder = () => KALL.filter(id => KITEMS[id].g !== "ext" && KITEMS[id].s === "h").concat(KALL.filter(id => KITEMS[id].g !== "ext" && KITEMS[id].s === "k"));
+function stageStats(st) {
+  if (st === "kana") { const ids = kanaPathOrder(); return { total: ids.length, mast: ids.filter(id => kcard(id).box >= MASTER_BOX).length, seen: ids.filter(id => KS.cards[id]).length }; }
+  return levelStats(st);
+}
+const stageFrac = st => { const x = stageStats(st); return x.total ? x.mast / x.total : 0; };
+const pathAdv = () => Math.max(50, Math.min(100, +S.pathAdv || 80)) / 100;
+const pathOverlapAt = () => S.pathOverlap === false ? null : Math.min(pathAdv(), Math.max(40, +S.pathOverlapAt || 70) / 100);
+function pathState() {
+  const manual = S.pathFocus && S.pathFocus !== "auto" && PATH.includes(S.pathFocus);
+  let i = manual ? PATH.indexOf(S.pathFocus) : PATH.findIndex(st => stageFrac(st) < pathAdv());
+  if (i < 0) i = PATH.length - 1;                               // everything mastered: stay on N1
+  const cur = PATH[i], next = PATH[i + 1] || null, frac = stageFrac(cur), ov = pathOverlapAt();
+  const overlap = !manual && next && ov != null && frac >= ov;
+  return { cur, next, frac, manual, overlap, adv: pathAdv(), ov };
+}
+/* vocab levels the path needs in memory: frontier (+ next when overlapping) and every level with due cards */
+function pathLevels() {
+  const ps = pathState(), need = new Set();
+  [ps.cur, ps.overlap ? ps.next : null].forEach(st => { if (st && st !== "kana") need.add(st); });
+  for (const l of LEVELS) { const lo = LOFF[l]; if (dueScan(id => id >= lo && id < lo + 10000).ids.length) need.add(l); }
+  return [...need];
+}
+let pathLoading = null;
+function ensurePathLevels(then) {   // async: load what the path needs, then re-render
+  const miss = pathLevels().filter(l => !LV[l].loaded && !(LV[l].failed > 1));
+  if (!miss.length) return true;
+  if (!pathLoading) pathLoading = Promise.all(miss.map(l => loadLevel(l).then(ok => { if (!ok) LV[l].failed = (LV[l].failed || 0) + 1; }))).then(() => { pathLoading = null; if (then) then(); });
+  return false;
+}
+function newKanaForPath(n, exclude) { return kanaPathOrder().filter(id => !KS.cards[id] && !exclude.has("k:" + id)).slice(0, n); }
+function buildPath() {
+  const target = S.dailyTarget || 20, nNew = Math.max(0, Math.min(40, S.newPerDay | 0)), ps = pathState();
+  // 1) due reviews from all stages (kana + every level), weakest first; capped so a backlog doesn't make an endless session
+  const kd = kanaDueScan().ids.map(id => ({ k: 1, id, rev: 1 }));
+  const vd = dueScan().ids.filter(id => WORDS[id]).map(id => ({ id, mode: "mixed", rev: 1 }));
+  const cap = Math.max(target, 40), reviews = kd.concat(vd).sort((a, b) => (a.k ? kcard(a.id).box : card(a.id).box) - (b.k ? kcard(b.id).box : card(b.id).box)).slice(0, cap);
+  // 2) new items from the frontier (half from the next stage when overlapping)
+  const used = new Set(reviews.map(it => it.k ? "k:" + it.id : it.id));
+  const split = ps.overlap ? [[ps.cur, Math.ceil(nNew / 2)], [ps.next, Math.floor(nNew / 2)]] : [[ps.cur, nNew]];
+  const news = [];
+  for (const [st, n] of split) {
+    if (!n) continue;
+    if (st === "kana") newKanaForPath(n, used).forEach(id => { used.add("k:" + id); news.push({ k: 1, id }); });
+    else if (LV[st].loaded) newWordsForToday(n, used, [st]).forEach(id => { used.add(id); news.push({ id }); });
+  }
+  // if the frontier ran out of new items (e.g. all kana seen but not yet mastered), fill from the next stage
+  if (news.length < nNew && ps.next && !ps.manual) {
+    const st = ps.next, n = nNew - news.length;
+    if (st === "kana") newKanaForPath(n, used).forEach(id => news.push({ k: 1, id }));
+    else if (LV[st].loaded) newWordsForToday(n, used, [st]).forEach(id => { used.add(id); news.push({ id }); });
+  }
+  // 3) order: reviews first, then each new item is introduced and recalled again at the end
+  const items = shuffle(reviews.slice());
+  news.forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: "k2r", isNew: 1 } : { id: it.id, mode: "meaning", isNew: 1 }));
+  shuffle(news.slice()).forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: Math.random() < 0.5 ? "r2k" : "type" } : { id: it.id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
+  return { date: todayStr(), levels: "path", stage: ps.cur, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length };
+}
+function pathHTML() {
+  const ps = pathState(), pct = Math.round(ps.frac * 100), advP = Math.round(ps.adv * 100);
+  const st = stageStats(ps.cur);
+  const where = ps.cur === "kana" ? (kanaPathOrder().filter(id => KITEMS[id].s === "h").every(id => KS.cards[id]) ? "katakana" : "hiragana") : "";
+  return `<div class="pathbar" style="--c:var(--${ps.cur})">
+    <div class="pathsteps">${PATH.map(s => `<span class="${s === ps.cur ? "cur" : PATH.indexOf(s) < PATH.indexOf(ps.cur) ? "done" : ""} ${ps.overlap && s === ps.next ? "ov" : ""}" style="--c:var(--${s})">${PNAME(s)}</span>`).join('<i></i>')}</div>
+    <div class="pathtxt"><b>${ps.manual ? "Focus" : "Path"}: ${PNAME(ps.cur)}</b>${where ? ` · ${where}` : ""} · ${st.mast}/${st.total} mastered (${pct}%)${ps.next ? ps.manual ? ` · manual focus (Settings)` : ` · ${PNAME(ps.next)} unlocks at ${advP}%${ps.overlap ? ` · ${PNAME(ps.next)} words mixing in` : ""}` : ""}</div>
+    <div class="minibar"><i style="width:${Math.min(100, ps.frac / ps.adv * 100)}%;background:var(--c)"></i></div></div>`;
+}
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { sfx.click(); go({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView }[b.dataset.tab]); });
@@ -2262,12 +2462,28 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
 }
 if (HAS_SPEECH) setTimeout(() => { loadVoices(); }, 800);
 if (location.protocol !== "file:") { const before = canAudio(); probeAudio(() => { if (canAudio() !== before && (curView === home || curView === kanaHome)) go(curView); }); }
-if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
-window.__N5 = { settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
+/* iOS keeps a Home-Screen app's page alive for days, so a new version would never load: on resume, compare the
+   build id of the live index.html with ours and reload (right away on a non-study screen, else after the session) */
+const BUILD = "398038967022";
+let lastUpdCheck = 0, updWait = null;
+async function checkForUpdate(force) {
+  if (location.protocol === "file:" || (!force && Date.now() - lastUpdCheck < 60e3)) return; lastUpdCheck = Date.now();
+  try {
+    const t = await (await fetch("./?build=" + Date.now(), { cache: "no-store" })).text(), m = /const BUILD = "([0-9a-f]{8,})"/.exec(t);
+    if (!m || m[1] === BUILD) return;
+    try { const g = await navigator.serviceWorker.getRegistration(); if (g) g.update(); } catch (e) {}
+    const doReload = () => { if (!studyScreen && !document.querySelector(".modal")) { flushTime(); save(); location.reload(); return true; } return false; };
+    if (!doReload() && !updWait) updWait = setInterval(() => { if (doReload()) clearInterval(updWait); }, 2000);
+  } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkForUpdate(); });
+window.__N5 = { pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   const want = new Set(S.levels);
-  if (S.daily && S.daily.date === todayStr() && !S.daily.done) (S.daily.items || []).forEach(it => want.add(lvlOf(it.id)));
+  const dm = dailies(), dk = activeLevels().join(","); if (dm[dk] && !dm[dk].done) (dm[dk].items || []).forEach(it => want.add(lvlOf(it.id)));
+  try { pathLevels().forEach(l => want.add(l)); if (dm.path && !dm.path.done) dm.path.items.forEach(it => { if (!it.k) want.add(lvlOf(it.id)); }); } catch (e) {}
   refreshPool(); renderCredits();
   const extra = [...want].filter(l => !LV[l].loaded);
   if (extra.length) { view.innerHTML = `<div class="panel" style="text-align:center"><div class="big">⏳</div><p>Loading ${extra.map(LNAME).join(", ")}…</p></div>`; await Promise.all(extra.map(loadLevel));

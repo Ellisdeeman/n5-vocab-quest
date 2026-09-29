@@ -2,7 +2,7 @@
    - audio/*: cache-first (cached after first play or via "Download all audio"), serves Range requests from cache
    - data/nX.json?v=<hash>: cache-first per version (old versions of the same file are dropped); offline falls back to any cached version
    - HTML/navigation: network-first, falls back to cache only when offline (never pins a stale index.html) */
-const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v1", DATA_CACHE = "n5vq-data-v1";
+const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v2", DATA_CACHE = "n5vq-data-v1";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k !== AUDIO_CACHE && k !== PAGE_CACHE && k !== DATA_CACHE) await caches.delete(k);
