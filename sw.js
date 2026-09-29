@@ -56,7 +56,7 @@ self.addEventListener("fetch", e => {
     })());
     return;
   }
-  if (req.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html")) {
+  if (req.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html") || url.pathname.endsWith(".webmanifest") || url.pathname.includes("/icons/")) {
     e.respondWith(fetch(url.href, { cache: "no-cache", credentials: "same-origin" }).then(r => {
       if (r.ok) { const c = r.clone(); caches.open(PAGE_CACHE).then(cache => cache.put(url.origin + url.pathname, c)); }
       return r;
