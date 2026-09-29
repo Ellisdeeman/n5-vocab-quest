@@ -10,10 +10,10 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
  await p.goto(URL+'?t='+Date.now());await p.waitForTimeout(800);await p.clock.pauseAt(new Date('2026-09-29T21:00:30-04:00'));
  const ev=f=>p.evaluate(f);const tap=async s=>{await p.tap(s);await p.waitForTimeout(250);};
  const title=async()=>p.evaluate(()=>{const e=document.querySelector('.largetitle')||document.querySelector('.topbar b');return e?e.textContent.trim():''});
- const answerAll=async(max=120)=>{for(let i=0;i<max;i++){if(await p.$('#dueBack, #homeBtn, #homeBtn2'))return i;
+ const answerAll=async(max=120)=>{for(let i=0;i<max;i++){if(await p.$('#dueBack, #homeBtn, #homeBtn2'))return i;if(await p.$('#kjGot')){await p.tap('#kjGot');await p.waitForTimeout(80);continue;}
    const idk=await p.$('button.idk:not([disabled])'),give=await p.$('#giveBtn:not([disabled])');if(idk)await idk.tap();else if(give)await give.tap();else return -1;
    await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');await p.waitForTimeout(60);}return -2;};
- const answerN=async n=>{for(let i=0;i<n;i++){const idk=await p.$('button.idk:not([disabled])'),give=await p.$('#giveBtn:not([disabled])');if(idk)await idk.tap();else await give.tap();await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');await p.waitForTimeout(60);}};
+ const answerN=async n=>{for(let i=0;i<n;i++){if(await p.$('#kjGot')){await p.tap('#kjGot');await p.waitForTimeout(80);i--;continue;}const idk=await p.$('button.idk:not([disabled])'),give=await p.$('#giveBtn:not([disabled])');if(idk)await idk.tap();else await give.tap();await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');await p.waitForTimeout(60);}};
  // A: N5 chip on Home opens the N5 level page with a working Today's session button (touch taps)
  await tap('.lvgrid .lvcard[data-lv=n5]');
  ok('home N5 chip opens N5 level page',(await title()).includes('N5')&&!!(await p.$('#dailyBtn')),await title());
@@ -26,7 +26,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
  await tap('#tabLevels');await tap('.lvlist .lvcard[data-lv=n4]');await p.waitForFunction(()=>document.querySelector('.largetitle')&&/N4/.test(document.querySelector('.largetitle').textContent),null,{timeout:15000});
  ok('Levels tab N4 row opens N4 page',true);
  await tap('#dailyBtn');await answerN(2);
- const d4=await ev(()=>{const D=__N5.dailies().n4;return {pos:D.pos,all:D.items.every(it=>it.id>=10000&&it.id<20000),n:D.items.length}});
+ const d4=await ev(()=>{const D=__N5.dailies().n4;return {pos:D.pos,all:D.items.every(it=>it.j?__N5.KJ[it.id]&&__N5.KJ[it.id].lvl==='n4':it.id>=10000&&it.id<20000),n:D.items.length}});
  ok('N4 session only N4 words',d4.all&&d4.pos===2,JSON.stringify(d4));
  await tap('#backBtn');await tap('#tabLevels');await tap('.lvlist .lvcard[data-lv=n5]');
  ok('N5 session progress preserved after N4',(await ev(()=>__N5.dailies().n5.pos))===3&&(await p.textContent('#dailyBtn')).includes('Continue'));

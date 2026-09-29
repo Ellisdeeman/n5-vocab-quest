@@ -319,6 +319,31 @@ body{overflow-x:clip}
 .pathsteps i{flex:1;min-width:4px;height:2px;background:var(--sep)}
 .pathtxt{font-size:.82rem;color:var(--label2);margin-bottom:6px}.pathtxt b{color:var(--label)}
 .newtag{display:inline-block;font-size:.7rem;font-weight:800;color:#fff;background:var(--accent);border-radius:6px;padding:1px 6px;vertical-align:middle}
+/* ---------- Kanji ---------- */
+.kjcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:0;border-radius:var(--r);padding:12px 16px;margin:12px 0;box-shadow:var(--shadow);color:var(--label);min-height:64px;cursor:pointer}
+.kjcard small{color:var(--label2)}.kjcard .grow{flex:1}.kjcard svg:last-child{color:var(--label3);width:18px;height:18px}
+.kjgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px;margin:8px 0}
+.kjtile{aspect-ratio:1;min-height:48px;border-radius:12px;border:0;background:var(--card);box-shadow:var(--shadow);font-size:1.6rem;color:var(--label);cursor:pointer}
+.kjtile.locked{opacity:.35}.kjtile.b1,.kjtile.b0{box-shadow:inset 0 -3px 0 var(--orange)}.kjtile.b2,.kjtile.b3{box-shadow:inset 0 -3px 0 var(--accent)}.kjtile.b4,.kjtile.b5{box-shadow:inset 0 -3px 0 var(--good)}
+.kjlearn .kjtop{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.kjsvgwrap{width:min(46vw,190px);aspect-ratio:1;background:var(--fill);border-radius:16px;flex:none}
+.kjsvg{width:100%;height:100%}.kjsvg path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.kjsvg .kjgrid{stroke:var(--sep);stroke-width:.6;stroke-dasharray:2 2}.kjsvg .kjghost{stroke:var(--label3);stroke-width:3;opacity:.35}
+.kjsvg .kjst{stroke:var(--label);stroke-width:3.4}.kjsvg .kjst.cur{stroke:var(--accent)}
+.kjsvg .kjst.anim{stroke-dasharray:1;stroke-dashoffset:1;animation-name:kjdraw;animation-timing-function:ease-in-out;animation-fill-mode:forwards}
+@keyframes kjdraw{to{stroke-dashoffset:0}}
+.kjmeta{flex:1;min-width:150px}.kjmean{font-size:1.25rem;font-weight:700;margin-bottom:6px}
+.kjrd{margin:3px 0}.kjrd small{display:inline-block;min-width:34px;font-size:.66rem;font-weight:700;color:var(--label2)}.kjrd .jp{font-size:1.05rem}
+.okuri{color:var(--label3)}
+.kjex{display:flex;flex-direction:column;background:var(--card2);border-radius:12px;overflow:hidden}
+.kjexrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;border:0;background:transparent;color:var(--label);text-align:left;border-bottom:.5px solid var(--sep);cursor:pointer}
+.kjexrow:last-child{border-bottom:0}.kjexrow .jp{font-size:1.15rem}.kjexrow .grow{flex:1;font-size:.85rem;color:var(--label2)}.kjexrow svg{width:18px;height:18px;color:var(--accent)}
+.kjprompt{font-size:clamp(4.5rem,24vw,7rem)!important}
+.choice.kjchoice{font-size:2.2rem}
+.kjrev{display:flex;align-items:center;gap:14px;margin-bottom:8px}.kjbig{font-size:3rem;line-height:1}
+.kjstat{display:flex;align-items:center;gap:10px;padding:6px 0}.kjstat b{width:30px}.kjstat .grow{flex:1}.kjstat small{color:var(--label2);font-size:.75rem;min-width:130px;text-align:right}
+@media (prefers-reduced-motion:reduce){.kjsvg .kjst.anim{animation:none;stroke-dashoffset:0}}
+.kjstat .minibar{display:block;height:6px;margin:0}
 </style>
 </head>
 <body>
@@ -1057,7 +1082,7 @@ function renderTyping(w, onAnswer, opts = {}) {
 let cleanup = null;
 let curView = null;
 let curTab = "home";
-const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"]]);
+const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", a.length === 1 ? `var(--${a[0]})` : "var(--indigo)"); }
 function go(fn) { curView = fn; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
@@ -1096,7 +1121,7 @@ function runSession(cfg) {
   const next = () => {
     clearTimeout(advancing); advancing = null; answered = false;
     let id, mode;
-    if (finite) { const it = cfg.nextItem(); if (!it) { progress(); cfg.onFinish(); return; } if (it.k) return nextKana(it); id = it.id; mode = it.mode; }
+    if (finite) { const it = cfg.nextItem(); if (!it) { progress(); cfg.onFinish(); return; } if (it.k) return nextKana(it); if (it.j) return nextKanji(it); id = it.id; mode = it.mode; }
     else { id = pickNext(cfg.pool); mode = cfg.mode; }
     const w = WORDS[id];
     if (!w) { if (finite) { cfg.onItemDone(true, id, mode, true); return next(); } return; }   // word from a level that isn't loaded
@@ -1140,9 +1165,27 @@ function runSession(cfg) {
     q = mode === "type" ? kRenderType(K, onA) : kRenderMC(mode, K, pool, onA);
     if (!seen) { const qt = $("#qhost .qtype"); if (qt) qt.insertAdjacentHTML("afterbegin", `<span class="newtag">NEW</span> `); }
   };
+  const nextKanji = it => {   // kanji item (learn card or quiz) inside a session
+    const K = KJ[it.id];
+    if (!K) { cfg.onItemDone(true, it.id, "kanji", true); return next(); }
+    if (it.mode === "learn") { answered = false; q = kjLearnStep(K, () => { cfg.onItemDone(true, K.c, "kanji:learn"); progress(); next(); }); return; }
+    const mode = it.mode && KJ_MODES[it.mode] ? it.mode : kjPickMode(K);
+    const onA = (ok, el, info) => {
+      answered = true; total++; if (ok) right++;
+      kjGrade(K.c, ok);
+      comboHit(ok, el, 8, !!(info && info.idk));
+      cfg.onItemDone(ok, K.c, "kanji:" + mode);
+      progress();
+      const fb = $("#fb"), nb = document.createElement("div"); nb.className = "btnrow"; nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb);
+      $("#nextBtn").onclick = next;
+      if (ok && S.autoAdvance) advancing = setTimeout(next, 1600);
+    };
+    q = kjRender(mode, K, onA);
+  };
   const onKey = e => {
     if (document.querySelector(".modal")) return;
     if (e.target.tagName === "TEXTAREA" || (e.target.tagName === "INPUT" && !e.target.disabled)) return;
+    if (q && q.learn && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); q.learn(); return; }
     if (!answered && q && q.choose && /^[1-4]$/.test(e.key)) q.choose(+e.key - 1);
     else if (!answered && q && q.idk && isIdkKey(e)) { e.preventDefault(); q.idk(); }
     else if (answered && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); next(); }
@@ -1167,6 +1210,14 @@ function newWordsForToday(n, exclude, levels = activeLevels()) {
   for (let r = 0; out.length < n && lists.some(x => r < x.length); r++) for (const x of lists) if (r < x.length && out.length < n) out.push(x[r]);
   return out;
 }
+/* kanji for a session: due kanji of `revLevels` (loaded ones) + new unlocked kanji from `newLevels` (S.kanjiPerDay, default 3) */
+function kanjiForSession(revLevels, newLevels) {
+  const rev = [], fresh = [];
+  for (const l of revLevels) if (KJL[l] && KJL[l].loaded) rev.push(...kjDueScan(l).ids.filter(c => KJ[c]));
+  let n = S.kanjiPerDay == null ? 3 : S.kanjiPerDay | 0;
+  for (const l of newLevels) { if (n <= 0) break; if (KJL[l] && KJL[l].loaded) { const f = kjNewFor(l, n); fresh.push(...f); n -= f.length; } }
+  return { rev: rev.slice(0, 30), fresh };
+}
 function buildDaily() {
   const now = Date.now(), target = S.dailyTarget || 20, nNew = Math.max(0, Math.min(40, S.newPerDay | 0));
   const due = ALL_IDS.filter(id => S.cards[id] && card(id).due <= now).sort((a, b) => card(a).box - card(b).box || card(a).due - card(b).due);
@@ -1182,7 +1233,9 @@ function buildDaily() {
   news.forEach((id, k) => { items.push({ id, mode: "meaning", isNew: 1 }); if (revItems.length) items.push(revItems.shift()); });
   items.push(...revItems);
   shuffle(news).forEach(id => items.push({ id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
-  return { date: todayStr(), levels: activeLevels().join(","), items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length + extra.length };
+  const kj = kanjiForSession(activeLevels(), activeLevels());
+  if (kj.rev.length || kj.fresh.length) { const rv = shuffle(kj.rev.map(c => ({ j: 1, id: c, rev: 1 }))); items.splice(0, 0, ...rv); kj.fresh.forEach(c => items.push({ j: 1, id: c, mode: "learn" })); shuffle(kj.fresh).forEach(c => items.push({ j: 1, id: c, mode: "k2m" })); }
+  return { date: todayStr(), levels: activeLevels().join(","), kanjiNew: kj.fresh.length, kanjiRev: kj.rev.length, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length + extra.length };
 }
 /* one "Today's session" per level selection (N5 alone, N4 alone, a mixed deck...), so switching levels never
    hijacks or hides a session in progress; sessions from previous days are dropped */
@@ -1201,7 +1254,7 @@ function ensureDaily(k = activeLevels().join(",")) {
 function dailySession(back, key) {
   const D = ensureDaily(key);
   // skip due-review items that were already reviewed elsewhere since the session was built (they're no longer due)
-  const stale = it => it && it.rev && (it.k ? KS.cards[it.id] && kcard(it.id).due > Date.now() : S.cards[it.id] && card(it.id).due > Date.now());
+  const stale = it => it && it.rev && (it.j ? JS.cards[it.id] && jcard(it.id).due > Date.now() : it.k ? KS.cards[it.id] && kcard(it.id).due > Date.now() : S.cards[it.id] && card(it.id).due > Date.now());
   const skipStale = () => { while (stale(D.items[D.pos])) D.items.splice(D.pos, 1); };
   if (!D.items.length) { toast("Nothing to study — every word is learned?! 🎉"); return go(home); }
   runSession({
@@ -1212,7 +1265,9 @@ function dailySession(back, key) {
     onItemDone: (ok, id, mode, skipped) => {
       const it = D.items[D.pos]; D.pos++;
       if (skipped) { save(); return; }
-      if (ok) D.correct++;
+      if (ok && !(it && it.mode === "learn")) D.correct++;
+      if (ok || (it && it.mode === "learn")) {}
+      else if (it && it.j) { if (!D.retried.includes("j:" + id)) { D.retried.push("j:" + id); D.items.push({ j: 1, id }); } }
       else if (it && it.k) { if (!D.retried.includes("k:" + id)) { D.retried.push("k:" + id); D.items.push({ k: 1, id }); } }
       else if (!D.retried.includes(id)) { D.retried.push(id); D.items.push({ id, mode: it.mode === "typing" ? "typing" : "meaning" }); }
       save();
@@ -1232,7 +1287,7 @@ function dailyHeroHTML(D, path = false) {
   const dots = Array.from({ length: 7 }, (_, k) => { const d = daysAgo(6 - k); return `<span class="${S.dailyHistory[d] ? "on" : ""}" title="${d}">${["S", "M", "T", "W", "T", "F", "S"][new Date(d + "T12:00").getDay()]}</span>`; }).join("");
   return `<div class="hero ${D.done ? "done" : ""}"><div class="ic">${D.done ? "✅" : "📅"}</div>
     <div><h2>${D.done ? "Done for today!" : "Today's session"} <span class="lvtag">${esc(path ? PNAME(D.stage || pathState().cur) : levelLabel())}</span></h2>
-    <p>${D.done ? `Great work — come back tomorrow to keep your 🔥 ${currentStreak()}-day streak.` : `${D.pos}/${D.items.length} done · ${D.reviewCount} reviews${path ? " (all levels & kana)" : ""} + ${D.newCount} new ${path ? "items" : "words"} · mixed modes`}</p>
+    <p>${D.done ? `Great work — come back tomorrow to keep your 🔥 ${currentStreak()}-day streak.` : `${D.pos}/${D.items.length} done · ${D.reviewCount + (D.kanjiRev || 0)} reviews${path ? " (all levels & kana)" : ""} + ${D.newCount} new ${path ? "items" : "words"}${D.kanjiNew ? ` + ${D.kanjiNew} kanji` : ""} · mixed modes`}</p>
     ${path ? pathHTML() : ""}<div class="dots">${dots}</div></div>
     <button class="btn" id="dailyBtn">${D.done ? (path && totalDue() ? "Review due" : "Extra practice") : D.pos ? "Continue ▶" : "Start ▶"}</button></div>`;
 }
@@ -1258,8 +1313,8 @@ function home() {
   ${goalPanelHTML()}
   <div class="sechead">Study</div>
   <div class="grid">
-    ${(() => { const td = totalDue(), nx = [dueScan().next, kanaDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0];
-      return `<button class="mode duecard" data-m="due"><div class="ic">⏰</div><h3>Due Reviews ${td ? `<span class="badge">${td}</span>` : ""}</h3><p>${td ? `${td} due across levels, sets, leeches & kana` : `Nothing due${nx != null ? ` · next ${fmtIn(nx)}` : ""}`}</p></button>`; })()}
+    ${(() => { const td = totalDue(), nx = [dueScan().next, kanaDueScan().next, kjDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0];
+      return `<button class="mode duecard" data-m="due"><div class="ic">⏰</div><h3>Due Reviews ${td ? `<span class="badge">${td}</span>` : ""}</h3><p>${td ? `${td} due across levels, kanji, leeches & kana` : `Nothing due${nx != null ? ` · next ${fmtIn(nx)}` : ""}`}</p></button>`; })()}
     <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
     <button class="mode" data-m="reverse"><div class="ic">🔄</div><h3>Reverse</h3><p>English → Japanese</p></button>
     <button class="mode" data-m="reading"><div class="ic">📖</div><h3>Reading Quiz</h3><p>Kanji → kana (${KANJI_IDS.length} words)</p></button>
@@ -1374,11 +1429,13 @@ async function openLevel(l) {
 }
 function levelPage(l) {
   if (!LV[l].loaded || activeLevels().join(",") !== l) { setTimeout(() => openLevel(l)); view.innerHTML = `<div class="panel"><p>Loading ${LNAME(l)}…</p></div>`; return; }
-  const me = levelPageFn(l), st = levelStats(l), tot = st.total || 1, D = ensureDaily(), sec = dueSections()[l], leeches = leechIds().length;
+  if (!KJL[l].loaded && !KJL[l].tried) { KJL[l].tried = 1; loadKanji(l).then(ok => { if (ok && curView === levelPageFn(l)) go(levelPageFn(l)); }); }
+  const me = levelPageFn(l), st = levelStats(l), tot = st.total || 1, D = ensureDaily(), secs_ = dueSections(), sec = secs_[l], leeches = leechIds().length, kst = kjStats(l);
   view.innerHTML = topbar("Levels") + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`, 52)}${LNAME(l)}</div>
     <p class="subtitle">${st.total} words · ${st.mast} mastered · ${st.seen} seen${st.due ? ` · <b>${st.due} due</b>` : ""}</p>
     ${dailyHeroHTML(D)}
-    <div class="panel duepanel">${dueRow(l, "", `Due reviews · ${LNAME(l)}`, sec.r)}</div>
+    <div class="panel duepanel">${dueRow(l, "", `Due reviews · ${LNAME(l)}`, sec.r)}${dueRow("kanji:" + l, "字", `Kanji due · ${LNAME(l)}`, secs_["kanji:" + l].r)}</div>
+    <button class="kjcard" id="kjOpen" style="--c:var(--${l})">${lvRing("字", kst.mast / (kst.total || 1), `var(--${l})`, 48)}<span class="grow"><b>Kanji · ${kst.total}</b><br><small>${kst.mast} mastered · ${kst.seen} learned${kst.due ? ` · ${kst.due} due` : ""} · easiest → hardest, stroke order</small></span>${I("chevronR")}</button>
     <div class="sechead">Study ${LNAME(l)}</div>
     <div class="grid">
       <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
@@ -1395,6 +1452,7 @@ function levelPage(l) {
     </div>`;
   bindBack(levelsView); setTab("levels");
   bindDailyBtn(D, me);
+  $("#kjOpen").onclick = () => { sfx.click(); go(kanjiPageFn(l)); };
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
@@ -1604,9 +1662,12 @@ function settings(page = false) {
     <div class="row"><span>🧭 Today's session path<br><small class="muted">Auto: Kana → N5 → … → N1, advancing as you master each stage</small></span><select id="pathFocus" style="min-height:40px;font-size:16px">${["auto", ...PATH].map(v => `<option value="${v}" ${(S.pathFocus || "auto") === v ? "selected" : ""}>${v === "auto" ? "Auto path" : "Focus: " + PNAME(v)}</option>`).join("")}</select></div>
     <div class="row"><span>🎯 Advance when mastered<br><small class="muted">share of a stage at "mastered" before the path moves on</small></span><span class="seg" id="pathAdv">${[70, 80, 90].map(v => `<button class="${(+S.pathAdv || 80) === v ? "on" : ""}" data-v="${v}">${v}%</button>`).join("")}</span></div>
     <div class="row"><span>🔀 Overlap<br><small class="muted">start mixing in the next stage at 70% mastered</small></span><button class="switch ${S.pathOverlap === false ? "" : "on"}" id="pathOv" role="switch" aria-checked="${S.pathOverlap !== false}" aria-label="Overlap"></button></div>
+    <div class="row"><span>字 Kanji in Today's path<br><small class="muted">mix the current level's kanji (new + due) into Home's session</small></span><button class="switch ${S.pathKanji === false ? "" : "on"}" id="pathKj" role="switch" aria-checked="${S.pathKanji !== false}" aria-label="Kanji in path"></button></div>
+    <div class="row"><span>字 New kanji per session</span><span class="seg" id="kjPer">${[0, 2, 3, 5].map(v => `<button class="${(S.kanjiPerDay == null ? 3 : S.kanjiPerDay) === v ? "on" : ""}" data-v="${v}">${v}</button>`).join("")}</span></div>
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
     <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small" id="resetBtn" style="background:var(--bad)">Reset</button></div>
     <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small" id="resetKana" style="background:var(--bad)">Reset</button></div>
+    <div class="row"><span>🗑️ Reset kanji progress<br><small class="muted">Clears only kanji SRS (all levels)</small></span><button class="btn small" id="resetKanji" style="background:var(--bad)">Reset</button></div>
     <div style="text-align:right;margin-top:12px"><button class="btn" id="closeS">Done</button></div></div>`;
   if (page) { view.innerHTML = `<div class="largetitle">Settings</div><p class="subtitle">Saved on this device</p>`; view.appendChild(md); } else document.body.appendChild(md);
   md.querySelectorAll(".switch").forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = !S[k]; b.classList.toggle("on", S[k]); save(); updateHeader(); if (k === "sound" && S.sound) sfx.good(); });
@@ -1622,9 +1683,12 @@ function settings(page = false) {
   const dropUntouched = () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; };
   md.querySelector("#pathFocus").onchange = e => { S.pathFocus = e.target.value; dropUntouched(); save(); toast(S.pathFocus === "auto" ? "Auto path" : `Today's session focuses on ${PNAME(S.pathFocus)}`); };
   md.querySelector("#pathAdv").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.pathAdv = +b.dataset.v; dropUntouched(); save(); md.querySelectorAll("#pathAdv button").forEach(x => x.classList.toggle("on", x === b)); };
+  md.querySelector("#pathKj").onclick = e => { S.pathKanji = S.pathKanji === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathKanji); e.currentTarget.setAttribute("aria-checked", S.pathKanji); };
+  md.querySelector("#kjPer").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.kanjiPerDay = +b.dataset.v; dropUntouched(); save(); md.querySelectorAll("#kjPer button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
+  md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); toast("Kanji progress reset"); } };
   md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
   if (page) { const c = md.querySelector("#closeS"); if (c) c.parentNode.remove(); return; }
   md.onclick = e => { if (e.target === md || e.target.id === "closeS") { md.remove(); if (!curView || TAB_OF().has(curView)) go(curView || home); else updateHeader(); } };
@@ -2062,6 +2126,7 @@ async function downloadAllAudio(btn, info, levels = ["n5"]) {
   info.textContent = "Loading word lists…";
   const dcache = await caches.open(DATA_CACHE), failedLv = [];
   for (const l of levels) {
+    try { const ku = new URL(`data/kanji-${l}.json?v=${(KJINFO[l] || {}).v || 1}`, location.href).href; if (!(await dcache.match(ku))) { const r = await fetch(ku); if (r.ok) await dcache.put(ku, r); } await loadKanji(l); } catch (e) {}
     if (l === "n5") continue;                      // N5 is built into the page
     const url = new URL(`data/${l}.json?v=${LV[l].info.v || 1}`, location.href).href;
     try { if (!(await dcache.match(url))) { const r = await fetch(url); if (r.ok) await dcache.put(url, r); } } catch (e) {}
@@ -2207,6 +2272,7 @@ function historyView(range = 7, asTab = false) {
       <div class="st"><small>🔥 Streak</small><b>${currentStreak()} d</b><small>study days in a row</small></div>
       <div class="st"><small>🏆 Mastered</small><b>${Object.values(S.cards).filter(c => c.box >= MASTER_BOX).length}</b><small>words, all levels</small></div></div>
     ${goalPanelHTML()}
+    ${kanjiStatsHTML()}
     <div class="sechead" style="display:flex;align-items:center;justify-content:space-between;text-transform:none;font-size:1rem;color:var(--label);font-weight:700;margin:22px 2px 8px">Study time ${segH}</div>` : topbar("📊 Study history", segH)) + `
     <div class="panel"><div class="chart ${range === 30 ? "c30" : ""}" id="chart"><div class="goalline" style="bottom:${18 + TS.goalMin * 60 / max * 142}px" title="goal"><span>goal ${TS.goalMin}m</span></div>
       ${days.map((d, i) => `<div class="bar ${goalMet(d) ? "met" : ""}" title="${d}: ${fmtMin(vals[i])} · ${tget(d).items} items · ${tget(d).newW} new"><i style="height:${vals[i] / max * 100}%"></i><small>${range === 7 ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][new Date(d + "T12:00").getDay()] : (i % 5 === 4 || i === range - 1 ? d.slice(8) : "")}</small></div>`).join("")}</div>
@@ -2245,18 +2311,18 @@ function kanaDueScan(s) {
   ids.sort((a, b) => kcard(a).box - kcard(b).box || kcard(a).due - kcard(b).due);
   return { ids, next: next === Infinity ? null : next - now };
 }
-const totalDue = () => dueScan().ids.length + kanaDueScan().ids.length;
+const totalDue = () => dueScan().ids.length + kanaDueScan().ids.length + kjDueScan().ids.length;
 function updateDueBadge() { const b = $("#dueBadge"); if (!b) return; const n = totalDue(); b.textContent = n > 999 ? "999+" : n || ""; b.style.display = n ? "" : "none"; }
 setInterval(updateDueBadge, 30e3);
 const batchOf = n => S.dueBatch === "all" || !S.dueBatch ? n : Math.min(n, +S.dueBatch);
 const dueStatus = r => r.ids.length ? `<b class="duen">${r.ids.length}</b> due` : `<span class="muted">nothing due${r.next != null ? ` · next ${fmtIn(r.next)}` : ""}</span>`;
 
 async function ensureDueLevels() {   // load every level that has saved cards (needed to show their words)
-  const need = LEVELS.filter(l => !LV[l].loaded && levelStats(l).seen > 0);
-  if (need.length) await Promise.all(need.map(loadLevel));
+  const need = LEVELS.filter(l => !LV[l].loaded && levelStats(l).seen > 0), kneed = kjLevelsWithCards().filter(l => !KJL[l].loaded);
+  if (need.length || kneed.length) await Promise.all(need.map(loadLevel).concat(kneed.map(loadKanji)));
 }
 function dueRow(key, icon, name, r, sub = "") {
-  const c = /^n\d$/.test(key) ? `var(--${key})` : key === "leech" ? "var(--bad)" : key.startsWith("kana") ? "var(--mint)" : key.startsWith("set:") ? setColor({ id: key.slice(4) }) : "var(--tint)";
+  const c = /^n\d$/.test(key) ? `var(--${key})` : key.startsWith("kanji:") ? `var(--${key.slice(6)})` : key === "leech" ? "var(--bad)" : key.startsWith("kana") ? "var(--mint)" : key.startsWith("set:") ? setColor({ id: key.slice(4) }) : "var(--tint)";
   return `<div class="duerow" data-key="${esc(key)}"><span class="ic ${/^n\d$/.test(key) ? "lvic" : ""}" style="--c:${c}">${/^n\d$/.test(key) ? `<b style="font-size:.8rem">${LNAME(key)}</b>` : icon}</span><span class="grow"><b>${name}</b>${sub ? ` <small class="muted">${sub}</small>` : ""}<br><small>${dueStatus(r)}</small></span>
     <button class="btn small ${r.ids.length ? "" : "ghost"}" data-review="${esc(key)}" ${r.ids.length ? "" : "disabled"}>Review all due${r.ids.length ? ` (${batchOf(r.ids.length)})` : ""}</button></div>`;
 }
@@ -2265,6 +2331,7 @@ function dueSections() {
   for (const l of LEVELS) {
     const lo = LOFF[l];
     secs[l] = { icon: "🎌", name: LNAME(l), r: dueScan(id => id >= lo && id < lo + 10000), kind: "v" };
+    secs["kanji:" + l] = { icon: "字", name: `Kanji · ${LNAME(l)}`, r: kjDueScan(l), kind: "j", kl: l };
     if (LV[l].loaded) for (const s of LV[l].sets) { const set = new Set(s.ids); secs["set:" + s.id] = { icon: s.icon, name: s.name, lvl: l, r: dueScan(id => set.has(id)), kind: "v", set: 1 }; }
   }
   secs.leech = { icon: "🧛", name: "Leeches", r: dueScan(isLeech), kind: "v" };
@@ -2282,18 +2349,19 @@ async function dueView() {
   cleanup = () => clearInterval(t);
 }
 function renderDue() {
-  const secs = dueSections(), vAll = dueScan(), kAll = kanaDueScan(), total = vAll.ids.length + kAll.ids.length;
-  const nextAll = [vAll.next, kAll.next].filter(x => x != null).sort((a, b) => a - b)[0];
+  const secs = dueSections(), vAll = dueScan(), kAll = kanaDueScan(), jAll = kjDueScan(), total = vAll.ids.length + kAll.ids.length + jAll.ids.length;
+  const nextAll = [vAll.next, kAll.next, jAll.next].filter(x => x != null).sort((a, b) => a - b)[0];
   const y = scrollY;
   view.innerHTML = `<div class="largetitle">Review</div><p class="subtitle"><span id="dueTotal">${total} due</span> · only items that are due — no new words</p>` + `
     <div class="hero ${total ? "" : "done"}"><div class="ic">${total ? "⏰" : "✅"}</div><div><h2>${total ? `${total} reviews due` : "All caught up!"}</h2>
-      <p>${total ? `${vAll.ids.length} words · ${kAll.ids.length} kana — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
+      <p>${total ? `${vAll.ids.length} words · ${jAll.ids.length} kanji · ${kAll.ids.length} kana — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
       <div class="seg dueseg" id="dueBatch">${["20", "50", "all"].map(b => `<button class="${(S.dueBatch || "all") === b ? "on" : ""}" data-b="${b}">${b === "all" ? "All" : "Batch " + b}</button>`).join("")}</div></div>
       <button class="btn" data-review="all" ${total ? "" : "disabled"}>Review everything due</button></div>
     <div class="panel duepanel"><h2>Levels</h2>
       ${dueRow("kana:h", "あ", "Kana · Hiragana", secs["kana:h"].r)}${dueRow("kana:k", "ア", "Kana · Katakana", secs["kana:k"].r)}
       ${LEVELS.map(l => { const sec = secs[l], sets = LV[l].sets.map(s => ["set:" + s.id, secs["set:" + s.id]]).filter(x => x[1]), dueSets = sets.filter(x => x[1].r.ids.length);
-        return dueRow(l, sec.icon, sec.name, sec.r, LV[l].loaded ? `${LV[l].ids.length} words` : (levelStats(l).seen ? "" : "not started")) +
+        const kjs = secs["kanji:" + l], kjRow = kjs.r.ids.length || kjs.r.next != null ? dueRow("kanji:" + l, "字", kjs.name, kjs.r) : "";
+        return dueRow(l, sec.icon, sec.name, sec.r, LV[l].loaded ? `${LV[l].ids.length} words` : (levelStats(l).seen ? "" : "not started")) + kjRow +
           (sets.length ? `<details class="duesets" data-l="${l}" ${dueOpen[l] ? "open" : ""}><summary>${LNAME(l)} word sets · ${dueSets.length} of ${sets.length} with due words</summary>
             ${(dueSets.length ? dueSets : []).map(([k, s]) => dueRow(k, s.icon, s.name, s.r)).join("") || `<p class="muted" style="font-size:.85rem">No set in ${LNAME(l)} has due words right now.</p>`}</details>` : ""); }).join("")}
     </div>
@@ -2308,7 +2376,7 @@ function renderDue() {
 function startDueReview(key, back = dueView) {
   const secs = dueSections();
   if (key === "all") {
-    const v = dueScan().ids.filter(id => WORDS[id]), k = kanaDueScan().ids;
+    const v = dueScan().ids.filter(id => WORDS[id]).concat(kjDueScan().ids.filter(c => KJ[c]).map(c => ({ j: 1, id: c }))), k = kanaDueScan().ids;
     const kanaPart = () => k.length ? go(() => kanaDueSession(k, "⏰ Kana due reviews", back)) : go(back);
     if (v.length) go(() => dueSession(v, "⏰ Everything due", back, k.length ? () => { toast(`Words done — now ${batchOf(k.length)} kana`); kanaPart(); } : null));
     else kanaPart();
@@ -2316,6 +2384,7 @@ function startDueReview(key, back = dueView) {
   }
   const s = secs[key]; if (!s || !s.r.ids.length) { toast("Nothing due here"); return; }
   const title = `⏰ ${s.lvl ? LNAME(s.lvl) + " · " : ""}${s.name} · due`;
+  if (s.kind === "j") { const run = () => go(() => dueSession(s.r.ids.filter(c => KJ[c]).map(c => ({ j: 1, id: c })), title, back)); if (KJL[s.kl].loaded) run(); else loadKanji(s.kl).then(ok => ok ? run() : toast("Couldn't load kanji — offline?")); return; }
   if (s.kind === "k") go(() => kanaDueSession(s.r.ids, title, back));
   else go(() => dueSession(s.r.ids.filter(id => WORDS[id]), title, back));
 }
@@ -2327,14 +2396,14 @@ function dueFinishCard(correct, n, back, extra = "") {
 }
 function dueSession(ids, title, back, then) {
   if (!ids.length) { toast("Nothing due"); return go(back || dueView); }
-  const D = { items: ids.slice(0, batchOf(ids.length)).map(id => ({ id, mode: "mixed" })), pos: 0, retried: [], correct: 0 };
+  const D = { items: ids.slice(0, batchOf(ids.length)).map(id => typeof id === "object" ? id : ({ id, mode: "mixed" })), pos: 0, retried: [], correct: 0 };
   const first = D.items.length;
   runSession({
     title, items: true, back: back || dueView,
     progress: () => ({ done: D.pos, total: D.items.length }),
     nextItem: () => D.items[D.pos] || null,
-    onItemDone: (ok, id, mode, skipped) => { D.pos++; if (skipped) return; if (ok) D.correct++; else if (!D.retried.includes(id)) { D.retried.push(id); D.items.push({ id, mode: "mixed" }); } },
-    onFinish: () => { addXP(Math.min(40, first * 2)); if (then) return then(D); dueFinishCard(D.correct, D.items.length, back, ` · ${first} due words reviewed`); }
+    onItemDone: (ok, id, mode, skipped) => { const it = D.items[D.pos]; D.pos++; if (skipped) return; if (ok) D.correct++; else if (!D.retried.includes(id)) { D.retried.push(id); D.items.push(it && it.j ? { j: 1, id } : { id, mode: "mixed" }); } },
+    onFinish: () => { addXP(Math.min(40, first * 2)); if (then) return then(D); dueFinishCard(D.correct, D.items.length, back, ` · ${first} due items reviewed`); }
   });
 }
 function kanaDueSession(ids, title, back) {
@@ -2404,11 +2473,20 @@ function pathLevels() {
   for (const l of LEVELS) { const lo = LOFF[l]; if (dueScan(id => id >= lo && id < lo + 10000).ids.length) need.add(l); }
   return [...need];
 }
+/* kanji files the path needs: frontier level (new kanji) + levels with due kanji */
+function pathKanjiLevels() {
+  if (S.pathKanji === false) return [];
+  const ps = pathState(), need = new Set();
+  if (ps.cur !== "kana") need.add(ps.cur);
+  kjLevelsWithCards().forEach(l => { if (kjDueScan(l).ids.length) need.add(l); });
+  return [...need];
+}
 let pathLoading = null;
 function ensurePathLevels(then) {   // async: load what the path needs, then re-render
-  const miss = pathLevels().filter(l => !LV[l].loaded && !(LV[l].failed > 1));
-  if (!miss.length) return true;
-  if (!pathLoading) pathLoading = Promise.all(miss.map(l => loadLevel(l).then(ok => { if (!ok) LV[l].failed = (LV[l].failed || 0) + 1; }))).then(() => { pathLoading = null; if (then) then(); });
+  const miss = pathLevels().filter(l => !LV[l].loaded && !(LV[l].failed > 1)), kmiss = pathKanjiLevels().filter(l => !KJL[l].loaded && !(KJL[l].failed > 1));
+  if (!miss.length && !kmiss.length) return true;
+  if (!pathLoading) pathLoading = Promise.all(miss.map(l => loadLevel(l).then(ok => { if (!ok) LV[l].failed = (LV[l].failed || 0) + 1; }))
+    .concat(kmiss.map(l => loadKanji(l).then(ok => { if (!ok) KJL[l].failed = (KJL[l].failed || 0) + 1; })))).then(() => { pathLoading = null; if (then) then(); });
   return false;
 }
 function newKanaForPath(n, exclude) { return kanaPathOrder().filter(id => !KS.cards[id] && !exclude.has("k:" + id)).slice(0, n); }
@@ -2433,11 +2511,15 @@ function buildPath() {
     if (st === "kana") newKanaForPath(n, used).forEach(id => news.push({ k: 1, id }));
     else if (LV[st].loaded) newWordsForToday(n, used, [st]).forEach(id => { used.add(id); news.push({ id }); });
   }
+  // kanji (Settings toggle): due kanji from every level + new unlocked kanji of the frontier level
+  const kj = S.pathKanji === false ? { rev: [], fresh: [] } : kanjiForSession(LEVELS, ps.cur === "kana" ? [] : [ps.cur]);
   // 3) order: reviews first, then each new item is introduced and recalled again at the end
-  const items = shuffle(reviews.slice());
+  const items = shuffle(reviews.slice().concat(kj.rev.map(c => ({ j: 1, id: c, rev: 1 }))));
+  kj.fresh.forEach(c => { items.push({ j: 1, id: c, mode: "learn" }); });
   news.forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: "k2r", isNew: 1 } : { id: it.id, mode: "meaning", isNew: 1 }));
+  shuffle(kj.fresh).forEach(c => items.push({ j: 1, id: c, mode: "k2m" }));
   shuffle(news.slice()).forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: Math.random() < 0.5 ? "r2k" : "type" } : { id: it.id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
-  return { date: todayStr(), levels: "path", stage: ps.cur, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length };
+  return { date: todayStr(), levels: "path", stage: ps.cur, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length, kanjiNew: kj.fresh.length, kanjiRev: kj.rev.length };
 }
 function pathHTML() {
   const ps = pathState(), pct = Math.round(ps.frac * 100), advP = Math.round(ps.adv * 100);
@@ -2447,6 +2529,219 @@ function pathHTML() {
     <div class="pathsteps">${PATH.map(s => `<span class="${s === ps.cur ? "cur" : PATH.indexOf(s) < PATH.indexOf(ps.cur) ? "done" : ""} ${ps.overlap && s === ps.next ? "ov" : ""}" style="--c:var(--${s})">${PNAME(s)}</span>`).join('<i></i>')}</div>
     <div class="pathtxt"><b>${ps.manual ? "Focus" : "Path"}: ${PNAME(ps.cur)}</b>${where ? ` · ${where}` : ""} · ${st.mast}/${st.total} mastered (${pct}%)${ps.next ? ps.manual ? ` · manual focus (Settings)` : ` · ${PNAME(ps.next)} unlocks at ${advP}%${ps.overlap ? ` · ${PNAME(ps.next)} words mixing in` : ""}` : ""}</div>
     <div class="minibar"><i style="width:${Math.min(100, ps.frac / ps.adv * 100)}%;background:var(--c)"></i></div></div>`;
+}
+
+/* ================= Kanji: per-level kanji section (learn cards with stroke order, 4 quiz modes, SRS) =================
+   Data: data/kanji-nX.json built from kanji-data (MIT; KANJIDIC2 © EDRDG CC BY-SA 4.0; JLPT lists by J. Waller) and
+   KanjiVG (CC BY-SA 3.0) stroke paths. Progress lives in its own key, so vocab/kana progress is untouched. */
+const JKEY = "jlptVocabQuest.kanji.v1", KJ_BATCH = 5;
+const KJINFO = {"n5":{"count":79,"v":"8df990fbbe","kb":61,"withEx":79,"withStrokes":79},"n4":{"count":166,"v":"ecd17d1f02","kb":165,"withEx":165,"withStrokes":166},"n3":{"count":367,"v":"edff4018f7","kb":396,"withEx":364,"withStrokes":367},"n2":{"count":367,"v":"756f186b96","kb":395,"withEx":366,"withStrokes":367},"n1":{"count":1232,"v":"a04569864b","kb":1235,"withEx":772,"withStrokes":1232}};
+let JS;
+try { JS = Object.assign({ cards: {} }, JSON.parse(localStorage.getItem(JKEY) || "{}")); } catch (e) { JS = { cards: {} }; }
+if (!JS.cards || typeof JS.cards !== "object") JS.cards = {};
+function jsave() { try { localStorage.setItem(JKEY, JSON.stringify(JS)); } catch (e) {} }
+const KJ = {}, KJX = {}, KJL = {};
+LEVELS.forEach(l => KJL[l] = { loaded: false, list: [] });
+const jcard = c => JS.cards[c] || { box: 0, due: 0, ok: 0, bad: 0 };
+const kjPromises = {};
+function loadKanji(l) {
+  if (!KJL[l]) return Promise.resolve(false);
+  if (KJL[l].loaded) return Promise.resolve(true);
+  if (!kjPromises[l]) kjPromises[l] = fetch(`data/kanji-${l}.json?v=${(KJINFO[l] || {}).v || 1}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => {
+      d.items.forEach((x, i) => { KJ[x[0]] = { c: x[0], lvl: l, idx: i, strokes: x[1], mean: x[2], on: x[3], kun: x[4], freq: x[5], grade: x[6], la: x[7], ex: x[8], paths: x[9] }; KJL[l].list.push(x[0]); });
+      for (const c in d.ext) if (!KJX[c]) KJX[c] = { c, mean: d.ext[c][0], on: d.ext[c][1], kun: d.ext[c][2], strokes: d.ext[c][3] };
+      KJL[l].loaded = true; return true;
+    }).catch(() => { delete kjPromises[l]; return false; });
+  return kjPromises[l];
+}
+const kjInfo = c => KJ[c] || KJX[c];
+const kjReading = k => { const on = (k.on || []).slice(0, 2).join("・"), kun = (k.kun || []).slice(0, 2).map(r => r.replace(".", "(") + (r.includes(".") ? ")" : "")).join("・"); return [on, kun].filter(Boolean).join(" / ") || "—"; };
+const kunFmt = r => r.includes(".") ? `${esc(r.split(".")[0])}<span class="okuri">${esc(r.split(".")[1])}</span>` : esc(r);
+/* progressive unlocking: first batch of 5; the next batch opens once every unlocked kanji has been learned and ≥80% are past the learning step */
+function kjUnlockedCount(l) {
+  const list = KJL[l].list; if (!list.length) return 0;
+  if (S.unlockAll) return list.length;
+  // unlocking is monotonic: a later miss never re-locks kanji you already unlocked
+  if (!JS.unl || typeof JS.unl !== "object") JS.unl = {};
+  let n = Math.min(list.length, Math.max(KJ_BATCH, JS.unl[l] || 0));
+  while (n < list.length) {
+    const cur = list.slice(0, n);
+    if (cur.every(c => JS.cards[c]) && cur.filter(c => jcard(c).box >= 2).length >= Math.ceil(cur.length * 0.8)) n = Math.min(list.length, n + KJ_BATCH); else break;
+  }
+  if (n > (JS.unl[l] || 0)) { JS.unl[l] = n; jsave(); }
+  return n;
+}
+const kjUnlocked = l => KJL[l].list.slice(0, kjUnlockedCount(l));
+const kjNewFor = (l, n) => kjUnlocked(l).filter(c => !JS.cards[c]).slice(0, n);
+function kjStats(l) {
+  const now = Date.now(); let seen = 0, mast = 0, due = 0;
+  for (const c in JS.cards) { const x = JS.cards[c]; if (x.l !== l) continue; seen++; if (x.box >= MASTER_BOX) mast++; if (x.due <= now) due++; }
+  return { seen, mast, due, total: KJL[l].loaded ? KJL[l].list.length : ((KJINFO[l] || {}).count || 0) };
+}
+function kjDueScan(l) {
+  const now = Date.now(), ids = []; let next = Infinity;
+  for (const c in JS.cards) { const x = JS.cards[c]; if (l && x.l !== l) continue; if (x.due <= now) ids.push(c); else if (x.due < next) next = x.due; }
+  ids.sort((a, b) => jcard(a).box - jcard(b).box || jcard(a).due - jcard(b).due);
+  return { ids, next: next === Infinity ? null : next - now };
+}
+const kjLevelsWithCards = () => LEVELS.filter(l => Object.values(JS.cards).some(x => x.l === l));
+function kjLearn(c) {    // learn card seen → the kanji enters the SRS (due now, so the quiz right after counts)
+  if (JS.cards[c]) return;
+  JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl }; jsave(); trackItem(true); touchStreak(); save();
+}
+function kjGrade(c, ok) {
+  const isNew = !JS.cards[c];
+  const x = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, jcard(c), { l: KJ[c].lvl });
+  if (ok) { x.box = Math.min(MAX_BOX, x.box + 1); x.ok++; } else { x.box = 1; x.bad++; }
+  x.due = Date.now() + INTERVALS[x.box] * (ok ? (0.9 + Math.random() * 0.2) : 1);
+  const before = kjUnlockedCount(x.l);
+  JS.cards[c] = x; jsave(); trackItem(isNew); touchStreak(); save();
+  if (kjUnlockedCount(x.l) > before) setTimeout(() => toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`), 700);
+}
+/* ---------- stroke order (KanjiVG) ---------- */
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+function strokeSVG(k, cls = "", upto = null) {
+  const n = k.paths.length, animate = upto == null && !reduceMotion(), per = Math.max(0.28, Math.min(0.6, 5 / n));
+  return `<svg class="kjsvg ${cls}" viewBox="0 0 109 109" role="img" aria-label="${esc(k.c)} stroke order, ${n} strokes">
+    <path class="kjgrid" d="M54.5 2v105M2 54.5h105"/>
+    ${k.paths.map(d => `<path class="kjghost" d="${d}"/>`).join("")}
+    ${k.paths.map((d, i) => upto != null && i >= upto ? "" : `<path class="kjst ${upto != null && i === upto - 1 ? "cur" : ""} ${animate ? "anim" : ""}" pathLength="1" d="${d}" style="${animate ? `animation-delay:${(i * per).toFixed(2)}s;animation-duration:${per.toFixed(2)}s` : ""}"/>`).join("")}
+  </svg>`;
+}
+function exListHTML(k) {
+  if (!k.ex || !k.ex.length) return `<p class="muted" style="font-size:.85rem">No example word in this level's vocabulary yet.</p>`;
+  return `<div class="kjex">${k.ex.map((e, i) => `<button class="kjexrow" data-ex="${i}"><span class="jp">${esc(e[1])}</span><span class="muted">${esc(e[2])}</span><span class="grow">${esc(e[3])}</span>${I("speaker")}</button>`).join("")}</div>`;
+}
+const exWord = e => ({ id: e[0], lvl: LEVELS[Math.floor(e[0] / 10000)], li: e[0] % 10000, kana: e[2] });
+function bindEx(root, k) { root.querySelectorAll(".kjexrow").forEach(b => b.onclick = () => speak(exWord(k.ex[+b.dataset.ex]), true)); }
+function learnCardHTML(k, tag = "") {
+  const c = JS.cards[k.c];
+  return `<div class="card kjlearn">${tag ? `<div class="qtype">${tag}</div>` : ""}
+    <div class="kjtop"><div class="kjsvgwrap" id="kjSvg">${strokeSVG(k)}</div>
+      <div class="kjmeta"><div class="kjmean">${esc(k.mean)}</div>
+        <div class="kjrd"><small>ON</small> <span class="jp">${(k.on || []).map(esc).join("、") || "—"}</span></div>
+        <div class="kjrd"><small>KUN</small> <span class="jp">${(k.kun || []).slice(0, 6).map(kunFmt).join("、") || "—"}</span></div>
+        <div class="muted" style="font-size:.8rem">${k.strokes} strokes · ${LNAME(k.lvl)}${k.grade ? ` · grade ${k.grade > 6 ? "secondary" : k.grade}` : ""}${c ? ` · box ${c.box}` : ""}</div></div></div>
+    <div class="btnrow" style="justify-content:flex-start"><button class="btn ghost small" id="kjReplay">${I("play")} Replay</button><button class="btn ghost small" id="kjStep">Step 1/${k.paths.length}</button></div>
+    <div class="sechead" style="margin:10px 2px 4px">Example words</div>${exListHTML(k)}</div>`;
+}
+function bindLearn(root, k) {
+  let step = 0;
+  const wrap = root.querySelector("#kjSvg");
+  root.querySelector("#kjReplay").onclick = () => { step = 0; wrap.innerHTML = strokeSVG(k); root.querySelector("#kjStep").textContent = `Step 1/${k.paths.length}`; };
+  root.querySelector("#kjStep").onclick = e => { step = step % k.paths.length + 1; wrap.innerHTML = strokeSVG(k, "", step); e.currentTarget.textContent = `Step ${step % k.paths.length + 1}/${k.paths.length}`; };
+  bindEx(root, k);
+}
+function kjModal(c) {
+  const k = KJ[c]; if (!k) return;
+  const md = document.createElement("div"); md.className = "modal";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Kanji ${esc(c)}">${learnCardHTML(k)}<div style="text-align:right;margin-top:10px"><button class="btn" id="kjClose">Done</button></div></div>`;
+  document.body.appendChild(md); bindLearn(md, k);
+  md.onclick = e => { if (e.target === md || e.target.id === "kjClose") md.remove(); };
+}
+/* ---------- quiz ---------- */
+function kjDistractors(k, n, pred) {    // look-alikes first, then same-level kanji with a similar stroke count
+  const out = [], seen = new Set([k.c]);
+  for (const c of (k.la || [])) { const x = kjInfo(c); if (x && !seen.has(c) && (!pred || pred(x))) { out.push(x); seen.add(c); } if (out.length >= n) return out; }
+  const pool = shuffle(KJL[k.lvl].list.map(c => KJ[c])).sort((a, b) => Math.abs(a.strokes - k.strokes) - Math.abs(b.strokes - k.strokes));
+  for (const x of pool.slice(0, 40).sort(() => Math.random() - 0.5)) { if (!seen.has(x.c) && (!pred || pred(x))) { out.push(x); seen.add(x.c); } if (out.length >= n) break; }
+  return out;
+}
+const KJ_MODES = { k2m: "Kanji → meaning", k2r: "Kanji → reading", m2k: "Meaning → kanji", wr: "Word reading" };
+function kjPickMode(k) { const m = ["k2m", "k2r", "m2k"]; if (k.ex && k.ex.length) m.push("wr", "wr"); if (jcard(k.c).box < 1) return "k2m"; return m[rand(m.length)]; }
+function kjRender(mode, k, onAnswer) {
+  if (mode === "wr" && !(k.ex && k.ex.length)) mode = "k2m";
+  const host = $("#qhost");
+  let qtype, prompt, opts, label, correct, choiceCls = "", word = null;
+  if (mode === "k2m") { qtype = "What does this kanji mean?"; prompt = `<div class="prompt jp kprompt kjprompt">${esc(k.c)}</div>`;
+    opts = shuffle([k, ...kjDistractors(k, 3, x => x.mean !== k.mean)]); label = o => esc(o.mean); }
+  else if (mode === "k2r") { qtype = "How is this kanji read?"; prompt = `<div class="prompt jp kprompt kjprompt">${esc(k.c)}</div>`;
+    opts = shuffle([k, ...kjDistractors(k, 3, x => kjReading(x) !== kjReading(k))]); label = o => `<span class="jp">${esc(kjReading(o))}</span>`; }
+  else if (mode === "m2k") { qtype = "Which kanji means…"; prompt = `<div class="prompt en">${esc(k.mean)}</div>`; choiceCls = "jpc jp kjchoice";
+    opts = shuffle([k, ...kjDistractors(k, 3, x => x.mean !== k.mean)]); label = o => esc(o.c); }
+  else { const e = k.ex[rand(k.ex.length)]; word = e; qtype = `How do you read this word? <small class="muted">(uses ${esc(k.c)})</small>`; prompt = `<div class="prompt jp">${esc(e[1])}</div><div class="sub">${esc(e[3])}</div>`;
+    const others = []; const seenR = new Set([e[2]]);
+    const cand = k.ex.concat(...(k.la || []).map(c => (KJ[c] && KJ[c].ex) || []), ...shuffle(KJL[k.lvl].list).slice(0, 30).map(c => KJ[c].ex || []));
+    for (const x of cand) { if (!seenR.has(x[2])) { seenR.add(x[2]); others.push({ c: x[2], r: x[2] }); } if (others.length >= 3) break; }
+    opts = shuffle([{ c: "__ok", r: e[2] }, ...others]); label = o => `<span class="jp">${esc(o.r)}</span>`; }
+  correct = mode === "wr" ? (o => o.c === "__ok") : (o => o.c === k.c);
+  host.innerHTML = `<div class="card"><div class="qtype">${qtype}</div>${prompt}
+    <div class="choices">${opts.map((o, i) => `<button class="choice ${choiceCls}" data-i="${i}"><span class="k">${i + 1}</span>${label(o)}</button>`).join("")}</div>
+    ${IDK_BTN}<div class="feedback" id="fb"></div></div>`;
+  let done = false;
+  const btns = [...host.querySelectorAll(".choice")], idkB = host.querySelector(".idk");
+  const reveal = (ok, idk) => {
+    btns.forEach((b, j) => { b.disabled = true; if (correct(opts[j])) b.classList.add("right"); });
+    idkB.disabled = true;
+    host.querySelector("#fb").innerHTML = `<div class="reveal ${ok ? "ok" : idk ? "idk" : "bad"}"><div class="kjrev"><span class="jp kjbig">${esc(k.c)}</span><span><b>${esc(k.mean)}</b><br><span class="jp">${esc(kjReading(k))}</span></span></div>
+      ${idk ? IDK_NOTE : ""}${exListHTML(k)}</div>`;
+    bindEx(host.querySelector("#fb"), k);
+    if (word) speak(exWord(word), true);
+  };
+  const choose = i => { if (done || !btns[i]) return; done = true; const ok = correct(opts[i]); reveal(ok, false); if (!ok) btns[i].classList.add("wrong"); onAnswer(ok, btns[i]); };
+  const idk = () => { if (done) return; done = true; reveal(false, true); onAnswer(false, idkB, { idk: true }); };
+  btns.forEach((b, i) => b.onclick = () => choose(i)); idkB.onclick = idk;
+  return { choose, idk };
+}
+/* learn step inside a session (not graded; the quiz later in the session is) */
+function kjLearnStep(k, cont) {
+  const host = $("#qhost");
+  host.innerHTML = learnCardHTML(k, `<span class="newtag">NEW</span> Kanji · ${LNAME(k.lvl)}`) + `<div class="btnrow"><button class="btn" id="kjGot">Got it →</button></div>`;
+  bindLearn(host, k); kjLearn(k.c);
+  let used = false; const go_ = () => { if (used) return; used = true; cont(); };
+  host.querySelector("#kjGot").onclick = go_;
+  return { learn: go_ };
+}
+/* ---------- Kanji section (per level) ---------- */
+const KJPAGE = {};
+const kanjiPageFn = l => KJPAGE[l] || (KJPAGE[l] = () => kanjiView(l));
+function kanjiView(l) {
+  if (!KJL[l].loaded) { view.innerHTML = topbar(LNAME(l)) + `<div class="panel"><p>Loading ${LNAME(l)} kanji…</p></div>`; bindBack(levelPageFn(l));
+    loadKanji(l).then(ok => { if (curView === kanjiPageFn(l)) { if (ok) go(kanjiPageFn(l)); else view.querySelector(".panel").innerHTML = `<p>Couldn't load the kanji list — offline? Open once online or use Download in Settings.</p>`; } }); return; }
+  const me = kanjiPageFn(l), st = kjStats(l), list = KJL[l].list, un = kjUnlockedCount(l), fresh = kjNewFor(l, KJ_BATCH), due = kjDueScan(l);
+  const learned = list.filter(c => JS.cards[c]);
+  view.innerHTML = topbar(LNAME(l)) + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing("字", st.mast / (st.total || 1), `var(--${l})`, 52)}Kanji · ${LNAME(l)}</div>
+    <p class="subtitle">${st.total} kanji, easiest first · ${st.mast} mastered · ${st.seen} learned · ${un} unlocked${st.due ? ` · <b>${st.due} due</b>` : ""}</p>
+    <div class="hero"><div class="ic">字</div><div><h2>${fresh.length ? `Learn ${fresh.length} new kanji` : un < list.length ? "Next batch locked" : "All kanji learned"}</h2>
+      <p>${fresh.length ? `Next up: <span class="jp" style="font-size:1.2rem">${fresh.map(esc).join(" ")}</span> — learn card with stroke order, then a quick quiz.` : un < list.length ? `Get ${Math.ceil(un * 0.8)} of your ${un} unlocked kanji past the first review to unlock ${Math.min(KJ_BATCH, list.length - un)} more.` : "Keep them fresh with reviews and practice."}</p></div>
+      <button class="btn" id="kjLearnBtn" ${fresh.length ? "" : "disabled"}>Learn ▶</button></div>
+    <div class="panel duepanel">${dueRow("kanji:" + l, "字", `Kanji due · ${LNAME(l)}`, due)}</div>
+    <div class="sechead">Practice learned kanji</div>
+    <div class="grid">${Object.entries(KJ_MODES).map(([m, t]) => `<button class="mode" data-km="${m}" ${learned.length ? "" : "disabled"}><div class="ic jp">${{ k2m: "意", k2r: "音", m2k: "字", wr: "語" }[m]}</div><h3>${t}</h3><p>${learned.length ? `${Math.min(20, learned.length)} questions` : "learn some kanji first"}</p></button>`).join("")}</div>
+    <div class="sechead">All ${LNAME(l)} kanji · easiest → hardest</div>
+    <div class="kjgrid">${list.map((c, i) => { const x = JS.cards[c]; return `<button class="kjtile ${i >= un ? "locked" : ""} ${x ? "b" + Math.min(5, x.box) : ""}" data-c="${esc(c)}" aria-label="${esc(c)} ${esc(KJ[c].mean)}${i >= un ? " (locked)" : ""}">${esc(c)}</button>`; }).join("")}</div>
+    <p class="muted" style="font-size:.8rem">Order: stroke count, frequency and school grade, with components taught before the kanji that contain them. Tap any kanji for its card.</p>`;
+  bindBack(levelPageFn(l)); setTab("levels");
+  $("#kjLearnBtn").onclick = () => { sfx.click(); go(() => kanjiLearnSession(l, me)); };
+  view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
+  view.querySelectorAll("button.mode[data-km]").forEach(b => b.onclick = () => { sfx.click(); go(() => kanjiPractice(l, b.dataset.km, me)); });
+  view.querySelectorAll(".kjtile").forEach(b => b.onclick = () => kjModal(b.dataset.c));
+}
+function kjSession(items, title, back, doneMsg) {
+  const D = { items, pos: 0, correct: 0, retried: [] };
+  runSession({ title, items: true, back,
+    progress: () => ({ done: D.pos, total: D.items.length }),
+    nextItem: () => D.items[D.pos] || null,
+    onItemDone: (ok, id, mode, skipped) => { const it = D.items[D.pos]; D.pos++; if (skipped || (it && it.mode === "learn")) return; if (ok) D.correct++; else if (!D.retried.includes(id)) { D.retried.push(id); D.items.push({ j: 1, id }); } },
+    onFinish: () => { addXP(Math.min(40, D.items.length * 2)); dueFinishCard(D.correct, D.items.filter(i => i.mode !== "learn").length, back, doneMsg); const b = $("#dueBack"); if (b) b.textContent = "Done"; }
+  });
+}
+function kanjiLearnSession(l, back) {
+  const fresh = kjNewFor(l, KJ_BATCH);
+  if (!fresh.length) { toast("No new kanji unlocked right now"); return go(back); }
+  const items = fresh.map(c => ({ j: 1, id: c, mode: "learn" })).concat(shuffle(fresh).map(c => ({ j: 1, id: c, mode: "k2m" })), shuffle(fresh).map(c => ({ j: 1, id: c, mode: KJ[c].ex.length ? "wr" : "m2k" })));
+  kjSession(items, `字 Learn ${LNAME(l)} kanji`, back, ` · ${fresh.length} new kanji learned`);
+}
+function kanjiPractice(l, mode, back) {
+  const learned = KJL[l].list.filter(c => JS.cards[c]);
+  if (!learned.length) { toast("Learn some kanji first"); return go(back); }
+  const pick = learned.slice().sort((a, b) => jcard(a).box - jcard(b).box || Math.random() - 0.5).slice(0, 20);
+  kjSession(shuffle(pick).map(c => ({ j: 1, id: c, mode })), `字 ${KJ_MODES[mode]} · ${LNAME(l)}`, back, "");
+}
+function kanjiStatsHTML() {
+  return `<div class="panel"><h2>Kanji</h2>${LEVELS.map(l => { const s = kjStats(l), t = s.total || 1;
+    return `<div class="kjstat"><b style="color:var(--${l})">${LNAME(l)}</b><span class="grow"><span class="minibar"><i style="width:${s.seen / t * 100}%;background:var(--fill2)"></i><i style="width:${s.mast / t * 100}%;background:var(--${l})"></i></span></span><small>${s.mast}/${s.total} mastered · ${s.seen} learned${s.due ? ` · ${s.due} due` : ""}</small></div>`; }).join("")}</div>`;
 }
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
@@ -2458,6 +2753,7 @@ const hum = Object.values(HUMAN);
 $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].loaded ? LV[l].ids.length : LV[l].info.count}`).join(" · ")} words from <a href="https://github.com/jamsinclair/open-anki-jlpt-decks" target="_blank" rel="noopener">open-anki-jlpt-decks</a> (each word listed once, at its easiest level).<br>
   Example sentences (${LEVELS.map(l => `${LNAME(l)} ${LV[l].loaded ? LV[l].exCount : LV[l].info.ex}`).join(" · ")} words covered): <a href="https://tatoeba.org" target="_blank" rel="noopener">Tatoeba</a> contributors, licensed <a href="https://creativecommons.org/licenses/by/2.0/fr/" target="_blank" rel="noopener">CC BY 2.0 FR</a> (Tanaka Corpus word index).<br>
   Audio: words, kana & most sentences are pre-generated with Microsoft Azure neural TTS voice <b>ja-JP-NanamiNeural</b> (via edge-tts)${hum.length ? `; ${hum.length} sentences (in loaded levels) use human recordings from Tatoeba by ${[...new Set(hum.map(h => h[0]))].map(u => `<a href="https://tatoeba.org/en/user/profile/${encodeURIComponent(u)}" target="_blank" rel="noopener">${esc(u)}</a>`).join(", ")} (${[...new Set(hum.map(h => h[1]))].join(", ")})` : ""}.<br>
+  Kanji: meanings, readings, stroke counts & frequency from <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT, David Gouveia), derived from <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a> (EDRDG, CC BY-SA 4.0), with JLPT levels from Jonathan Waller's <a href="http://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">JLPT resources</a>. Stroke order & look-alike shapes from <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> © Ulrich Apel (CC BY-SA 3.0). The kanji data files (data/kanji-*.json) are shared under CC BY-SA.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
 if (HAS_SPEECH) setTimeout(() => { loadVoices(); }, 800);
@@ -2465,7 +2761,7 @@ if (location.protocol !== "file:") { const before = canAudio(); probeAudio(() =>
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
 /* iOS keeps a Home-Screen app's page alive for days, so a new version would never load: on resume, compare the
    build id of the live index.html with ours and reload (right away on a non-study screen, else after the session) */
-const BUILD = "398038967022";
+const BUILD = "bbf331365580";
 let lastUpdCheck = 0, updWait = null;
 async function checkForUpdate(force) {
   if (location.protocol === "file:" || (!force && Date.now() - lastUpdCheck < 60e3)) return; lastUpdCheck = Date.now();
@@ -2478,11 +2774,12 @@ async function checkForUpdate(force) {
   } catch (e) {}
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkForUpdate(); });
-window.__N5 = { pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.__N5 = { JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   const want = new Set(S.levels);
   const dm = dailies(), dk = activeLevels().join(","); if (dm[dk] && !dm[dk].done) (dm[dk].items || []).forEach(it => want.add(lvlOf(it.id)));
+  try { pathKanjiLevels().forEach(l => loadKanji(l)); kjLevelsWithCards().forEach(l => loadKanji(l)); } catch (e) {}
   try { pathLevels().forEach(l => want.add(l)); if (dm.path && !dm.path.done) dm.path.items.forEach(it => { if (!it.k) want.add(lvlOf(it.id)); }); } catch (e) {}
   refreshPool(); renderCredits();
   const extra = [...want].filter(l => !LV[l].loaded);
