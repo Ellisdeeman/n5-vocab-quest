@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>N5 Vocab Quest</title>
+<style>
+:root{--bg:#1b1f3b;--bg2:#262b52;--card:#fffdf7;--ink:#23213a;--accent:#ff5a7a;--accent2:#ffc857;--good:#2ec4b6;--bad:#ff6b6b;--muted:#8a8fb8;--radius:18px}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:radial-gradient(circle at 20% 0%,#3a3f7a 0,var(--bg) 60%) fixed;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif}
+.jp{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic","Meiryo",sans-serif}
+button{font:inherit;cursor:pointer;border:none}
+#app{max-width:760px;margin:0 auto;padding:12px 14px 40px}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.logo{font-weight:800;font-size:1.25rem;letter-spacing:.5px;cursor:pointer}
+.logo span{color:var(--accent2)}
+.stats{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.pill{background:var(--bg2);border-radius:999px;padding:6px 12px;font-size:.9rem;font-weight:600;white-space:nowrap}
+.xpbar{height:8px;background:#ffffff22;border-radius:8px;overflow:hidden;margin:4px 0 14px}
+.xpbar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+.xplabel{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.mode{display:flex;flex-direction:column;justify-content:flex-start;background:var(--bg2);border-radius:var(--radius);padding:18px 14px;text-align:left;color:#fff;transition:transform .15s,box-shadow .15s;border:2px solid transparent}
+.mode:hover,.mode:focus{transform:translateY(-3px);border-color:var(--accent2);box-shadow:0 8px 24px #0005;outline:none}
+.mode .ic{font-size:2rem}.mode h3{margin:6px 0 4px}.mode p{margin:0;color:var(--muted);font-size:.85rem}
+.panel{background:var(--bg2);border-radius:var(--radius);padding:16px;margin-top:14px}
+.panel h2{margin:0 0 10px;font-size:1.1rem}
+.progress-big{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ring{width:92px;height:92px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+#map{display:grid;grid-template-columns:repeat(auto-fill,minmax(13px,1fr));gap:3px;margin-top:10px}
+#map div{aspect-ratio:1;border-radius:3px;cursor:pointer}
+.b0{background:#3a3f6a}.b1{background:#ff6b6b}.b2{background:#ff9f5a}.b3{background:#ffc857}.b4{background:#7bd88f}.b5{background:#2ec4b6}
+.card{background:var(--card);color:var(--ink);border-radius:var(--radius);padding:22px 18px;text-align:center;box-shadow:0 12px 30px #0006;position:relative}
+.prompt{font-size:clamp(2.6rem,11vw,4.4rem);line-height:1.2;margin:10px 0 4px;word-break:break-word}
+.prompt.en{font-size:clamp(1.4rem,5.5vw,2rem);font-family:inherit;font-weight:700}
+.sub{color:#6b6890;min-height:1.4em;font-size:1.15rem}
+.sub.jp{font-size:1.5rem}
+.qtype{font-size:.8rem;text-transform:uppercase;letter-spacing:1px;color:#8a86b0;font-weight:700}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+@media(max-width:480px){.choices{grid-template-columns:1fr}}
+.choice{background:#fff;border:2px solid #e3e0f3;border-radius:14px;padding:14px 18px;color:var(--ink);font-size:1.05rem;min-height:64px;transition:transform .1s,background .2s;position:relative}
+.choice .k{position:absolute;left:8px;top:6px;font-size:.7rem;color:#aaa}
+.choice.jpc{font-size:1.6rem}
+.choice.jpc small{display:block;font-size:.85rem;color:#777}
+.choice:hover{border-color:var(--accent)}
+.choice:active{transform:scale(.97)}
+.choice.right{background:var(--good);color:#fff;border-color:var(--good);animation:pop .35s}
+.choice.wrong{background:var(--bad);color:#fff;border-color:var(--bad);animation:shake .35s}
+.choice:disabled{cursor:default}
+@keyframes pop{50%{transform:scale(1.06)}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.btn{background:var(--accent);color:#fff;border-radius:12px;padding:10px 16px;font-weight:700}
+.btn.sec{background:#ffffff1a}
+.btn.small{padding:6px 12px;font-size:.9rem}
+.iconbtn{background:#ffffff1a;color:#fff;border-radius:50%;width:40px;height:40px;font-size:1.1rem}
+.card .iconbtn{position:absolute;right:12px;top:12px;background:#eee9ff;color:var(--ink)}
+.combo{font-weight:800;color:var(--accent2);transition:transform .2s;display:inline-block}
+.combo.bump{animation:pop .3s}
+.feedback{min-height:1.6em;margin-top:12px;font-weight:600}
+.floatxp{position:fixed;font-weight:800;color:var(--accent2);pointer-events:none;animation:floatup 1s forwards;font-size:1.3rem;text-shadow:0 2px 6px #0008;z-index:50}
+@keyframes floatup{to{transform:translateY(-60px);opacity:0}}
+.timer{font-size:1.4rem;font-weight:800}
+.timebar{height:10px;background:#ffffff22;border-radius:8px;overflow:hidden;flex:1;min-width:120px}
+.timebar>div{height:100%;background:linear-gradient(90deg,var(--good),var(--accent2),var(--bad));transition:width .2s linear}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--card);color:var(--ink);border-radius:14px;padding:12px 8px;min-height:70px;font-size:1rem;border:3px solid transparent;transition:all .2s}
+.tile.jpt{font-size:1.5rem}
+.tile.sel{border-color:var(--accent);transform:scale(1.03)}
+.tile.done{opacity:0;transform:scale(.6);pointer-events:none}
+.tile.bad{animation:shake .35s;border-color:var(--bad)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #ffffff14}
+.row:last-child{border-bottom:none}
+.switch{position:relative;width:52px;height:30px;background:#ffffff33;border-radius:30px;transition:background .2s;flex:none}
+.switch::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}
+.switch.on{background:var(--good)}.switch.on::after{left:25px}
+.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:40;padding:16px}
+.modal .box{background:var(--bg2);border-radius:var(--radius);padding:22px;max-width:420px;width:100%;text-align:center;animation:pop .3s}
+.big{font-size:2.6rem;font-weight:800;color:var(--accent2)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--accent);padding:10px 18px;border-radius:999px;font-weight:700;z-index:70;animation:pop .3s}
+footer{margin-top:24px;font-size:.75rem;color:var(--muted);text-align:center}
+footer a{color:var(--muted)}
+.wordinfo .prompt{font-size:3rem}
+kbd{background:#ffffff22;border-radius:4px;padding:1px 5px;font-size:.8em}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div id="app">
+  <header>
+    <div class="logo" id="homeLogo">⛩️ N5 Vocab <span>Quest</span></div>
+    <div class="stats">
+      <div class="pill" title="Level">⭐ Lv <b id="sLevel">1</b></div>
+      <div class="pill" title="Daily streak">🔥 <b id="sStreak">0</b>d</div>
+      <div class="pill" title="Mastered words">🏆 <b id="sMastered">0</b>/<span id="sTotal">0</span></div>
+      <button class="iconbtn" id="soundBtn" title="Toggle sound">🔊</button>
+      <button class="iconbtn" id="settingsBtn" title="Settings">⚙️</button>
+    </div>
+  </header>
+  <div class="xplabel"><span id="xpText">0 XP</span><span id="xpNext"></span></div>
+  <div class="xpbar"><div id="xpFill" style="width:0"></div></div>
+
+  <main id="view"></main>
+
+  <footer>Vocabulary: <span id="srcInfo"></span></footer>
+</div>
+
+<script>
+/* ===== Embedded JLPT N5 vocabulary =====
+   Source: https://github.com/jamsinclair/open-anki-jlpt-decks/blob/main/src/n5.csv
+   Entries: 718  (format: [expression, reading, meaning]) */
+const SOURCE_URL = "https://github.com/jamsinclair/open-anki-jlpt-decks/blob/main/src/n5.csv";
+const VOCAB = [["ああ","ああ","Ah!, Oh!"],["会う","あう","to meet, to see"],["青","あお","blue"],["青い","あおい","blue"],["赤","あか","red"],["赤い","あかい","red"],["明るい","あかるい","bright (in reference to personality or weather); cheerful"],["秋","あき","fall (season)"],["開く","あく","to open, to become open"],["開ける","あける","to open (v.t.)"],["上げる","あげる","to raise, to lift"],["朝","あさ","morning"],["朝御飯","あさごはん","breakfast"],["明後日","あさって","day after tomorrow"],["足; 脚","あし","foot; leg"],["明日","あした","tomorrow"],["あそこ","あそこ","there, over there, that place"],["遊ぶ","あそぶ","to play; to spend time pleasantly; to hang out"],["暖かい","あたたかい","warm"],["頭","あたま","head"],["新しい","あたらしい","new"],["あちら","あちら","this way (polite)"],["暑い","あつい","hot (in reference to weather), warm"],["熱い","あつい","hot (objects)"],["厚い","あつい","kind, warm(hearted), thick, deep"],["あっち","あっち","over there"],["後","あと","afterwards (later); in the future; the rest; since then"],["あなた","あなた","you"],["兄","あに","(my) older brother (humble)"],["姉","あね","(my) older sister (humble)"],["アパート","アパート","apartment (abbr.)"],["あの","あの","that over there; like that, that way; um..."],["浴びる","あびる","to bathe, to shower"],["危ない","あぶない","dangerous, critical"],["甘い","あまい","generous, sweet"],["余り","あまり","not very; surplus"],["雨","あめ","rain"],["飴","あめ","(hard) candy"],["洗う","あらう","to wash"],["在る","ある","to be, to have"],["有る","ある","to be, to have"],["歩く","あるく","to walk"],["あれ","あれ","that one (over there)"],["いい; よい","いい; よい","good"],["いいえ","いいえ","no, not at all"],["言う","いう","to say"],["家","いえ","house, home"],["いかが","いかが","how, in what way"],["行く","いく; ゆく","to go"],["いくつ","いくつ","how many, how old"],["いくら","いくら","how much, how many"],["池","いけ","pond"],["医者","いしゃ","doctor; physician"],["椅子","いす","chair"],["忙しい","いそがしい","busy (people, days)"],["痛い","いたい","hurt; painful; sore"],["一","いち","one"],["一日","いちにち","one day (duration)"],["一番","いちばん","best (most), first, number one"],["いつ","いつ","when"],["五日","いつか","five days; fifth day of the month"],["一緒","いっしょ","together"],["五つ","いつつ","five things"],["いつも","いつも","always, usually, every time, never (with neg. verb)"],["犬","いぬ","dog"],["今","いま","now"],["意味","いみ","meaning, significance"],["妹","いもうと","younger sister (humble)"],["嫌","いや","disagreeable, detestable, unpleasant"],["入口","いりぐち","entrance"],["居る","いる","(humble) to be (animate), to exist"],["要る","いる","to need"],["入れる","いれる","to put in"],["色","いろ","color"],["色々","いろいろ","various"],["上","うえ","above (up, top, etc.), over, on top of"],["後ろ","うしろ","back, behind, rear"],["薄い","うすい","thin, weak"],["歌","うた","a song"],["歌う","うたう","to sing"],["うち","うち","home; house; my place"],["生まれる","うまれる","to be born"],["海","うみ","sea, beach"],["売る","うる","to sell (v.t.)"],["うるさい","うるさい","noisy; annoying"],["上着","うわぎ","coat, jacket"],["絵","え","a painting; a picture; a drawing"],["映画","えいが","movie, film"],["映画館","えいがかん","movie theater, cinema"],["英語","えいご","English (language)"],["ええ","ええ","yes"],["駅","えき","station"],["エレベーター","エレベーター","elevator"],["～円","～えん","Yen"],["鉛筆","えんぴつ","pencil"],["お～","お～","honorable ~ (honorific)"],["美味しい","おいしい","delicious, tasty"],["多い","おおい","many; there are a lot"],["大きい","おおきい","big, large"],["大きな","おおきな","big"],["大勢","おおぜい","great number of people"],["お母さん","おかあさん","mother (formal)"],["お菓子","おかし","confections, sweets, snack"],["お金","おかね","money"],["起きる","おきる","to get up (e.g., from sleeping); to happen"],["置く","おく","to put; to lay; to place"],["奥さん","おくさん","(someone else's) wife (hon.)"],["お酒","おさけ","sake; alcohol"],["お皿","おさら","plate, dish"],["伯父; 叔父さん","おじさん","uncle, middle-aged man"],["おじいさん","おじいさん","grandfather, male senior citizen"],["教える","おしえる","to teach, to inform, to instruct"],["押す","おす","to push, to press, to stamp (e.g., a passport)"],["遅い","おそい","slow; (to be) late"],["お茶","おちゃ","(green) tea"],["お手洗い","おてあらい","toilet, restroom, bathroom (lit., a place to wash one's hands)"],["お父さん","おとうさん","father (formal)"],["弟","おとうと","younger brother"],["男","おとこ","man, male"],["男の子","おとこのこ","boy"],["一昨日","おととい","the day before yesterday"],["おととし","おととし","year before last"],["大人","おとな","adult"],["お腹","おなか","stomach"],["同じ","おなじ","same, identical"],["お兄さん","おにいさん","(someone else's) older brother (formal)"],["お姉さん","おねえさん","older sister (formal)"],["伯母さん; 叔母さん","おばさん","aunt"],["おばあさん","おばあさん","grandmother, female senior-citizen"],["お風呂","おふろ","a bath"],["お弁当","おべんとう","a boxed lunch"],["覚える","おぼえる","to learn, to commit to memory, to remember, to memorize"],["おまわりさん","おまわりさん","policeman (friendly term)"],["重い","おもい","heavy; serious"],["面白い","おもしろい","interesting, amusing"],["泳ぐ","およぐ","to swim"],["降りる","おりる","to get off"],["終る","おわる","to finish, to close"],["音楽","おんがく","Music"],["女","おんな","woman, female"],["女の子","おんなのこ","girl"],["～回","～かい","counter for occurrences (~ times)"],["～階","～かい","counter for stories (floors) of a building"],["外国","がいこく","foreign country; abroad"],["外国人","がいこくじん","foreigner"],["会社","かいしゃ","company, corporation"],["階段","かいだん","stairs"],["買い物","かいもの","shopping"],["買う","かう","to buy"],["返す","かえす","to return something"],["帰る","かえる","to go back, to go home, to return"],["顔","かお","face (body part)"],["かかる","かかる","it takes (amount of time, money) (v.i.)"],["鍵","かぎ","a lock; a key"],["書く","かく","to write"],["学生","がくせい","student"],["～か月","～かげつ","(number of) months"],["掛ける","かける","to put on (e.g., glasses); to hang (e.g., on a wall)"],["かける","かける","to dial/call (e.g., phone); to sit down"],["傘","かさ","umbrella, parasol"],["貸す","かす","to lend"],["風","かぜ","wind, breeze"],["風邪","かぜ","cold, flu"],["方","かた","-- honorific form for 人 (ひと) --; way of doing"],["家族","かぞく","family, members of a family"],["片仮名","かたかな","katakana"],["～月","～がつ","month of year"],["学校","がっこう","a school"],["カップ","カップ","cup"],["家庭","かてい","home; family"],["角","かど","corner (e.g., desk, pavement)"],["かばん","かばん","bag, basket"],["花瓶","かびん","(flower) vase"],["かぶる","かぶる","to wear, to put on (e.g., a hat on the head)"],["紙","かみ","paper"],["カメラ","カメラ","camera"],["火曜日","かようび","Tuesday"],["辛い","からい","hot and spicy; salty"],["体","からだ","body; health"],["借りる","かりる","to borrow, to owe"],["～がる","～がる","feel"],["軽い","かるい","light, non-serious, minor"],["カレー","カレー","curry (abbr. for curry and rice)"],["カレンダー","カレンダー","calendar"],["川; 河","かわ","river"],["～側","～がわ","~ side"],["可愛い","かわいい","cute, adorable"],["漢字","かんじ","kanji; Chinese character"],["木","き","tree, wood, timber"],["黄色","きいろ","yellow"],["黄色い","きいろい","yellow"],["消える","きえる","to vanish, to disappear"],["聞く","きく","to hear, to listen, to ask"],["北","きた","north"],["ギター","ギター","guitar"],["汚い","きたない","dirty, unclean, filthy"],["喫茶店","きっさてん","café"],["切手","きって","postal (postage) stamps"],["切符","きっぷ","a ticket"],["昨日","きのう","yesterday"],["九","きゅう","nine"],["牛肉","ぎゅうにく","beef"],["牛乳","ぎゅうにゅう","milk"],["今日","きょう","today, this day"],["教室","きょうしつ","classroom"],["兄弟","きょうだい","siblings (humble), brothers and sisters"],["去年","きょねん","last year"],["嫌い","きらい","dislike"],["切る","きる","to cut; to hang up (a phone)"],["着る","きる","to put on (clothes above your waist); to wear"],["綺麗","きれい","pretty, clean, tidy"],["キロ; キログラム","キロ; キログラム","(abbr.) kilo (kilogram)"],["キロ; キロメートル","キロ; キロメートル","(abbr.) kilo (kilometer)"],["銀行","ぎんこう","bank"],["金曜日","きんようび","Friday"],["九","く","nine"],["薬","くすり","medicine"],["下さい","ください","(with te-form verb) please do for me"],["果物","くだもの","fruit"],["口","くち","job opening; mouth"],["靴","くつ","shoes, footwear"],["靴下","くつした","socks"],["国","くに","country; place of origin"],["曇り","くもり","cloudiness, cloudy weather"],["曇る","くもる","to become cloudy, to become dim"],["暗い","くらい","dark, gloomy"],["～くらい; ぐらい","～くらい; ぐらい","approximate (quantity)"],["クラス","クラス","a class"],["グラム","グラム","gram"],["来る","くる","to come"],["車","くるま","car, vehicle"],["黒","くろ","black"],["黒い","くろい","black; dark"],["警官","けいかん","police officer"],["今朝","けさ","this morning"],["消す","けす","to erase, to delete, to turn off power"],["結構","けっこう","splendid; enough, tolerably"],["結婚","けっこん (する)","marriage (get married)"],["月曜日","げつようび","Monday"],["玄関","げんかん","entrance (to a house or a building)"],["元気","げんき","health(y), energetic"],["～個","～こ","counter for small items (e.g., fruits, cups)"],["五","ご","five"],["～語","～ご","word, language"],["公園","こうえん","a park"],["交差点","こうさてん","intersection"],["紅茶","こうちゃ","black tea"],["交番","こうばん","police box"],["声","こえ","voice"],["コート","コート","coat; court (e.g., tennis)"],["コーヒー","コーヒー","coffee"],["ここ","ここ","here, this place"],["午後","ごご","afternoon, P.M."],["九日","ここのか","nine days; ninth day of the month"],["九つ","ここのつ","nine things"],["午前","ごぜん","morning, A.M."],["答える","こたえる","to answer, to reply"],["こちら","こちら","this person (polite); this way (polite)"],["こっち","こっち","this person; this direction; this side"],["コップ","コップ","a tumbler; a glass"],["今年","ことし","this year"],["言葉","ことば","language; word(s); expression(s)"],["子供","こども","child(ren)"],["この","この","this"],["御飯","ごはん","rice (cooked); meal"],["コピーする","コピーする","to copy"],["困る","こまる","to be bothered, to have difficulty"],["これ","これ","this one"],["～ころ; ～ごろ","～ころ; ～ごろ","about, toward, approximately (time)"],["今月","こんげつ","this month"],["今週","こんしゅう","this week"],["こんな","こんな","such, like this"],["今晩","こんばん","tonight, this evening"],["さあ","さあ","come now, well"],["～歳","～さい","~ years old"],["財布","さいふ","wallet"],["魚","さかな","fish"],["先","さき","future; recent, previous"],["咲く","さく","to bloom"],["作文","さくぶん","essay; composition"],["差す","さす","to raise (stretch out) hands, to raise (e.g., umbrella)"],["～冊","～さつ","counter for books"],["雑誌","ざっし","magazine, journal"],["砂糖","さとう","sugar"],["寒い","さむい","cold (in reference to weather)"],["さ来年","さらいねん","year after next"],["～さん","～さん","Mr. ~, Ms. ~"],["三","さん","three"],["散歩","さんぽ (する)","walk, stroll"],["四","し","four"],["～時","～じ","~ o'clock (time)"],["塩","しお","salt"],["しかし","しかし","however; but"],["時間","じかん","time"],["～時間","～じかん","~ hours"],["仕事","しごと","work, job, occupation, employment"],["辞書","じしょ","dictionary"],["静か","しずか","quiet, calm"],["下","した","under, below, beneath"],["七","しち","seven"],["質問","しつもん","question, inquiry"],["自転車","じてんしゃ","bicycle"],["自動車","じどうしゃ","automobile"],["死ぬ","しぬ","to die"],["字引","じびき","dictionary"],["自分","じぶん","myself, oneself"],["閉まる","しまる","to close, to be closed"],["閉める","しめる","to close, to shut"],["締める","しめる","to tie, to fasten, to tighten"],["じゃ; じゃあ","じゃ; じゃあ","well, well then"],["写真","しゃしん","a picture; a photograph"],["シャツ","シャツ","shirt"],["シャワー","シャワー","shower"],["十","じゅう","ten"],["～中","～じゅう","during, while"],["～週間","～しゅうかん","~ weeks"],["授業","じゅぎょう","a class (of school)"],["宿題","しゅくだい","homework"],["上手","じょうず","be good at, skillful"],["丈夫","じょうぶ","strong, solid, durable"],["醤油","しょうゆ","soy sauce"],["食堂","しょくどう","cafeteria, dining hall"],["知る","しる","to know, to understand"],["白","しろ","white"],["白い","しろい","white"],["～人","～じん","counter for people"],["新聞","しんぶん","newspaper"],["水曜日","すいようび","Wednesday"],["吸う","すう","to breathe in, to suck"],["スカート","スカート","skirt"],["好き","すき","liking, fondness, love"],["～すぎ","～すぎ","past; to exceed, ~ too much"],["少ない","すくない","a little; a few"],["すぐに","すぐに","immediately, soon"],["少し","すこし","little, few"],["涼しい","すずしい","cool, refreshing (in reference to weather)"],["～ずつ","～ずつ","at a time"],["ストーブ","ストーブ","heater (lit: stove)"],["スプーン","スプーン","spoon"],["スポーツ","スポーツ","sport(s)"],["ズボン","ズボン","trousers"],["住む","すむ","to reside, to live in"],["する","する","to do, to try; to wear small items (e.g., necktie, watch, etc.)"],["座る","すわる","to sit"],["背","せい","(one's) height, stature"],["生徒","せいと","student; pupil"],["セーター","セーター","sweater"],["石鹸","せっけん","soap"],["背広","せびろ","men's suit"],["狭い","せまい","narrow; not spacious"],["ゼロ","ゼロ","zero"],["千","せん","thousand"],["先月","せんげつ","last month"],["先週","せんしゅう","last week"],["先生","せんせい","teacher, professor; master; doctor"],["洗濯","せんたく","washing, laundry"],["全部","ぜんぶ","all, entire, whole"],["そう; そうです","そう; そうです","yes; appears, to be the case"],["掃除","そうじ (する)","cleaning, sweeping"],["そうして; そして","そうして; そして","and, like that"],["そこ","そこ","that place, there; bottom, sole"],["そちら","そちら","over there"],["そっち","そっち","over there"],["外","そと","outside, exterior"],["その","その","that"],["そば","そば","near, close, beside; Japanese traditional buckwheat noodle"],["空","そら","sky"],["それ","それ","that one"],["それから","それから","and then, after that"],["それでは","それでは","in that situation, well then..."],["～台","～だい","counter for vehicles; machines"],["大学","だいがく","college; university"],["大使館","たいしかん","embassy"],["大丈夫","だいじょうぶ","It's ok (all right); No need to worry; Everything is under control"],["大好き","だいすき","very like-able, like very much"],["大切","たいせつ","important"],["台所","だいどころ","kitchen"],["大変","たいへん","very; difficult, hard"],["高い","たかい","tall, high; expensive"],["～だけ","～だけ","only ~, just ~, as ~"],["沢山","たくさん","many, much"],["タクシー","タクシー","taxi"],["出す","だす","to take (something) out; to hand in (something)"],["～たち","～たち","plural suffix"],["立つ","たつ","to stand up"],["たて","たて","length, height"],["建物","たてもの","building"],["楽しい","たのしい","enjoyable, fun"],["頼む","たのむ","to request, to ask (a favor)"],["たばこ","たばこ","tobacco, cigarettes"],["多分","たぶん","perhaps, probably, maybe"],["食べ物","たべもの","food"],["食べる","たべる","to eat"],["卵","たまご","egg"],["誰","だれ","who"],["誰か","だれか","someone"],["誕生日","たんじょうび","birthday"],["段々","だんだん","gradually, by degrees"],["小さい","ちいさい","small, little"],["小さな","ちいさな","small, little"],["近い","ちかい","near, close by, short"],["違う","ちがう","to be different; to differ; wrong"],["近く","ちかく","nearby; in the neighborhood"],["地下鉄","ちかてつ","underground train, subway"],["地図","ちず","a map"],["父","ちち","(my) father"],["茶色","ちゃいろ","brown"],["茶碗","ちゃわん","rice bowl"],["～中","～ちゅう","during, while ~ing"],["丁度","ちょうど","just, right, exactly"],["ちょっと","ちょっと","a little, somewhat; just a little, somewhat"],["一日","ついたち","one day; first day of the month"],["使う","つかう","to use"],["疲れる","つかれる","to get (become) tired; to become fatigued"],["次","つぎ","next"],["着く","つく","to arrive at, to reach"],["机","つくえ","desk"],["作る","つくる","to make, to create"],["つける","つける","to turn on (e.g., a light); to take"],["勤める","つとめる","to work (for)"],["つまらない","つまらない","boring, dull; insignificant"],["冷たい","つめたい","cold (things, people)"],["強い","つよい","strong, powerful"],["手","て","hand"],["テープ","テープ","tape"],["テープレコーダー","テープレコーダー","tape recorder"],["テーブル","テーブル","table"],["出かける","でかける","to go out; to depart"],["手紙","てがみ","letter"],["できる","できる","to be able to (to accomplish)"],["出口","でぐち","an exit"],["テスト","テスト","test"],["では","では","then, well, so"],["デパート","デパート","(abbr.) department store"],["でも","でも","but, however"],["出る","でる","to appear, to leave"],["テレビ","テレビ","television, TV"],["天気","てんき","weather"],["電気","でんき","electricity, (electric) light"],["電車","でんしゃ","electric train"],["電話","でんわ","a telephone"],["戸","と","door (Japanese style)"],["～度","～ど","counter for occurrences; ~ degree; ~ point"],["ドア","ドア","door (Western style)"],["トイレ","トイレ","bathroom; toilet"],["どう","どう","how, in what way"],["どうして","どうして","why, for what reason"],["どうぞ","どうぞ","please, kindly, by all means"],["動物","どうぶつ","animal"],["どうも","どうも","Thank you; somehow; no matter how hard one may try"],["十","(〜を) とお","ten (~)"],["遠い","とおい","far (away), distant"],["十日","とおか","ten days; tenth day of the month"],["～時","～とき","at the time of ~"],["時々","ときどき","sometimes"],["時計","とけい","a watch; a clock"],["どこ","どこ","where, what place"],["所","ところ","place"],["年","とし","year, age"],["図書館","としょかん","library"],["どちら","どちら","which (one) (way); where (polite)"],["どっち","どっち","which one, which way"],["とても","とても","very (much), greatly, exceedingly"],["どなた","どなた","who"],["隣","となり","next to, next door to"],["どの","どの","which"],["飛ぶ","とぶ","to fly, to hop"],["止まる","とまる","to come to a halt"],["友達","ともだち","friend"],["土曜日","どようび","Saturday"],["鳥","とり","chicken (lit., bird)"],["鶏肉","とりにく","chicken meat"],["取る","とる","to take (a class); to get (a grade)"],["撮る","とる","to take (a photo), to make (a film)"],["どれ","どれ","which one"],["どんな","どんな","what, what kind of"],["ない","ない","there isn't, doesn't have"],["ナイフ","ナイフ","knife"],["中","なか","inside, middle, among"],["長い","ながい","long, lengthy"],["鳴く","なく","to make sound (animal)"],["無くす","なくす","to lose something"],["なぜ","なぜ","why (same as どうして)"],["夏","なつ","summer"],["夏休み","なつやすみ","summer vacation"],["～など","～など","et cetera"],["七つ","ななつ","seven things"],["何","なん; なに","what"],["七日","なのか","seven days; seventh day (of the month)"],["名前","なまえ","name"],["習う","ならう","to learn"],["並ぶ","ならぶ","to line up, to stand in a line (v.i.)"],["並べる","ならべる","to put (things) side by side; to line up"],["なる","なる","to become"],["何～","なん～","what sort of ~"],["二","に","two"],["にぎやか","にぎやか","bustling, busy"],["肉","にく","meat"],["西","にし","west"],["～日","～にち","~ day of the month, for ~ days"],["日曜日","にちようび","Sunday"],["荷物","にもつ","luggage; baggage"],["ニュース","ニュース","news"],["庭","にわ","garden"],["～人","～にん","counter for people"],["脱ぐ","ぬぐ","to take off (clothes)"],["温い","ぬるい","lukewarm"],["ネクタイ","ネクタイ","tie, necktie"],["猫","ねこ","cat"],["寝る","ねる","to sleep; to go to sleep; to go to bed"],["～年","～ねん","~ years"],["ノート","ノート","notebook"],["登る","のぼる","to climb"],["飲み物","のみもの","drink, beverage"],["飲む","のむ","to drink"],["乗る","のる","to get on, to ride in, to board"],["歯","は","tooth"],["パーティー","パーティー","a party"],["はい","はい","yes"],["～杯","～はい","counter for cupfuls"],["灰皿","はいざら","ashtray"],["入る","はいる","to enter, to contain, to hold"],["葉書","はがき","postcard"],["はく","はく","to put on (items below your waist)"],["箱","はこ","box"],["橋","はし","bridge"],["箸","はし","chopsticks"],["始まる","はじまる","(something) begins"],["初め; 始め","はじめ","beginning, start"],["初めて","はじめて","for the first time"],["走る","はしる","to run"],["バス","バス","bus; bath; bass"],["バター","バター","butter"],["二十歳","はたち","20 years old"],["働く","はたらく","to work"],["八","はち","eight"],["二十日","はつか","twenty days, twentieth (day of the month)"],["花","はな","flower"],["鼻","はな","nose"],["話","はなし","talk (chat), story"],["話す","はなす","to speak"],["母","はは","(my) mother"],["早い","はやい","early"],["速い","はやい","fast, quick"],["春","はる","spring"],["貼る","はる","to post; to paste; to attach"],["晴れ","はれ","clear (sunny) weather"],["晴れる","はれる","to be sunny"],["半","はん","half (e.g., にじはん | half-past two)"],["晩","ばん","evening"],["～番","～ばん","~st; ~th best"],["パン","パン","bread"],["ハンカチ","ハンカチ","handkerchief"],["番号","ばんごう","number, series of digits"],["晩御飯","ばんごはん","dinner, evening meal"],["半分","はんぶん","half"],["東","ひがし","east"],["～匹","～ひき","counter for small animals"],["引く","ひく","to pull, to draw; subtract"],["弾く","ひく","to play (a string instrument or piano)"],["低い","ひくい","short, low"],["飛行機","ひこうき","airplane"],["左","ひだり","left hand side"],["人","ひと","man, person"],["一つ","ひとつ","one thing"],["一月","ひとつき","one month"],["一人","ひとり","one person"],["暇","ひま","free time, leisure"],["百","ひゃく","hundred"],["病院","びょういん","hospital"],["病気","びょうき","illness; sickness"],["平仮名","ひらがな","hiragana"],["昼","ひる","noon, daytime"],["昼御飯","ひるごはん","lunch, midday meal"],["広い","ひろい","spacious; wide; broad"],["フィルム","フィルム","film (roll of)"],["封筒","ふうとう","envelope"],["プール","プール","swimming pool"],["フォーク","フォーク","fork"],["吹く","ふく","to blow (wind, etc.)"],["服","ふく","clothes"],["二つ","ふたつ","two things"],["豚肉","ぶたにく","pork"],["二人","ふたり","two people"],["二日","ふつか","two days; second day of the month"],["太い","ふとい","fat, thick"],["冬","ふゆ","winter"],["降る","ふる","to precipitate, to fall (e.g., rain, snow, etc.)"],["古い","ふるい","old (in reference to objects, not people), aged, ancient"],["～分","～ふん","~ minutes"],["文章","ぶんしょう","sentence, text"],["ページ","ページ","a page"],["下手","へた","unskillful, poor"],["ベッド","ベッド","bed"],["ペット","ペット","pet"],["部屋","へや","a room"],["辺","へん","area, vicinity"],["ペン","ペン","pen"],["勉強","べんきょう (する)","study"],["便利","べんり","convenient, handy"],["帽子","ぼうし","hat; cap"],["ボールペン","ボールペン","ball-point pen"],["外","ほか","other, the rest"],["ポケット","ポケット","pocket"],["欲しい","ほしい","to want, in need of"],["ポスト","ポスト","mailbox; post, position"],["細い","ほそい","thin, slender, fine"],["ボタン","ボタン","button"],["ホテル","ホテル","hotel"],["本","ほん","book"],["～本","～ほん","counter for long cylindrical things"],["本棚","ほんだな","bookshelf"],["本当","ほんとう","real, true"],["～枚","～まい","counter for flat things"],["毎朝","まいあさ","every morning"],["毎月","まいげつ; まいつき","every month, monthly"],["毎週","まいしゅう","every week"],["毎日","まいにち","every day"],["毎年","まいねん; まいとし","every year, yearly, annually"],["毎晩","まいばん","every night"],["前","まえ","before, in front"],["～前","～まえ","in front of ~"],["曲る","まがる","to turn, to bend"],["まずい","まずい","terrible (in reference to food), unappetizing, unpleasant (taste)"],["また","また","and; furthermore"],["まだ","まだ","yet, still, besides"],["町","まち","town; city"],["待つ","まつ","to wait"],["まっすぐ","まっすぐ","straight (ahead), direct"],["マッチ","マッチ","match"],["窓","まど","window"],["丸い; 円い","まるい","round, circular"],["万","まん","ten thousand"],["万年筆","まんねんひつ","fountain pen"],["磨く","みがく","to brush (teeth); to polish"],["右","みぎ","right hand side"],["短い","みじかい","short (length)"],["水","みず","water"],["店","みせ","store, shop"],["見せる","みせる","to show, to display"],["道","みち","road, street; way, directions"],["三日","みっか","three days, third day of the month"],["三つ","みっつ","three things"],["緑","みどり","green"],["皆さん","みなさん","all of you, everyone"],["南","みなみ","South"],["耳","みみ","ear"],["見る","みる","to see, to look"],["みんな","みんな","all, everyone, everybody"],["六日","むいか","six days; sixth day of month"],["向こう","むこう","beyond, over there"],["難しい","むずかしい","difficult"],["六つ","むっつ","six things"],["村","むら","village"],["目","め","eye(s)"],["メートル","メートル","meter"],["眼鏡","めがね","eye glasses"],["もう","もう","already; again; more"],["木曜日","もくようび","Thursday"],["もしもし","もしもし","Hello? (used on the phone)"],["持つ","もつ","to hold, to carry; to possess"],["もっと","もっと","more"],["物","もの","thing (concrete object)"],["門","もん","gate"],["問題","もんだい","a problem"],["～屋","～や","~ shop"],["八百屋","やおや","greengrocer"],["野菜","やさい","vegetable"],["易しい","やさしい","easy, plain, simple"],["安い","やすい","inexpensive; cheap (things)"],["休み","やすみ","holiday; day off; absence"],["休む","やすむ","to rest, to have a break, to get time off"],["八つ","やっつ","eight things"],["山","やま","mountain"],["やる","やる","to do; to give (to pets, parents, siblings, etc.)"],["夕方","ゆうがた","late afternoon (typically just before dinner time), evening"],["夕飯","ゆうはん","dinner, supper, evening meal"],["郵便局","ゆうびんきょく","post office"],["昨夜","ゆうべ","last night"],["有名","ゆうめい","famous"],["雪","ゆき","snow"],["ゆっくりと","ゆっくりと","slowly, at ease"],["八日","ようか","eight days; eighth day of the month"],["洋服","ようふく","Western-style clothes"],["よく","よく","frequently, often (much); well, skillfully"],["横","よこ","beside; side; width"],["四日","よっか","four days; fourth day of the month"],["四つ","よっつ","four things"],["呼ぶ","よぶ","to call (one's name); to invite"],["読む","よむ","to read"],["夜","よる","evening, night"],["弱い","よわい","weak"],["来月","らいげつ","next month"],["来週","らいしゅう","next week"],["来年","らいねん","next year"],["ラジオ","ラジオ","radio"],["ラジオカセ","ラジオカセ","radio cassette player"],["りっぱ","りっぱ","splendid, fine"],["留学生","りゅうがくせい","international student"],["両親","りょうしん","parents (lit., both parents)"],["料理","りょうり","cooking; cuisine"],["旅行","りょこう","travel, trip"],["零","れい","zero, nought"],["冷蔵庫","れいぞうこ","refrigerator"],["レコード","レコード","record"],["レストラン","レストラン","restaurant"],["練習","れんしゅう (する)","(to) practice"],["廊下","ろうか","corridor"],["六","ろく","six"],["ワイシャツ","ワイシャツ","shirt (lit: white shirt), business shirt"],["若い","わかい","young"],["分かる","わかる","to understand"],["忘れる","わすれる","to forget"],["私","わたし","I, myself"],["私","わたくし","I (formal), myself, private affairs"],["渡す","わたす","to hand (something) over (v.t.); to get across"],["渡る","わたる","to cross over, to go across"],["悪い","わるい","bad, sinful; inferior"]];
+</script>
+<script>
+"use strict";
+/* ================= Utilities ================= */
+const $ = s => document.querySelector(s);
+const view = $("#view");
+const rand = n => Math.floor(Math.random() * n);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayStr = (d = new Date()) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const WORDS = VOCAB.map((v, i) => ({ id: i, jp: v[0], kana: v[1], en: v[2], hasKanji: v[0] !== v[1] && /[\u4e00-\u9fff々]/.test(v[0]) }));
+const KANJI_IDS = WORDS.filter(w => w.hasKanji).map(w => w.id);
+
+/* ================= Romaji converter ================= */
+const ROMA = (() => {
+  const base = {
+    あ:"a",い:"i",う:"u",え:"e",お:"o",か:"ka",き:"ki",く:"ku",け:"ke",こ:"ko",さ:"sa",し:"shi",す:"su",せ:"se",そ:"so",
+    た:"ta",ち:"chi",つ:"tsu",て:"te",と:"to",な:"na",に:"ni",ぬ:"nu",ね:"ne",の:"no",は:"ha",ひ:"hi",ふ:"fu",へ:"he",ほ:"ho",
+    ま:"ma",み:"mi",む:"mu",め:"me",も:"mo",や:"ya",ゆ:"yu",よ:"yo",ら:"ra",り:"ri",る:"ru",れ:"re",ろ:"ro",わ:"wa",ゐ:"wi",ゑ:"we",を:"wo",ん:"n",
+    が:"ga",ぎ:"gi",ぐ:"gu",げ:"ge",ご:"go",ざ:"za",じ:"ji",ず:"zu",ぜ:"ze",ぞ:"zo",だ:"da",ぢ:"ji",づ:"zu",で:"de",ど:"do",
+    ば:"ba",び:"bi",ぶ:"bu",べ:"be",ぼ:"bo",ぱ:"pa",ぴ:"pi",ぷ:"pu",ぺ:"pe",ぽ:"po",ゔ:"vu",
+    ぁ:"a",ぃ:"i",ぅ:"u",ぇ:"e",ぉ:"o",ゃ:"ya",ゅ:"yu",ょ:"yo",ゎ:"wa"
+  };
+  const yoon = { ゃ:"a", ゅ:"u", ょ:"o" };
+  const toHira = s => s.replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+  return function (str) {
+    const s = toHira(str);
+    let out = "";
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i], n = s[i + 1];
+      if (c === "っ") { // small tsu: double next consonant
+        const nx = n && base[n] ? base[n] : "";
+        out += nx ? (nx.startsWith("ch") ? "t" : nx[0]) : "'";
+        continue;
+      }
+      if (c === "ー") { const m = out.match(/[aeiou]$/); out += m ? m[0] : "-"; continue; }
+      if (c === "ん") { out += (n && /[あいうえおやゆよ]/.test(n)) ? "n'" : "n"; continue; }
+      if (base[c] !== undefined) {
+        let r = base[c];
+        if (n && yoon[n] && r.endsWith("i") && r.length > 1) { // きゃ etc.
+          const stem = r.slice(0, -1);
+          r = (/^(sh|ch|j)$/.test(stem) ? stem : stem + "y") + yoon[n]; i++;
+        } else if (n && /[ぁぃぅぇぉ]/.test(n) && r.length > 1 && !/[ゃゅょ]/.test(c)) { // ティ, ファ etc.
+          const stem = r === "fu" ? "f" : r === "tsu" ? "ts" : r === "vu" ? "v" : r.slice(0, -1);
+          r = stem + base[n]; i++;
+        }
+        out += r; continue;
+      }
+      out += c === "～" || c === "〜" ? "~" : c;
+    }
+    return out;
+  };
+})();
+
+/* ================= State / persistence ================= */
+const KEY = "n5VocabQuest.v1";
+const defaultState = () => ({ cards: {}, xp: 0, streak: 0, lastDay: null, sound: true, romaji: true, speech: true, autoSpeak: false, bestSpeed: 0, bestMatch: 0, answered: 0 });
+let S;
+try { S = Object.assign(defaultState(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { S = defaultState(); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ================= Spaced repetition (Leitner, 6 boxes) =================
+   box 0 = new/unseen. Correct -> box+1, wrong -> box 1 (due in ~1 min, and re-queued
+   within the current session). Box >= 4 counts as "mastered". */
+const MIN = 60e3, DAY = 864e5;
+const INTERVALS = [0, 1 * MIN, 10 * MIN, 1 * DAY, 3 * DAY, 7 * DAY, 16 * DAY];
+const MAX_BOX = 6, MASTER_BOX = 4;
+const card = id => S.cards[id] || { box: 0, due: 0, ok: 0, bad: 0 };
+function grade(id, correct) {
+  const c = Object.assign({}, card(id));
+  if (correct) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; }
+  else { c.box = 1; c.bad++; }
+  c.due = Date.now() + INTERVALS[c.box] * (correct ? (0.9 + Math.random() * 0.2) : 1);
+  S.cards[id] = c;
+  S.answered++;
+  touchStreak();
+  save();
+}
+const masteredCount = () => WORDS.reduce((n, w) => n + (card(w.id).box >= MASTER_BOX ? 1 : 0), 0);
+const seenCount = () => Object.keys(S.cards).length;
+
+let sessionQueue = []; // ids missed this session that must come back soon: {id, after}
+let sessionTick = 0;
+let recent = [];
+function pickNext(pool) {
+  sessionTick++;
+  const allowed = new Set(pool);
+  // 1) missed words come back after a few questions
+  const qi = sessionQueue.findIndex(q => q.after <= sessionTick && allowed.has(q.id));
+  if (qi >= 0) { const id = sessionQueue[qi].id; sessionQueue.splice(qi, 1); return remember(id); }
+  const now = Date.now();
+  const seen = pool.filter(id => S.cards[id] && !recent.includes(id));
+  const due = seen.filter(id => card(id).due <= now).sort((a, b) => card(a).box - card(b).box || card(a).due - card(b).due);
+  const unseen = pool.filter(id => !S.cards[id] && !recent.includes(id));
+  // mostly due reviews, sprinkle in new words (~35% when reviews are waiting)
+  if (due.length && (!unseen.length || Math.random() < 0.65)) return remember(due[rand(Math.min(3, due.length))]);
+  if (unseen.length) return remember(unseen[rand(Math.min(25, unseen.length))]);
+  // everything seen & not due: take the soonest-due / weakest
+  const rest = (seen.length ? seen : pool.filter(id => !recent.includes(id))).slice().sort((a, b) => card(a).due - card(b).due);
+  return remember(rest.length ? rest[rand(Math.min(5, rest.length))] : pool[rand(pool.length)]);
+}
+function remember(id) { recent.push(id); if (recent.length > 4) recent.shift(); return id; }
+function requeue(id) { if (!sessionQueue.some(q => q.id === id)) sessionQueue.push({ id, after: sessionTick + 3 + rand(2) }); }
+
+/* ================= XP / levels / streak ================= */
+const xpForLevel = L => 50 * L * (L - 1); // total XP needed to reach level L
+function levelOf(xp) { let L = 1; while (xp >= xpForLevel(L + 1)) L++; return L; }
+function touchStreak() {
+  const t = todayStr();
+  if (S.lastDay === t) return;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  S.streak = (S.lastDay === todayStr(y)) ? S.streak + 1 : 1;
+  S.lastDay = t;
+  if (S.streak > 1) toast(`🔥 ${S.streak}-day streak!`);
+}
+function addXP(n, el) {
+  const before = levelOf(S.xp);
+  S.xp += n; save();
+  if (el) floatText("+" + n + " XP", el);
+  const after = levelOf(S.xp);
+  if (after > before) { sfx.level(); confetti(160); toast(`⭐ Level up! Lv ${after}`); }
+  updateHeader();
+}
+function currentStreak() { // streak shown is 0 if broken
+  if (!S.lastDay) return 0;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  return (S.lastDay === todayStr() || S.lastDay === todayStr(y)) ? S.streak : 0;
+}
+function updateHeader() {
+  const L = levelOf(S.xp), lo = xpForLevel(L), hi = xpForLevel(L + 1);
+  $("#sLevel").textContent = L;
+  $("#sStreak").textContent = currentStreak();
+  $("#sMastered").textContent = masteredCount();
+  $("#sTotal").textContent = WORDS.length;
+  $("#xpText").textContent = S.xp + " XP";
+  $("#xpNext").textContent = (hi - S.xp) + " XP to Lv " + (L + 1);
+  $("#xpFill").style.width = ((S.xp - lo) / (hi - lo) * 100) + "%";
+  $("#soundBtn").textContent = S.sound ? "🔊" : "🔇";
+}
+
+/* ================= Combo ================= */
+let combo = 0;
+const multiplier = () => Math.min(4, 1 + Math.floor(combo / 5) * 0.5);
+function comboHit(correct, el, base = 10) {
+  if (correct) {
+    combo++;
+    const gain = Math.round(base * multiplier());
+    addXP(gain, el);
+    if (combo % 5 === 0) { confetti(combo >= 15 ? 140 : 80); sfx.combo(); toast(`🎉 ${combo} combo! x${multiplier()}`); }
+    else sfx.good();
+  } else { combo = 0; sfx.bad(); }
+  const c = $("#combo"); if (c) { c.textContent = combo ? `🔥 ${combo} · x${multiplier()}` : ""; c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); }
+}
+
+/* ================= Sound (WebAudio) ================= */
+let actx = null;
+function tone(freq, dur = 0.12, type = "sine", when = 0, vol = 0.18) {
+  if (!S.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+  } catch (e) {}
+}
+const sfx = {
+  good: () => { tone(660, .1, "triangle"); tone(990, .14, "triangle", .08); },
+  bad: () => { tone(220, .18, "sawtooth", 0, .08); tone(160, .22, "sawtooth", .1, .08); },
+  combo: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .12, "square", i * .07, .08)),
+  level: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .18, "triangle", i * .1)),
+  click: () => tone(880, .04, "square", 0, .05),
+  tick: () => tone(1200, .03, "square", 0, .04),
+  end: () => [784, 659, 523].forEach((f, i) => tone(f, .2, "triangle", i * .12))
+};
+
+/* ================= Speech synthesis ================= */
+let jaVoice = null;
+function loadVoices() { if (!("speechSynthesis" in window)) return; const vs = speechSynthesis.getVoices(); jaVoice = vs.find(v => /^ja[-_]JP/i.test(v.lang)) || vs.find(v => /^ja/i.test(v.lang)) || null; }
+if ("speechSynthesis" in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+const canSpeak = () => "speechSynthesis" in window && S.speech;
+function speak(w) {
+  if (!canSpeak()) return;
+  try {
+    const text = w.kana.split(/[;；]/)[0].replace(/[～〜~]/g, "").replace(/\(.*?\)/g, "").trim();
+    const u = new SpeechSynthesisUtterance(text); u.lang = "ja-JP"; if (jaVoice) u.voice = jaVoice; u.rate = 0.9;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+/* ================= Effects ================= */
+const cv = $("#confetti"), cx = cv.getContext("2d");
+let parts = [], confRunning = false;
+function resizeCv() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
+addEventListener("resize", resizeCv); resizeCv();
+function confetti(n = 100) {
+  const cols = ["#ff5a7a", "#ffc857", "#2ec4b6", "#7bd88f", "#a78bfa", "#fff"];
+  for (let i = 0; i < n; i++) parts.push({ x: cv.width / 2 + (Math.random() - .5) * cv.width * .3, y: cv.height * .35, vx: (Math.random() - .5) * 18 * devicePixelRatio, vy: (-Math.random() * 16 - 4) * devicePixelRatio, s: (4 + Math.random() * 6) * devicePixelRatio, c: cols[rand(cols.length)], r: Math.random() * 6, vr: (Math.random() - .5) * .4, life: 120 + rand(60) });
+  if (!confRunning) { confRunning = true; requestAnimationFrame(stepConf); }
+}
+function stepConf() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(p => p.life-- > 0 && p.y < cv.height + 20);
+  for (const p of parts) { p.vy += .45 * devicePixelRatio; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); cx.restore(); }
+  if (parts.length) requestAnimationFrame(stepConf); else { confRunning = false; cx.clearRect(0, 0, cv.width, cv.height); }
+}
+function floatText(t, el) { const r = el.getBoundingClientRect(), d = document.createElement("div"); d.className = "floatxp"; d.textContent = t; d.style.left = (r.left + r.width / 2 - 30) + "px"; d.style.top = (r.top - 10) + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 1000); }
+let toastT; function toast(t) { document.querySelectorAll(".toast").forEach(e => e.remove()); const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); clearTimeout(toastT); toastT = setTimeout(() => d.remove(), 1800); }
+
+/* ================= Question building ================= */
+const firstMeaning = s => s;
+function distractors(w, n, keyFn, pool = WORDS.map(x => x.id)) {
+  const used = new Set([keyFn(w)]), out = [];
+  // prefer similar-length options for difficulty
+  const cands = shuffle(pool).map(id => WORDS[id]);
+  const L = keyFn(w).length;
+  cands.sort((a, b) => Math.abs(keyFn(a).length - L) - Math.abs(keyFn(b).length - L) + (Math.random() - .5) * 6);
+  for (const c of cands) { const k = keyFn(c); if (c.id !== w.id && !used.has(k)) { used.add(k); out.push(c); if (out.length >= n) break; } }
+  return out;
+}
+const romajiLine = w => S.romaji ? `<div class="sub">${esc(ROMA(w.kana))}</div>` : "";
+
+/* ================= Views ================= */
+let cleanup = null;
+function go(fn) { if (cleanup) { cleanup(); cleanup = null; } combo = 0; sessionQueue = []; recent = []; window.scrollTo(0, 0); fn(); updateHeader(); }
+
+function home() {
+  const m = masteredCount(), seen = seenCount(), total = WORDS.length, now = Date.now();
+  const due = WORDS.filter(w => S.cards[w.id] && card(w.id).due <= now).length;
+  const pct = m / total, C = 2 * Math.PI * 40;
+  const counts = [0, 0, 0, 0, 0, 0]; WORDS.forEach(w => counts[Math.min(5, card(w.id).box === 6 ? 5 : card(w.id).box)]++);
+  view.innerHTML = `
+  <div class="grid">
+    <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English, 4 choices</p></button>
+    <button class="mode" data-m="reverse"><div class="ic">🔄</div><h3>Reverse</h3><p>English → Japanese</p></button>
+    <button class="mode" data-m="reading"><div class="ic">📖</div><h3>Reading Quiz</h3><p>Kanji → kana (${KANJI_IDS.length} words)</p></button>
+    <button class="mode" data-m="speed"><div class="ic">⚡</div><h3>Speed Round</h3><p>60 seconds, go go go! Best: ${S.bestSpeed}</p></button>
+    <button class="mode" data-m="match"><div class="ic">🧩</div><h3>Matching Pairs</h3><p>Match 6 words to meanings</p></button>
+    <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse & listen to all ${total}</p></button>
+  </div>
+  <div class="panel">
+    <h2>🗺️ Progress Map</h2>
+    <div class="progress-big">
+      <svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="#ffffff22" stroke-width="12"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="${pct > 0 ? "round" : "butt"}" stroke-dasharray="${C * pct} ${C}" transform="rotate(-90 50 50)"/>
+        <defs><linearGradient id="g"><stop offset="0" stop-color="#2ec4b6"/><stop offset="1" stop-color="#7bd88f"/></linearGradient></defs>
+        <text x="50" y="56" text-anchor="middle" fill="#fff" font-size="18" font-weight="800">${Math.round(pct * 100)}%</text></svg>
+      <div>
+        <div><b style="font-size:1.4rem">${m}</b> / ${total} words mastered</div>
+        <div class="muted">${seen} seen · ${due} due for review now · ${S.answered} answers total</div>
+        <div class="legend" style="margin-top:8px">
+          <span><i class="b0"></i>New ${counts[0]}</span><span><i class="b1"></i>Learning ${counts[1]}</span><span><i class="b2"></i>Reviewing ${counts[2]}</span><span><i class="b3"></i>Familiar ${counts[3]}</span><span><i class="b4"></i>Mastered ${counts[4]}</span><span><i class="b5"></i>Rock-solid ${counts[5]}</span>
+        </div>
+      </div>
+    </div>
+    <div id="map"></div>
+  </div>`;
+  const map = $("#map"), frag = document.createDocumentFragment();
+  WORDS.forEach(w => { const d = document.createElement("div"); d.className = "b" + Math.min(5, card(w.id).box === 6 ? 5 : card(w.id).box); d.title = `${w.jp} (${w.kana}) — ${w.en}`; d.dataset.id = w.id; frag.appendChild(d); });
+  map.appendChild(frag);
+  map.onclick = e => { if (e.target.dataset.id) wordModal(WORDS[+e.target.dataset.id]); };
+  view.querySelectorAll(".mode").forEach(b => b.onclick = () => { sfx.click(); const m = b.dataset.m; go(() => ({ meaning: () => quiz("meaning"), reverse: () => quiz("reverse"), reading: () => quiz("reading"), speed, match, browse })[m]()); });
+}
+
+function wordModal(w) {
+  const c = card(w.id);
+  const md = document.createElement("div"); md.className = "modal";
+  md.innerHTML = `<div class="box wordinfo"><div class="prompt jp">${esc(w.jp)}</div><div class="jp" style="font-size:1.3rem">${esc(w.kana)}</div><div class="muted">${esc(ROMA(w.kana))}</div><p style="font-size:1.1rem">${esc(w.en)}</p><p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}</p>
+  <button class="btn sec" id="mdSpeak">🔈 Listen</button> <button class="btn" id="mdClose">Close</button></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "mdClose") md.remove(); };
+  md.querySelector("#mdSpeak").onclick = () => speak(w);
+  if (!canSpeak()) md.querySelector("#mdSpeak").classList.add("hidden");
+}
+
+function topbar(title, extra = "") {
+  return `<div class="topbar"><button class="btn sec small" id="backBtn">← Home</button><b>${title}</b><span class="combo" id="combo"></span><span style="margin-left:auto">${extra}</span></div>`;
+}
+function bindBack() { $("#backBtn").onclick = () => { sfx.click(); go(home); }; }
+
+/* ---------- Multiple-choice quiz (meaning / reverse / reading) ---------- */
+function renderMC(mode, w, onAnswer, opts = {}) {
+  let opt, prompt, promptCls = "jp", sub = "", qtype, key, choiceCls = "", label;
+  if (mode === "meaning") {
+    qtype = "What does this mean?"; prompt = w.jp; sub = (w.hasKanji ? `<div class="sub jp">${esc(w.kana)}</div>` : "") + romajiLine(w);
+    key = x => x.en; label = x => esc(x.en);
+  } else if (mode === "reverse") {
+    qtype = "Which Japanese word means…"; prompt = w.en; promptCls = "en";
+    key = x => x.jp; choiceCls = "jpc jp"; label = x => `${esc(x.jp)}${x.hasKanji ? `<small>${esc(x.kana)}</small>` : ""}${S.romaji ? `<small>${esc(ROMA(x.kana))}</small>` : ""}`;
+  } else {
+    qtype = "How do you read this?"; prompt = w.jp; sub = `<div class="sub">${esc(w.en)}</div>`;
+    key = x => x.kana; choiceCls = "jpc jp"; label = x => `${esc(x.kana)}${S.romaji ? `<small>${esc(ROMA(x.kana))}</small>` : ""}`;
+  }
+  opt = shuffle([w, ...distractors(w, 3, key, mode === "reading" ? KANJI_IDS : undefined)]);
+  const host = opts.host || $("#qhost");
+  host.innerHTML = `<div class="card"><div class="qtype">${qtype}</div>
+    ${canSpeak() && mode !== "reverse" ? `<button class="iconbtn" id="spk" title="Listen">🔈</button>` : ""}
+    <div class="prompt ${promptCls}">${esc(prompt)}</div>${sub}
+    <div class="choices">${opt.map((o, i) => `<button class="choice ${choiceCls}" data-i="${i}"><span class="k">${i + 1}</span>${label(o)}</button>`).join("")}</div>
+    <div class="feedback" id="fb"></div></div>`;
+  const spk = host.querySelector("#spk"); if (spk) spk.onclick = () => speak(w);
+  if (S.autoSpeak && mode !== "reverse") speak(w);
+  let done = false;
+  const btns = [...host.querySelectorAll(".choice")];
+  const choose = i => {
+    if (done) return; done = true;
+    const ok = opt[i].id === w.id || key(opt[i]) === key(w);
+    btns.forEach((b, j) => { b.disabled = true; if (opt[j].id === w.id) b.classList.add("right"); });
+    if (!ok) btns[i].classList.add("wrong");
+    const fb = host.querySelector("#fb");
+    fb.innerHTML = ok ? `<span style="color:var(--good)">✔ ${esc(w.jp)}${w.hasKanji ? "（" + esc(w.kana) + "）" : ""} = ${esc(w.en)}</span>`
+                      : `<span style="color:var(--bad)">✘ ${esc(w.jp)}${w.hasKanji ? "（" + esc(w.kana) + "）" : ""} = ${esc(w.en)}</span>`;
+    if (mode === "reverse" && canSpeak()) speak(w);
+    onAnswer(ok, btns[i]);
+  };
+  btns.forEach((b, i) => b.onclick = () => choose(i));
+  return choose;
+}
+
+function quiz(mode) {
+  const titles = { meaning: "🈁 Meaning Quiz", reverse: "🔄 Reverse Quiz", reading: "📖 Reading Quiz" };
+  const pool = mode === "reading" ? KANJI_IDS : WORDS.map(w => w.id);
+  let right = 0, total = 0, choose = null, advancing = null;
+  view.innerHTML = topbar(titles[mode], `<span class="muted" id="score">0/0</span>`) + `<div id="qhost"></div><p class="muted" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> to answer, <kbd>Enter</kbd>/<kbd>Space</kbd> for next</p>`;
+  bindBack();
+  const next = () => {
+    clearTimeout(advancing); advancing = null;
+    const w = WORDS[pickNext(pool)];
+    choose = renderMC(mode, w, (ok, el) => {
+      total++; if (ok) right++;
+      grade(w.id, ok); if (!ok) requeue(w.id);
+      comboHit(ok, el);
+      $("#score").textContent = `${right}/${total}`;
+      const fb = $("#fb"); const nb = document.createElement("div"); nb.innerHTML = `<button class="btn" id="nextBtn" style="margin-top:10px">Next →</button>`; fb.appendChild(nb);
+      $("#nextBtn").onclick = next;
+      advancing = setTimeout(next, ok ? 1100 : 2600);
+      choose = null;
+    });
+  };
+  const onKey = e => {
+    if (document.querySelector(".modal")) return;
+    if (choose && /^[1-4]$/.test(e.key)) choose(+e.key - 1);
+    else if (!choose && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); next(); }
+  };
+  addEventListener("keydown", onKey);
+  cleanup = () => { removeEventListener("keydown", onKey); clearTimeout(advancing); };
+  next();
+}
+
+/* ---------- Speed round ---------- */
+function speed() {
+  const DUR = 60;
+  view.innerHTML = topbar("⚡ Speed Round", `<span class="timer" id="tleft">${DUR}</span>`) +
+    `<div class="topbar"><div class="timebar"><div id="tbar" style="width:100%"></div></div><b id="sscore">0 pts</b></div>
+     <div id="qhost"><div class="card"><div class="prompt en">Ready?</div><p class="sub">Answer as many JP → EN questions as you can in ${DUR} seconds.<br>Correct: +1 · Wrong: −2 s</p><button class="btn" id="startBtn">Start!</button></div></div>`;
+  bindBack();
+  let t0, timer, choose = null, score = 0, wrongs = 0, penalty = 0, over = false, lastTick = DUR;
+  const pool = WORDS.map(w => w.id);
+  const remaining = () => Math.max(0, DUR - (Date.now() - t0) / 1000 - penalty);
+  const next = () => {
+    if (over) return;
+    const w = WORDS[pickNext(pool)];
+    choose = renderMC("meaning", w, (ok, el) => {
+      grade(w.id, ok);
+      if (ok) score++; else { wrongs++; penalty += 2; requeue(w.id); }
+      comboHit(ok, el, 8);
+      $("#sscore").textContent = score + " pts";
+      choose = null;
+      setTimeout(next, ok ? 350 : 1100);
+    });
+  };
+  const end = () => {
+    over = true; clearInterval(timer); choose = null; sfx.end();
+    const best = score > S.bestSpeed; if (best) { S.bestSpeed = score; save(); confetti(200); }
+    addXP(score * 2);
+    $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>correct · ${wrongs} wrong${best ? " · <b>🏆 New best!</b>" : ` · best ${S.bestSpeed}`}</p><p class="sub">Bonus +${score * 2} XP</p><button class="btn" id="again">Play again</button></div>`;
+    $("#again").onclick = () => go(speed);
+  };
+  $("#startBtn").onclick = () => {
+    t0 = Date.now(); next();
+    timer = setInterval(() => {
+      const r = remaining(); $("#tleft").textContent = Math.ceil(r); $("#tbar").style.width = (r / DUR * 100) + "%";
+      if (r <= 5 && Math.ceil(r) !== lastTick) { lastTick = Math.ceil(r); sfx.tick(); }
+      if (r <= 0) end();
+    }, 100);
+  };
+  const onKey = e => { if (choose && /^[1-4]$/.test(e.key)) choose(+e.key - 1); };
+  addEventListener("keydown", onKey);
+  cleanup = () => { clearInterval(timer); over = true; removeEventListener("keydown", onKey); };
+}
+
+/* ---------- Matching pairs ---------- */
+function match() {
+  const N = 6;
+  let round = 0, t0 = Date.now(), misses = 0, sel = null, left = N, timer;
+  view.innerHTML = topbar("🧩 Matching Pairs", `<span class="muted" id="mtime">0s</span>`) + `<p class="muted" style="margin:0 0 10px">Tap a Japanese word, then its meaning. Best: ${S.bestMatch ? S.bestMatch + "s" : "—"}</p><div class="match" id="mgrid"></div>`;
+  bindBack();
+  timer = setInterval(() => { const m = $("#mtime"); if (m) m.textContent = Math.floor((Date.now() - t0) / 1000) + "s"; }, 250);
+  cleanup = () => clearInterval(timer);
+  // choose words: prefer due / new ones via SRS picker, unique meanings
+  const ids = []; const ens = new Set(); let guard = 0;
+  while (ids.length < N && guard++ < 200) { const id = pickNext(WORDS.map(w => w.id)); if (!ids.includes(id) && !ens.has(WORDS[id].en)) { ids.push(id); ens.add(WORDS[id].en); } }
+  const jpSide = shuffle(ids), enSide = shuffle(ids);
+  const grid = $("#mgrid");
+  // two columns: JP left, EN right
+  for (let i = 0; i < N; i++) {
+    const a = WORDS[jpSide[i]], b = WORDS[enSide[i]];
+    grid.insertAdjacentHTML("beforeend", `<button class="tile jpt jp" data-id="${a.id}" data-side="jp">${esc(a.jp)}${S.romaji ? `<div style="font-size:.75rem;color:#777;font-family:system-ui">${esc(ROMA(a.kana))}</div>` : ""}</button><button class="tile" data-id="${b.id}" data-side="en">${esc(b.en)}</button>`);
+  }
+  const missed = new Set();
+  grid.onclick = e => {
+    const t = e.target.closest(".tile"); if (!t || t.classList.contains("done")) return;
+    if (t.dataset.side === "jp") speak(WORDS[+t.dataset.id]);
+    if (!sel) { sel = t; t.classList.add("sel"); sfx.click(); return; }
+    if (sel === t) { t.classList.remove("sel"); sel = null; return; }
+    if (sel.dataset.side === t.dataset.side) { sel.classList.remove("sel"); sel = t; t.classList.add("sel"); sfx.click(); return; }
+    const ok = sel.dataset.id === t.dataset.id;
+    const a = sel, b = t; sel = null; a.classList.remove("sel");
+    if (ok) {
+      const id = +a.dataset.id;
+      grade(id, !missed.has(id));
+      comboHit(true, b, 12);
+      a.classList.add("done"); b.classList.add("done"); left--;
+      if (left === 0) finish();
+    } else {
+      misses++; comboHit(false);
+      [a, b].forEach(x => { x.classList.add("bad"); setTimeout(() => x.classList.remove("bad"), 400); });
+      const jpId = +(a.dataset.side === "jp" ? a : b).dataset.id;
+      missed.add(jpId);
+    }
+  };
+  function finish() {
+    clearInterval(timer);
+    const secs = Math.round((Date.now() - t0) / 1000);
+    const perfect = misses === 0;
+    const best = !S.bestMatch || secs < S.bestMatch; if (best) { S.bestMatch = secs; save(); }
+    if (perfect) confetti(150);
+    const bonus = perfect ? 30 : 10; addXP(bonus);
+    grid.innerHTML = `<div class="card" style="grid-column:1/-1"><div class="qtype">Board cleared!</div><div class="big">${secs}s</div><p>${misses} miss${misses === 1 ? "" : "es"}${perfect ? " · ✨ Perfect!" : ""}${best ? " · 🏆 New best time" : ""}</p><p class="sub">+${bonus} XP bonus</p><button class="btn" id="again">Next board</button></div>`;
+    $("#again").onclick = () => go(match);
+  }
+}
+
+/* ---------- Browse ---------- */
+function browse() {
+  view.innerHTML = topbar("🗂️ Word List", `<span class="muted">${WORDS.length} words</span>`) + `<input id="q" placeholder="Search Japanese, kana, romaji or English…" style="width:100%;padding:12px;border-radius:12px;border:none;font-size:1rem;margin-bottom:10px"><div class="panel" id="list" style="margin-top:0"></div>`;
+  bindBack();
+  const list = $("#list");
+  const render = q => {
+    q = q.trim().toLowerCase();
+    const rows = WORDS.filter(w => !q || w.jp.includes(q) || w.kana.includes(q) || w.en.toLowerCase().includes(q) || ROMA(w.kana).includes(q)).slice(0, 800);
+    list.innerHTML = rows.map(w => `<div class="row" data-id="${w.id}" style="cursor:pointer"><span><i class="b${Math.min(5, card(w.id).box === 6 ? 5 : card(w.id).box)}" style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px"></i><b class="jp" style="font-size:1.3rem">${esc(w.jp)}</b> <span class="muted jp">${w.hasKanji ? esc(w.kana) : ""}</span>${S.romaji ? ` <span class="muted" style="font-size:.8rem">${esc(ROMA(w.kana))}</span>` : ""}</span><span style="text-align:right;font-size:.9rem">${esc(w.en)}</span></div>`).join("") || `<p class="muted">No matches.</p>`;
+  };
+  $("#q").oninput = e => render(e.target.value);
+  list.onclick = e => { const r = e.target.closest(".row"); if (r) wordModal(WORDS[+r.dataset.id]); };
+  render("");
+}
+
+/* ---------- Settings ---------- */
+function settings() {
+  const md = document.createElement("div"); md.className = "modal";
+  const sw = (k, label, desc) => `<div class="row"><span style="text-align:left">${label}<br><small class="muted">${desc}</small></span><button class="switch ${S[k] ? "on" : ""}" data-k="${k}" aria-label="${label}"></button></div>`;
+  md.innerHTML = `<div class="box" style="text-align:left"><h2 style="margin-top:0">⚙️ Settings</h2>
+    ${sw("sound", "🔊 Sound effects", "WebAudio beeps & fanfares")}
+    ${sw("romaji", "🔤 Romaji hints", "Show romaji generated from kana")}
+    ${sw("speech", "🗣️ Pronunciation", "speechSynthesis" in window ? (jaVoice ? "Japanese voice: " + esc(jaVoice.name) : "Uses ja-JP voice if your device has one") : "Not supported in this browser")}
+    ${sw("autoSpeak", "▶️ Auto-play audio", "Speak each Japanese prompt automatically")}
+    <div class="row"><span>🗑️ Reset all progress<br><small class="muted">Clears SRS boxes, XP, streak, bests</small></span><button class="btn small" id="resetBtn" style="background:var(--bad)">Reset</button></div>
+    <div style="text-align:right;margin-top:12px"><button class="btn" id="closeS">Done</button></div></div>`;
+  document.body.appendChild(md);
+  md.querySelectorAll(".switch").forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = !S[k]; b.classList.toggle("on", S[k]); save(); updateHeader(); if (k === "sound" && S.sound) sfx.good(); });
+  md.querySelector("#resetBtn").onclick = () => {
+    if (confirm("Really reset ALL progress? This cannot be undone.")) { const keep = { sound: S.sound, romaji: S.romaji, speech: S.speech, autoSpeak: S.autoSpeak }; S = Object.assign(defaultState(), keep); save(); md.remove(); toast("Progress reset"); go(home); }
+  };
+  md.onclick = e => { if (e.target === md || e.target.id === "closeS") { md.remove(); go(home); } };
+}
+
+/* ================= Boot ================= */
+$("#homeLogo").onclick = () => go(home);
+$("#settingsBtn").onclick = () => { sfx.click(); settings(); };
+$("#soundBtn").onclick = () => { S.sound = !S.sound; save(); updateHeader(); if (S.sound) sfx.good(); };
+$("#srcInfo").innerHTML = `${WORDS.length} JLPT N5 words from <a href="${esc(SOURCE_URL)}" target="_blank" rel="noopener">open-anki-jlpt-decks</a>`;
+window.__N5 = { WORDS, ROMA, S: () => S }; // handy for debugging/tests
+go(home);
+</script>
+</body>
+</html>
