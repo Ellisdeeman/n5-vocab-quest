@@ -25,8 +25,8 @@ const root=r=>fs.writeFileSync('/tmp/swt/ROOT',r);
  let nb=await ev(()=>window.__N5&&__N5.BUILD).catch(()=>null);
  if(nb===oldBuild){await p.reload();await p.waitForTimeout(1000);nb=await ev(()=>__N5.BUILD);}
  ok(`${FROM}: open old app picks up the new build`,nb&&nb!==oldBuild,`${oldBuild}->${nb}`);
- for(let i=0;i<30;i++){const st=await ev(async()=>{const r=await navigator.serviceWorker.getRegistration();return {a:r&&r.active&&r.active.scriptURL,w:!!(r&&r.waiting),i:!!(r&&r.installing),k:await caches.keys()}});if(st.k.includes('n5vq-page-v5'))break;if(i%5==0)console.log('  sw',JSON.stringify(st));await p.waitForTimeout(1000);if(i==10){await p.reload();await p.waitForTimeout(800);}}
- const keys=await ev(()=>caches.keys());ok(`${FROM}: SW v5 active, old page cache dropped`,keys.includes('n5vq-page-v5')&&!keys.some(k=>/page-v[234]$/.test(k)),JSON.stringify(cachesBefore)+' -> '+JSON.stringify(keys));
+ for(let i=0;i<30;i++){const st=await ev(async()=>{const r=await navigator.serviceWorker.getRegistration();return {a:r&&r.active&&r.active.scriptURL,w:!!(r&&r.waiting),i:!!(r&&r.installing),k:await caches.keys()}});if(st.k.includes('n5vq-page-v6'))break;if(i%5==0)console.log('  sw',JSON.stringify(st));await p.waitForTimeout(1000);if(i==10){await p.reload();await p.waitForTimeout(800);}}
+ const keys=await ev(()=>caches.keys());ok(`${FROM}: SW v6 active, old page cache dropped`,keys.includes('n5vq-page-v6')&&!keys.some(k=>/page-v[2345]$/.test(k)),JSON.stringify(cachesBefore)+' -> '+JSON.stringify(keys));
  ok(`${FROM}: progress intact`,await ev(()=>Object.keys(__N5.S().cards).length>=400&&!!__N5.JS().cards['一']));
  await tap('#tabLevels');await tap('.lvlist .lvcard[data-lv=n5]');await p.waitForFunction(()=>/Kanji · 79/.test((document.querySelector('#kjOpen')||{}).textContent||''));
  await tap('#kjOpen');await p.waitForSelector('.kjtile');await tap('.kjtile[data-c="九"]');await p.waitForSelector('.modal .kjsvg .kjst');

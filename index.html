@@ -583,10 +583,16 @@ function addLevel(l, d) {
 }
 addLevel("n5", { words: VOCAB, examples: N5EX, pos: META.pos, sets: META.sets, human: AUDIO.human, source: SOURCE_URL });
 const levelPromises = {};
+/* fetch with a time limit: a request the network never answers must not leave a screen on "Loading…" forever */
+function fetchT(url, ms = 20000) {
+  const ac = typeof AbortController === "function" ? new AbortController() : null;
+  const t = setTimeout(() => { try { ac && ac.abort(); } catch (e) {} }, ms);
+  return Promise.race([fetch(url, ac ? { signal: ac.signal } : undefined), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms + 50))]).finally(() => clearTimeout(t));
+}
 function loadLevel(l) {
   if (!LV[l]) return Promise.resolve(false);
   if (LV[l].loaded) return Promise.resolve(true);
-  if (!levelPromises[l]) levelPromises[l] = fetch(`data/${l}.json?v=${LV[l].info.v || 1}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  if (!levelPromises[l]) levelPromises[l] = fetchT(`data/${l}.json?v=${LV[l].info.v || 1}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(d => { addLevel(l, d); return true; }).catch(e => { delete levelPromises[l]; return false; });
   return levelPromises[l];
 }
@@ -1110,12 +1116,12 @@ function renderTyping(w, onAnswer, opts = {}) {
 
 /* ================= Views ================= */
 let cleanup = null;
-let curView = null;
+let curView = null, viewGen = 0;   // viewGen: bumped on every screen change, so async views can tell if they are still on screen
 let curTab = "home";
 const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", a.length === 1 ? `var(--${a[0]})` : "var(--indigo)"); }
-function go(fn) { curView = fn; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
+function go(fn) { curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
   const v = $("#view"); v.style.animation = "none"; void v.offsetWidth; v.style.animation = "";
   fn(); const t = TAB_OF().get(fn); if (t) setTab(t); document.body.classList.toggle("studying", studyScreen); applyTint(); updateHeader(); }
 function topbar(title, extra = "") { return `<div class="topbar"><button class="backbtn" id="backBtn" aria-label="Back">${I("chevronL")}Back</button><b>${title}</b><span class="combo" id="combo"></span><span style="margin-left:auto">${extra}</span></div>`; }
@@ -1331,7 +1337,7 @@ function dailyHeroHTML(D, path = false) {
 }
 function bindDailyBtn(D, back, key) {
   const b = $("#dailyBtn"); if (!b) return;
-  b.onclick = () => { sfx.click(); go(D.done ? (key === "path" ? () => dueOrPractice() : () => quiz("mixed", unlockedIds(), "🎲 Extra practice", back)) : () => dailySession(back, key)); };
+  b.onclick = () => { sfx.click(); go(D.done ? (key === "path" ? (totalDue() ? dueView : dueOrPractice) : () => quiz("mixed", unlockedIds(), "🎲 Extra practice", back)) : () => dailySession(back, key)); };
 }
 function dueOrPractice() { if (totalDue()) dueView(); else { const ps = pathState(); if (ps.cur === "kana") kanaSession("k2r"); else if (LV[ps.cur].loaded) quiz("mixed", LV[ps.cur].ids.filter(id => S.cards[id]).concat(LV[ps.cur].ids).slice(0, 400), "🎲 Extra practice"); else quiz("mixed", unlockedIds(), "🎲 Extra practice"); } }
 /* ---------- Home ---------- */
@@ -1392,7 +1398,7 @@ function home() {
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
     const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView };
-    go(() => special[m] ? special[m]() : quiz(m));
+    go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
 
@@ -2371,9 +2377,9 @@ setInterval(updateDueBadge, 30e3);
 const batchOf = n => S.dueBatch === "all" || !S.dueBatch ? n : Math.min(n, +S.dueBatch);
 const dueStatus = r => r.ids.length ? `<b class="duen">${r.ids.length}</b> due` : `<span class="muted">nothing due${r.next != null ? ` · next ${fmtIn(r.next)}` : ""}</span>`;
 
-async function ensureDueLevels() {   // load every level that has saved cards (needed to show their words)
+async function ensureDueLevels(maxMs = 10000) {   // load every level that has saved cards (needed to show their words); never waits forever
   const need = LEVELS.filter(l => !LV[l].loaded && levelStats(l).seen > 0), kneed = kjLevelsWithCards().filter(l => !KJL[l].loaded);
-  if (need.length || kneed.length) await Promise.all(need.map(loadLevel).concat(kneed.map(loadKanji)));
+  if (need.length || kneed.length) await Promise.race([Promise.all(need.map(loadLevel).concat(kneed.map(loadKanji))), new Promise(r => setTimeout(r, maxMs))]);
 }
 function dueRow(key, icon, name, r, sub = "") {
   const c = /^n\d$/.test(key) ? `var(--${key})` : key.startsWith("kanji:") ? `var(--${key.slice(6)})` : key === "leech" ? "var(--bad)" : key.startsWith("kana") ? "var(--mint)" : key.startsWith("set:") ? setColor({ id: key.slice(4) }) : "var(--tint)";
@@ -2396,10 +2402,12 @@ function dueSections() {
 let dueOpen = {};
 async function dueView() {
   view.innerHTML = `<div class="largetitle">Review</div><div class="panel" style="text-align:center"><p>Loading…</p></div>`;
-  await ensureDueLevels();
-  if (curView !== dueView) return;
+  // however it was opened (tab, Home card, "Review due", a wrapper), this screen is the Review view
+  curView = dueView; setTab("review"); const gen = viewGen;
+  try { await ensureDueLevels(); } catch (e) { reportError(e); }
+  if (gen !== viewGen) return;          // user moved on while loading
   renderDue();
-  const t = setInterval(() => { if (curView === dueView && !document.querySelector(".modal")) renderDue(); }, 30e3);
+  const t = setInterval(() => { if (gen === viewGen && !document.querySelector(".modal")) renderDue(); }, 30e3);
   cleanup = () => clearInterval(t);
 }
 function renderDue() {
@@ -2649,7 +2657,7 @@ const kjUrl = (l, strokes) => `data/kanji-${l}${strokes ? "-s" : ""}.json?v=${(K
 function loadKanji(l) {
   if (!KJL[l]) return Promise.resolve(false);
   if (KJL[l].loaded) return Promise.resolve(true);
-  if (!kjPromises[l]) kjPromises[l] = fetch(kjUrl(l)).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  if (!kjPromises[l]) kjPromises[l] = fetchT(kjUrl(l)).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(d => {
       if (KJL[l].loaded) return true;
       d.items.forEach((x, i) => { KJ[x[0]] = { c: x[0], lvl: l, idx: i, strokes: x[1], mean: x[2], on: x[3], kun: [...new Set(x[4] || [])], freq: x[5], grade: x[6], la: x[7] || [], ex: x[8] || [], paths: x[9] || null }; KJL[l].list.push(x[0]); });
@@ -2661,7 +2669,7 @@ function loadKanji(l) {
 /* stroke paths (KanjiVG) are ~70% of the kanji data, so they're a separate file fetched only when a learn card needs them */
 function loadStrokes(l) {
   if (!KJL[l] || KJL[l].strokes) return Promise.resolve(!!(KJL[l] && KJL[l].strokes));
-  if (!kjsPromises[l]) kjsPromises[l] = loadKanji(l).then(ok => { if (!ok) throw 0; return fetch(kjUrl(l, true)); }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  if (!kjsPromises[l]) kjsPromises[l] = loadKanji(l).then(ok => { if (!ok) throw 0; return fetchT(kjUrl(l, true), 30000); }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(d => { const ch = [...d.chars]; ch.forEach((c, i) => { if (KJ[c] && d.paths[i] && d.paths[i].length) KJ[c].paths = d.paths[i]; }); KJL[l].strokes = true; return true; })
     .catch(() => { delete kjsPromises[l]; return false; });
   return kjsPromises[l];
@@ -2991,7 +2999,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "0424fbece5fa";
+const BUILD = "aadbb4128f24";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -3055,7 +3063,9 @@ window.__N5 = { kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () 
     try { pathLevels().forEach(add); if (dm.path && !dm.path.done) (dm.path.items || []).forEach(it => add(vocabLv(it))); } catch (e) {}
     refreshPool(); renderCredits();
     const extra = [...want].filter(l => LV[l] && !LV[l].loaded);
-    if (extra.length) { view.innerHTML = `<div class="panel" style="text-align:center"><div class="big">⏳</div><p>Loading ${extra.map(LNAME).join(", ")}…</p></div>`; await Promise.all(extra.map(loadLevel));
+    if (extra.length) { view.innerHTML = `<div class="panel" style="text-align:center"><div class="big">⏳</div><p>Loading ${extra.map(LNAME).join(", ")}…</p></div>`; const all = Promise.all(extra.map(loadLevel));
+      // don't hold Home hostage to a slow network: show it after 8 s and refresh it once the rest arrives
+      if (await Promise.race([all.then(() => 1), new Promise(r => setTimeout(r, 8000, 0))]) === 0) all.then(() => { refreshPool(); if (curView === home && !studyScreen && !document.querySelector(".modal")) go(home); });
       const miss = S.levels.filter(l => LV[l] && !LV[l].loaded); if (miss.length) setTimeout(() => toast(`⚠️ Couldn't load ${miss.map(LNAME).join(", ")} (offline?) — showing ${levelLabel()}`), 300); }
   } catch (e) { console.warn("start-up", e); }
   try { refreshPool(); renderCredits(); } catch (e) {}
