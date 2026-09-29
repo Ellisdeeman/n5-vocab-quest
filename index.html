@@ -122,6 +122,22 @@ kbd{background:#ffffff22;border-radius:4px;padding:1px 5px;font-size:.8em}
 .tag{display:inline-block;background:#eee9ff;color:#5d5a80;border-radius:999px;padding:1px 8px;font-size:.72rem;font-weight:700;margin:0 2px}
 .leechrow{background:var(--bg2);border-radius:14px;padding:12px;margin-top:10px}
 input[type=number]{width:70px;padding:6px;border-radius:8px;border:none;font:inherit;text-align:center}
+
+.seg{display:flex;background:var(--bg2);border-radius:999px;padding:4px;gap:4px;margin:4px 0}
+.seg button{flex:1;background:none;color:#fff;border-radius:999px;padding:8px 6px;font-weight:700;font-size:.9rem}
+.seg button.on{background:var(--accent)}
+.kgrid{display:grid;gap:6px;margin-bottom:6px}
+.kgrid.kh div{text-align:center;color:var(--muted);font-size:.75rem;font-weight:700}
+.kcell{background:var(--card);color:var(--ink);border-radius:10px;padding:6px 0 4px;text-align:center;border-bottom:5px solid #3a3f6a;transition:transform .1s}
+.kcell:active{transform:scale(.94)}
+.kcell b{display:block;font-size:clamp(1.3rem,6vw,1.9rem);line-height:1.2;font-weight:500}
+.kcell small{color:#6b6890;font-size:.75rem}
+.kcell.empty{background:transparent;border:none}
+.kb0{border-bottom-color:#c9c6e0}.kb1{border-bottom-color:#ff6b6b}.kb2{border-bottom-color:#ff9f5a}.kb3{border-bottom-color:#ffc857}.kb4{border-bottom-color:#7bd88f}.kb5{border-bottom-color:#2ec4b6}
+.kbig{font-size:clamp(6rem,30vw,9rem);line-height:1.1;background:var(--card);color:var(--ink);border-radius:18px;margin:0 auto 10px;width:min(240px,70vw);font-weight:400}
+.kprompt{font-size:clamp(4rem,20vw,6rem)!important;font-weight:400}
+.choice.kchoice{font-size:2.2rem}
+.choice.kroma{font-size:1.6rem;font-weight:700}
 </style>
 </head>
 <body>
@@ -783,6 +799,7 @@ function home() {
     <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${unlockedCount} unlocked</p></button>
     <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing + mnemonics</p></button>
     <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
+    <button class="mode" data-m="kana"><div class="ic jp">あア</div><h3>Kana Dojo</h3><p>Hiragana & katakana · ${kanaSummary()}</p></button>
   </div>
   <div class="panel">
     <h2>🗺️ Progress Map</h2>
@@ -808,7 +825,8 @@ function home() {
   $("#dailyBtn").onclick = () => { sfx.click(); go(D.done ? () => quiz("mixed", unlockedIds(), "🎲 Extra practice") : dailySession); };
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    go(() => ({ speed, match: () => match(), browse, sets: setsView, leeches: leechView })[m] ? ({ speed, match: () => match(), browse, sets: setsView, leeches: leechView })[m]() : quiz(m));
+    const special = { speed, match: () => match(), browse, sets: setsView, leeches: leechView, kana: kanaHome };
+    go(() => special[m] ? special[m]() : quiz(m));
   });
 }
 
@@ -981,7 +999,8 @@ function settings() {
     ${HAS_SPEECH ? sw("listenType", "✍️ Listening: type what you hear", "Instead of picking the meaning") : ""}
     ${sw("unlockAll", "🔓 Unlock all word sets", "Skip progressive unlocking")}
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
-    <div class="row"><span>🗑️ Reset all progress<br><small class="muted">Clears SRS, XP, streak, bests, notes</small></span><button class="btn small" id="resetBtn" style="background:var(--bad)">Reset</button></div>
+    <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS, XP, streak, bests, notes (kana kept)</small></span><button class="btn small" id="resetBtn" style="background:var(--bad)">Reset</button></div>
+    <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana Dojo SRS & unlocks</small></span><button class="btn small" id="resetKana" style="background:var(--bad)">Reset</button></div>
     <div style="text-align:right;margin-top:12px"><button class="btn" id="closeS">Done</button></div></div>`;
   document.body.appendChild(md);
   md.querySelectorAll(".switch").forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = !S[k]; b.classList.toggle("on", S[k]); save(); updateHeader(); if (k === "sound" && S.sound) sfx.good(); });
@@ -993,9 +1012,407 @@ function settings() {
   md.querySelector("#resetBtn").onclick = () => {
     if (confirm("Really reset ALL progress (including notes)? This cannot be undone.")) { const keep = { sound: S.sound, romaji: S.romaji, speech: S.speech, autoSpeak: S.autoSpeak, newPerDay: S.newPerDay, autoAdvance: S.autoAdvance }; S = Object.assign(defaultState(), keep); save(); md.remove(); toast("Progress reset"); go(home); }
   };
+  md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
   md.onclick = e => { if (e.target === md || e.target.id === "closeS") { md.remove(); go(home); } };
 }
 
+
+/* =====================================================================
+   KANA SECTION — hiragana & katakana with their own SRS (separate storage key)
+   ===================================================================== */
+const KKEY = "n5VocabQuest.kana.v1";
+const kanaDefault = () => ({ cards: {}, script: "h", sel: {}, unlockAll: false, ext: false, unlocked: [], mastered: [], bestSpeed: 0, bestMatch: 0 });
+let KS;
+try { KS = Object.assign(kanaDefault(), JSON.parse(localStorage.getItem(KKEY) || "{}")); } catch (e) { KS = kanaDefault(); }
+["cards", "sel"].forEach(k => { if (!KS[k] || typeof KS[k] !== "object") KS[k] = {}; });
+["unlocked", "mastered"].forEach(k => { if (!Array.isArray(KS[k])) KS[k] = []; });
+const ksave = () => { try { localStorage.setItem(KKEY, JSON.stringify(KS)); } catch (e) {} };
+
+/* groups: lines of cells ("" = empty grid cell), hiragana form; katakana derived. */
+const KGROUPS = [
+  { id: "a", name: "a row", type: "Basic", lines: [["あ", "い", "う", "え", "お"]] },
+  { id: "ka", name: "ka row", type: "Basic", lines: [["か", "き", "く", "け", "こ"]] },
+  { id: "sa", name: "sa row", type: "Basic", lines: [["さ", "し", "す", "せ", "そ"]] },
+  { id: "ta", name: "ta row", type: "Basic", lines: [["た", "ち", "つ", "て", "と"]] },
+  { id: "na", name: "na row", type: "Basic", lines: [["な", "に", "ぬ", "ね", "の"]] },
+  { id: "ha", name: "ha row", type: "Basic", lines: [["は", "ひ", "ふ", "へ", "ほ"]] },
+  { id: "ma", name: "ma row", type: "Basic", lines: [["ま", "み", "む", "め", "も"]] },
+  { id: "ya", name: "ya row", type: "Basic", lines: [["や", "", "ゆ", "", "よ"]] },
+  { id: "ra", name: "ra row", type: "Basic", lines: [["ら", "り", "る", "れ", "ろ"]] },
+  { id: "wa", name: "wa row + n", type: "Basic", lines: [["わ", "", "", "", "を"], ["ん", "", "", "", ""]] },
+  { id: "ga", name: "ga row", type: "Dakuten", lines: [["が", "ぎ", "ぐ", "げ", "ご"]] },
+  { id: "za", name: "za row", type: "Dakuten", lines: [["ざ", "じ", "ず", "ぜ", "ぞ"]] },
+  { id: "da", name: "da row", type: "Dakuten", lines: [["だ", "ぢ", "づ", "で", "ど"]] },
+  { id: "ba", name: "ba row", type: "Dakuten", lines: [["ば", "び", "ぶ", "べ", "ぼ"]] },
+  { id: "pa", name: "pa row (handakuten)", type: "Dakuten", lines: [["ぱ", "ぴ", "ぷ", "ぺ", "ぽ"]] },
+  { id: "y1", name: "kya · sha · cha · nya", type: "Youon", lines: [["きゃ", "きゅ", "きょ"], ["しゃ", "しゅ", "しょ"], ["ちゃ", "ちゅ", "ちょ"], ["にゃ", "にゅ", "にょ"]] },
+  { id: "y2", name: "hya · mya · rya", type: "Youon", lines: [["ひゃ", "ひゅ", "ひょ"], ["みゃ", "みゅ", "みょ"], ["りゃ", "りゅ", "りょ"]] },
+  { id: "y3", name: "gya · ja · bya · pya", type: "Youon", lines: [["ぎゃ", "ぎゅ", "ぎょ"], ["じゃ", "じゅ", "じょ"], ["びゃ", "びゅ", "びょ"], ["ぴゃ", "ぴゅ", "ぴょ"]] },
+  { id: "ext", name: "Extended loanword sounds", type: "Extended", kataOnly: true, lines: [["ティ", "ディ", "トゥ", "ドゥ", "デュ"], ["ファ", "フィ", "フェ", "フォ", "フュ"], ["ヴァ", "ヴィ", "ヴ", "ヴェ", "ヴォ"], ["ウィ", "ウェ", "ウォ", "イェ", "ツァ"], ["シェ", "チェ", "ジェ", "テュ", ""]] }
+];
+const EXT_ROMA = { ティ: "ti", ディ: "di", トゥ: "tu", ドゥ: "du", デュ: "dyu", ファ: "fa", フィ: "fi", フェ: "fe", フォ: "fo", フュ: "fyu", ヴァ: "va", ヴィ: "vi", ヴ: "vu", ヴェ: "ve", ヴォ: "vo", ウィ: "wi", ウェ: "we", ウォ: "wo", イェ: "ye", ツァ: "tsa", シェ: "she", チェ: "che", ジェ: "je", テュ: "tyu" };
+const KALT = { shi: ["si"], chi: ["ti"], tsu: ["tu"], fu: ["hu"], ji: ["zi", "di", "dzi"], zu: ["du", "dzu"], wo: ["o"], n: ["nn", "n'"], sha: ["sya"], shu: ["syu"], sho: ["syo"], cha: ["tya", "cya"], chu: ["tyu", "cyu"], cho: ["tyo", "cyo"], ja: ["zya", "jya"], ju: ["zyu", "jyu"], jo: ["zyo", "jyo"], vu: ["bu"] };
+const KITEMS = {}, KBYGROUP = { h: {}, k: {} };
+KGROUPS.forEach((g, gi) => {
+  for (const s of ["h", "k"]) {
+    if (g.kataOnly && s === "h") continue;
+    KBYGROUP[s][g.id] = [];
+    g.lines.flat().filter(Boolean).forEach(hk => {
+      const ch = s === "h" ? hk : (g.kataOnly ? hk : toKata(hk));
+      const r = EXT_ROMA[ch] || ROMA(ch);
+      KITEMS[ch] = { id: ch, r, s, g: g.id, gi, type: g.type, pair: g.kataOnly ? null : (s === "h" ? toKata(hk) : hk), alt: KALT[r] || [] };
+      KBYGROUP[s][g.id].push(ch);
+    });
+  }
+});
+const KALL = Object.keys(KITEMS);
+/* look-alike families (both scripts) */
+const LOOKALIKE = [
+  "シツミジヅ", "ソンリノゾ", "ぬめねれわ", "るろそ", "さちきら", "はほけよま", "あおめぬの", "いりこにた", "くへしつ", "クケタワウフヌ", "コユヨロエニヲラ", "チテナメモヤ", "スヌフヲ", "マムアヤス", "カヤセサ", "キチモ", "ハルへヘ", "オホホ", "トドナ", "ねれわぬ", "うらろ", "ぬね", "めの", "ちさら", "こにい", "たなだ", "もしも", "ヲテ", "ルレ", "エヨコ"
+].map(s => new Set([...s]));
+const baseOf = ch => ch.normalize("NFD").replace(/[\u3099\u309a]/g, "")[0];
+function kSimilar(w, c) {
+  let s = 0;
+  const a = w.id, b = c.id;
+  s += a.length === b.length ? 3 : -6;
+  for (const fam of LOOKALIKE) if (fam.has(a[0]) && fam.has(b[0]) && a[0] !== b[0]) { s += 10; break; }
+  if (baseOf(a) === baseOf(b)) s += 4;
+  if (a.length > 1 && b.length > 1 && a.slice(1) === b.slice(1)) s += 2;
+  if (w.g === c.g) s += 3;
+  if (w.r.slice(-1) === c.r.slice(-1)) s += 1.5;
+  if (w.r[0] === c.r[0]) s += 1.5;
+  return s + Math.random() * 3;
+}
+const kcard = id => KS.cards[id] || { box: 0, due: 0, ok: 0, bad: 0 };
+const kGroupList = s => KGROUPS.filter(g => KBYGROUP[s][g.id] && (g.id !== "ext" || KS.ext));
+const kLearnedFrac = (s, gid) => { const ids = KBYGROUP[s][gid] || []; return ids.length ? ids.filter(id => kcard(id).box >= 2).length / ids.length : 0; };
+const kMasteredRow = (s, gid) => (KBYGROUP[s][gid] || []).every(id => kcard(id).box >= MASTER_BOX);
+const KUNLOCK_AT = 0.6;
+function kUnlocked(s, gid) {
+  if (KS.unlockAll) return true;
+  const list = KGROUPS.filter(g => KBYGROUP[s][g.id]), k = list.findIndex(g => g.id === gid);
+  if (k <= 0) return k === 0;
+  if (KS.unlocked.includes(s + ":" + gid)) return true;
+  return kUnlocked(s, list[k - 1].id) && kLearnedFrac(s, list[k - 1].id) >= KUNLOCK_AT;
+}
+function kCheckUnlocks() {
+  for (const s of ["h", "k"]) {
+    const list = KGROUPS.filter(g => KBYGROUP[s][g.id]);
+    for (let k = 1; k < list.length; k++) {
+      const key = s + ":" + list[k].id;
+      if (KS.unlocked.includes(key)) continue;
+      if (kUnlocked(s, list[k - 1].id) && kLearnedFrac(s, list[k - 1].id) >= KUNLOCK_AT) {
+        KS.unlocked.push(key); ksave();
+        if (!KS.unlockAll && (list[k].id !== "ext" || KS.ext)) setTimeout(() => { toast(`🔓 ${s === "h" ? "Hiragana" : "Katakana"} ${list[k].name} unlocked!`); confetti(70); }, 500);
+      }
+    }
+  }
+}
+function kGrade(id, ok) {
+  const it = KITEMS[id], wasM = kMasteredRow(it.s, it.g);
+  const c = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, kcard(id));
+  if (ok) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; } else { c.box = 1; c.bad++; }
+  c.due = Date.now() + INTERVALS[c.box] * (ok ? (0.9 + Math.random() * 0.2) : 1);
+  KS.cards[id] = c; ksave();
+  touchStreak(); save();
+  kCheckUnlocks();
+  const key = it.s + ":" + it.g;
+  if (!wasM && kMasteredRow(it.s, it.g) && !KS.mastered.includes(key)) { KS.mastered.push(key); ksave(); kPendingRead = { s: it.s, g: it.g }; }
+}
+let kPendingRead = null;
+let kRecent = [], kQueue = [], kTick = 0;
+function kPick(pool) {
+  kTick++;
+  const qi = kQueue.findIndex(q => q.after <= kTick && pool.includes(q.id));
+  if (qi >= 0) { const id = kQueue.splice(qi, 1)[0].id; kRemember(id); return id; }
+  const now = Date.now(), free = pool.filter(id => !kRecent.includes(id));
+  const P = free.length ? free : pool;
+  const due = P.filter(id => KS.cards[id] && kcard(id).due <= now).sort((a, b) => kcard(a).box - kcard(b).box);
+  const unseen = P.filter(id => !KS.cards[id]);
+  let id;
+  if (due.length && (!unseen.length || Math.random() < 0.6)) id = due[rand(Math.min(3, due.length))];
+  else if (unseen.length) id = unseen[rand(Math.min(4, unseen.length))];
+  else { const r = P.slice().sort((a, b) => kcard(a).box - kcard(b).box || kcard(a).due - kcard(b).due); id = r[rand(Math.min(4, r.length))]; }
+  kRemember(id); return id;
+}
+function kRemember(id) { kRecent.push(id); if (kRecent.length > 3) kRecent.shift(); }
+function kRequeue(id) { if (!kQueue.some(q => q.id === id)) kQueue.push({ id, after: kTick + 2 + rand(2) }); }
+const kScripts = () => KS.script === "m" ? ["h", "k"] : [KS.script];
+function kPool() {
+  const out = [];
+  for (const s of kScripts()) for (const g of kGroupList(s)) if (kUnlocked(s, g.id) && KS.sel[g.id] !== false) out.push(...KBYGROUP[s][g.id]);
+  return out;
+}
+/* distractors: same script, never same romaji, prefer look-alikes and learned characters */
+function kDistractors(w, n, pool) {
+  const inPool = new Set(pool);
+  let cands = KALL.filter(id => KITEMS[id].s === w.s && id !== w.id && KITEMS[id].r !== w.r && !KITEMS[id].alt.includes(w.r) && !w.alt.includes(KITEMS[id].r));
+  const learned = cands.filter(id => inPool.has(id) || KS.cards[id]);
+  if (new Set(learned.map(id => KITEMS[id].r)).size >= n) cands = learned;
+  const sc = cands.map(id => ({ id, s: kSimilar(w, KITEMS[id]) + (inPool.has(id) ? 2 : 0) })).sort((a, b) => b.s - a.s);
+  const out = [], seenR = new Set([w.r]);
+  const head = shuffle(sc.slice(0, 3)).slice(0, 2), order = head.concat(shuffle(sc.slice(0, 8).filter(x => !head.includes(x))), sc.slice(8));
+  for (const x of order) { const r = KITEMS[x.id].r; if (!seenR.has(r)) { seenR.add(r); out.push(KITEMS[x.id]); if (out.length >= n) break; } }
+  return out;
+}
+const kSay = it => speakText(it.id, true, 0.8);
+
+/* ---------- reading real N5 words with learned kana ---------- */
+function kKnownUnits(s) {
+  const known = new Set(KALL.filter(id => KITEMS[id].s === s && kcard(id).box >= 3));
+  if (known.has(s === "h" ? "つ" : "ツ")) known.add(s === "h" ? "っ" : "ッ");
+  if (s === "k" && known.size) known.add("ー");
+  return known;
+}
+function kTokenize(str) {
+  const out = []; for (let i = 0; i < str.length; i++) { const two = str.slice(i, i + 2); if (KITEMS[two]) { out.push(two); i++; } else out.push(str[i]); } return out;
+}
+function kReadableWords(s, focusGroup) {
+  const known = kKnownUnits(s), re = s === "h" ? /^[ぁ-ゖ]+$/ : /^[ァ-ヺー]+$/, seen = new Set(), res = [];
+  for (const w of WORDS) {
+    const f = (s === "k" ? forms(w.jp) : forms(w.kana))[0] || "";
+    if (!re.test(f) || seen.has(f)) continue;
+    const toks = kTokenize(f); if (!toks.every(t => known.has(t))) continue;
+    seen.add(f); res.push({ w, f, focus: focusGroup ? toks.some(t => KITEMS[t] && KITEMS[t].g === focusGroup) : true });
+  }
+  return res;
+}
+function kReadModal(s, g, auto) {
+  let list = kReadableWords(s, g);
+  const foc = list.filter(x => x.focus); list = shuffle(foc.length >= 3 ? foc : list).slice(0, 6);
+  const md = document.createElement("div"); md.className = "modal";
+  const grp = KGROUPS.find(x => x.id === g);
+  md.innerHTML = `<div class="box" style="max-height:92vh;overflow:auto"><h2 style="margin-top:0">📖 Read real words</h2>
+    <p class="muted">${auto ? `You mastered ${s === "h" ? "hiragana" : "katakana"} <b>${esc(grp ? grp.name : "")}</b>! ` : ""}These N5 words use only ${s === "h" ? "hiragana" : "katakana"} you know. Read each one, then tap to check.</p>
+    ${list.length ? list.map((x, i) => `<div class="setcard kread" data-i="${i}" style="justify-content:space-between"><b class="jp" style="font-size:1.8rem">${esc(x.f)}</b><span class="ans hidden" style="text-align:right">${esc(ROMA(x.f))}<br><small class="muted">${esc(x.w.en)}</small></span><span class="q muted">tap to reveal</span></div>`).join("")
+      : `<p>No words yet — learn a few more rows${s === "k" ? " (katakana words are mostly loanwords and need several rows plus ー)" : ""}.</p>`}
+    <div class="btnrow"><button class="btn" id="krClose">${auto ? "Keep going!" : "Close"}</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => {
+    if (e.target === md || e.target.id === "krClose") { md.remove(); return; }
+    const c = e.target.closest(".kread"); if (c) { c.querySelector(".ans").classList.remove("hidden"); c.querySelector(".q").classList.add("hidden"); speakText(list[+c.dataset.i].f, true, 0.85); }
+  };
+  if (auto) confetti(120);
+}
+function kMaybeRead() { if (kPendingRead) { const p = kPendingRead; kPendingRead = null; setTimeout(() => { if (!document.querySelector(".modal")) kReadModal(p.s, p.g, true); }, 700); } }
+
+/* ---------- Kana home ---------- */
+function kanaHome() {
+  const cnt = s => { const ids = KALL.filter(id => KITEMS[id].s === s && (KITEMS[id].g !== "ext" || KS.ext)); return `${ids.filter(id => kcard(id).box >= MASTER_BOX).length}/${ids.length}`; };
+  const pool = kPool();
+  view.innerHTML = topbar("あ Kana Dojo", `<span class="muted">${pool.length} kana selected</span>`) + `
+    <div class="seg" id="kseg">${[["h", "ひらがな Hiragana"], ["k", "カタカナ Katakana"], ["m", "Mixed"]].map(([k, t]) => `<button data-s="${k}" class="${KS.script === k ? "on" : ""}">${t}</button>`).join("")}</div>
+    <p class="muted" style="margin:6px 0">Mastered: hiragana ${cnt("h")} · katakana ${cnt("k")}</p>
+    <div class="grid">
+      <button class="mode" data-km="k2r"><div class="ic">🔤</div><h3>Kana → Romaji</h3><p>Pick the reading</p></button>
+      <button class="mode" data-km="r2k"><div class="ic">🅰️</div><h3>Romaji → Kana</h3><p>Pick the character</p></button>
+      <button class="mode" data-km="type"><div class="ic">⌨️</div><h3>Type Romaji</h3><p>See kana, type it</p></button>
+      ${HAS_SPEECH ? `<button class="mode" data-km="listen"><div class="ic">🎧</div><h3>Listening</h3><p>Hear it, pick the kana</p></button>` : `<div class="mode disabled"><div class="ic">🎧</div><h3>Listening</h3><p>Unavailable: no speech synthesis in this browser.</p></div>`}
+      <button class="mode" data-km="speed"><div class="ic">⚡</div><h3>Speed Round</h3><p>60 s · best ${KS.bestSpeed}</p></button>
+      <button class="mode" data-km="match"><div class="ic">🧩</div><h3>ひ ↔ カ Pairs</h3><p>Match hiragana to katakana</p></button>
+      <button class="mode" data-km="chart"><div class="ic">📋</div><h3>Chart</h3><p>Gojūon grid · tap to hear</p></button>
+      <button class="mode" data-km="read"><div class="ic">📖</div><h3>Read Real Words</h3><p>N5 words with kana you know</p></button>
+    </div>
+    <div class="panel"><h2>🧱 Rows <small class="muted" style="font-weight:400">tap to include/exclude · next row unlocks at ${Math.round(KUNLOCK_AT * 100)}% learned</small></h2>
+      <div class="row" style="padding-top:0"><span>🔓 Unlock all rows</span><button class="switch ${KS.unlockAll ? "on" : ""}" data-kk="unlockAll"></button></div>
+      <div class="row"><span>✨ Include extended katakana (ティ, ファ, ヴ…)</span><button class="switch ${KS.ext ? "on" : ""}" data-kk="ext"></button></div>
+      <div id="krows"></div></div>`;
+  bindBack();
+  $("#kseg").onclick = e => { const b = e.target.closest("button"); if (!b) return; KS.script = b.dataset.s; ksave(); sfx.click(); go(kanaHome); };
+  view.querySelectorAll("[data-kk]").forEach(b => b.onclick = () => { const k = b.dataset.kk; KS[k] = !KS[k]; ksave(); go(kanaHome); });
+  const rows = $("#krows"), scripts = kScripts();
+  const groups = KGROUPS.filter(g => scripts.some(s => KBYGROUP[s][g.id]) && (g.id !== "ext" || KS.ext));
+  let lastType = "";
+  groups.forEach(g => {
+    const sc = scripts.filter(s => KBYGROUP[s][g.id]);
+    const un = sc.some(s => kUnlocked(s, g.id)), on = KS.sel[g.id] !== false;
+    if (g.type !== lastType) { rows.insertAdjacentHTML("beforeend", `<div class="muted" style="margin:12px 0 0;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:1px">${g.type}${g.type === "Youon" ? " (combos)" : ""}</div>`); lastType = g.type; }
+    const chars = sc.map(s => KBYGROUP[s][g.id].slice(0, 5).join("")).join(" ");
+    const bars = sc.map(s => { const lf = kLearnedFrac(s, g.id), mf = (KBYGROUP[s][g.id].filter(id => kcard(id).box >= MASTER_BOX).length / KBYGROUP[s][g.id].length); return `<div class="minibar" title="${s === "h" ? "hiragana" : "katakana"}"><i style="width:${lf * 100}%;background:#ffc857"></i><i style="width:${mf * 100}%;background:#2ec4b6"></i></div>`; }).join("");
+    rows.insertAdjacentHTML("beforeend", `<button class="setcard ${un ? "" : "locked"}" data-g="${g.id}"><span class="ic" style="font-size:1.3rem">${un ? (on ? "✅" : "⬜") : "🔒"}</span><span class="grow"><b>${esc(g.name)}</b> <span class="jp muted">${esc(chars)}${KBYGROUP[sc[0]][g.id].length > 5 ? "…" : ""}</span>${bars}
+      ${sc.map(s => kMasteredRow(s, g.id) ? `<small style="color:#7bd88f">★ ${s === "h" ? "hiragana" : "katakana"} mastered </small>` : "").join("")}</span></button>`);
+  });
+  rows.onclick = e => {
+    const b = e.target.closest(".setcard"); if (!b) return; const gid = b.dataset.g;
+    if (!scripts.some(s => KBYGROUP[s][gid] && kUnlocked(s, gid))) { sfx.bad(); toast(`🔒 Learn ${Math.round(KUNLOCK_AT * 100)}% of the previous row first (or unlock all)`); return; }
+    KS.sel[gid] = KS.sel[gid] === false; ksave(); sfx.click(); go(kanaHome);
+  };
+  view.querySelectorAll("button.mode[data-km]").forEach(b => b.onclick = () => {
+    sfx.click(); const m = b.dataset.km;
+    if (m === "chart") return go(() => kanaChart(KS.script === "k" ? "k" : "h"));
+    if (m === "read") { const s = KS.script === "k" ? "k" : "h"; return kReadModal(s, null, false); }
+    const p = kPool();
+    if (m === "match") return go(kanaMatch);
+    if (p.length < 2) { toast("Select at least one unlocked row"); return; }
+    if (m === "speed") return go(kanaSpeed);
+    go(() => kanaSession(m));
+  });
+}
+
+/* ---------- Chart ---------- */
+function kanaChart(s) {
+  view.innerHTML = topbar("📋 Kana Chart") + `<div class="seg" id="cseg"><button data-s="h" class="${s === "h" ? "on" : ""}">ひらがな</button><button data-s="k" class="${s === "k" ? "on" : ""}">カタカナ</button></div>
+    <div class="legend" style="margin:8px 0"><span><i class="b0"></i>new</span><span><i class="b1"></i>learning</span><span><i class="b3"></i>familiar</span><span><i class="b4"></i>mastered</span><span>· tap a character to hear it</span></div><div id="chart"></div>`;
+  bindBack(kanaHome);
+  $("#cseg").onclick = e => { const b = e.target.closest("button"); if (b) go(() => kanaChart(b.dataset.s)); };
+  const sections = [["Basic (gojūon)", "Basic", 5], ["Dakuten & handakuten", "Dakuten", 5], ["Youon (combinations)", "Youon", 3], ["Extended katakana (loanwords)", "Extended", 5]];
+  let html = "";
+  for (const [title, type, cols] of sections) {
+    const gs = KGROUPS.filter(g => g.type === type && KBYGROUP[s][g.id]); if (!gs.length) continue;
+    html += `<div class="panel"><h2>${title}</h2>${type === "Basic" || type === "Dakuten" ? `<div class="kgrid kh" style="grid-template-columns:repeat(${cols},1fr)">${["a", "i", "u", "e", "o"].map(v => `<div>${v}</div>`).join("")}</div>` : ""}`;
+    html += `<div class="kgrid" style="grid-template-columns:repeat(${cols},1fr)">`;
+    for (const g of gs) for (const line of g.lines) for (let i = 0; i < cols; i++) {
+      const hk = line[i]; if (!hk) { html += `<div class="kcell empty"></div>`; continue; }
+      const ch = s === "h" || g.kataOnly ? hk : toKata(hk), it = KITEMS[ch];
+      html += `<button class="kcell ${boxK(ch)}" data-ch="${esc(ch)}"><b class="jp">${esc(ch)}</b><small>${esc(it.r)}</small></button>`;
+    }
+    html += `</div></div>`;
+  }
+  $("#chart").innerHTML = html;
+  $("#chart").onclick = e => { const c = e.target.closest("[data-ch]"); if (c) kanaGlyph(KITEMS[c.dataset.ch]); };
+}
+const boxK = id => "kb" + Math.min(5, kcard(id).box);
+function kanaGlyph(it) {
+  kSay(it);
+  const c = kcard(it.id), md = document.createElement("div"); md.className = "modal";
+  md.innerHTML = `<div class="box"><div class="kbig jp">${esc(it.id)}</div><div style="font-size:1.6rem;font-weight:800">${esc(it.r)}${it.alt.length ? ` <small class="muted" style="font-size:.9rem">(also ${esc(it.alt.join(", "))})</small>` : ""}</div>
+    <p class="muted">${it.s === "h" ? "Hiragana" : "Katakana"} · ${esc(KGROUPS[it.gi].name)}${it.pair ? ` · ${it.s === "h" ? "katakana" : "hiragana"}: <b class="jp" style="font-size:1.3rem;color:#fff">${esc(it.pair)}</b>` : ""}</p>
+    <p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}</p>
+    <div class="btnrow">${HAS_SPEECH ? `<button class="btn sec" id="kgSay">🔈 Listen</button>` : ""}<button class="btn" id="kgClose">Close</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "kgClose") md.remove(); if (e.target.id === "kgSay") kSay(it); };
+}
+
+/* ---------- Kana question renderers ---------- */
+function kRenderMC(mode, it, pool, onAnswer) {
+  const opts = shuffle([it, ...kDistractors(it, 3, pool)]);
+  const kanaChoices = mode !== "k2r";
+  const host = $("#qhost");
+  const prompt = mode === "k2r" ? `<div class="prompt jp kprompt">${esc(it.id)}</div>` : mode === "r2k" ? `<div class="prompt en" style="font-size:3rem">${esc(it.r)}</div>` : `<button class="bigspk" id="bigspk">🔊</button>`;
+  host.innerHTML = `<div class="card"><div class="qtype">${mode === "k2r" ? "How do you read this?" : mode === "r2k" ? `Which ${it.s === "h" ? "hiragana" : "katakana"} is this?` : `Which ${it.s === "h" ? "hiragana" : "katakana"} did you hear?`}</div>
+    ${prompt}${mode === "listen" ? `<div class="sub" style="font-size:.85rem">Tap to replay</div>` : ""}
+    <div class="choices">${opts.map((o, i) => `<button class="choice ${kanaChoices ? "jpc jp kchoice" : "kroma"}" data-i="${i}"><span class="k">${i + 1}</span>${esc(kanaChoices ? o.id : o.r)}</button>`).join("")}</div><div class="feedback" id="fb"></div></div>`;
+  const big = host.querySelector("#bigspk"); if (big) { big.onclick = () => kSay(it); setTimeout(() => kSay(it), 200); }
+  let done = false; const btns = [...host.querySelectorAll(".choice")];
+  const choose = i => {
+    if (done || !btns[i]) return; done = true;
+    const ok = opts[i].id === it.id;
+    btns.forEach((b, j) => { b.disabled = true; if (opts[j].id === it.id) b.classList.add("right"); });
+    if (!ok) btns[i].classList.add("wrong");
+    host.querySelector("#fb").innerHTML = kReveal(it, ok, ok ? null : opts[i]);
+    if (mode !== "listen") kSay(it);
+    onAnswer(ok, btns[i]);
+  };
+  btns.forEach((b, i) => b.onclick = () => choose(i));
+  return { choose };
+}
+function kReveal(it, ok, wrong) {
+  return `<div style="color:${ok ? "var(--good)" : "var(--bad)"};font-size:1.2rem">${ok ? "✔" : "✘"} <b class="jp" style="font-size:1.6rem">${esc(it.id)}</b> = ${esc(it.r)}${it.pair ? ` <span class="muted">(${it.s === "h" ? "カタカナ" : "ひらがな"} <span class="jp">${esc(it.pair)}</span>)</span>` : ""}</div>
+    ${wrong ? `<div class="muted" style="margin-top:6px">You chose <b class="jp" style="font-size:1.4rem;color:var(--ink)">${esc(wrong.id)}</b> = ${esc(wrong.r)} — compare the two shapes!</div>` : ""}
+    ${HAS_SPEECH ? `<div class="btnrow"><button class="btn ghost small" data-ksay="${esc(it.id)}">🔈 Hear again</button></div>` : ""}`;
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-ksay]"); if (b) speakText(b.dataset.ksay, true, 0.8); });
+function kRenderType(it, onAnswer) {
+  const host = $("#qhost");
+  host.innerHTML = `<div class="card"><div class="qtype">Type the romaji</div><div class="prompt jp kprompt">${esc(it.id)}</div>
+    <input class="typein" id="typein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="romaji…" style="font-family:inherit">
+    <div class="btnrow"><button class="btn" id="checkBtn">Check</button><button class="btn ghost" id="giveBtn">I don't know</button></div><div class="feedback" id="fb"></div></div>`;
+  const inp = host.querySelector("#typein"); setTimeout(() => inp.focus(), 30);
+  let done = false;
+  const acc = new Set([it.r, ...it.alt]);
+  const finish = ok => { done = true; inp.disabled = true; inp.classList.add(ok ? "ok" : "no"); host.querySelectorAll(".btnrow button").forEach(b => b.disabled = true); host.querySelector("#fb").innerHTML = kReveal(it, ok); kSay(it); onAnswer(ok, inp); };
+  const submit = () => { if (done) return; const v = inp.value.trim().toLowerCase().replace(/\s+/g, ""); if (!v) return; finish(acc.has(v)); };
+  host.querySelector("#checkBtn").onclick = submit;
+  host.querySelector("#giveBtn").onclick = () => { if (!done) finish(false); };
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); submit(); } });
+  return { choose: null };
+}
+
+/* ---------- Kana session (endless, SRS-picked) ---------- */
+function kanaSession(mode) {
+  const titles = { k2r: "🔤 Kana → Romaji", r2k: "🅰️ Romaji → Kana", type: "⌨️ Type Romaji", listen: "🎧 Kana Listening" };
+  const pool = kPool(); let right = 0, total = 0, q = null, answered = false, adv = null;
+  kQueue = []; kRecent = [];
+  view.innerHTML = topbar(titles[mode], `<span class="muted" id="score">0/0</span>`) + `<div id="qhost"></div><p class="muted" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>Enter</kbd> next</p>`;
+  bindBack(kanaHome);
+  const next = () => {
+    clearTimeout(adv); answered = false;
+    const it = KITEMS[kPick(pool)];
+    const onAnswer = (ok, el) => {
+      answered = true; total++; if (ok) right++;
+      kGrade(it.id, ok); if (!ok) kRequeue(it.id);
+      comboHit(ok, el, mode === "type" ? 8 : 5);
+      $("#score").textContent = `${right}/${total}`;
+      const fb = $("#fb"), nb = document.createElement("div"); nb.className = "btnrow"; nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb);
+      $("#nextBtn").onclick = next;
+      if (ok && S.autoAdvance) adv = setTimeout(next, 1000);
+      kMaybeRead();
+    };
+    q = mode === "type" ? kRenderType(it, onAnswer) : kRenderMC(mode, it, pool, onAnswer);
+  };
+  const onKey = e => {
+    if (document.querySelector(".modal")) return;
+    if (e.target.tagName === "INPUT" && !e.target.disabled) return;
+    if (!answered && q && q.choose && /^[1-4]$/.test(e.key)) q.choose(+e.key - 1);
+    else if (answered && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); next(); }
+  };
+  addEventListener("keydown", onKey);
+  cleanup = () => { removeEventListener("keydown", onKey); clearTimeout(adv); };
+  next();
+}
+
+/* ---------- Kana speed round ---------- */
+function kanaSpeed() {
+  const DUR = 60, pool = kPool(); kQueue = []; kRecent = [];
+  view.innerHTML = topbar("⚡ Kana Speed Round", `<span class="timer" id="tleft">${DUR}</span>`) +
+    `<div class="topbar"><div class="timebar"><div id="tbar" style="width:100%"></div></div><b id="sscore">0 pts</b></div>
+     <div id="qhost"><div class="card"><div class="prompt en">Ready?</div><p class="sub">Read as many kana as you can in ${DUR} s.<br>Wrong: −2 s</p><button class="btn" id="startBtn">Start!</button></div></div>`;
+  bindBack(kanaHome);
+  let t0, timer, q = null, score = 0, wrongs = 0, pen = 0, over = false;
+  const rem = () => Math.max(0, DUR - (Date.now() - t0) / 1000 - pen);
+  const next = () => { if (over) return; const it = KITEMS[kPick(pool)];
+    q = kRenderMC("k2r", it, pool, (ok, el) => { kGrade(it.id, ok); if (ok) score++; else { wrongs++; pen += 2; kRequeue(it.id); } comboHit(ok, el, 4); $("#sscore").textContent = score + " pts"; q = null; setTimeout(next, ok ? 250 : 900); }); };
+  const end = () => { over = true; clearInterval(timer); q = null; sfx.end(); const best = score > KS.bestSpeed; if (best) { KS.bestSpeed = score; ksave(); confetti(200); } addXP(score);
+    $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>kana read · ${wrongs} wrong${best ? " · <b>🏆 New best!</b>" : ` · best ${KS.bestSpeed}`}</p><button class="btn" id="again">Play again</button></div>`;
+    $("#again").onclick = () => go(kanaSpeed); kMaybeRead(); };
+  $("#startBtn").onclick = () => { t0 = Date.now(); next(); timer = setInterval(() => { const r = rem(); $("#tleft").textContent = Math.ceil(r); $("#tbar").style.width = (r / DUR * 100) + "%"; if (r <= 0) end(); }, 100); };
+  const onKey = e => { if (q && q.choose && /^[1-4]$/.test(e.key)) q.choose(+e.key - 1); };
+  addEventListener("keydown", onKey);
+  cleanup = () => { clearInterval(timer); over = true; removeEventListener("keydown", onKey); };
+}
+
+/* ---------- Hiragana ↔ katakana matching ---------- */
+function kanaMatch() {
+  const hs = [];
+  for (const g of KGROUPS) if (KBYGROUP.h[g.id] && KS.sel[g.id] !== false && (kUnlocked("h", g.id) || kUnlocked("k", g.id))) hs.push(...KBYGROUP.h[g.id]);
+  kQueue = []; kRecent = [];
+  const pick = []; let guard = 0;
+  while (pick.length < Math.min(6, hs.length) && guard++ < 300) { const id = kPick(hs); if (!pick.includes(id)) pick.push(id); }
+  view.innerHTML = topbar("🧩 ひらがな ↔ カタカナ", `<span class="muted" id="mtime">0s</span>`) + `<p class="muted" style="margin:0 0 10px">Match each hiragana (left) with its katakana (right). Best: ${KS.bestMatch ? KS.bestMatch + "s" : "—"}</p><div class="match" id="mgrid"></div>`;
+  bindBack(kanaHome);
+  if (pick.length < 2) { $("#mgrid").innerHTML = `<p class="muted">Select/unlock at least one row first.</p>`; return; }
+  const t0 = Date.now(), timer = setInterval(() => { const m = $("#mtime"); if (m) m.textContent = Math.floor((Date.now() - t0) / 1000) + "s"; }, 250);
+  cleanup = () => clearInterval(timer);
+  const L = shuffle(pick), R = shuffle(pick), grid = $("#mgrid"); let sel = null, left = pick.length, misses = 0; const missed = new Set();
+  for (let i = 0; i < pick.length; i++) grid.insertAdjacentHTML("beforeend", `<button class="tile jpt jp" data-id="${esc(L[i])}" data-side="h" style="font-size:2rem">${esc(L[i])}</button><button class="tile jpt jp" data-id="${esc(R[i])}" data-side="k" style="font-size:2rem">${esc(KITEMS[R[i]].pair)}</button>`);
+  grid.onclick = e => {
+    const t = e.target.closest(".tile"); if (!t || t.classList.contains("done")) return;
+    speakText(t.textContent, true, 0.8);
+    if (!sel) { sel = t; t.classList.add("sel"); return; }
+    if (sel === t) { t.classList.remove("sel"); sel = null; return; }
+    if (sel.dataset.side === t.dataset.side) { sel.classList.remove("sel"); sel = t; t.classList.add("sel"); return; }
+    const a = sel, b = t; sel = null; a.classList.remove("sel");
+    if (a.dataset.id === b.dataset.id) {
+      const h = a.dataset.id, ok = !missed.has(h); kGrade(h, ok); kGrade(KITEMS[h].pair, ok); comboHit(true, b, 6);
+      a.classList.add("done"); b.classList.add("done");
+      if (--left === 0) { clearInterval(timer); const secs = Math.round((Date.now() - t0) / 1000), best = pick.length === 6 && (!KS.bestMatch || secs < KS.bestMatch); if (best) { KS.bestMatch = secs; ksave(); } if (!misses) confetti(140); addXP(misses ? 8 : 20);
+        grid.innerHTML = `<div class="card" style="grid-column:1/-1"><div class="qtype">Board cleared!</div><div class="big">${secs}s</div><p>${misses} miss${misses === 1 ? "" : "es"}${best ? " · 🏆 New best" : ""}</p><button class="btn" id="again">Next board</button></div>`;
+        $("#again").onclick = () => go(kanaMatch); kMaybeRead(); }
+    } else { misses++; comboHit(false); missed.add(a.dataset.id); missed.add(b.dataset.id); [a, b].forEach(x => { x.classList.add("bad"); setTimeout(() => x.classList.remove("bad"), 400); }); }
+  };
+}
+
+function kanaSummary() { const m = KALL.filter(id => kcard(id).box >= MASTER_BOX).length; return `${m}/${KALL.length} mastered`; }
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
 $("#settingsBtn").onclick = () => { sfx.click(); settings(); };
@@ -1005,7 +1422,7 @@ $("#credits").innerHTML = `Vocabulary: ${WORDS.length} JLPT N5 words from <a hre
   Example sentences (${exCount} words covered): <a href="https://tatoeba.org" target="_blank" rel="noopener">Tatoeba</a> contributors, licensed <a href="https://creativecommons.org/licenses/by/2.0/fr/" target="_blank" rel="noopener">CC BY 2.0 FR</a> (Tanaka Corpus word index).<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 if (HAS_SPEECH) setTimeout(() => { loadVoices(); }, 800);
-window.__N5 = { WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, SETS, S: () => S, isLeech };
+window.__N5 = { kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, SETS, S: () => S, isLeech };
 go(home);
 
 </script>
