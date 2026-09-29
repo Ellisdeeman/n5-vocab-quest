@@ -265,7 +265,7 @@ details.duesets .duerow{padding-left:30px}
 .modal .box{background:var(--bg);color:var(--label);border-radius:20px;padding:20px;max-width:460px;width:100%;text-align:center;animation:sheetin .42s cubic-bezier(.2,.9,.25,1);box-shadow:0 20px 60px rgba(0,0,0,.25)}
 .modal .box .row{background:transparent}
 .modal .box>h2:first-child{margin-top:0}
-@media (max-width:600px){.modal{align-items:flex-end;padding:0}.modal .box{border-radius:20px 20px 0 0;max-width:none;padding:10px 18px calc(20px + var(--safe-b));max-height:92vh;overflow:auto}
+@media (max-width:600px){.modal{align-items:flex-end;padding:0}.modal .box{border-radius:20px 20px 0 0;max-width:none;padding:10px 18px calc(20px + var(--safe-b));max-height:92vh;max-height:min(92vh,calc(100% - 8px));overflow:auto;-webkit-overflow-scrolling:touch}
   .modal .box::before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--label3);margin:0 auto 12px}}
 @keyframes sheetin{from{transform:translateY(100%)}}
 @keyframes fadein{from{opacity:0}}
@@ -300,7 +300,9 @@ footer a{color:var(--label2)}
 .stathead .st b{font-size:1.5rem;display:block;font-variant-numeric:tabular-nums}
 .stathead .st small{color:var(--label2);display:flex;align-items:center;gap:4px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
-@media (max-width:430px){.pill.hide-xs{display:none}}
+@media (max-width:430px){.pill.hide-xs{display:none}#settingsBtn{display:none}}
+.logo{min-width:0;flex-shrink:1}.logo>span{overflow:hidden;text-overflow:ellipsis}.stats{flex-shrink:0}
+@media (max-width:340px){.logo>span{display:none}}
 body{overflow-x:clip}
 .lvcard[data-lv=kana]{--lc:var(--kana)}
 .lvring{position:relative;width:44px;height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center}
@@ -330,7 +332,6 @@ body{overflow-x:clip}
 .kjsvg{width:100%;height:100%}.kjsvg path{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .kjsvg .kjgrid{stroke:var(--sep);stroke-width:.6;stroke-dasharray:2 2}.kjsvg .kjghost{stroke:var(--label3);stroke-width:3;opacity:.35}
 .kjsvg .kjst{stroke:var(--label);stroke-width:3.4}.kjsvg .kjst.cur{stroke:var(--accent)}
-.kjsvg .kjst.anim{stroke-dasharray:1;stroke-dashoffset:1;animation-name:kjdraw;animation-timing-function:ease-in-out;animation-fill-mode:forwards}
 @keyframes kjdraw{to{stroke-dashoffset:0}}
 .kjmeta{flex:1;min-width:150px}.kjmean{font-size:1.25rem;font-weight:700;margin-bottom:6px}
 .kjrd{margin:3px 0}.kjrd small{display:inline-block;min-width:34px;font-size:.66rem;font-weight:700;color:var(--label2)}.kjrd .jp{font-size:1.05rem}
@@ -342,8 +343,28 @@ body{overflow-x:clip}
 .choice.kjchoice{font-size:2.2rem}
 .kjrev{display:flex;align-items:center;gap:14px;margin-bottom:8px}.kjbig{font-size:3rem;line-height:1}
 .kjstat{display:flex;align-items:center;gap:10px;padding:6px 0}.kjstat b{width:30px}.kjstat .grow{flex:1}.kjstat small{color:var(--label2);font-size:.75rem;min-width:130px;text-align:right}
-@media (prefers-reduced-motion:reduce){.kjsvg .kjst.anim{animation:none;stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.kjsvg .kjst.anim{animation:none;stroke-dashoffset:0!important;stroke-dasharray:none!important}}
 .kjstat .minibar{display:block;height:6px;margin:0}
+
+/* kanji card sheet: the card scrolls, Done stays pinned at the bottom (small iPhones, landscape) */
+.modal .box.kjbox{display:flex;flex-direction:column;text-align:left;max-height:88vh;max-height:min(88vh,calc(100% - 32px));overflow:hidden}
+.kjscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;flex:1 1 auto;overscroll-behavior:contain}
+.kjscroll .card.kjlearn{margin:0}
+.kjdone{flex:none;display:flex;justify-content:flex-end;padding-top:10px}
+.kjdone .btn{min-width:110px}
+@media (max-width:600px){.modal .box.kjbox{max-height:92vh;max-height:min(92vh,calc(100% - 8px))}}
+.kjglyph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:clamp(4.5rem,30vw,7.5rem);line-height:1;color:var(--label)}
+.kjsvgwrap{position:relative;overflow:hidden}
+.kjnote{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:.66rem;color:var(--label2)}
+.kjsvg .kjst.anim{animation-name:kjdraw;animation-timing-function:ease-in-out;animation-fill-mode:both}
+@supports not (aspect-ratio:1){.kjsvgwrap{height:min(46vw,190px)}.kjtile{height:52px}}
+/* audio lesson step */
+.alcard .albtns{display:flex;flex-direction:column;gap:6px;align-items:stretch;flex:none}
+.alcard .minibar{margin-top:8px}
+.alcard:not(.done){--tint:var(--indigo)}
+.alrow input[type=url]{font-size:16px;min-height:40px;width:min(210px,48vw);border-radius:10px;border:.5px solid var(--sep);background:var(--card2);color:var(--label);padding:0 10px}
+@media (max-width:430px){.alcard{flex-wrap:wrap}.alcard .albtns{flex-direction:row;width:100%;justify-content:flex-end}}
+@media (max-width:360px){#themeSeg,#themeSeg2{min-width:0!important}#themeSeg button,#themeSeg2 button{padding-left:8px;padding-right:8px}}
 </style>
 </head>
 <body>
@@ -684,6 +705,9 @@ try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", appl
 const MIN = 60e3, DAY = 864e5;
 const INTERVALS = [0, 1 * MIN, 10 * MIN, 1 * DAY, 3 * DAY, 7 * DAY, 16 * DAY];
 const MAX_BOX = 6, MASTER_BOX = 4;
+/* any miss — wrong answer or "I don't know" — resets the interval; an item that never passed stays at box 0, so a miss
+   can never land in the same box as a first correct answer (and never counts toward unlocks / mastery) */
+const missBox = b => (b >= 2 ? 1 : 0);   // (a missed item is still re-reviewed after INTERVALS[1], not instantly)
 const card = id => S.cards[id] || { box: 0, due: 0, ok: 0, bad: 0 };
 const isLeech = id => { const c = S.cards[id]; return !!c && (c.bad >= 4 || (c.lapses || 0) >= 2) && (c.run || 0) < 4; };
 const leechIds = () => ALL_IDS.filter(isLeech);
@@ -691,8 +715,8 @@ function grade(id, correct) {
   const wasLeech = isLeech(id), wasNew = !S.cards[id];
   const c = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, card(id));
   if (correct) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; c.run = (c.run || 0) + 1; }
-  else { if (c.box >= 3) c.lapses = (c.lapses || 0) + 1; c.box = 1; c.bad++; c.run = 0; }
-  c.due = Date.now() + INTERVALS[c.box] * (correct ? (0.9 + Math.random() * 0.2) : 1);
+  else { if (c.box >= 3) c.lapses = (c.lapses || 0) + 1; c.box = missBox(c.box); c.bad++; c.run = 0; }
+  c.due = Date.now() + INTERVALS[Math.max(1, c.box)] * (correct ? (0.9 + Math.random() * 0.2) : 1);
   S.cards[id] = c;
   S.answered++;
   touchStreak();
@@ -1167,7 +1191,15 @@ function runSession(cfg) {
   };
   const nextKanji = it => {   // kanji item (learn card or quiz) inside a session
     const K = KJ[it.id];
-    if (!K) { cfg.onItemDone(true, it.id, "kanji", true); return next(); }
+    if (!K) {   // its kanji list isn't loaded yet (app just reopened, slow network): load it instead of silently dropping the item
+      const l = kjLevelOf(it.id);
+      if (l && !KJL[l].loaded && !it._tried) {
+        $("#qhost").innerHTML = `<div class="card"><div class="qtype">Loading ${LNAME(l)} kanji…</div><div class="big">字</div></div>`;
+        loadKanji(l).then(ok => { if (!ok) it._tried = 1; if ($("#qhost")) nextKanji(it); }); return;
+      }
+      if (l && !KJ[it.id] && it._tried) { toast(`Couldn't load ${LNAME(l)} kanji — offline? Skipped for now`); }
+      cfg.onItemDone(true, it.id, "kanji", true); return next();
+    }
     if (it.mode === "learn") { answered = false; q = kjLearnStep(K, () => { cfg.onItemDone(true, K.c, "kanji:learn"); progress(); next(); }); return; }
     const mode = it.mode && KJ_MODES[it.mode] ? it.mode : kjPickMode(K);
     const onA = (ok, el, info) => {
@@ -1301,7 +1333,7 @@ function home() {
   const m = masteredCount(), seen = seenCount(), total = ALL_IDS.length, now = Date.now();
   const due = ALL_IDS.filter(id => S.cards[id] && card(id).due <= now).length;
   const pct = m / total, C = 2 * Math.PI * 40;
-  const counts = [0, 0, 0, 0, 0, 0]; ALL_IDS.forEach(id => counts[Math.min(5, card(id).box)]++);
+  const counts = [0, 0, 0, 0, 0, 0]; ALL_IDS.forEach(id => counts[S.cards[id] ? Math.max(1, Math.min(5, card(id).box)) : 0]++);   // seen-but-missed (box 0) is still "learning", not new
   const pathReady = ensurePathLevels(() => { if (curView === home) go(home); });
   const D = pathReady ? ensureDaily("path") : null, leeches = leechIds().length;
   const dots = Array.from({ length: 7 }, (_, k) => { const d = daysAgo(6 - k); return `<span class="${S.dailyHistory[d] ? "on" : ""}" title="${d}">${["S", "M", "T", "W", "T", "F", "S"][new Date(d + "T12:00").getDay()]}</span>`; }).join("");
@@ -1310,6 +1342,7 @@ function home() {
   <div class="largetitle">Today</div><p class="subtitle">${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} · studying <b>${esc(levelLabel())}</b></p>
   ${levelPickerHTML()}
   ${D ? dailyHeroHTML(D, true) : `<div class="hero"><div class="ic">📅</div><div><h2>Today's session</h2><p>Loading your path…</p></div><button class="btn" disabled>Start ▶</button></div>`}
+  ${audioLessonHTML()}
   ${goalPanelHTML()}
   <div class="sechead">Study</div>
   <div class="grid">
@@ -1349,6 +1382,7 @@ function home() {
   map.onclick = e => { if (e.target.dataset.id) wordModal(WORDS[+e.target.dataset.id]); };
   bindLevelPicker(); bindGoalPanel();
   if (D) bindDailyBtn(D, home, "path");
+  bindAudioLesson();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
     const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView };
@@ -1429,13 +1463,15 @@ async function openLevel(l) {
 }
 function levelPage(l) {
   if (!LV[l].loaded || activeLevels().join(",") !== l) { setTimeout(() => openLevel(l)); view.innerHTML = `<div class="panel"><p>Loading ${LNAME(l)}…</p></div>`; return; }
-  if (!KJL[l].loaded && !KJL[l].tried) { KJL[l].tried = 1; loadKanji(l).then(ok => { if (ok && curView === levelPageFn(l)) go(levelPageFn(l)); }); }
+  // (re)try the kanji list: a failed fetch (offline, flaky network) no longer leaves the Kanji card stuck at the placeholder
+  const kjFailed = !KJL[l].loaded && KJL[l].failAt && Date.now() - KJL[l].failAt < 8000;
+  if (!KJL[l].loaded && !kjFailed) loadKanji(l).then(ok => { if (curView === levelPageFn(l) && !studyScreen && !document.querySelector(".modal")) go(levelPageFn(l)); });
   const me = levelPageFn(l), st = levelStats(l), tot = st.total || 1, D = ensureDaily(), secs_ = dueSections(), sec = secs_[l], leeches = leechIds().length, kst = kjStats(l);
   view.innerHTML = topbar("Levels") + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`, 52)}${LNAME(l)}</div>
     <p class="subtitle">${st.total} words · ${st.mast} mastered · ${st.seen} seen${st.due ? ` · <b>${st.due} due</b>` : ""}</p>
     ${dailyHeroHTML(D)}
     <div class="panel duepanel">${dueRow(l, "", `Due reviews · ${LNAME(l)}`, sec.r)}${dueRow("kanji:" + l, "字", `Kanji due · ${LNAME(l)}`, secs_["kanji:" + l].r)}</div>
-    <button class="kjcard" id="kjOpen" style="--c:var(--${l})">${lvRing("字", kst.mast / (kst.total || 1), `var(--${l})`, 48)}<span class="grow"><b>Kanji · ${kst.total}</b><br><small>${kst.mast} mastered · ${kst.seen} learned${kst.due ? ` · ${kst.due} due` : ""} · easiest → hardest, stroke order</small></span>${I("chevronR")}</button>
+    <button class="kjcard" id="kjOpen" style="--c:var(--${l})">${lvRing("字", kst.mast / (kst.total || 1), `var(--${l})`, 48)}<span class="grow"><b>Kanji · ${kst.total}</b><br><small>${kjFailed ? "Couldn't load the kanji list (offline?) · tap to retry" : `${kst.mast} mastered · ${kst.seen} learned${kst.due ? ` · ${kst.due} due` : ""} · easiest → hardest, stroke order`}</small></span>${I("chevronR")}</button>
     <div class="sechead">Study ${LNAME(l)}</div>
     <div class="grid">
       <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
@@ -1502,7 +1538,7 @@ function speed(back) {
     over = true; clearInterval(timer); q = null; sfx.end();
     const best = score > S.bestSpeed; if (best) { S.bestSpeed = score; save(); confetti(200); }
     addXP(score * 2);
-    $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>correct · ${wrongs} wrong${skips ? ` · ${skips} skipped` : ""}${best ? " · <b>🏆 New best!</b>" : ` · best ${S.bestSpeed}`}</p><p class="sub">Bonus +${score * 2} XP</p><button class="btn" id="again">Play again</button></div>`;
+    $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>correct · ${wrongs + skips} missed${skips ? ` (${skips} I don't know)` : ""}${best ? " · <b>🏆 New best!</b>" : ` · best ${S.bestSpeed}`}</p><p class="sub">Bonus +${score * 2} XP</p><button class="btn" id="again">Play again</button></div>`;
     $("#again").onclick = () => go(() => speed(back));
   };
   $("#startBtn").onclick = () => {
@@ -1664,6 +1700,7 @@ function settings(page = false) {
     <div class="row"><span>🔀 Overlap<br><small class="muted">start mixing in the next stage at 70% mastered</small></span><button class="switch ${S.pathOverlap === false ? "" : "on"}" id="pathOv" role="switch" aria-checked="${S.pathOverlap !== false}" aria-label="Overlap"></button></div>
     <div class="row"><span>字 Kanji in Today's path<br><small class="muted">mix the current level's kanji (new + due) into Home's session</small></span><button class="switch ${S.pathKanji === false ? "" : "on"}" id="pathKj" role="switch" aria-checked="${S.pathKanji !== false}" aria-label="Kanji in path"></button></div>
     <div class="row"><span>字 New kanji per session</span><span class="seg" id="kjPer">${[0, 2, 3, 5].map(v => `<button class="${(S.kanjiPerDay == null ? 3 : S.kanjiPerDay) === v ? "on" : ""}" data-v="${v}">${v}</button>`).join("")}</span></div>
+    ${audioLessonSettingsHTML()}
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
     <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small" id="resetBtn" style="background:var(--bad)">Reset</button></div>
     <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small" id="resetKana" style="background:var(--bad)">Reset</button></div>
@@ -1688,7 +1725,8 @@ function settings(page = false) {
   md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
-  md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); toast("Kanji progress reset"); } };
+  bindAudioLessonSettings(md);
+  md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); dropUntouched(); save(); updateDueBadge(); toast("Kanji progress reset"); } };
   md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
   if (page) { const c = md.querySelector("#closeS"); if (c) c.parentNode.remove(); return; }
   md.onclick = e => { if (e.target === md || e.target.id === "closeS") { md.remove(); if (!curView || TAB_OF().has(curView)) go(curView || home); else updateHeader(); } };
@@ -1790,8 +1828,8 @@ function kGrade(id, ok) {
   trackItem(!KS.cards[id]);
   const it = KITEMS[id], wasM = kMasteredRow(it.s, it.g);
   const c = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, kcard(id));
-  if (ok) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; } else { c.box = 1; c.bad++; }
-  c.due = Date.now() + INTERVALS[c.box] * (ok ? (0.9 + Math.random() * 0.2) : 1);
+  if (ok) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; } else { c.box = missBox(c.box); c.bad++; }
+  c.due = Date.now() + INTERVALS[Math.max(1, c.box)] * (ok ? (0.9 + Math.random() * 0.2) : 1);
   KS.cards[id] = c; ksave();
   touchStreak(); save();
   kCheckUnlocks();
@@ -2064,12 +2102,12 @@ function kanaSpeed() {
     `<div class="topbar"><div class="timebar"><div id="tbar" style="width:100%"></div></div><b id="sscore">0 pts</b></div>
      <div id="qhost"><div class="card"><div class="prompt en">Ready?</div><p class="sub">Read as many kana as you can in ${DUR} s.<br>Wrong: −2 s · 🤷 I don't know (0): −1 s</p><button class="btn" id="startBtn">Start!</button></div></div>`;
   bindBack(kanaHome);
-  let t0, timer, q = null, score = 0, wrongs = 0, pen = 0, over = false;
+  let t0, timer, q = null, score = 0, wrongs = 0, skips = 0, pen = 0, over = false;
   const rem = () => Math.max(0, DUR - (Date.now() - t0) / 1000 - pen);
   const next = () => { if (over) return; const it = KITEMS[kPick(pool)];
-    q = kRenderMC("k2r", it, pool, (ok, el, info) => { const idk = !!(info && info.idk); kGrade(it.id, ok); if (ok) score++; else { if (idk) pen += 1; else { wrongs++; pen += 2; } kRequeue(it.id); } comboHit(ok, el, 4, idk); $("#sscore").textContent = score + " pts"; q = null; setTimeout(next, ok ? 250 : 900); }); };
+    q = kRenderMC("k2r", it, pool, (ok, el, info) => { const idk = !!(info && info.idk); kGrade(it.id, ok); if (ok) score++; else { if (idk) { skips++; pen += 1; } else { wrongs++; pen += 2; } kRequeue(it.id); } comboHit(ok, el, 4, idk); $("#sscore").textContent = score + " pts"; q = null; setTimeout(next, ok ? 250 : 900); }); };
   const end = () => { over = true; clearInterval(timer); q = null; sfx.end(); const best = score > KS.bestSpeed; if (best) { KS.bestSpeed = score; ksave(); confetti(200); } addXP(score);
-    $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>kana read · ${wrongs} wrong${best ? " · <b>🏆 New best!</b>" : ` · best ${KS.bestSpeed}`}</p><button class="btn" id="again">Play again</button></div>`;
+    $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>kana read · ${wrongs + skips} missed${skips ? ` (${skips} I don't know)` : ""}${best ? " · <b>🏆 New best!</b>" : ` · best ${KS.bestSpeed}`}</p><button class="btn" id="again">Play again</button></div>`;
     $("#again").onclick = () => go(kanaSpeed); kMaybeRead(); };
   $("#startBtn").onclick = () => { t0 = Date.now(); next(); timer = setInterval(() => { const r = rem(); $("#tleft").textContent = Math.ceil(r); $("#tbar").style.width = (r / DUR * 100) + "%"; if (r <= 0) end(); }, 100); };
   const onKey = e => { if (q && q.choose && /^[1-4]$/.test(e.key)) q.choose(+e.key - 1); else if (q && q.idk && isIdkKey(e)) { e.preventDefault(); q.idk(); } };
@@ -2120,16 +2158,25 @@ function allAudioPaths(levels = ["n5"]) {
   Object.values(KITEMS).forEach(it => p.add(`k/${kFile(it)}.mp3`));
   return [...p];
 }
+/* cache one versioned data file and drop older versions of the same file (the SW does the same on normal fetches) */
+async function cachePutFresh(cache, url) {
+  if (await cache.match(url)) return;
+  const r = await fetch(url); if (!r.ok) return;
+  const path = new URL(url).pathname;
+  for (const old of await cache.keys()) if (new URL(old.url).pathname === path && old.url !== url) await cache.delete(old);
+  await cache.put(url, r);
+}
 async function downloadAllAudio(btn, info, levels = ["n5"]) {
   if (!("caches" in window)) return;
   btn.disabled = true;
   info.textContent = "Loading word lists…";
   const dcache = await caches.open(DATA_CACHE), failedLv = [];
   for (const l of levels) {
-    try { const ku = new URL(`data/kanji-${l}.json?v=${(KJINFO[l] || {}).v || 1}`, location.href).href; if (!(await dcache.match(ku))) { const r = await fetch(ku); if (r.ok) await dcache.put(ku, r); } await loadKanji(l); } catch (e) {}
+    for (const strokes of [false, true]) try { await cachePutFresh(dcache, new URL(kjUrl(l, strokes), location.href).href); } catch (e) {}
+    try { await loadKanji(l); } catch (e) {}
     if (l === "n5") continue;                      // N5 is built into the page
     const url = new URL(`data/${l}.json?v=${LV[l].info.v || 1}`, location.href).href;
-    try { if (!(await dcache.match(url))) { const r = await fetch(url); if (r.ok) await dcache.put(url, r); } } catch (e) {}
+    try { await cachePutFresh(dcache, url); } catch (e) {}
     if (!(await loadLevel(l))) failedLv.push(l);
   }
   const paths = allAudioPaths(levels), cache = await caches.open(AUDIO_CACHE);
@@ -2260,7 +2307,7 @@ let statsRange = 7;
 function statsView(range) { historyView(range || statsRange, true); }
 function historyView(range = 7, asTab = false) {
   const days = Array.from({ length: range }, (_, k) => daysAgo(range - 1 - k)), vals = days.map(d => tget(d).sec);
-  const all = Object.entries(TS.days).filter(([, x]) => x.sec > 0 || x.items > 0);
+  const all = Object.entries(TS.days).filter(([, x]) => x.sec > 0 || x.items > 0 || x.aud);
   const totalSec = all.reduce((n, [, x]) => n + x.sec, 0), best = all.reduce((b, e) => e[1].sec > (b ? b[1].sec : -1) ? e : b, null);
   const first = all.map(e => e[0]).sort()[0], spanDays = first ? Math.round((new Date(todayStr() + "T12:00") - new Date(first + "T12:00")) / DAY) + 1 : 0;
   const rangeSec = vals.reduce((a, b) => a + b, 0), max = Math.max(TS.goalMin * 60, ...vals, 60);
@@ -2275,7 +2322,7 @@ function historyView(range = 7, asTab = false) {
     ${kanjiStatsHTML()}
     <div class="sechead" style="display:flex;align-items:center;justify-content:space-between;text-transform:none;font-size:1rem;color:var(--label);font-weight:700;margin:22px 2px 8px">Study time ${segH}</div>` : topbar("📊 Study history", segH)) + `
     <div class="panel"><div class="chart ${range === 30 ? "c30" : ""}" id="chart"><div class="goalline" style="bottom:${18 + TS.goalMin * 60 / max * 142}px" title="goal"><span>goal ${TS.goalMin}m</span></div>
-      ${days.map((d, i) => `<div class="bar ${goalMet(d) ? "met" : ""}" title="${d}: ${fmtMin(vals[i])} · ${tget(d).items} items · ${tget(d).newW} new"><i style="height:${vals[i] / max * 100}%"></i><small>${range === 7 ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][new Date(d + "T12:00").getDay()] : (i % 5 === 4 || i === range - 1 ? d.slice(8) : "")}</small></div>`).join("")}</div>
+      ${days.map((d, i) => `<div class="bar ${goalMet(d) ? "met" : ""}" title="${d}: ${fmtMin(vals[i])} · ${tget(d).items} items · ${tget(d).newW} new${tget(d).aud ? ` · 🎧 lesson ${tget(d).aud.map(a => a.n).join(", ")}` : ""}"><i style="height:${vals[i] / max * 100}%"></i><small>${range === 7 ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][new Date(d + "T12:00").getDay()] : (i % 5 === 4 || i === range - 1 ? d.slice(8) : "")}</small></div>`).join("")}</div>
       <p class="muted" style="font-size:.85rem">Last ${range} days: <b>${fmtMin(rangeSec)}</b> · avg <b>${fmtMin(rangeSec / range)}</b>/day · goal met on <b>${metDays}</b>/${range} days</p></div>
     <div class="grid htot">
       <div class="mode"><div class="ic">⏳</div><h3 id="hAll">${(totalSec / 3600).toFixed(1)} h</h3><p>all-time study</p></div>
@@ -2284,6 +2331,7 @@ function historyView(range = 7, asTab = false) {
       <div class="mode"><div class="ic">🎯</div><h3>${goalStreak()} d</h3><p>goal streak</p></div>
       <div class="mode"><div class="ic">🔁</div><h3>${all.reduce((n, [, x]) => n + x.items, 0)}</h3><p>items answered (tracked)</p></div>
       <div class="mode"><div class="ic">🆕</div><h3>${all.reduce((n, [, x]) => n + x.newW, 0)}</h3><p>new words (tracked)</p></div>
+      ${(() => { const a = alStats(); return a.n || AL.on ? `<div class="mode" id="hAud"><div class="ic">🎧</div><h3>${a.n}</h3><p>audio lessons · ${fmtMin(a.sec)}</p></div>` : ""; })()}
     </div>`;
   if (asTab) {
     view.insertAdjacentHTML("beforeend", `<div class="sechead">Settings</div><div class="panel" style="padding:4px 16px">
@@ -2535,7 +2583,7 @@ function pathHTML() {
    Data: data/kanji-nX.json built from kanji-data (MIT; KANJIDIC2 © EDRDG CC BY-SA 4.0; JLPT lists by J. Waller) and
    KanjiVG (CC BY-SA 3.0) stroke paths. Progress lives in its own key, so vocab/kana progress is untouched. */
 const JKEY = "jlptVocabQuest.kanji.v1", KJ_BATCH = 5;
-const KJINFO = {"n5":{"count":79,"v":"8df990fbbe","kb":61,"withEx":79,"withStrokes":79},"n4":{"count":166,"v":"ecd17d1f02","kb":165,"withEx":165,"withStrokes":166},"n3":{"count":367,"v":"edff4018f7","kb":396,"withEx":364,"withStrokes":367},"n2":{"count":367,"v":"756f186b96","kb":395,"withEx":366,"withStrokes":367},"n1":{"count":1232,"v":"a04569864b","kb":1235,"withEx":772,"withStrokes":1232}};
+const KJINFO = {"n5":{"count":79,"v":"becb1d74de","kb":27,"sv":"a033c529c5","skb":33,"withEx":79,"withStrokes":79,"chars":"一人十二九入八七大三上子下小山女川千日中月五土円六今水万出生四午木本外天年北火気半先行名白百友見父右左西母男来金学毎車休国長東何後前時高食南校書雨間話電語聞読"},"n4":{"count":166,"v":"916bf32e1e","kb":65,"sv":"0df832f11d","skb":100,"withEx":165,"withStrokes":166,"chars":"力口手文工方公心立目元田少止正切用不代夕主台広会同自世地多以考早古社安字仕去言体写作死町有足近売明京色犬空牛花住赤事者画知究別図冬医走物使店思始青兄発海肉夜計度持歩界音味通私重品家注急送員英研待室風院春理建強秋野弟教真問動帰服屋起病特紙場料夏洋終道開転映朝週族新黒昼茶集妹運旅悪姉業答意買着習楽勉借鳥魚試歌堂銀飲飯駅親貸質館題漢験曜"},"n3":{"count":367,"v":"1034c9e731","kb":144,"sv":"bf55b36365","skb":252,"withEx":364,"withStrokes":367,"chars":"内引化市予反石王平太合回米民当支夫打交加由全必向付申両式成他収示対与号共決失亡末光争守声欠次投形在件任局未才初定伝役好実表告直利求和受助位首所処判法治点活放曲労宅相状参育官良礼犯列果指性制返因老面命完係耳取約記要存原念危例冷政神苦信具科乗昨努互変追込君負連美余否供非幸流払束部客組折消配易都草進若呼似限退飛吸単妻馬害席困残球容速産能得格差迎居招側期経現候商昔務段泳勝番抜殺深最数突財情刻庭忘船更便常師息望戻済破背彼断規術敗葉落宿徒値迷費報酒感戦港留押座除降笑然続登景訪過抱吹想責達備満置忙雪婦寄福園絵関解資祖険給到許割路等程働洗捕覚晴調散喜逃遊富杯途遠選説様悲際浮辞倒談愛増怖陽絶演歯欲種探恐構察閉認怒渡横貧皆疑婚勤暗罪歳頭確痛違窓権娘静寒論適夢疲掛頂盗眠精遅熱鳴雑越積薬恥御晩賛暮慣腹寝顔優偶箱誤職観舞猫緒議煙難類偉幾機頼靴識警髪願"},"n2":{"count":367,"v":"887911dd9e","kb":137,"sv":"7a67f2767a","skb":259,"withEx":366,"withStrokes":367,"chars":"丸区戸比玉村久竹央辺州各史毛団了改再羽旧仏谷池令委寺圧協門札皮印府包低林介永防角県布兵材庁技片干刊虫仲岸児坂軍芸岩糸囲氷油述占武周波査島均双希兆宇効衣担巨券型固幼板卒星乱省河革含季冊底党皿血並承版匹快根臣細汚麦欧延貝倍専設灯甘伸逆造況秒個副弱則栄森厚庫柱枚届帯針刷城召移卵階毒象祝昇宝減接机将清税域営極灰炭量停浅巻陸農依叫床採脳枝律短被勇拾植荷乳貨汗算章復沈缶訓刺浴泉肌軽補黄略勢砂温捜香祭拝混骨鉄順肩総貿領泊紅純準線舟航般胃孫著測辛胸荒雲粉装郵筆焼童封販境柔管祈械菜禁貯液翌郊歴練患湾泥珍豊悩湖湯耕賞姓埋超損課照幅導沸署換捨紹咲普裏凍敬預肯恋塩群絡募橋輪涙袋尊億軒編像伺緑蔵輸録複枯雇替漁掃掘暴層軟奥隻脂誌挟硬諸劇棒腕触鉱乾傾跡瓶詰畜詞喫鼻粒築殿菓零講額蒸湿燃涼符綿銅腰鈍隅溶筒績畳震塗塔駐帽踊療薄競齢鋭賢簡濃憎膚臓滴爆贈磨曇籍濯燥"},"n1":{"count":1232,"v":"5d2d125d67","kb":256,"sv":"09d5edd36a","skb":982,"withEx":772,"withStrokes":1232,"chars":"氏士丁刀井司弁功己応弓矢条企価松保仁系批句乙寸志案派挙独至之昭江吉佐災我也攻穴甲拡又及仮級伊刑丹仙豆姿邦故抗紀凡典序弘刃幻芝扱羊基展乃抑結施尺沢択秀乏尾伴玄凶旬票旨修沖皇宗宙率刈却舎素尽張益健牧討冗巡后泣巧矛迫染弔第忠戒房従沿径汽郎視杉奈妥舌斗授拠肝郡検妙拒証邸即康枠策屯往救併推励巳看倉孔奏隊裁評升芳李旭仰汁祉尼芽秘克免厄伏為異劣朴没梅壮射奴妊吐契狂岐宏衆廷盛抵如茂納幹巴肥斉妨妃炎義亜挑促朱株渉阿密侵括桜伐津是提把呈囚庄肺拘俳卓陣就援炉那凸威奇崎迅朽拍脈致帆垂尿丑凹屈抽披忍恵態勺帳沼創呉恩筋圭街允充統俊貢伯属善辰振拐孤称紛伍訳拓昌唱尚彦俵牲帝託郷逮耐透斤丘析浜匠岳斥訴敏脱盟冒征執製朗措既華狭節邪哲扶忌殴奉賀肖削症怪沙陛胞佳浄索貞虎只剤揮陥掲兼弥叶昆塁閣吟貴暑脅雄苗描竜匁詩悔器虐源盾鹿廃軌妄巣荘冠盲弦卯柳炊整卸坑控砲枢渋祥葬呂宮秩唆班泰匡架惑且阻宜丙柄旦亘宣恒胆垣坪幕浩剣排傷催眼砕訟倫亨俗泡釈洞肪殊標奔亭隆享弾芋迭塚赴盆模烈疫麻項喪笛悟斎貫献拙侍賃叔督汐訂偽衰杜准怠遣浸岬哀障徐侮抹脚衛焦茎栽臭債浪洪紋握継狩茅芹杏診堀菊抄唯鬼伎吏弐糾裂養姫裕堅壱峡厘剛疾銭陳梨泌誠宰揺偏胎祐摘載旗窃亀芙恨娠但佑聖遺喚甫博浦墓桑陰飢鈴啓徳粘朋崩宴智峠棄維培叙淡苑伽甚飼栗欣剰監珠距審虚丞亥核劾亦凪亮冴惨姻据圏幽恭卑於僚勘帥添悦孟猛影斜粋肢辱尭撃慎軸桃逸涯彫拷携憲釣扇桂激絞粛晋郁庶冶汰晃旺桐請興娯玲邑棋俸峰揚暖紘酉酸誉某菌勧虹寂須雰遇洲紡附殖滞微徴胡勅酔惜胴悼挿随眉剖尋累棟郭拳陶遂粗較逓詳蚕腸雅飾需伶玖緊蛇眺嫌唇搭端滅陵誕舶奪滑逝踏匿頑詐誘窒紫敵儀蓄融淳畔秦紳唄誇銃旋欺賄翁駆稲殉采彩滋煮紺怜租疎桟綱締猪侯弧撤猟琴閥棚偵喝廊蚊豚赦隠晶豪熊殻峻寛笹隔暇鮮陪堤傍悠盤淑栓渇艇傘慮潮循織萩奨環衷崇逐緩網侃侑昂樹茄茉迪倭媛曹滝罰宵操腐尉徹赳酌雷衝僕掌壊蛍酬庸渦避茜猶撮渓洸靖畝愚塾漏稚彰践嫁嘆歓遍敦藤款概縄敢厳隼謝絹柚扉硫範碁寅漠熟慢暫磁縮媒潔該嵐椎銘琢痴搬暁漫琉趣倣慰虜還穀堪朔酢倹護臨鉛鋼愉勁哉奎宥昴柊柾洵耶胤衿跳僧潟縦魅塀敷閑溝睡詠獲漂駄賠摩猿痢摂輝飽稼獄噴鳩鼓裸凌塊撲彬湧慈縁爽遭壁慶朕耗聴堕誓翔啄婿潜悌酷喬黙渚薦隣慨皐墨惟輩鉢償硝惇棺禅脩婆稿聡傑彗稔舗梓糖寧巽嘉楊駒倖恕晏晟栞紗莉莞繁霊詔萌椿購偲墜奮擁睦蓮斐魂禍諾酪葵禄暦瑞彪勲賊搾闘碑膜廉毬膨惰欽漬蛮煩楠憶惣離酵諮遮稀履憂謀渥潤愁楼懇綾穂褐壌凱賓緯絢雌錦寮犠漆崚捷捺晨梢梧眸笙紬絃菖菫袈覧禎翼諭澄稜弊遥懐餓窮頒瑛壇寡嗣輔穏響幣皓槽痘墳嵯肇慕謡騒漸閲憤嫡樺槙戯嘱繰蒼暉鏡毅遷憾漱繊凝獣椋琳竣脹縫憩錯蒔魁礎擦鋳舜縛鎖暢瞬鳳窯褒塑虞懲綜瑠翠榛謙罷衡薫頻蔦磯糧濁覆槻蝶懸蕉賜瀬曙錠篤遼覇嵩椰楓滉瑚瑶蓉裟詢頌翻憧隷霞譲轄綺鍛顕嬢慧緋箇碧鎌鎮簿儒穫嬉薪癒躍橘騎錬露黎駿爾瑳碩綸銑颯礁擬鯨謹瞳醜璃謁賦遵鮎顧矯嶺嚇黛霜藩髄騰癖凜熙誼諄諒鴻霧麗襟謄欄藍墾羅鵬艦鶴鶏襲譜驚檀繕鐘叡澪燎蕗錘魔蘭爵瞭醸藻雛韻艶繭燦鞠鯉濫穣巌鑑燿麿馨鯛耀鷹麟"}};
 let JS;
 try { JS = Object.assign({ cards: {} }, JSON.parse(localStorage.getItem(JKEY) || "{}")); } catch (e) { JS = { cards: {} }; }
 if (!JS.cards || typeof JS.cards !== "object") JS.cards = {};
@@ -2543,19 +2591,30 @@ function jsave() { try { localStorage.setItem(JKEY, JSON.stringify(JS)); } catch
 const KJ = {}, KJX = {}, KJL = {};
 LEVELS.forEach(l => KJL[l] = { loaded: false, list: [] });
 const jcard = c => JS.cards[c] || { box: 0, due: 0, ok: 0, bad: 0 };
-const kjPromises = {};
+const kjPromises = {}, kjsPromises = {};
+const kjUrl = (l, strokes) => `data/kanji-${l}${strokes ? "-s" : ""}.json?v=${(KJINFO[l] || {})[strokes ? "sv" : "v"] || 1}`;
 function loadKanji(l) {
   if (!KJL[l]) return Promise.resolve(false);
   if (KJL[l].loaded) return Promise.resolve(true);
-  if (!kjPromises[l]) kjPromises[l] = fetch(`data/kanji-${l}.json?v=${(KJINFO[l] || {}).v || 1}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  if (!kjPromises[l]) kjPromises[l] = fetch(kjUrl(l)).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(d => {
-      d.items.forEach((x, i) => { KJ[x[0]] = { c: x[0], lvl: l, idx: i, strokes: x[1], mean: x[2], on: x[3], kun: x[4], freq: x[5], grade: x[6], la: x[7], ex: x[8], paths: x[9] }; KJL[l].list.push(x[0]); });
+      if (KJL[l].loaded) return true;
+      d.items.forEach((x, i) => { KJ[x[0]] = { c: x[0], lvl: l, idx: i, strokes: x[1], mean: x[2], on: x[3], kun: [...new Set(x[4] || [])], freq: x[5], grade: x[6], la: x[7] || [], ex: x[8] || [], paths: x[9] || null }; KJL[l].list.push(x[0]); });
       for (const c in d.ext) if (!KJX[c]) KJX[c] = { c, mean: d.ext[c][0], on: d.ext[c][1], kun: d.ext[c][2], strokes: d.ext[c][3] };
-      KJL[l].loaded = true; return true;
-    }).catch(() => { delete kjPromises[l]; return false; });
+      KJL[l].loaded = true; KJL[l].failAt = 0; return true;
+    }).catch(() => { delete kjPromises[l]; KJL[l].failAt = Date.now(); return false; });
   return kjPromises[l];
 }
+/* stroke paths (KanjiVG) are ~70% of the kanji data, so they're a separate file fetched only when a learn card needs them */
+function loadStrokes(l) {
+  if (!KJL[l] || KJL[l].strokes) return Promise.resolve(!!(KJL[l] && KJL[l].strokes));
+  if (!kjsPromises[l]) kjsPromises[l] = loadKanji(l).then(ok => { if (!ok) throw 0; return fetch(kjUrl(l, true)); }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { const ch = [...d.chars]; ch.forEach((c, i) => { if (KJ[c] && d.paths[i] && d.paths[i].length) KJ[c].paths = d.paths[i]; }); KJL[l].strokes = true; return true; })
+    .catch(() => { delete kjsPromises[l]; return false; });
+  return kjsPromises[l];
+}
 const kjInfo = c => KJ[c] || KJX[c];
+const kjLevelOf = c => (KJ[c] && KJ[c].lvl) || LEVELS.find(l => KJINFO[l] && (KJINFO[l].chars || "").includes(c)) || null;
 const kjReading = k => { const on = (k.on || []).slice(0, 2).join("・"), kun = (k.kun || []).slice(0, 2).map(r => r.replace(".", "(") + (r.includes(".") ? ")" : "")).join("・"); return [on, kun].filter(Boolean).join(" / ") || "—"; };
 const kunFmt = r => r.includes(".") ? `${esc(r.split(".")[0])}<span class="okuri">${esc(r.split(".")[1])}</span>` : esc(r);
 /* progressive unlocking: first batch of 5; the next batch opens once every unlocked kanji has been learned and ≥80% are past the learning step */
@@ -2593,8 +2652,8 @@ function kjLearn(c) {    // learn card seen → the kanji enters the SRS (due no
 function kjGrade(c, ok) {
   const isNew = !JS.cards[c];
   const x = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, jcard(c), { l: KJ[c].lvl });
-  if (ok) { x.box = Math.min(MAX_BOX, x.box + 1); x.ok++; } else { x.box = 1; x.bad++; }
-  x.due = Date.now() + INTERVALS[x.box] * (ok ? (0.9 + Math.random() * 0.2) : 1);
+  if (ok) { x.box = Math.min(MAX_BOX, x.box + 1); x.ok++; } else { x.box = missBox(x.box); x.bad++; }
+  x.due = Date.now() + INTERVALS[Math.max(1, x.box)] * (ok ? (0.9 + Math.random() * 0.2) : 1);
   const before = kjUnlockedCount(x.l);
   JS.cards[c] = x; jsave(); trackItem(isNew); touchStreak(); save();
   if (kjUnlockedCount(x.l) > before) setTimeout(() => toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`), 700);
@@ -2602,13 +2661,29 @@ function kjGrade(c, ok) {
 /* ---------- stroke order (KanjiVG) ---------- */
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 function strokeSVG(k, cls = "", upto = null) {
-  const n = k.paths.length, animate = upto == null && !reduceMotion(), per = Math.max(0.28, Math.min(0.6, 5 / n));
+  const n = k.paths.length;
   return `<svg class="kjsvg ${cls}" viewBox="0 0 109 109" role="img" aria-label="${esc(k.c)} stroke order, ${n} strokes">
     <path class="kjgrid" d="M54.5 2v105M2 54.5h105"/>
     ${k.paths.map(d => `<path class="kjghost" d="${d}"/>`).join("")}
-    ${k.paths.map((d, i) => upto != null && i >= upto ? "" : `<path class="kjst ${upto != null && i === upto - 1 ? "cur" : ""} ${animate ? "anim" : ""}" pathLength="1" d="${d}" style="${animate ? `animation-delay:${(i * per).toFixed(2)}s;animation-duration:${per.toFixed(2)}s` : ""}"/>`).join("")}
+    ${k.paths.map((d, i) => upto != null && i >= upto ? "" : `<path class="kjst ${upto != null && i === upto - 1 ? "cur" : ""}" d="${d}"/>`).join("")}
   </svg>`;
 }
+/* Draw the strokes one after another. Dash lengths are measured in JS (getTotalLength) instead of relying on
+   pathLength="1", which older iOS Safari ignores for dashes (strokes showed up dotted / not at all). Reduced motion,
+   or any measuring problem, falls back to the finished character. */
+function playStrokes(wrap, k, upto = null) {
+  wrap.innerHTML = strokeSVG(k, "", upto);
+  if (upto != null || reduceMotion()) return;
+  const ps = [...wrap.querySelectorAll(".kjst")], per = Math.max(0.18, Math.min(0.6, 4.5 / ps.length));
+  try {
+    const L = ps.map(p => p.getTotalLength());
+    if (L.some(x => !(x > 0))) return;
+    ps.forEach((p, i) => { const len = (L[i] + 1).toFixed(2); p.style.strokeDasharray = `${len} ${len}`; p.style.strokeDashoffset = len;
+      p.style.animationDelay = `${(i * per).toFixed(2)}s`; p.style.animationDuration = `${per.toFixed(2)}s`; p.classList.add("anim"); });
+  } catch (e) { ps.forEach(p => { p.classList.remove("anim"); p.style.strokeDasharray = p.style.strokeDashoffset = ""; }); }
+}
+/* the character in the system font while the stroke file loads, or for good if it can't be loaded (offline) */
+const glyphHTML = (k, note) => `<div class="kjglyph jp" aria-label="${esc(k.c)}">${esc(k.c)}</div>${note ? `<div class="kjnote">${note}</div>` : ""}`;
 function exListHTML(k) {
   if (!k.ex || !k.ex.length) return `<p class="muted" style="font-size:.85rem">No example word in this level's vocabulary yet.</p>`;
   return `<div class="kjex">${k.ex.map((e, i) => `<button class="kjexrow" data-ex="${i}"><span class="jp">${esc(e[1])}</span><span class="muted">${esc(e[2])}</span><span class="grow">${esc(e[3])}</span>${I("speaker")}</button>`).join("")}</div>`;
@@ -2618,25 +2693,35 @@ function bindEx(root, k) { root.querySelectorAll(".kjexrow").forEach(b => b.oncl
 function learnCardHTML(k, tag = "") {
   const c = JS.cards[k.c];
   return `<div class="card kjlearn">${tag ? `<div class="qtype">${tag}</div>` : ""}
-    <div class="kjtop"><div class="kjsvgwrap" id="kjSvg">${strokeSVG(k)}</div>
+    <div class="kjtop"><div class="kjsvgwrap" id="kjSvg">${k.paths ? "" : glyphHTML(k)}</div>
       <div class="kjmeta"><div class="kjmean">${esc(k.mean)}</div>
         <div class="kjrd"><small>ON</small> <span class="jp">${(k.on || []).map(esc).join("、") || "—"}</span></div>
         <div class="kjrd"><small>KUN</small> <span class="jp">${(k.kun || []).slice(0, 6).map(kunFmt).join("、") || "—"}</span></div>
         <div class="muted" style="font-size:.8rem">${k.strokes} strokes · ${LNAME(k.lvl)}${k.grade ? ` · grade ${k.grade > 6 ? "secondary" : k.grade}` : ""}${c ? ` · box ${c.box}` : ""}</div></div></div>
-    <div class="btnrow" style="justify-content:flex-start"><button class="btn ghost small" id="kjReplay">${I("play")} Replay</button><button class="btn ghost small" id="kjStep">Step 1/${k.paths.length}</button></div>
+    <div class="btnrow" style="justify-content:flex-start"><button class="btn ghost small" id="kjReplay">${I("play")} Replay</button><button class="btn ghost small" id="kjStep">Step 1/${k.paths ? k.paths.length : k.strokes}</button></div>
     <div class="sechead" style="margin:10px 2px 4px">Example words</div>${exListHTML(k)}</div>`;
 }
 function bindLearn(root, k) {
   let step = 0;
-  const wrap = root.querySelector("#kjSvg");
-  root.querySelector("#kjReplay").onclick = () => { step = 0; wrap.innerHTML = strokeSVG(k); root.querySelector("#kjStep").textContent = `Step 1/${k.paths.length}`; };
-  root.querySelector("#kjStep").onclick = e => { step = step % k.paths.length + 1; wrap.innerHTML = strokeSVG(k, "", step); e.currentTarget.textContent = `Step ${step % k.paths.length + 1}/${k.paths.length}`; };
+  const wrap = root.querySelector("#kjSvg"), rb = root.querySelector("#kjReplay"), sb = root.querySelector("#kjStep");
+  const ready = () => {
+    const n = k.paths.length; rb.disabled = sb.disabled = false; sb.textContent = `Step 1/${n}`;
+    playStrokes(wrap, k);
+    rb.onclick = () => { step = 0; playStrokes(wrap, k); sb.textContent = `Step 1/${n}`; };
+    sb.onclick = () => { step = step % n + 1; playStrokes(wrap, k, step); sb.textContent = step === n ? `Step 1/${n}` : `Step ${step + 1}/${n}`; };
+  };
+  if (k.paths && k.paths.length) ready();
+  else {
+    rb.disabled = sb.disabled = true;
+    loadStrokes(k.lvl).then(ok => { if (!wrap.isConnected) return; if (ok && k.paths && k.paths.length) ready(); else wrap.innerHTML = glyphHTML(k, "stroke order needs a connection"); });
+  }
   bindEx(root, k);
 }
 function kjModal(c) {
   const k = KJ[c]; if (!k) return;
-  const md = document.createElement("div"); md.className = "modal";
-  md.innerHTML = `<div class="box" role="dialog" aria-label="Kanji ${esc(c)}">${learnCardHTML(k)}<div style="text-align:right;margin-top:10px"><button class="btn" id="kjClose">Done</button></div></div>`;
+  document.querySelectorAll(".modal.kjmodal").forEach(m => m.remove());
+  const md = document.createElement("div"); md.className = "modal kjmodal";
+  md.innerHTML = `<div class="box kjbox" role="dialog" aria-label="Kanji ${esc(c)}"><div class="kjscroll">${learnCardHTML(k)}</div><div class="kjdone"><button class="btn" id="kjClose">Done</button></div></div>`;
   document.body.appendChild(md); bindLearn(md, k);
   md.onclick = e => { if (e.target === md || e.target.id === "kjClose") md.remove(); };
 }
@@ -2698,7 +2783,7 @@ const KJPAGE = {};
 const kanjiPageFn = l => KJPAGE[l] || (KJPAGE[l] = () => kanjiView(l));
 function kanjiView(l) {
   if (!KJL[l].loaded) { view.innerHTML = topbar(LNAME(l)) + `<div class="panel"><p>Loading ${LNAME(l)} kanji…</p></div>`; bindBack(levelPageFn(l));
-    loadKanji(l).then(ok => { if (curView === kanjiPageFn(l)) { if (ok) go(kanjiPageFn(l)); else view.querySelector(".panel").innerHTML = `<p>Couldn't load the kanji list — offline? Open once online or use Download in Settings.</p>`; } }); return; }
+    loadKanji(l).then(ok => { if (curView === kanjiPageFn(l)) { if (ok) go(kanjiPageFn(l)); else { view.querySelector(".panel").innerHTML = `<p>Couldn't load the kanji list — offline? Open once online or use Download in Settings.</p><button class="btn" id="kjRetry">Try again</button>`; $("#kjRetry").onclick = () => go(kanjiPageFn(l)); } } }); return; }
   const me = kanjiPageFn(l), st = kjStats(l), list = KJL[l].list, un = kjUnlockedCount(l), fresh = kjNewFor(l, KJ_BATCH), due = kjDueScan(l);
   const learned = list.filter(c => JS.cards[c]);
   view.innerHTML = topbar(LNAME(l)) + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing("字", st.mast / (st.total || 1), `var(--${l})`, 52)}Kanji · ${LNAME(l)}</div>
@@ -2743,6 +2828,93 @@ function kanjiStatsHTML() {
   return `<div class="panel"><h2>Kanji</h2>${LEVELS.map(l => { const s = kjStats(l), t = s.total || 1;
     return `<div class="kjstat"><b style="color:var(--${l})">${LNAME(l)}</b><span class="grow"><span class="minibar"><i style="width:${s.seen / t * 100}%;background:var(--fill2)"></i><i style="width:${s.mast / t * 100}%;background:var(--${l})"></i></span></span><small>${s.mast}/${s.total} mastered · ${s.seen} learned${s.due ? ` · ${s.due} due` : ""}</small></div>`; }).join("")}</div>`;
 }
+
+/* ================= Daily audio lesson (user's own course link) =================
+   A step in the training plan: open the lesson link the user saved (nothing is built in), then "Mark lesson done"
+   advances the counter and adds the lesson minutes to today's study time. Stored only on this device (own key). */
+const AKEY = "jlptVocabQuest.audioLesson.v1";
+const alDefault = () => ({ on: true, url: "", min: 30, cur: 1, total: 30, opened: null, log: {} });
+let AL;
+try { AL = Object.assign(alDefault(), JSON.parse(localStorage.getItem(AKEY) || "{}")); } catch (e) { AL = alDefault(); }
+if (!AL.log || typeof AL.log !== "object") AL.log = {};
+function alsave() { try { localStorage.setItem(AKEY, JSON.stringify(AL)); } catch (e) {} }
+const alClampInt = (v, lo, hi, def) => { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
+/* only plain web links: never javascript:, data: etc. */
+function alCleanUrl(u) {
+  u = String(u || "").trim(); if (!u) return "";
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = "https://" + u;
+  try { const x = new URL(u); return /^https?:$/.test(x.protocol) && x.hostname ? x.href : null; } catch (e) { return null; }
+}
+const alToday = () => AL.log[todayStr()] || null;          // {n, min} once today's lesson is marked done
+const alFinished = () => AL.cur > AL.total;
+function alOpen() {
+  if (!AL.url) return alNeedLink();
+  AL.opened = todayStr() + ":" + AL.cur; alsave();
+  // window.open lets iOS hand the link to Safari / the matching app; fall back to navigating if popups are blocked
+  let w = null; try { w = window.open(AL.url, "_blank"); } catch (e) {}
+  if (w) { try { w.opener = null; } catch (e) {} } else location.href = AL.url;
+  setTimeout(() => { if (curView === home) go(home); }, 400);
+}
+function alNeedLink() {
+  const md = document.createElement("div"); md.className = "modal";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Add a lesson link"><h2>🎧 Add your lesson link</h2>
+    <p class="muted" style="font-size:.9rem">Paste the web address of your audio course (playlist, video or app link) in Settings → Audio lesson. It stays on this device only.</p>
+    <div class="btnrow"><button class="btn" id="alGoSet">Open Settings</button><button class="btn ghost" id="alCancel">Not now</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "alCancel") md.remove(); else if (e.target.id === "alGoSet") { md.remove(); go(settingsView); setTimeout(() => { const r = $("#alSection"); if (r) r.scrollIntoView({ block: "start" }); const u = $("#alUrl"); if (u) u.focus(); }, 60); } };
+}
+function alMarkDone() {
+  const d = todayStr(); if (alToday() || alFinished()) return;
+  const min = AL.min, x = tday(d);
+  x.sec += min * 60; (x.aud || (x.aud = [])).push({ n: AL.cur, min }); tsave();
+  AL.log[d] = { n: AL.cur, min }; AL.cur++; AL.opened = null; alsave();
+  touchStreak(); save(); updateTimePill(); checkGoal();
+  sfx.good(); toast(`🎧 Lesson ${AL.log[d].n} done · +${min} min`);
+  if (curView) go(curView);
+}
+function alUndo() {
+  const d = todayStr(), t = alToday(); if (!t) return;
+  const x = tday(d); x.sec = Math.max(0, x.sec - t.min * 60);
+  if (x.aud) { const i = x.aud.findIndex(a => a.n === t.n); if (i >= 0) x.aud.splice(i, 1); if (!x.aud.length) delete x.aud; }
+  if (x.met && !goalParts(d).every(p => p.have >= p.need)) delete x.met;
+  tsave(); AL.cur = t.n; delete AL.log[d]; alsave(); updateTimePill();
+  toast(`↩️ Lesson ${t.n} unmarked`); if (curView) go(curView);
+}
+function audioLessonHTML() {
+  if (!AL.on) return "";
+  const t = alToday(), opened = AL.opened === todayStr() + ":" + AL.cur;
+  let body, btns;
+  if (t) { body = `<h2>Audio lesson ${t.n} done ✅</h2><p>+${t.min} min added to today's study time.${alFinished() ? " Course complete — nice!" : ` Next: <b>Lesson ${AL.cur}</b> tomorrow.`}</p>`;
+    btns = `<button class="btn ghost small" id="alUndo">Undo</button>`; }
+  else if (alFinished()) { body = `<h2>Audio course complete 🎉</h2><p>All ${AL.total} lessons done. Set a new total or lesson number in Settings.</p>`; btns = ""; }
+  else { body = `<h2>Audio lesson <span class="lvtag">${AL.cur}/${AL.total}</span></h2><p>Next: <b>Lesson ${AL.cur}</b> · ${AL.min} min${AL.url ? "" : ` · <span style="color:var(--orange)">add your lesson link in Settings</span>`}</p>`;
+    btns = opened ? `<button class="btn" id="alDone">Mark lesson done</button><button class="btn ghost small" id="alOpen">Open again</button>` : `<button class="btn" id="alOpen">${AL.url ? "Open ▶" : "Add link"}</button>`; }
+  return `<div class="hero alcard ${t ? "done" : ""}" id="alCard"><div class="ic">🎧</div><div>${body}
+    <div class="minibar" aria-hidden="true"><i style="width:${Math.min(100, (Math.min(AL.cur, AL.total + 1) - 1) / AL.total * 100)}%;background:var(--indigo)"></i></div></div>
+    <div class="albtns">${btns}</div></div>`;
+}
+function bindAudioLesson() {
+  const o = $("#alOpen"); if (o) o.onclick = () => { sfx.click(); alOpen(); };
+  const d = $("#alDone"); if (d) d.onclick = alMarkDone;
+  const u = $("#alUndo"); if (u) u.onclick = alUndo;
+}
+function audioLessonSettingsHTML() {
+  return `<div class="row" id="alSection"><span>🎧 Audio lesson<br><small class="muted">a daily listening step on Home; minutes count toward your goal</small></span><button class="switch ${AL.on ? "on" : ""}" id="alOn" role="switch" aria-checked="${AL.on}" aria-label="Audio lesson"></button></div>
+    <div class="row alrow"><span>🔗 Lesson link<br><small class="muted">your course's web/app address · saved on this device only</small></span><input type="url" id="alUrl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…" value="${esc(AL.url)}"></div>
+    <div class="row"><span>⏱️ Lesson length (min)</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="alMin" min="1" max="240" value="${AL.min}"></div>
+    <div class="row"><span>▶️ Current lesson</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="alCur" min="1" max="999" value="${Math.min(AL.cur, AL.total)}"></div>
+    <div class="row"><span>🔢 Total lessons</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="alTotal" min="1" max="999" value="${AL.total}"></div>`;
+}
+function bindAudioLessonSettings(md) {
+  const q = s => md.querySelector(s);
+  q("#alOn").onclick = e => { AL.on = !AL.on; alsave(); e.currentTarget.classList.toggle("on", AL.on); e.currentTarget.setAttribute("aria-checked", AL.on); };
+  q("#alUrl").onchange = e => { const u = alCleanUrl(e.target.value); if (u === null) { toast("That doesn't look like a web link (https://…)"); e.target.value = AL.url; return; } AL.url = u; e.target.value = u; alsave(); if (u) toast("Lesson link saved"); };
+  q("#alMin").onchange = e => { AL.min = alClampInt(e.target.value, 1, 240, 30); e.target.value = AL.min; alsave(); };
+  q("#alTotal").onchange = e => { AL.total = alClampInt(e.target.value, 1, 999, 30); e.target.value = AL.total; if (AL.cur > AL.total + 1) AL.cur = AL.total + 1; alsave(); };
+  q("#alCur").onchange = e => { AL.cur = alClampInt(e.target.value, 1, 999, 1); if (AL.cur > AL.total) { AL.total = AL.cur; q("#alTotal").value = AL.total; } e.target.value = AL.cur; AL.opened = null; alsave(); };
+}
+/* all-time totals for Stats */
+function alStats() { let n = 0, sec = 0; for (const d in TS.days) (TS.days[d].aud || []).forEach(a => { n++; sec += a.min * 60; }); return { n, sec }; }
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { sfx.click(); go({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView }[b.dataset.tab]); });
@@ -2761,31 +2933,38 @@ if (location.protocol !== "file:") { const before = canAudio(); probeAudio(() =>
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
 /* iOS keeps a Home-Screen app's page alive for days, so a new version would never load: on resume, compare the
    build id of the live index.html with ours and reload (right away on a non-study screen, else after the session) */
-const BUILD = "bbf331365580";
+const BUILD = "be7b7baaaaff";
 let lastUpdCheck = 0, updWait = null;
 async function checkForUpdate(force) {
   if (location.protocol === "file:" || (!force && Date.now() - lastUpdCheck < 60e3)) return; lastUpdCheck = Date.now();
   try {
     const t = await (await fetch("./?build=" + Date.now(), { cache: "no-store" })).text(), m = /const BUILD = "([0-9a-f]{8,})"/.exec(t);
     if (!m || m[1] === BUILD) return;
-    try { const g = await navigator.serviceWorker.getRegistration(); if (g) g.update(); } catch (e) {}
+    try { const g = await navigator.serviceWorker.getRegistration(); if (g) g.update().catch(() => {}); } catch (e) {}
     const doReload = () => { if (!studyScreen && !document.querySelector(".modal")) { flushTime(); save(); location.reload(); return true; } return false; };
     if (!doReload() && !updWait) updWait = setInterval(() => { if (doReload()) clearInterval(updWait); }, 2000);
   } catch (e) {}
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkForUpdate(); });
-window.__N5 = { JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.__N5 = { combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
-  const want = new Set(S.levels);
-  const dm = dailies(), dk = activeLevels().join(","); if (dm[dk] && !dm[dk].done) (dm[dk].items || []).forEach(it => want.add(lvlOf(it.id)));
-  try { pathKanjiLevels().forEach(l => loadKanji(l)); kjLevelsWithCards().forEach(l => loadKanji(l)); } catch (e) {}
-  try { pathLevels().forEach(l => want.add(l)); if (dm.path && !dm.path.done) dm.path.items.forEach(it => { if (!it.k) want.add(lvlOf(it.id)); }); } catch (e) {}
-  refreshPool(); renderCredits();
-  const extra = [...want].filter(l => !LV[l].loaded);
-  if (extra.length) { view.innerHTML = `<div class="panel" style="text-align:center"><div class="big">⏳</div><p>Loading ${extra.map(LNAME).join(", ")}…</p></div>`; await Promise.all(extra.map(loadLevel));
-    const miss = S.levels.filter(l => !LV[l].loaded); if (miss.length) setTimeout(() => toast(`⚠️ Couldn't load ${miss.map(LNAME).join(", ")} (offline?) — showing ${levelLabel()}`), 300); }
-  refreshPool(); renderCredits(); go(home);
+  try {
+    const want = new Set(S.levels);
+    // vocab ids only: kana ({k}) and kanji ({j}, id = the character) items don't belong to a word list — mapping them
+    // through lvlOf() gave `undefined` and crashed start-up (blank Home) whenever today's session contained kanji
+    const vocabLv = it => it && !it.k && !it.j && typeof it.id === "number" ? lvlOf(it.id) : null;
+    const add = l => { if (l && LV[l]) want.add(l); };
+    const dm = dailies(), dk = activeLevels().join(","); if (dm[dk] && !dm[dk].done) (dm[dk].items || []).forEach(it => add(vocabLv(it)));
+    try { pathKanjiLevels().forEach(l => loadKanji(l)); kjLevelsWithCards().forEach(l => loadKanji(l)); } catch (e) {}
+    try { pathLevels().forEach(add); if (dm.path && !dm.path.done) (dm.path.items || []).forEach(it => add(vocabLv(it))); } catch (e) {}
+    refreshPool(); renderCredits();
+    const extra = [...want].filter(l => LV[l] && !LV[l].loaded);
+    if (extra.length) { view.innerHTML = `<div class="panel" style="text-align:center"><div class="big">⏳</div><p>Loading ${extra.map(LNAME).join(", ")}…</p></div>`; await Promise.all(extra.map(loadLevel));
+      const miss = S.levels.filter(l => LV[l] && !LV[l].loaded); if (miss.length) setTimeout(() => toast(`⚠️ Couldn't load ${miss.map(LNAME).join(", ")} (offline?) — showing ${levelLabel()}`), 300); }
+  } catch (e) { console.warn("start-up", e); }
+  try { refreshPool(); renderCredits(); } catch (e) {}
+  go(home);
 })();
 
 </script>

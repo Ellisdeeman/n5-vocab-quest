@@ -102,11 +102,12 @@ def means(v):
     return m
 for c,v in K.items():
     v['meanings']=means(v); v['readings_on']=[KATA(r) for r in (v['readings_on'] or [])]
+KUN=lambda v:list(dict.fromkeys(re.sub(r'^-|-$','',r) for r in (v['readings_kun'] or [])))  # '-あ.う' and 'あ.う' → one entry
 def reading_str(v):
-    on=[r for r in (v['readings_on'] or [])][:2]; kun=[re.sub(r'^-|-$','',r) for r in (v['readings_kun'] or [])][:2]
+    on=[r for r in (v['readings_on'] or [])][:2]; kun=KUN(v)[:2]
     return on,kun
 for l in L:
-    items=[]; ext={}
+    items=[]; ext={}; spaths=[]
     lower=L[:L.index(l)+1][::-1]  # own level first, then easier ones
     for c in allitems[l]:
         v=K[c]; on,kun=reading_str(v)
@@ -120,11 +121,15 @@ for l in L:
         la=LA[c]
         for b in la:
             if lvl[b]!=l: vb=K[b]; ob,kb=reading_str(vb); ext[b]=[', '.join(vb['meanings'][:2]),ob,kb,vb['strokes']]
-        items.append([c,v['strokes'],', '.join(v['meanings'][:3]),v['readings_on'] or [],[re.sub(r'^-|-$','',r) for r in (v['readings_kun'] or [])],v['freq'],v['grade'],la,ex,strokes.get(c,[])])
+        items.append([c,v['strokes'],', '.join(v['meanings'][:3]),v['readings_on'] or [],KUN(v),v['freq'],v['grade'],la,ex])
+        spaths.append(strokes.get(c,[]))
     d={'level':l,'source':'kanji-data (MIT) · KANJIDIC2 (EDRDG, CC BY-SA 4.0) · JLPT lists: J. Waller (tanos.co.uk) · KanjiVG r20250816 (CC BY-SA 3.0)','items':items,'ext':ext}
     s=json.dumps(d,ensure_ascii=False,separators=(',',':'))
     open(B+f'site_data/kanji/kanji-{l}.json','w',encoding='utf-8').write(s)
-    info[l]={'count':len(items),'v':hashlib.md5(s.encode()).hexdigest()[:10],'kb':len(s.encode())//1024,'withEx':sum(1 for x in items if x[8]),'withStrokes':sum(1 for x in items if x[9])}
+    # stroke paths (~70% of the bytes) live in a separate file, fetched lazily when a learn card needs them
+    ss=json.dumps({'level':l,'source':'KanjiVG r20250816 (CC BY-SA 3.0)','chars':''.join(allitems[l]),'paths':spaths},ensure_ascii=False,separators=(',',':'))
+    open(B+f'site_data/kanji/kanji-{l}-s.json','w',encoding='utf-8').write(ss)
+    info[l]={'count':len(items),'v':hashlib.md5(s.encode()).hexdigest()[:10],'kb':len(s.encode())//1024,'sv':hashlib.md5(ss.encode()).hexdigest()[:10],'skb':len(ss.encode())//1024,'withEx':sum(1 for x in items if x[8]),'withStrokes':sum(1 for x in spaths if x)}
 json.dump(info,open(B+'site_data/kanji_info.json','w'))
 print(json.dumps(info))
 for l in L: print(l,''.join(allitems[l][:30]))

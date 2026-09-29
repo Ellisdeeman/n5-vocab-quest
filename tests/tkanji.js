@@ -14,7 +14,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
    if(/mean\?/.test(qt))return opts.indexOf(KJ[pr].mean);
    if(/read\?/.test(qt)&&/kanji/.test(qt)){const k=KJ[pr];return opts.findIndex(o=>o===[(k.on||[]).slice(0,2).join('・'),(k.kun||[]).slice(0,2).map(r=>r.replace('.','(')+(r.includes('.')?')':'')).join('・')].filter(Boolean).join(' / '));}
    if(/means/.test(qt)){return opts.findIndex(o=>KJ[o]&&KJ[o].mean===pr);}
-   for(const c in KJ){const e=(KJ[c].ex||[]).find(e=>e[1]===pr);if(e)return opts.indexOf(e[2]);}return -1;});
+   const sub=(host.querySelector('.sub')||{}).textContent||'';for(const c in KJ){const e=(KJ[c].ex||[]).find(e=>e[1]===pr&&e[3]===sub.trim());if(e)return opts.indexOf(e[2]);}for(const c in KJ){const e=(KJ[c].ex||[]).find(e=>e[1]===pr);if(e)return opts.indexOf(e[2]);}return -1;});
  const runSession=async(mode='correct',max=80)=>{let q=0,learn=0,bad=0;for(let i=0;i<max;i++){if(await p.$('#dueBack'))break;
    if(await p.$('#kjGot')){learn++;await tap('#kjGot');continue;}
    if(mode==='idk'){await tap('button.idk');}else{const k=await correctIdx();if(k<0){bad++;await tap('button.idk');}else await tap(`.choice[data-i="${k}"]`);}
@@ -37,7 +37,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
  if(SHOT){await p.waitForTimeout(1500);await p.screenshot({path:SHOT+'kanji-learn-light.png'});}
  let r=await runSession('correct');
  ok('learn session: 5 learn cards + quiz, all answerable',r.learn===5&&r.q>=10&&r.bad===0,JSON.stringify(r));
- const un2=await ev(()=>__N5.kjUnlockedCount('n5'));ok('next batch unlocked after learning',un2===10,''+un2);
+ const un2=await ev(()=>__N5.kjUnlockedCount('n5'));ok('next batch unlocked after learning',un2===10,''+un2+' '+JSON.stringify(await ev(()=>__N5.JS().cards)));
  await tap('#dueBack');ok('back to kanji section',await ev(()=>/Kanji · N5/.test(document.querySelector('.largetitle').textContent)));
  // practice m2k: look-alike distractors + IDK
  await tap('button.mode[data-km=m2k]');await p.waitForSelector('.choice');
@@ -46,7 +46,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
  ok('meaning→kanji uses look-alike wrong answers',la.hit>=1,JSON.stringify(la));
  const c0=la.c,box0=await ev(c=>__N5.JS().cards[c].box,c0);
  await tap('button.idk');const idk=await ev(c=>({box:__N5.JS().cards[c].box,note:!!document.querySelector('.idknote'),shake:!!document.querySelector('.shake'),right:!!document.querySelector('.choice.right')}),c0);
- ok('I don\'t know: reveals, box→1, no shake',idk.box===1&&idk.note&&!idk.shake&&idk.right,JSON.stringify(idk));
+ ok('I don\'t know: reveals, box reset (miss), no shake',idk.box===(box0>=2?1:0)&&idk.note&&!idk.shake&&idk.right,JSON.stringify(idk));
  if(SHOT)await p.screenshot({path:SHOT+'kanji-quiz-idk.png'});
  await tap('#backBtn');
  for(const m of ['k2m','k2r','wr']){await tap(`button.mode[data-km=${m}]`);await p.waitForSelector('.choice');const t=await p.textContent('.qtype');await tap('.choice[data-i="0"]');await p.waitForSelector('#nextBtn');ok(`practice mode ${m} works`,true,t.trim().slice(0,40));await tap('#backBtn');}
