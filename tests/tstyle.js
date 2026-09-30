@@ -45,5 +45,19 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await tap('.kjdone .btn');
   await tap('.tabbar [data-tab="stats"]');await p.waitForTimeout(500);await check('stats');
   await tap('.tabbar [data-tab="settings"]');await p.waitForTimeout(500);await check('settings');
+  // game screens
+  await tap('.tabbar [data-tab="home"]');await tap('button.mode[data-m="games"]');await check('games hub');
+  await tap('button.gtile[data-gl="n5"][data-game="sniper"]');await check('sniper start');
+  await tap('#gStart');await p.waitForSelector('#arena .gtarget');await p.waitForTimeout(900);await p.evaluate(()=>__N5.gs.busy=true);await check('sniper arena');
+  await p.evaluate(()=>{__N5.gs.busy=false;__N5.gs.pause();});await check('sniper paused');
+  await tap('#backBtn');await tap('button.gtile[data-gl="n5"][data-game="builder"]');await p.waitForSelector('.kbtile');await check('kanji builder');
+  await tap('.kbcard .idk');await p.waitForTimeout(700);await check('kanji builder solved');
+  await tap('#backBtn');await tap('button.gtile[data-gl="n4"][data-game="scramble"]');await p.waitForSelector('#sTray .stile',{timeout:20000});await check('sentence scramble');
+  await tap('.scard .idk');await check('sentence scramble answered');
+  await tap('#backBtn');await tap('button.gtile[data-gl="n5"][data-game="boss"]');await p.waitForSelector('.bossrow');await check('boss list');
+  await tap('[data-fight]:not(.ghost)');await p.waitForSelector('#qhost .choice');await check('boss fight');
+  await tap('#qhost .idk');await check('boss answered');
+  for(let i=0;i<2;i++){await tap('#nextBtn');await p.waitForSelector('#qhost .idk:not(:disabled)');await tap('#qhost .idk');}
+  await tap('#nextBtn');await p.waitForSelector('#gFinal');await p.waitForTimeout(400);await check('game result');
   await ctx.close();}
  await b.close();console.log('SUMMARY',BR,R.filter(Boolean).length,'/',R.length);process.exit(R.every(Boolean)?0:1);})();

@@ -524,6 +524,54 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .switch{overflow:visible}.switch::before{content:"";position:absolute;inset:-7px -4px}
 .goalpanel .progress-big>div{min-width:0}.goalrow span{flex-wrap:wrap;min-width:0}
 @media (max-width:380px){.goalrings{width:96px;height:96px}.goalpanel .progress-big{gap:12px}}
+/* ================= Mini games ================= */
+.ggrid .gtile{min-height:54px}
+.ghost{max-width:720px;margin:0 auto}
+.gbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 2px 10px;font-weight:700;font-size:15px;flex-wrap:wrap}
+.gbar b{font-variant-numeric:tabular-nums}
+.gmult{background:color-mix(in srgb,var(--accent) var(--pillmix,14%),transparent);color:var(--accent);border-radius:999px;padding:2px 10px;font-size:14px;font-weight:800}
+.ghearts{letter-spacing:2px;font-size:22px;white-space:nowrap;line-height:1}.ghearts .gh{font-style:normal;color:var(--label2)}.ghearts .gh.on{color:var(--rose)}
+.arena{position:relative;height:min(52vh,430px);min-height:300px;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;background:var(--card2);border:1px solid var(--border);border-radius:16px;contain:strict;-webkit-tap-highlight-color:transparent}
+.gtarget{position:absolute;left:0;top:0;min-height:58px;min-width:96px;max-width:72%;padding:8px 14px;border:2px solid var(--border);border-radius:14px;background:var(--card);color:var(--label);font:inherit;font-size:16px;font-weight:700;line-height:1.25;text-align:center;will-change:transform;touch-action:none;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
+.gtarget.jp{font-size:19px}
+.gtarget.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 18%,var(--card))}
+.gtarget.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--card))}
+.gmsg{min-height:1.6em;text-align:center;font-weight:700;margin:8px 0;font-size:15px}
+.gpause{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:color-mix(in srgb,var(--bg) 80%,transparent);z-index:5}
+.gpause .btn{margin-top:10px}
+.kbwrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin:12px 0}
+.kbcanvas{width:160px;height:160px;border:2px dashed var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--card2)}
+.kbsvg{width:100%;height:100%}.kbsvg.big{width:150px;height:150px}
+.kbsvg path{fill:none;stroke:var(--label);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.kbsvg path.p0{stroke:var(--accent)}.kbsvg path.p1{stroke:var(--n4)}.kbsvg path.p2{stroke:var(--n2)}.kbsvg path.p3{stroke:var(--n3)}
+.kbslots{display:flex;gap:8px}.kbslots i{width:28px;height:6px;border-radius:3px;background:var(--track,var(--fill))}.kbslots i.on{background:var(--accent)}
+.kbtray{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;margin:10px 0}
+.kbtile{min-height:72px;aspect-ratio:1;border:2px solid var(--border);border-radius:14px;background:var(--card);color:var(--label);padding:8px;display:flex;align-items:center;justify-content:center;font:inherit;font-size:28px;cursor:pointer;touch-action:manipulation}
+.kbtile .kbsvg path{stroke-width:6}
+.kbtile.used{opacity:.3;border-color:var(--accent)}
+.kbtile.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,var(--card))}
+.kbtext{font-size:28px;text-align:center}
+.kbsolved{margin-top:10px}
+.scen{font-size:17px;margin:4px 0 10px}
+.sans{min-height:70px;border:2px dashed var(--border);border-radius:14px;padding:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.sans.ok{border-style:solid;border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,transparent)}
+.sans.shown{border-style:solid;border-color:var(--idk)}
+.sans.shake{animation:gshake .35s}
+@keyframes gshake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.stray{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;min-height:60px}
+.stile{min-height:54px;min-width:54px;padding:6px 14px;border:2px solid var(--border);border-radius:14px;background:var(--card);color:var(--label);font:inherit;font-size:20px;cursor:pointer;touch-action:manipulation}
+.stile.placed{border-color:var(--accent);background:color-mix(in srgb,var(--accent) var(--pillmix,14%),var(--card))}
+.spunct{font-size:20px;color:var(--label2)}
+.shint{font-size:14px}
+.bosshead{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.bossic{font-size:48px;line-height:1}
+.bossic.hit{animation:gshake .35s}
+.hpbar{height:14px;border-radius:7px;background:var(--track,var(--fill));overflow:hidden;margin:6px 0 2px}
+.hpbar i{display:block;height:100%;background:var(--orange);border-radius:7px;transition:width .3s}
+.bossrow{min-height:54px}
+.gresult{text-align:center}.gresult .big{font-size:56px}
+.gbadges{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.ghs{width:100%;border-collapse:collapse;font-size:15px}.ghs td,.ghs th{padding:6px 4px;border-bottom:1px solid var(--sep);text-align:left}.ghs td:not(:first-child),.ghs th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -1271,7 +1319,7 @@ function renderTyping(w, onAnswer, opts = {}) {
 let cleanup = null;
 let curView = null, viewGen = 0;   // viewGen: bumped on every screen change, so async views can tell if they are still on screen
 let curTab = "home";
-const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"]]);
+const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
 function go(fn) { curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
@@ -1524,6 +1572,7 @@ function home() {
     <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${unlockedCount} unlocked</p></button>
     <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing + mnemonics</p></button>
     <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
+    <button class="mode" data-m="games"><div class="ic">🎮</div><h3>Games</h3><p>Sniper · Builder · Scramble · Boss</p></button>
   </div>
   <div class="panel">
     <h2>Progress <span class="lvtag">${esc(levelLabel())}</span></h2>
@@ -1550,7 +1599,7 @@ function home() {
   bindAudioLesson();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView };
     go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
@@ -1650,7 +1699,8 @@ function levelPage(l) {
       <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${SETS.filter(setUnlocked).length} unlocked</p></button>
       <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing</p></button>
       <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
-    </div>`;
+    </div>
+    <div class="sechead" id="gamesHead">Games · ${LNAME(l)}</div>${gameTilesHTML(l)}`;
   bindBack(levelsView); setTab("levels");
   bindDailyBtn(D, me);
   $("#kjOpen").onclick = () => { sfx.click(); go(kanjiPageFn(l)); };
@@ -1660,6 +1710,7 @@ function levelPage(l) {
     const special = { speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me) };
     go(() => special[m] ? special[m]() : quiz(m, ALL_IDS, undefined, me));
   });
+  bindGameTiles(view, l, me);
 }
 /* ---------- Levels tab ---------- */
 function levelsView() {
@@ -2101,8 +2152,9 @@ function kanaHome() {
     <div class="panel"><h2>🧱 Rows <small class="muted" style="font-weight:400">tap to include/exclude · next row unlocks at ${Math.round(KUNLOCK_AT * 100)}% learned</small></h2>
       <div class="row" style="padding-top:0"><span>🔓 Unlock all rows</span><button class="switch ${KS.unlockAll ? "on" : ""}" data-kk="unlockAll"></button></div>
       <div class="row"><span>✨ Include extended katakana (ティ, ファ, ヴ…)</span><button class="switch ${KS.ext ? "on" : ""}" data-kk="ext"></button></div>
-      <div id="krows"></div></div>`;
-  bindBack(levelsView);
+      <div id="krows"></div></div>
+    <div class="sechead" id="gamesHead">Games · Kana</div>${gameTilesHTML("kana")}`;
+  bindBack(levelsView); bindGameTiles(view, "kana", kanaHome);
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, kanaHome); });
   $("#kseg").onclick = e => { const b = e.target.closest("button"); if (!b) return; KS.script = b.dataset.s; ksave(); sfx.click(); go(kanaHome); };
   view.querySelectorAll("[data-kk]").forEach(b => b.onclick = () => { const k = b.dataset.kk; KS[k] = !KS[k]; ksave(); go(kanaHome); });
@@ -2339,6 +2391,7 @@ async function downloadAllAudio(btn, info, levels = ["n5"]) {
   for (const l of levels) {
     for (const strokes of [false, true]) try { await cachePutFresh(dcache, new URL(kjUrl(l, strokes), location.href).href); } catch (e) {}
     try { await loadKanji(l); } catch (e) {}
+    try { await cachePutFresh(dcache, new URL(`data/games-${l}.json?v=${(GAMEINFO[l] || {}).v || 1}`, location.href).href); await loadGames(l); } catch (e) {}
     if (l === "n5") continue;                      // N5 is built into the page
     const url = new URL(`data/${l}.json?v=${LV[l].info.v || 1}`, location.href).href;
     try { await cachePutFresh(dcache, url); } catch (e) {}
@@ -2497,7 +2550,7 @@ function historyView(range = 7, asTab = false) {
       <div class="mode"><div class="ic">🔁</div><h3>${all.reduce((n, [, x]) => n + x.items, 0)}</h3><p>items answered (tracked)</p></div>
       <div class="mode"><div class="ic">🆕</div><h3>${all.reduce((n, [, x]) => n + x.newW, 0)}</h3><p>new words (tracked)</p></div>
       ${(() => { const a = alStats(); return a.n || AL.on ? `<div class="mode" id="hAud"><div class="ic">🎧</div><h3>${a.n}</h3><p>audio lessons · ${fmtMin(a.sec)}</p></div>` : ""; })()}
-    </div>`;
+    </div>${gamesStatsHTML()}`;
   if (asTab) {
     view.insertAdjacentHTML("beforeend", `<div class="sechead">Settings</div><div class="panel" style="padding:4px 16px">
       <div class="row" role="button" tabindex="0" id="stSettings" style="cursor:pointer"><span>⚙️ Settings</span><span class="muted">Sound, audio, offline, reset ›</span></div>
@@ -3131,6 +3184,431 @@ function bindAudioLessonSettings(md) {
 }
 /* all-time totals for Stats */
 function alStats() { let n = 0, sec = 0; for (const d in TS.days) (TS.days[d].aud || []).forEach(a => { n++; sec += a.min * 60; }); return { n, sec }; }
+
+/* ================= Mini games: Listening Sniper · Kanji Builder · Sentence Scramble · Boss Battle =================
+   Every answer goes through the normal SRS graders (grade / kGrade / kjGrade): a miss or "I don't know" is always a miss,
+   so games count toward reviews, the daily goal (items/new words), study time (studyScreen) and XP like any quiz.
+   Data: data/games-nX.json (scramble sentences from Tatoeba, tokenized offline with fugashi + unidic-lite;
+   kanji parts from KanjiVG element groups), loaded on demand and cached for offline use by the service worker. */
+const GAMEINFO = {"n5":{"v":"d07fab1445","sc":600,"kb":29},"n4":{"v":"87c36e0b6f","sc":600,"kb":129},"n3":{"v":"2f8845923a","sc":600,"kb":307},"n2":{"v":"4cdb5bb450","sc":600,"kb":322},"n1":{"v":"0672757a45","sc":600,"kb":1093}};
+const GAMES = {
+  sniper: { t: "Listening Sniper", ic: "🎯", d: "Hear it, hit the right target" },
+  builder: { t: "Kanji Builder", ic: "🧱", d: "Assemble kanji from their parts" },
+  scramble: { t: "Sentence Scramble", ic: "🧩", d: "Put a real sentence in order" },
+  boss: { t: "Boss Battle", ic: "👹", d: "Beat each word set's boss" }
+};
+const GLEVELS = ["kana", ...LEVELS];
+const gamesFor = l => l === "kana" ? ["sniper", "boss"] : ["sniper", "builder", "scramble", "boss"];
+function GS() {
+  if (!S.games || typeof S.games !== "object") S.games = {};
+  const g = S.games; for (const k of ["hs", "badges", "kb"]) if (!g[k] || typeof g[k] !== "object") g[k] = {};
+  return g;
+}
+const gBest = (l, g) => GS().hs[l + ":" + g] || 0;
+function gSetBest(l, g, v) { const k = l + ":" + g, old = GS().hs[k] || 0; if (v > old) { GS().hs[k] = v; save(); return true; } return false; }
+const GD = {}, gdPromises = {};
+function loadGames(l) {
+  if (l === "kana" || !LV[l]) return Promise.resolve(true);
+  if (GD[l]) return Promise.resolve(true);
+  if (!gdPromises[l]) gdPromises[l] = fetchT(`data/games-${l}.json?v=${(GAMEINFO[l] || {}).v || 1}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { GD[l] = d; return true; }).catch(() => { delete gdPromises[l]; return false; });
+  return gdPromises[l];
+}
+async function gReady(l, needKanji) {
+  if (l === "kana") return true;
+  const oks = await Promise.all([loadLevel(l), loadGames(l), needKanji ? loadKanji(l) : true]);
+  return oks.every(Boolean);
+}
+/* word pool for a level: words you've seen first, then words from unlocked sets, then the level's first words */
+function gWordPool(l, n = 60) {
+  const ids = LV[l].ids, seen = shuffle(ids.filter(id => S.cards[id])), unl = new Set(LV[l].sets.filter(setUnlocked).flatMap(s => s.ids));
+  const rest = shuffle(ids.filter(id => !S.cards[id] && unl.has(id))), first = ids.filter(id => !S.cards[id] && !unl.has(id)).slice(0, 40);
+  return [...new Set(seen.concat(rest, first))].slice(0, Math.max(n, 12));
+}
+const shortEn = w => { let s = w.en.split(/[;]/)[0].replace(/\s*\(.*?\)\s*/g, " ").trim(); if (s.length > 28) s = s.split(",")[0].trim(); return s.length > 30 ? s.slice(0, 29) + "…" : s; };
+/* one persistent <audio> element: once "unlocked" by the Start tap, iOS lets later plays happen without a new tap */
+let gAud = null;
+function gPlay(path, text, rate = 0.9) {
+  if (!path || audioOK === false || audioFail.has(path)) return speakText(text, true, rate);
+  if (!gAud) { gAud = new Audio(); gAud.preload = "auto"; }
+  const a = gAud; try { a.pause(); } catch (e) {}
+  if (HAS_SPEECH) { try { speechSynthesis.cancel(); } catch (e) {} }
+  a.onerror = () => { audioFail.add(path); speakText(text, true, rate); };
+  a.src = AUDIO_BASE + path; curAudio = a;
+  try { const p = a.play(); if (p && p.catch) p.catch(e => { if (e && (e.name === "NotAllowedError" || e.name === "AbortError")) return; audioFail.add(path); speakText(text, true, rate); }); } catch (e) { speakText(text, true, rate); }
+}
+const wordPath = w => wordAudioPath(w);
+/* shared shell + results */
+function gShell(title, back, right = "") {
+  studyScreen = true; combo = 0;
+  view.innerHTML = topbar(title, right) + `<div id="ghost" class="ghost"></div>`;
+  bindBack(back); document.body.classList.add("studying");
+  return $("#ghost");
+}
+function gResult({ l, game, score, lines = [], won = null, back, again, bonus = 0 }) {
+  studyScreen = false; document.body.classList.remove("studying");
+  const best = gSetBest(l, game, score);
+  if (bonus) addXP(bonus);
+  const host = $("#ghost") || view;
+  host.innerHTML = `<div class="card gresult"><div class="qtype">${esc(GAMES[game].t)} · ${l === "kana" ? "Kana" : LNAME(l)}</div>
+    <div class="big">${won === false ? "💥" : won ? "🏅" : GAMES[game].ic}</div>
+    <h2 style="margin:4px 0">${won === false ? "Defeated" : won ? "Victory!" : "Game over"}</h2>
+    <p><b style="font-size:1.6rem" id="gFinal">${score}</b> points${best ? ` · <span class="lvtag">🏆 new best</span>` : ` · best ${gBest(l, game)}`}</p>
+    ${lines.map(x => `<p class="muted" style="margin:4px 0">${x}</p>`).join("")}${bonus ? `<p class="muted">+${bonus} XP bonus</p>` : ""}
+    <div class="btnrow"><button class="btn" id="gAgain">Play again</button><button class="btn ghost" id="gDone">Done</button></div></div>`;
+  $("#gAgain").onclick = () => go(again); $("#gDone").onclick = () => go(back);
+  if (won || best) { sfx.level(); confetti(120); }
+  updateHeader();
+}
+const gHearts = (n, max = 3) => `<span class="ghearts" aria-label="${n} of ${max} lives">${'<i class="gh on">♥</i>'.repeat(Math.max(0, n))}${'<i class="gh">♡</i>'.repeat(Math.max(0, max - n))}</span>`;
+let gState = null;          // current game state (also read by the automated tests)
+function gLevelName(l) { return l === "kana" ? "Kana" : LNAME(l); }
+function gOpen(l, game, back) {
+  const fn = { sniper: () => sniperGame(l, back), builder: () => builderGame(l, back), scramble: () => scrambleGame(l, back), boss: () => bossView(l, back) }[game];
+  go(fn);
+}
+
+/* ---------- Games tiles (level pages, Kana page, Games hub) ---------- */
+function gameTilesHTML(l) {
+  const b = gBadges(l);
+  return `<div class="grid ggrid">${gamesFor(l).map(g => {
+    const best = gBest(l, g), sub = g === "boss" ? `${b.won}/${b.total} bosses beaten` : g === "builder" && GAMEINFO[l] ? `${Math.min(GAMEINFO[l].kb, kbUnlocked(l))}/${GAMEINFO[l].kb} kanji unlocked` : GAMES[g].d;
+    return `<button class="mode gtile" data-game="${g}" data-gl="${l}"><div class="ic">${GAMES[g].ic}</div><h3>${GAMES[g].t}</h3><p>${sub}${best ? ` · best ${best}` : ""}</p></button>`; }).join("")}</div>`;
+}
+function bindGameTiles(root, l, back) {
+  root.querySelectorAll("button.gtile").forEach(b => b.onclick = e => { e.stopPropagation(); sfx.click(); gOpen(b.dataset.gl || l, b.dataset.game, back); });
+}
+function gamesView() {
+  view.innerHTML = topbar("Home") + `<div class="largetitle">Games</div><p class="subtitle">Mini games that teach · every answer counts toward your reviews, daily goal and XP</p>
+    ${GLEVELS.map(l => { const b = gBadges(l); return `<div class="sechead" style="display:flex;justify-content:space-between;align-items:center">${gLevelName(l)}${b.won ? `<span class="lvtag">🏅 ${b.won}</span>` : ""}</div>${gameTilesHTML(l)}`; }).join("")}`;
+  bindBack(home); bindGameTiles(view, null, gamesView);
+}
+
+/* ================= 1. Listening Sniper ================= */
+function sniperGame(l, back) {
+  const me = () => sniperGame(l, back), host = gShell(`${GAMES.sniper.ic} Sniper · ${gLevelName(l)}`, back, `<span class="muted" id="gscore">0</span>`);
+  host.innerHTML = `<div class="card"><div class="qtype">Listening Sniper</div><div class="big">🎯</div>
+    <p>Listen, then tap the target with the matching ${l === "kana" ? "kana" : "meaning"} before it leaves the screen. It gets faster; you have 3 lives.</p>
+    <p class="muted" style="font-size:.9rem">Best: ${gBest(l, "sniper")}${REDUCED_MOTION() ? " · reduced motion: targets move slowly" : ""}</p>
+    <div class="btnrow"><button class="btn" id="gStart">Start ▶</button></div></div>`;
+  $("#gStart").onclick = async () => {
+    // unlock audio on this tap (iOS), then load
+    if (!gAud) { gAud = new Audio(); gAud.preload = "auto"; } try { gAud.muted = true; gAud.src = AUDIO_BASE + "n5/w/0.mp3"; const p = gAud.play(); if (p && p.catch) p.catch(() => {}); setTimeout(() => { try { gAud.pause(); gAud.muted = false; } catch (e) {} }, 60); } catch (e) {}
+    host.innerHTML = `<div class="card"><p>Loading…</p></div>`;
+    if (!(await gReady(l))) { host.innerHTML = `<div class="card"><p>Couldn't load ${gLevelName(l)} (offline?).</p></div>`; return; }
+    if (!host.isConnected) return;
+    sniperRun(l, host, back, me);
+  };
+}
+function sniperRun(l, host, back, again) {
+  const kana = l === "kana", reduced = REDUCED_MOTION();
+  const pool = kana ? shuffle(KALL.filter(id => KITEMS[id].g !== "ext" && (KS.cards[id] || kPool().includes(id)))).concat(shuffle(KALL.filter(id => KITEMS[id].s === "h" && KITEMS[id].g !== "ext"))).filter((x, i, a) => a.indexOf(x) === i).slice(0, 60)
+    : gWordPool(l, 60);
+  const st = gState = { game: "sniper", l, lives: 3, score: 0, wave: 0, combo: 0, answered: 0, right: 0, targets: [], correct: -1, busy: false, paused: false, over: false };
+  host.innerHTML = `<div class="gbar"><span id="gLives">${gHearts(3)}</span><span class="gmult" id="gMult">x1</span><button class="btn ghost small" id="gReplay" aria-label="Play the sound again">🔊 Replay</button></div>
+    <div class="arena" id="arena" aria-live="polite"><div class="gmsg" id="gMsg"></div></div>
+    <div class="btnrow"><button class="btn ghost idk" id="gIdk">🤷 I don't know</button></div>`;
+  const arena = $("#arena"), msg = $("#gMsg");
+  let order = pool.slice(), raf = 0, last = 0, cur = null, waveT = null;
+  const mult = () => Math.min(4, 1 + Math.floor(st.combo / 3) * 0.5);
+  const hud = () => { $("#gLives").innerHTML = gHearts(st.lives); $("#gMult").textContent = "x" + mult(); $("#gscore").textContent = st.score; };
+  const playCur = () => { if (!cur) return; if (kana) gPlay(`k/${kFile(cur.item)}.mp3`, cur.item.id, 0.8); else if (cur.sent) playSentence(sentenceAudioPath(cur.sent), cur.sent[0]); else gPlay(wordPath(cur.item), speechText(cur.item)); };
+  const nextWave = () => {
+    if (st.over || !arena.isConnected) return;
+    arena.querySelectorAll(".gtarget").forEach(t => t.remove()); msg.textContent = ""; st.busy = false;
+    if (!order.length) order = shuffle(pool);
+    const id = order.shift(); st.wave++;
+    const n = st.wave > 10 ? 5 : st.wave > 4 ? 4 : 3;
+    let item, opts, label, sent = null;
+    if (kana) { item = KITEMS[id]; opts = shuffle([item, ...kDistractors(item, n - 1, pool)]); label = o => o.id; }
+    else {
+      item = WORDS[id];
+      const hard = st.wave > 8 && ex(id).length && ex(id)[0][0].length <= 28;
+      if (hard) { sent = ex(id)[0]; opts = shuffle([item, ...distractors(item, n - 1, x => x.jp, "reverse")]); label = o => o.jp; }
+      else { opts = shuffle([item, ...distractors(item, n - 1, x => shortEn(x), "meaning")]); label = o => shortEn(o); }
+    }
+    cur = st.cur = { item, sent, opts };
+    const W = arena.clientWidth, H = arena.clientHeight, laneH = H / n, speed = (reduced ? 0.4 : 1) * Math.min(200, 55 + st.wave * 7);
+    st.correct = opts.indexOf(item); st.targets = [];
+    opts.forEach((o, i) => {
+      const b = document.createElement("button"); b.className = "gtarget" + (kana || sent ? " jp" : ""); b.dataset.i = i; b.textContent = label(o);
+      b.style.top = (i * laneH + (laneH - 58) / 2) + "px"; arena.appendChild(b);
+      const w = b.offsetWidth, dir = i % 2 ? -1 : 1, start = dir > 0 ? -w * 0.6 - rand(40) - i * 24 : W - w * 0.4 + rand(40) + i * 24;
+      const t = { el: b, x: start, w, dir, v: speed * (0.9 + Math.random() * 0.25), ok: o === item };
+      b.style.transform = `translate3d(${t.x}px,0,0)`; st.targets.push(t);
+      b.addEventListener("pointerdown", e => { e.preventDefault(); hit(i); });
+      b.onclick = e => { if (e.detail === 0) hit(i); };         // keyboard / assistive tech
+    });
+    playCur();
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  };
+  const resolve = (ok, how, i) => {
+    if (st.busy || st.over) return; st.busy = true; st.answered++;
+    const it = cur.item;
+    if (kana) kGrade(it.id, ok); else grade(it.id, ok);
+    comboHit(ok, st.targets[i >= 0 ? i : st.correct].el, 10, how === "idk");
+    st.targets.forEach((t, j) => { if (t.ok) t.el.classList.add("right"); else if (j === i && !ok) t.el.classList.add("wrong"); });
+    if (ok) { st.combo++; st.right++; const tg = st.targets[i], frac = tg ? Math.max(0, Math.min(1, tg.dir > 0 ? 1 - (tg.x + tg.w) / (arena.clientWidth + tg.w) : tg.x / arena.clientWidth)) : 0; st.score += Math.round((100 + 50 * frac) * mult()); }
+    else { st.combo = 0; st.lives--; }
+    const reveal = kana ? `${it.id} = ${it.r}` : `${it.jp}${it.jp !== it.kana ? "（" + it.kana + "）" : ""} = ${shortEn(it)}`;
+    msg.innerHTML = `<span style="color:${ok ? "var(--good)" : how === "idk" ? "var(--idk)" : "var(--bad)"}">${ok ? "✔" : how === "idk" ? "🤷" : how === "gone" ? "⏱" : "✘"}</span> <span class="jp">${esc(reveal)}</span>`;
+    if (!ok && !kana) playCur();
+    hud();
+    if (st.lives <= 0) { st.over = true; cancelAnimationFrame(raf); raf = 0; setTimeout(() => { if (!arena.isConnected) return; gResult({ l, game: "sniper", score: st.score, lines: [`${st.right}/${st.answered} targets hit · wave ${st.wave}`], back, again, bonus: Math.min(60, st.right * 3) }); }, 1200); return; }
+    waveT = setTimeout(nextWave, ok ? 700 : 1500);
+  };
+  const hit = i => { if (st.busy || st.paused) return; resolve(i === st.correct, "tap", i); };
+  const frame = t => {
+    raf = requestAnimationFrame(frame);
+    const dt = Math.min(50, t - last) / 1000; last = t;
+    if (st.paused || st.busy || st.over) return;
+    const W = arena.clientWidth;
+    for (const tg of st.targets) {
+      tg.x += tg.dir * tg.v * dt;
+      const gone = tg.dir > 0 ? tg.x > W + 4 : tg.x + tg.w < -4;
+      if (gone) { if (tg.ok) { resolve(false, "gone", -1); return; } tg.x = tg.dir > 0 ? -tg.w - 30 : W + 30; }   // decoys wrap around
+      tg.el.style.transform = `translate3d(${tg.x.toFixed(1)}px,0,0)`;
+    }
+  };
+  const vis = () => { if (document.hidden && !st.over) { st.paused = true; try { gAud && gAud.pause(); } catch (e) {} showPause(); } };
+  const showPause = () => { if ($("#gPause")) return; const p = document.createElement("div"); p.className = "gpause"; p.id = "gPause"; p.innerHTML = `<div><b>Paused</b><br><button class="btn" id="gResume">Continue ▶</button></div>`; arena.appendChild(p);
+    p.querySelector("#gResume").onclick = () => { p.remove(); st.paused = false; last = performance.now(); }; };
+  document.addEventListener("visibilitychange", vis);
+  cleanup = () => { st.over = true; cancelAnimationFrame(raf); clearTimeout(waveT); document.removeEventListener("visibilitychange", vis); try { gAud && gAud.pause(); } catch (e) {} };
+  $("#gReplay").onclick = () => playCur();
+  $("#gIdk").onclick = () => { if (!st.busy && !st.paused) resolve(false, "idk", -1); };
+  st.pause = () => { st.paused = true; showPause(); };
+  hud(); nextWave();
+}
+
+/* ================= 2. Kanji Builder ================= */
+const kbUnlocked = l => 8 + ((GS().kb[l] || []).length);
+function builderGame(l, back) {
+  const me = () => builderGame(l, back), host = gShell(`${GAMES.builder.ic} Kanji Builder · ${LNAME(l)}`, back, `<span class="muted" id="gscore">0</span>`);
+  host.innerHTML = `<div class="card"><p>Loading ${LNAME(l)} kanji…</p></div>`;
+  (async () => {
+    if (!(await gReady(l, true))) { host.innerHTML = `<div class="card"><p>Couldn't load ${LNAME(l)} (offline?).</p></div>`; return; }
+    await loadStrokes(l);
+    if (!host.isConnected) return;
+    const all = GD[l].kb.filter(x => KJ[x[0]]), solved = new Set(GS().kb[l] || []);
+    const unl = all.slice(0, Math.min(all.length, kbUnlocked(l)));
+    // unsolved first, then due/weak ones
+    const pick = shuffle(unl.filter(x => !solved.has(x[0]))).concat(shuffle(unl.filter(x => solved.has(x[0]))).sort((a, b) => jcard(a[0]).box - jcard(b[0]).box)).slice(0, 6);
+    const st = gState = { game: "builder", l, i: 0, list: pick, score: 0, right: 0, answered: 0, combo: 0, unlocked: unl.length, total: all.length };
+    const round = () => {
+      if (!host.isConnected) return;
+      if (st.i >= st.list.length) return gResult({ l, game: "builder", score: st.score, lines: [`${st.right}/${st.answered} kanji built cleanly`, `${Math.min(st.total, kbUnlocked(l))}/${st.total} ${LNAME(l)} kanji unlocked for this game`], back, again: me, bonus: st.right * 4 });
+      builderRound(l, st, host, () => { st.i++; round(); });
+    };
+    round();
+  })();
+}
+function partSVG(paths, idx, cls = "") {
+  return `<svg class="kbsvg ${cls}" viewBox="0 0 109 109" aria-hidden="true">${idx.map(i => paths && paths[i] ? `<path d="${paths[i]}"/>` : "").join("")}</svg>`;
+}
+function builderRound(l, st, host, done) {
+  const [c, parts, decoys] = st.list[st.i], k = KJ[c], P = k.paths;
+  const trayN = l === "n5" ? 5 : 7;
+  const tiles = shuffle(parts.map(p => ({ e: p[0], src: c, idx: p[1], ok: true })).concat(shuffle(decoys).slice(0, Math.max(2, trayN - parts.length)).map(d => ({ e: d[0], src: d[1], idx: d[2], ok: false }))));
+  const need = parts.map(p => p[0]); let placed = [], missed = false, over = false;
+  st.need = need.slice();
+  const rd = [(k.on || [])[0], (k.kun || [])[0]].filter(Boolean).map(r => r.replace(".", "")).join(" · ");
+  host.innerHTML = `<div class="card kbcard"><div class="qtype">Build the kanji · ${st.i + 1}/${st.list.length}</div>
+    <div class="prompt en" style="margin:6px 0 2px">${esc(k.mean)}</div><div class="sub jp">${esc(rd)}</div>
+    <div class="kbwrap"><div class="kbcanvas" id="kbCanvas">${partSVG(P, [], "")}</div><div class="kbslots" id="kbSlots">${need.map(() => `<i></i>`).join("")}</div></div>
+    <div class="kbtray" id="kbTray">${tiles.map((t, i) => `<button class="kbtile" data-i="${i}" data-e="${esc(t.e)}" aria-label="part ${esc(t.e)}">${KJ[t.src] && KJ[t.src].paths ? partSVG(KJ[t.src].paths, t.idx) : `<span class="jp">${esc(t.e)}</span>`}</button>`).join("")}</div>
+    ${IDK_BTN}<div class="feedback" id="fb"></div></div>`;
+  const canvas = $("#kbCanvas"), slots = [...host.querySelectorAll("#kbSlots i")];
+  const draw = () => { canvas.innerHTML = P ? `<svg class="kbsvg big" viewBox="0 0 109 109" aria-label="${esc(placed.join(" + "))}">${placed.map((p, j) => p.idx.map(i => `<path class="p${j}" d="${P[i]}"/>`).join("")).join("")}</svg>` : `<div class="jp kbtext">${esc(placed.map(p => p.e).join(" + "))}</div>`; slots.forEach((s, j) => s.classList.toggle("on", j < placed.length)); };
+  const finish = (ok, idk) => {
+    over = true; st.answered++;
+    kjGrade(c, ok); comboHit(ok, canvas, 12, idk);
+    if (ok) { st.right++; st.combo++; st.score += Math.round(100 * Math.min(3, 1 + st.combo * 0.25)); const s = GS().kb[l] || (GS().kb[l] = []); if (!s.includes(c)) { s.push(c); save(); } } else st.combo = 0;
+    $("#gscore").textContent = st.score;
+    host.querySelectorAll(".kbtile").forEach(b => b.disabled = true); host.querySelector(".idk").disabled = true;
+    const fb = $("#fb");
+    fb.innerHTML = `<div style="color:${ok ? "var(--good)" : idk ? "var(--idk)" : "var(--bad)"}">${ok ? "✔ Built it!" : idk ? "🤷 Here it is" : "✘ Built with a mistake — it'll come back soon"}</div>
+      <div class="kjtop kbsolved"><div class="kjsvgwrap" id="kbDone"></div><div class="kjmeta"><div class="kjmean"><span class="jp" style="font-size:2rem">${esc(c)}</span> ${esc(k.mean)}</div>
+      <div class="kjrd"><small>ON</small> <span class="jp">${(k.on || []).map(esc).join("、") || "—"}</span></div><div class="kjrd"><small>KUN</small> <span class="jp">${(k.kun || []).slice(0, 4).map(kunFmt).join("、") || "—"}</span></div>
+      <div class="muted" style="font-size:.85rem">${esc(parts.map(p => p[0]).join(" + "))} = ${esc(c)}</div></div></div>${exListHTML(k)}
+      <div class="btnrow"><button class="btn" id="nextBtn">Next →</button></div>`;
+    const dw = $("#kbDone"); if (P) playStrokes(dw, k); else dw.innerHTML = glyphHTML(k);
+    bindEx(fb, k); $("#nextBtn").onclick = done;
+  };
+  host.querySelectorAll(".kbtile").forEach(b => b.onclick = () => {
+    if (over) return; const t = tiles[+b.dataset.i], left = need.slice();
+    placed.forEach(p => left.splice(left.indexOf(p.e), 1));
+    if (left.includes(t.e)) {
+      // identical parts are interchangeable: place the target's own copy (right position) of that element
+      const own = parts.find(p => p[0] === t.e && !placed.some(q => q.idx === p[1]));
+      placed.push({ e: t.e, idx: own[1] }); b.disabled = true; b.classList.add("used"); draw(); sfx.click();
+      st.need = left.filter((x, j) => j !== left.indexOf(t.e));
+      if (placed.length === need.length) finish(!missed, false);
+    } else { missed = true; b.disabled = true; b.classList.add("wrong"); sfx.bad(); }
+  });
+  host.querySelector(".idk").onclick = () => { if (over) return; placed = parts.filter(p => !placed.some(q => q.idx === p[1])).map(p => ({ e: p[0], idx: p[1] })).concat(placed); draw(); finish(false, true); };
+  draw();
+}
+
+/* ================= 3. Sentence Scramble ================= */
+function scrambleGame(l, back) {
+  const me = () => scrambleGame(l, back), host = gShell(`${GAMES.scramble.ic} Scramble · ${LNAME(l)}`, back, `<span class="muted" id="gscore">0</span>`);
+  host.innerHTML = `<div class="card"><p>Loading ${LNAME(l)} sentences…</p></div>`;
+  (async () => {
+    if (!(await gReady(l))) { host.innerHTML = `<div class="card"><p>Couldn't load ${LNAME(l)} (offline?).</p></div>`; return; }
+    if (!host.isConnected) return;
+    const items = GD[l].sc.filter(x => WORDS[x[0]]);
+    const known = shuffle(items.filter(x => S.cards[x[0]])), rest = shuffle(items.filter(x => !S.cards[x[0]]));
+    const st = gState = { game: "scramble", l, i: 0, list: known.concat(rest).slice(0, 6), score: 0, right: 0, answered: 0, combo: 0 };
+    const round = () => {
+      if (!host.isConnected) return;
+      if (st.i >= st.list.length) return gResult({ l, game: "scramble", score: st.score, lines: [`${st.right}/${st.answered} sentences ordered on the first try`], back, again: me, bonus: st.right * 4 });
+      scrambleRound(l, st, host, () => { st.i++; round(); });
+    };
+    round();
+  })();
+}
+function scrambleRound(l, st, host, done) {
+  const [wid, tid, ap, en, tiles, punct] = st.list[st.i], w = WORDS[wid];
+  st.answer = tiles.slice();
+  let tray = tiles.map((t, i) => ({ t, i })); for (let k = 0; k < 8 && tray.map(x => x.t).join("") === tiles.join(""); k++) tray = shuffle(tray);
+  let ans = [], missed = false, over = false;
+  host.innerHTML = `<div class="card scard"><div class="qtype">Put the sentence in order · ${st.i + 1}/${st.list.length}</div>
+    <p class="scen">“${esc(en)}”</p>
+    <div class="sans jp" id="sAns" aria-label="Your sentence"></div>
+    <div class="stray jp" id="sTray"></div>
+    <div class="btnrow"><button class="btn ghost small" id="sClear">↺ Clear</button><button class="btn" id="sCheck" disabled>Check</button></div>
+    ${IDK_BTN}<div class="feedback" id="fb"></div></div>`;
+  const A = $("#sAns"), T = $("#sTray"), chk = $("#sCheck");
+  const render = () => {
+    A.innerHTML = ans.map((x, j) => `<button class="stile placed" data-j="${j}">${esc(x.t)}</button>`).join("") + (ans.length ? `<span class="spunct">${esc(punct)}</span>` : `<span class="muted shint">Tap the tiles in order</span>`);
+    T.innerHTML = tray.map((x, j) => `<button class="stile" data-j="${j}">${esc(x.t)}</button>`).join("");
+    chk.disabled = over || tray.length > 0;
+    A.querySelectorAll(".stile").forEach(b => b.onclick = () => { if (over) return; const [x] = ans.splice(+b.dataset.j, 1); tray.push(x); sfx.click(); render(); });
+    T.querySelectorAll(".stile").forEach(b => b.onclick = () => { if (over) return; const [x] = tray.splice(+b.dataset.j, 1); ans.push(x); sfx.click(); render(); if (!tray.length) check(); });
+  };
+  const finish = (ok, idk) => {
+    over = true; st.answered++;
+    grade(wid, ok); comboHit(ok, A, 12, idk);
+    if (ok) { st.right++; st.combo++; st.score += Math.round(100 * Math.min(3, 1 + st.combo * 0.25)); } else st.combo = 0;
+    $("#gscore").textContent = st.score;
+    ans = tiles.map((t, i) => ({ t, i })); tray = []; render();
+    A.classList.add(ok ? "ok" : "shown");
+    host.querySelector(".idk").disabled = true; $("#sClear").disabled = true;
+    playSentence(ap + ".mp3", tiles.join("") + punct);
+    $("#fb").innerHTML = `<div style="color:${ok ? "var(--good)" : idk ? "var(--idk)" : "var(--bad)"}">${ok ? "✔ Perfect order!" : idk ? "🤷 Here's the sentence" : "✘ Solved after a wrong try — it'll come back soon"}</div>
+      <div class="ex"><div class="jps jp">${hlSentence(tiles.join("") + punct, "")} <button class="mini" data-say="${esc(tiles.join("") + punct)}" data-sap="${esc(ap + ".mp3")}" title="Listen">🔈</button></div><div class="ens">${esc(en)}</div>
+      <a href="https://tatoeba.org/en/sentences/show/${tid}" target="_blank" rel="noopener">Tatoeba #${tid} · CC BY 2.0 FR</a></div>
+      <p class="muted" style="font-size:.9rem">Word: <b class="jp">${esc(w.jp)}</b>${w.jp !== w.kana ? `（${esc(w.kana)}）` : ""} = ${esc(w.en)}</p>
+      <div class="btnrow"><button class="btn" id="nextBtn">Next →</button></div>`;
+    $("#nextBtn").onclick = done;
+  };
+  // identical tiles are interchangeable: compare the text sequence, not which tile went where
+  const check = () => { if (over || tray.length) return; if (ans.map(x => x.t).join("\u0001") === tiles.join("\u0001")) finish(!missed, false); else { missed = true; sfx.bad(); A.classList.remove("shake"); void A.offsetWidth; A.classList.add("shake"); toast("Not quite — tap a tile to move it back"); } };
+  chk.onclick = check;
+  $("#sClear").onclick = () => { if (over) return; tray = tray.concat(ans); ans = []; render(); };
+  host.querySelector(".idk").onclick = () => { if (!over) finish(false, true); };
+  render();
+}
+
+/* ================= 4. Boss Battle ================= */
+const BOSS_MIN_SEEN = 0.6, LBOSS_BADGES = 3;
+function bossList(l) {
+  if (l === "kana") return [{ id: "kana", name: "Kana Keeper", icon: "👺", ids: null, level: true }];
+  return [{ id: "level", name: `${LNAME(l)} Overlord`, icon: "👹", level: true }].concat(LV[l].sets.map(s => ({ id: s.id, name: s.name, icon: s.icon, ids: s.ids })));
+}
+function bossState(l, b) {
+  const won = GS().badges[l + ":" + b.id];
+  if (won) return { won, open: true };
+  if (l === "kana") { const n = KALL.filter(id => KS.cards[id]).length; return { open: n >= 20, why: `learn 20 kana first (${n}/20)` }; }
+  if (b.level) { const n = gBadges(l).won; return { open: n >= LBOSS_BADGES, why: `beat ${LBOSS_BADGES} set bosses first (${n}/${LBOSS_BADGES})` }; }
+  const seen = b.ids.filter(id => S.cards[id]).length, need = Math.ceil(b.ids.length * BOSS_MIN_SEEN);
+  return { open: seen >= need, why: `study ${need - seen} more words of this set` };
+}
+function gBadges(l) {
+  const pre = l + ":", won = Object.keys(GS().badges).filter(k => k.startsWith(pre)).length;
+  const total = l === "kana" ? 1 : LV[l] && LV[l].loaded ? LV[l].sets.length + 1 : (LEVEL_INFO[l] && LEVEL_INFO[l].sets ? LEVEL_INFO[l].sets + 1 : won);
+  return { won, total: Math.max(total, won) };
+}
+function bossView(l, back) {
+  const me = () => bossView(l, back);
+  if (l !== "kana" && !LV[l].loaded) { view.innerHTML = `<div class="panel"><p>Loading ${LNAME(l)}…</p></div>`; loadLevel(l).then(ok => { if (curView === me || view.isConnected) go(me); }); return; }
+  const bs = bossList(l), b = gBadges(l);
+  view.innerHTML = topbar(gLevelName(l)) + `<div class="largetitle">Boss Battles</div><p class="subtitle">${gLevelName(l)} · ${b.won}/${b.total} beaten · 3 hearts, combos hit harder</p>
+    <div class="panel duepanel">${bs.map(x => { const s = bossState(l, x); return `<div class="duerow bossrow ${s.open ? "" : "locked"}" data-b="${esc(x.id)}"><span class="ic" style="--c:${x.level ? "var(--orange)" : "var(--indigo)"}">${esc(x.icon)}</span>
+      <span class="grow"><b>${esc(x.name)}</b>${x.level ? ` <span class="lvtag">level boss</span>` : ""}<br><small class="muted">${s.won ? `🏅 beaten ${esc(s.won)}` : s.open ? `${x.level ? "all " + gLevelName(l) : (x.ids || []).length} words · ready` : "🔒 " + esc(s.why)}</small></span>
+      <button class="btn small ${s.open ? "" : "ghost"}" data-fight="${esc(x.id)}">${s.won ? "Rematch" : s.open ? "Fight" : "Locked"}</button></div>`; }).join("")}</div>`;
+  bindBack(back);
+  view.querySelectorAll("[data-fight]").forEach(btn => btn.onclick = () => {
+    const x = bs.find(y => y.id === btn.dataset.fight), s = bossState(l, x);
+    if (!s.open) { sfx.bad(); toast("🔒 " + s.why); return; }
+    sfx.click(); go(() => bossFight(l, x, me));
+  });
+}
+function bossFight(l, boss, back) {
+  const me = () => bossFight(l, boss, back), kana = l === "kana";
+  const maxHP = boss.level ? 200 : 100;
+  const st = gState = { game: "boss", l, boss: boss.id, hp: maxHP, maxHP, hearts: 3, combo: 0, right: 0, answered: 0, cur: null, over: false };
+  const host = gShell(`${GAMES.boss.ic} ${esc(boss.name)}`, back, "");
+  host.innerHTML = `<div class="card bosshead"><div class="bossic" id="bossIc">${esc(boss.icon)}</div><div class="grow"><b>${esc(boss.name)}</b>
+      <div class="hpbar" role="progressbar" aria-label="Boss HP" aria-valuemin="0" aria-valuemax="${maxHP}" aria-valuenow="${maxHP}" id="hpBar"><i id="hpFill" style="width:100%"></i></div><small class="muted" id="hpTxt">${maxHP}/${maxHP} HP</small></div>
+      <div id="bHearts">${gHearts(3)}</div></div><div id="qhost"></div>`;
+  const ready = async () => { if (!kana) { await gReady(l, true); } };
+  let ids, kpool, kjs;
+  const pickQ = () => {
+    if (kana) { const K = KITEMS[kpool[rand(kpool.length)]], modes = ["k2r", "r2k"]; if (canAudio()) modes.push("listen"); return { k: K, mode: modes[rand(modes.length)] }; }
+    const w = WORDS[ids[rand(ids.length)]], modes = ["meaning", "meaning", "reverse"];
+    if (w.hasKanji) modes.push("reading"); if (canAudio()) modes.push("listen");
+    const kc = [...new Set(w.jp)].filter(c => KJ[c] && KJ[c].lvl === l); if (kc.length) modes.push("kanji");
+    const mode = modes[rand(modes.length)];
+    return mode === "kanji" ? { j: KJ[kc[rand(kc.length)]], mode: rand(2) ? "k2m" : "m2k", w } : { w, mode };
+  };
+  const hud = () => { const f = Math.max(0, st.hp) / maxHP; $("#hpFill").style.width = (f * 100) + "%"; $("#hpTxt").textContent = `${Math.max(0, st.hp)}/${maxHP} HP`; $("#hpBar").setAttribute("aria-valuenow", Math.max(0, st.hp)); $("#bHearts").innerHTML = gHearts(st.hearts); };
+  const end = won => {
+    st.over = true;
+    if (won) { GS().badges[l + ":" + boss.id] = GS().badges[l + ":" + boss.id] || todayStr(); save(); }
+    const score = st.right * 50 + (won ? st.hearts * 100 + (boss.level ? 500 : 200) : 0);
+    setTimeout(() => gResult({ l, game: "boss", score, won, lines: [`${esc(boss.name)} · ${st.right}/${st.answered} right · ${st.hearts} of 3 hearts left`, won ? "🏅 Badge earned — see it on the level page and in Stats" : "Study the set and try again!"], back, again: me, bonus: won ? (boss.level ? 300 : 100) : 0 }), 700);
+  };
+  const next = () => {
+    if (st.over || !$("#qhost")) return;
+    const q = st.cur = pickQ();
+    const onA = (ok, el, a3, a4) => {
+      const info = (a4 && typeof a4 === "object") ? a4 : (a3 && typeof a3 === "object") ? a3 : {};
+      st.answered++;
+      if (q.k) kGrade(q.k.id, ok); else if (q.j) kjGrade(q.j.c, ok); else grade(q.w.id, ok);
+      comboHit(ok, el, 10, !!info.idk);
+      if (ok) { st.combo++; st.right++; const dmg = Math.round(12 * Math.min(2, 1 + (st.combo - 1) * 0.25)); st.hp -= dmg; const ic = $("#bossIc"); ic.classList.remove("hit"); void ic.offsetWidth; ic.classList.add("hit"); floatText("-" + dmg, ic); }
+      else { st.combo = 0; st.hearts--; }
+      hud();
+      const fb = $("#fb"), nb = document.createElement("div"); nb.className = "btnrow";
+      if (st.hp <= 0 || st.hearts <= 0) { nb.innerHTML = `<button class="btn" id="nextBtn">${st.hp <= 0 ? "Finish him! 🏅" : "See result"}</button>`; fb.appendChild(nb); $("#nextBtn").onclick = () => end(st.hp <= 0); }
+      else { nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb); $("#nextBtn").onclick = next; }
+    };
+    if (q.k) st.q = kRenderMC(q.mode, q.k, kpool, onA);
+    else if (q.j) st.q = kjRender(q.mode, q.j, onA);
+    else st.q = renderMC(q.mode, q.w, onA);
+  };
+  const onKey = e => { if (st.over || !st.q) return; if (/^[1-4]$/.test(e.key) && st.q.choose) st.q.choose(+e.key - 1); else if (isIdkKey(e) && st.q.idk) { e.preventDefault(); st.q.idk(); } else if (e.key === "Enter" && $("#nextBtn")) { e.preventDefault(); $("#nextBtn").click(); } };
+  addEventListener("keydown", onKey); cleanup = () => { st.over = true; removeEventListener("keydown", onKey); };
+  $("#qhost").innerHTML = `<div class="card"><p>Loading…</p></div>`;
+  ready().then(() => {
+    if (!$("#qhost")) return;
+    if (kana) { kpool = KALL.filter(id => KS.cards[id] && KITEMS[id].g !== "ext"); if (kpool.length < 6) kpool = KALL.filter(id => KITEMS[id].s === "h" && KITEMS[id].g !== "ext").slice(0, 46); }
+    else { ids = (boss.level ? LV[l].ids.filter(id => S.cards[id]) : boss.ids).filter(id => WORDS[id]); if (ids.length < 4) ids = LV[l].ids.slice(0, 40); }
+    next();
+  });
+}
+
+/* ---------- Stats: badges + high scores ---------- */
+function gamesStatsHTML() {
+  const g = GS(), badges = Object.keys(g.badges), hs = Object.entries(g.hs).filter(([, v]) => v > 0);
+  if (!badges.length && !hs.length) return `<div class="panel" id="gStats"><h2>🎮 Games</h2><p class="muted" style="margin:0">Play the mini games on any level page (or Home → Games). Boss badges and high scores show up here.</p></div>`;
+  const byLv = GLEVELS.map(l => [l, badges.filter(k => k.startsWith(l + ":"))]).filter(x => x[1].length);
+  return `<div class="panel" id="gStats"><h2>🎮 Games <span class="lvtag">🏅 ${badges.length} badges</span></h2>
+    ${byLv.map(([l, ks]) => `<div class="gbadges"><b>${gLevelName(l)}</b> ${ks.map(k => { const id = k.split(":")[1], s = l !== "kana" && LV[l].loaded ? LV[l].sets.find(x => x.id === id) : null; return `<span class="tag" title="${esc(g.badges[k])}">🏅 ${esc(id === "level" ? LNAME(l) + " boss" : id === "kana" ? "Kana boss" : s ? s.name : id)}</span>`; }).join("")}</div>`).join("")}
+    ${hs.length ? `<div class="sechead" style="margin:12px 0 4px">High scores</div><div class="ghs">${hs.sort().map(([k, v]) => { const [l, gm] = k.split(":"); return `<div class="row"><span>${GAMES[gm] ? GAMES[gm].ic + " " + GAMES[gm].t : gm} · ${gLevelName(l)}</span><b>${v}</b></div>`; }).join("")}</div>` : ""}</div>`;
+}
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { sfx.click(); go({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView }[b.dataset.tab]); });
@@ -3142,6 +3620,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Example sentences (${LEVELS.map(l => `${LNAME(l)} ${LV[l].loaded ? LV[l].exCount : LV[l].info.ex}`).join(" · ")} words covered): <a href="https://tatoeba.org" target="_blank" rel="noopener">Tatoeba</a> contributors, licensed <a href="https://creativecommons.org/licenses/by/2.0/fr/" target="_blank" rel="noopener">CC BY 2.0 FR</a> (Tanaka Corpus word index).<br>
   Audio: words, kana & most sentences are pre-generated with Microsoft Azure neural TTS voice <b>ja-JP-NanamiNeural</b> (via edge-tts)${hum.length ? `; ${hum.length} sentences (in loaded levels) use human recordings from Tatoeba by ${[...new Set(hum.map(h => h[0]))].map(u => `<a href="https://tatoeba.org/en/user/profile/${encodeURIComponent(u)}" target="_blank" rel="noopener">${esc(u)}</a>`).join(", ")} (${[...new Set(hum.map(h => h[1]))].join(", ")})` : ""}.<br>
   Kanji: meanings, readings, stroke counts & frequency from <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT, David Gouveia), derived from <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a> (EDRDG, CC BY-SA 4.0), with JLPT levels from Jonathan Waller's <a href="http://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">JLPT resources</a>. Stroke order & look-alike shapes from <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> © Ulrich Apel (CC BY-SA 3.0). The kanji data files (data/kanji-*.json) are shared under CC BY-SA.<br>
+  Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
 if (HAS_SPEECH) setTimeout(() => { loadVoices(); }, 800);
@@ -3152,7 +3631,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "28ffc68376b4";
+const BUILD = "4133c7c691ed";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -3202,7 +3681,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.__N5 = { kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.__N5 = { gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

@@ -25,8 +25,8 @@ const root=r=>fs.writeFileSync('/tmp/swt/ROOT',r);
  let nb=await ev(()=>window.__N5&&__N5.BUILD).catch(()=>null);
  if(nb===oldBuild){await p.reload();await p.waitForTimeout(1000);nb=await ev(()=>__N5.BUILD);}
  ok(`${FROM}: open old app picks up the new build`,nb&&nb!==oldBuild,`${oldBuild}->${nb}`);
- for(let i=0;i<30;i++){const st=await ev(async()=>{const r=await navigator.serviceWorker.getRegistration();return {a:r&&r.active&&r.active.scriptURL,w:!!(r&&r.waiting),i:!!(r&&r.installing),k:await caches.keys()}});if(st.k.includes('n5vq-page-v7'))break;if(i%5==0)console.log('  sw',JSON.stringify(st));await p.waitForTimeout(1000);if(i==10){await p.reload();await p.waitForTimeout(800);}}
- const keys=await ev(()=>caches.keys());ok(`${FROM}: SW v7 active, old page cache dropped`,keys.includes('n5vq-page-v7')&&!keys.some(k=>/page-v[23456]$/.test(k)),JSON.stringify(cachesBefore)+' -> '+JSON.stringify(keys));
+ for(let i=0;i<30;i++){const st=await ev(async()=>{const r=await navigator.serviceWorker.getRegistration();return {a:r&&r.active&&r.active.scriptURL,w:!!(r&&r.waiting),i:!!(r&&r.installing),k:await caches.keys()}});if(st.k.includes('n5vq-page-v8'))break;if(i%5==0)console.log('  sw',JSON.stringify(st));await p.waitForTimeout(1000);if(i==10){await p.reload();await p.waitForTimeout(800);}}
+ const keys=await ev(()=>caches.keys());ok(`${FROM}: SW v8 active, old page cache dropped`,keys.includes('n5vq-page-v8')&&!keys.some(k=>/page-v[234567]$/.test(k)),JSON.stringify(cachesBefore)+' -> '+JSON.stringify(keys));
  ok(`${FROM}: progress intact`,await ev(()=>Object.keys(__N5.S().cards).length>=400&&!!__N5.JS().cards['一']));
  await tap('#tabLevels');await tap('.lvlist .lvcard[data-lv=n5]');await p.waitForFunction(()=>/Kanji · 79/.test((document.querySelector('#kjOpen')||{}).textContent||''));
  await tap('#kjOpen');await p.waitForSelector('.kjtile');await tap('.kjtile[data-c="九"]');await p.waitForSelector('.modal .kjsvg .kjst');
@@ -40,6 +40,9 @@ const root=r=>fs.writeFileSync('/tmp/swt/ROOT',r);
  await p.waitForFunction(()=>window.__N5,null,{timeout:30000}).catch(()=>{});const slow=Date.now()-ts;fs.writeFileSync('/tmp/swt/DELAY','0');
  ok('slow network: cached app shows within ~6 s (SW navigation timeout)',slow<7500,slow+'ms');
  await p.waitForTimeout(12000);
+ // games data: open N5 games online once (the SW caches data/games-n5.json)
+ await tap('.tabbar [data-tab="home"]');await tap('button.mode[data-m="games"]');await tap('button.gtile[data-gl="n5"][data-game="scramble"]');
+ ok('online: N5 Sentence Scramble loads',await p.waitForSelector('#sTray .stile',{timeout:15000}).then(()=>true,()=>false));await tap('#backBtn');
  // offline: cached level works, uncached strokes fall back to the static character, uncached list shows retry
  root('offline');
  await p.reload().catch(e=>console.log('  offline nav',e.message.slice(0,80)));await p.waitForTimeout(1200);
@@ -47,6 +50,10 @@ const root=r=>fs.writeFileSync('/tmp/swt/ROOT',r);
  await tap('#tabLevels');await tap('.lvlist .lvcard[data-lv=n5]');await p.waitForFunction(()=>/Kanji · 79/.test((document.querySelector('#kjOpen')||{}).textContent||''));
  await tap('#kjOpen');await p.waitForSelector('.kjtile');await tap('.kjtile[data-c="九"]');await p.waitForSelector('.modal .kjsvg .kjst');ok('offline: cached N5 strokes still animate',true);
  await tap('#kjClose');
+ await tap('.tabbar [data-tab="home"]');await tap('button.mode[data-m="games"]');await tap('button.gtile[data-gl="n5"][data-game="scramble"]');
+ ok('offline: N5 Sentence Scramble works from cache',await p.waitForSelector('#sTray .stile',{timeout:15000}).then(()=>true,()=>false));await tap('#backBtn');
+ await tap('button.gtile[data-gl="n5"][data-game="builder"]');ok('offline: N5 Kanji Builder works from cache',await p.waitForSelector('.kbtile',{timeout:15000}).then(()=>true,()=>false));await tap('#backBtn');
+ await tap('button.gtile[data-gl="n5"][data-game="sniper"]');await tap('#gStart');ok('offline: N5 Listening Sniper works from cache',await p.waitForSelector('#arena .gtarget',{timeout:15000}).then(()=>true,()=>false));await tap('#backBtn');
  // N4 list/strokes never fetched → offline fallback
  await ev(()=>__N5.go?0:0);
  const n4=await ev(async()=>{const ok=await __N5.loadKanji('n4');return ok});
@@ -61,8 +68,9 @@ const root=r=>fs.writeFileSync('/tmp/swt/ROOT',r);
  ok('offline: stroke order falls back to the static character',await ev(()=>!!document.querySelector('.modal .kjglyph')&&/connection/.test(document.querySelector('.modal .kjsvgwrap').textContent)&&document.querySelector('#kjStep').disabled));
  ok('offline: Done still closes the card',(await tap('#kjClose'),!(await p.$('.modal'))));
  root('new');
- // offline-only noise WebKit reports itself: its automatic SW update check failing and the SW's deliberate Response.error() for an uncached file
- const real=errs.filter(e=>!/sw\.js load failed|Response served by service worker is an error/.test(e));
+ // offline-only noise WebKit reports itself: its automatic SW update check failing, the SW's deliberate Response.error() for an uncached file,
+ // and an uncached word MP3 failing to load while offline (the game falls back to speech)
+ const real=errs.filter(e=>!/sw\.js load failed|Response served by service worker is an error|FetchEvent\.respondWith received an error: TypeError: Load failed|Cannot load http.*\/audio\/.*\.mp3/.test(e));
  ok('no page errors (besides expected offline network noise)',real.length===0,JSON.stringify(real.slice(0,3)));
  console.log('SUMMARY',BR,FROM,R.filter(x=>x).length,'/',R.length);await b.close();
 })().catch(e=>{console.log('CRASH',e.message.slice(0,500));process.exit(1)});
