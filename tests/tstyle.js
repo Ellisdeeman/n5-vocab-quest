@@ -54,6 +54,13 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await p.setInputFiles('#bkFile',{name:'b.json',mimeType:'application/json',buffer:Buffer.from(bk)});await p.waitForSelector('#bkPreview');await check('restore preview');
   await tap('#bkCancel');await p.evaluate(()=>{const y=__N5.SY;y.token='';y.err='';y.remind=true;y.lastBackup=0;y.lastSync=0;y.snooze=0;});
   await tap('.tabbar [data-tab="home"]');await p.waitForSelector('#bkBanner');await check('backup reminder banner');await p.evaluate(()=>{__N5.SY.remind=false;});
+  // audio lesson repeat option + Pimsleur words screens
+  await p.evaluate(()=>{const A=__N5.AL();A.on=true;A.url='https://example.com/l';A.opened=__N5.todayStr()+':'+A.cur;});
+  await tap('.tabbar [data-tab="stats"]');await tap('.tabbar [data-tab="home"]');await p.waitForSelector('#alRepeat');await p.evaluate(()=>document.querySelector('#alCard').scrollIntoView());await check('audio lesson (done + repeat buttons)');
+  await tap('#alRepeat');await p.evaluate(()=>document.querySelector('#alCard').scrollIntoView());await check('audio lesson repeat done');await tap('#alUndo');
+  await tap('#pimsOpen');await p.waitForSelector('#pmList');await check('pimsleur words');
+  await tap('#pmList .pmrow[data-n="4"]');await p.waitForSelector('#pmWords');await check('pimsleur lesson');
+  await tap('.tabbar [data-tab="settings"]');await p.waitForTimeout(400);await p.evaluate(()=>document.querySelector('#alPAdd').scrollIntoView({block:'center'}));await check('settings pimsleur');
   // game screens
   await tap('.tabbar [data-tab="home"]');await tap('button.mode[data-m="games"]');await check('games hub');
   await tap('button.gtile[data-gl="n5"][data-game="sniper"]');await check('sniper start');

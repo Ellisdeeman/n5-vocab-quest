@@ -599,6 +599,24 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .bkbanner{display:flex;align-items:center;gap:10px;margin:0 0 12px}
 .bkbanner .iconbtn{width:44px;height:44px;flex:none}
 .btn.danger{background:#b91c1c;color:#fff}
+
+/* Pimsleur words + repeat option */
+.alcard .albtns{flex-wrap:wrap}
+@media (max-width:430px){.alcard .albtns .btn:not(.small){flex:1 1 140px}}
+.pmhome{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:54px;margin:-4px 0 12px;padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:var(--label);font-size:.92rem;text-align:left;flex-wrap:wrap}
+.pmhome .muted{font-size:.82rem}
+.pmnote{font-size:.84rem;color:var(--label2);margin:6px 0 10px;line-height:1.4}
+.pmnote a{color:var(--accent)}
+.seg.pmlv button{min-height:44px}
+.pmrow .grow{min-width:0}
+.pmconf{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 7px;border-radius:8px;background:var(--accentT);color:var(--accent);white-space:nowrap}
+.pmconf.medium{background:var(--fill);color:var(--label)}.pmconf.none{background:var(--fill);color:var(--label2)}
+.pmsrc{font-size:.72rem;color:var(--label2);white-space:nowrap;margin:0 6px}
+.pmdrills{justify-content:flex-start;flex-wrap:wrap}.pmdrills .btn{flex:1 1 150px}
+.pmlvrow{flex-wrap:wrap;gap:8px}.pmlvrow .seg{flex:1 1 200px;max-width:260px}
+.pmconf.high,.pmdrills .btn.sec,#pmAdd{color:var(--pmink,var(--accent))}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--pmink:#0b5e58}}
+:root[data-theme=light]{--pmink:#0b5e58}
 </style>
 </head>
 <body>
@@ -787,8 +805,8 @@ const POS_NAMES = { n: "noun", v: "verb", ai: "い-adjective", na: "な-adjectiv
 /* ================= Levels (N5 embedded, N4–N1 loaded on demand from data/nX.json) =================
    Global word id = level offset + index in that level's list (N5 ids 0..717 are unchanged from v1). */
 const LEVELS = ["n5", "n4", "n3", "n2", "n1"], LOFF = { n5: 0, n4: 10000, n3: 20000, n2: 30000, n1: 40000 };
-const LNAME = l => l.toUpperCase();
-const lvlOf = id => LEVELS[Math.floor(id / 10000)];
+const LNAME = l => l === "pm" ? "Pimsleur" : l.toUpperCase();
+const lvlOf = id => id >= 50000 ? "pm" : LEVELS[Math.floor(id / 10000)];   // ≥50000: Pimsleur word set (app12)
 const WORDS = [], EXAMPLES = [], THEME = [], HUMAN = {};
 const LV = {}; LEVELS.forEach(l => LV[l] = { loaded: false, ids: [], kanjiIds: [], sets: [], exCount: 0, info: LEVEL_INFO[l] || {} });
 let SETS = [], ALL_IDS = [], KANJI_IDS = [];
@@ -1004,6 +1022,7 @@ function setUnlocked(s) {
   return setSeenFrac(prev) >= UNLOCK_AT && setUnlocked(prev);
 }
 function checkUnlocks(l = "n5") {
+  if (!LEVELS.includes(l)) return;   // Pimsleur lesson sets are never locked
   const L = LV[l].sets;
   for (let k = 1; k < L.length; k++) {
     if (S.unlockedSets.includes(L[k].id)) continue;
@@ -1346,7 +1365,7 @@ function renderTyping(w, onAnswer, opts = {}) {
 let cleanup = null;
 let curView = null, viewGen = 0;   // viewGen: bumped on every screen change, so async views can tell if they are still on screen
 let curTab = "home";
-const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"]]);
+const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"], [pimsView, "levels"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
 function go(fn) { const wasStudy = studyScreen; curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
@@ -1652,7 +1671,7 @@ function kanaCardHTML(list) {
 }
 function levelPickerHTML(list = false) {
   const act = activeLevels(), all = act.length === LEVELS.length;
-  if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
+  if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${pimsCardHTML()}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
       return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Open ${LNAME(l)}">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`)}
         <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">${LNAME(l)} · ${st.total} words</b><small>${st.mast} mastered · ${st.seen} seen${st.due ? ` · ${st.due} due` : ""}${LV[l].loaded || l === "n5" ? "" : " · tap to download"}</small>
         <span class="minibar"><i style="width:${st.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${st.mast / tot * 100}%"></i></span></span>
@@ -1673,6 +1692,7 @@ function bindLevelPicker() {
     const act = e => {
       sfx.click();
       if (c.dataset.lv === "kana") { go(kanaHome); return; }
+      if (c.dataset.lv === "pims") { go(pimsView); return; }
       const t = e.target.closest("[data-tog]");
       if (t) { e.stopPropagation(); const l = t.dataset.tog, cur = activeLevels(); setLevels(cur.includes(l) ? cur.filter(x => x !== l) : cur.concat(l)); return; }
       if (c.dataset.lv === "all") setLevels(LEVELS.slice()); else openLevel(c.dataset.lv);   // tap a level = open its page (and study it alone)
@@ -2403,6 +2423,7 @@ function allAudioPaths(levels = ["n5"]) {
   const p = new Set();
   levels.filter(l => LV[l].loaded).forEach(l => LV[l].ids.forEach(id => { p.add(wordAudioPath(WORDS[id])); ex(id).forEach(x => p.add(sentenceAudioPath(x))); }));
   Object.values(KITEMS).forEach(it => p.add(`k/${kFile(it)}.mp3`));
+  if (LV.pm && LV.pm.loaded) LV.pm.ids.forEach(id => p.add(wordAudioPath(WORDS[id])));   // Pimsleur set (small)
   return [...p];
 }
 /* cache one versioned data file and drop older versions of the same file (the SW does the same on normal fetches) */
@@ -2630,6 +2651,7 @@ function dueSections() {
     secs["kanji:" + l] = { icon: "字", name: `Kanji · ${LNAME(l)}`, r: kjDueScan(l), kind: "j", kl: l };
     if (LV[l].loaded) for (const s of LV[l].sets) { const set = new Set(s.ids); secs["set:" + s.id] = { icon: s.icon, name: s.name, lvl: l, r: dueScan(id => set.has(id)), kind: "v", set: 1 }; }
   }
+  secs.pm = { icon: "📼", name: "Pimsleur words", r: dueScan(id => id >= LOFF.pm), kind: "v" };
   secs.leech = { icon: "🧛", name: "Leeches", r: dueScan(isLeech), kind: "v" };
   secs["kana:h"] = { icon: "あ", name: "Hiragana", r: kanaDueScan("h"), kind: "k" };
   secs["kana:k"] = { icon: "ア", name: "Katakana", r: kanaDueScan("k"), kind: "k" };
@@ -2663,6 +2685,7 @@ function renderDue() {
           (sets.length ? `<details class="duesets" data-l="${l}" ${dueOpen[l] ? "open" : ""}><summary>${LNAME(l)} word sets · ${dueSets.length} of ${sets.length} with due words</summary>
             ${(dueSets.length ? dueSets : []).map(([k, s]) => dueRow(k, s.icon, s.name, s.r)).join("") || `<p class="muted" style="font-size:.85rem">No set in ${LNAME(l)} has due words right now.</p>`}</details>` : ""); }).join("")}
     </div>
+    ${secs.pm.r.ids.length || secs.pm.r.next != null ? `<div class="panel duepanel"><h2>Pimsleur</h2>${dueRow("pm", "📼", "Pimsleur set", secs.pm.r, "words not in the JLPT lists")}</div>` : ""}
     <div class="panel duepanel"><h2>Leeches</h2>${dueRow("leech", "🧛", "Leeches", secs.leech.r, "words you keep missing")}</div>
 `;
   scrollTo(0, y);
@@ -2679,6 +2702,7 @@ function aheadScan(key, n = 20) {
   if (key.startsWith("kanji:")) { const l = key.slice(6); return { j: pick(Object.entries(JS.cards).filter(([, x]) => x.l === l)) }; }
   if (key.startsWith("kana:")) { const sc = key.slice(5); return { k: pick(Object.entries(KS.cards).filter(([id]) => KITEMS[id] && KITEMS[id].s === sc)) }; }
   if (key.startsWith("set:")) { const st = SETS.find(x => x.id === key.slice(4)); const set = new Set(st ? st.ids : []); return { v: pick(Object.entries(S.cards).filter(([id]) => set.has(+id))).map(Number) }; }
+  if (key === "pm") return { v: pick(Object.entries(S.cards).filter(([id]) => +id >= LOFF.pm)).map(Number) };
   if (key === "leech") return { v: pick(Object.entries(S.cards).filter(([id]) => isLeech(+id))).map(Number) };
   return {};
 }
@@ -3132,10 +3156,18 @@ function kanjiStatsHTML() {
    A step in the training plan: open the lesson link the user saved (nothing is built in), then "Mark lesson done"
    advances the counter and adds the lesson minutes to today's study time. Stored only on this device (own key). */
 const AKEY = "jlptVocabQuest.audioLesson.v1";
-const alDefault = () => ({ on: true, url: "", min: 30, cur: 1, total: 30, opened: null, log: {} });
+/* plevel = Pimsleur level (1–5) for the word lists · pAdd = add that lesson's words when it's marked done
+   rep = times each lesson was completed {"level:lesson": n} · padd = Pimsleur words added per lesson {"level:lesson": [word ids]} */
+const alDefault = () => ({ on: true, url: "", min: 30, cur: 1, total: 30, opened: null, log: {}, plevel: 1, pAdd: true, rep: {}, padd: {} });
 let AL;
 try { AL = Object.assign(alDefault(), JSON.parse(localStorage.getItem(AKEY) || "{}")); } catch (e) { AL = alDefault(); }
 if (!AL.log || typeof AL.log !== "object") AL.log = {};
+if (!AL.rep || typeof AL.rep !== "object") AL.rep = {};
+if (!AL.padd || typeof AL.padd !== "object") AL.padd = {};
+AL.plevel = Math.max(1, Math.min(5, parseInt(AL.plevel, 10) || 1));
+const alKey = (n, lv = AL.plevel) => `${lv}:${n}`;
+const alTimes = (n = AL.cur, lv = AL.plevel) => +AL.rep[alKey(n, lv)] || 0;   // how many times that lesson was completed
+const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
 function alsave() { try { localStorage.setItem(AKEY, JSON.stringify(AL)); } catch (e) {} if (typeof syncTouch === "function") syncTouch(); }
 const alClampInt = (v, lo, hi, def) => { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
 /* only plain web links: never javascript:, data: etc. */
@@ -3162,13 +3194,20 @@ function alNeedLink() {
   document.body.appendChild(md);
   md.onclick = e => { if (e.target === md || e.target.id === "alCancel") md.remove(); else if (e.target.id === "alGoSet") { md.remove(); go(settingsView); setTimeout(() => { const r = $("#alSection"); if (r) r.scrollIntoView({ block: "start" }); const u = $("#alUrl"); if (u) u.focus(); }, 60); } };
 }
-function alMarkDone() {
+/* "Mark lesson done" advances to the next lesson; "Done, repeat tomorrow" (repeat=true) counts the minutes and completes
+   today, but keeps the lesson number so tomorrow's card offers the same lesson again. Both add that lesson's Pimsleur words. */
+function alMarkDone(repeat) {
+  repeat = repeat === true;
   const d = todayStr(); if (alToday() || alFinished()) return;
-  const min = AL.min, x = tday(d);
-  x.sec += min * 60; (x.aud || (x.aud = [])).push({ n: AL.cur, min }); tsave();
-  AL.log[d] = { n: AL.cur, min }; AL.cur++; AL.opened = null; alsave();
+  const min = AL.min, x = tday(d), n = AL.cur, lv = AL.plevel, key = alKey(n, lv);
+  x.sec += min * 60; (x.aud || (x.aud = [])).push({ n, min }); tsave();
+  const add = typeof pimsAddLesson === "function" ? pimsAddLesson(lv, n) : null;   // {created: [ids], newKey}
+  AL.rep[key] = (+AL.rep[key] || 0) + 1;
+  const e = { n, min, lv }; if (repeat) e.rep = 1;
+  if (add && add.created.length) e.pw = add.created; if (add && add.newKey) e.pk = 1; if (add) e.pn = add.total;
+  AL.log[d] = e; if (!repeat) AL.cur++; AL.opened = null; alsave();
   touchStreak(); save(); updateTimePill(); checkGoal();
-  sfx.good(); toast(`🎧 Lesson ${AL.log[d].n} done · +${min} min`);
+  sfx.good(); toast(`🎧 Lesson ${n} done${repeat ? " · repeat tomorrow" : ""} · +${min} min${add && add.created.length ? ` · ${add.created.length} words added` : ""}`);
   if (curView) go(curView);
 }
 function alUndo() {
@@ -3176,25 +3215,31 @@ function alUndo() {
   const x = tday(d); x.sec = Math.max(0, x.sec - t.min * 60);
   if (x.aud) { const i = x.aud.findIndex(a => a.n === t.n); if (i >= 0) x.aud.splice(i, 1); if (!x.aud.length) delete x.aud; }
   if (x.met && !goalParts(d).every(p => p.have >= p.need)) delete x.met;
-  tsave(); AL.cur = t.n; delete AL.log[d]; alsave(); updateTimePill();
-  toast(`↩️ Lesson ${t.n} unmarked`); if (curView) go(curView);
+  tsave();
+  const key = alKey(t.n, t.lv || AL.plevel); AL.rep[key] = Math.max(0, (+AL.rep[key] || 0) - 1); if (!AL.rep[key]) delete AL.rep[key];
+  let removed = 0; if (typeof pimsUndo === "function") removed = pimsUndo(t, key);
+  AL.cur = t.n; delete AL.log[d]; alsave(); if (removed) save(); updateTimePill();
+  toast(`↩️ Lesson ${t.n} unmarked${removed ? ` · ${removed} words removed` : ""}`); if (curView) go(curView);
 }
 function audioLessonHTML() {
   if (!AL.on) return "";
-  const t = alToday(), opened = AL.opened === todayStr() + ":" + AL.cur;
+  const t = alToday(), opened = AL.opened === todayStr() + ":" + AL.cur, times = alTimes();
+  const pw = t && t.pw ? ` ${t.pw.length} Pimsleur word${t.pw.length > 1 ? "s" : ""} added to Seen.` : "";
   let body, btns;
-  if (t) { body = `<h2>Audio lesson ${t.n} done ✅</h2><p>+${t.min} min added to today's study time.${alFinished() ? " Course complete — nice!" : ` Next: <b>Lesson ${AL.cur}</b> tomorrow.`}</p>`;
+  if (t) { body = `<h2>Audio lesson ${t.n} done ✅</h2><p>+${t.min} min added to today's study time.${pw}${t.rep ? ` Tomorrow: <b>Repeat of Lesson ${AL.cur}</b>.` : alFinished() ? " Course complete — nice!" : ` Next: <b>Lesson ${AL.cur}</b> tomorrow.`}</p>`;
     btns = `<button class="btn ghost small" id="alUndo">Undo</button>`; }
   else if (alFinished()) { body = `<h2>Audio course complete 🎉</h2><p>All ${AL.total} lessons done. Set a new total or lesson number in Settings.</p>`; btns = ""; }
-  else { body = `<h2>Audio lesson <span class="lvtag">${AL.cur}/${AL.total}</span></h2><p>Next: <b>Lesson ${AL.cur}</b> · ${AL.min} min${AL.url ? "" : ` · <span style="color:var(--orange)">add your lesson link in Settings</span>`}</p>`;
-    btns = opened ? `<button class="btn" id="alDone">Mark lesson done</button><button class="btn ghost small" id="alOpen">Open again</button>` : `<button class="btn" id="alOpen">${AL.url ? "Open ▶" : "Add link"}</button>`; }
+  else { body = `<h2>${times ? `Repeat of Lesson ${AL.cur}` : "Audio lesson"} <span class="lvtag">${AL.cur}/${AL.total}</span></h2><p>${times ? `<b>Lesson ${AL.cur} · ${ordinal(times + 1)} time</b>` : `Next: <b>Lesson ${AL.cur}</b>`} · ${AL.min} min${AL.url ? "" : ` · <span style="color:var(--orange)">add your lesson link in Settings</span>`}</p>`;
+    btns = opened ? `<button class="btn" id="alDone">Mark lesson done</button><button class="btn sec" id="alRepeat">Done, repeat tomorrow</button><button class="btn ghost small" id="alOpen">Open again</button>` : `<button class="btn" id="alOpen">${AL.url ? "Open ▶" : "Add link"}</button>`; }
   return `<div class="hero alcard ${t ? "done" : ""}" id="alCard"><div class="ic">🎧</div><div>${body}
     <div class="minibar" aria-hidden="true"><i style="width:${Math.min(100, (Math.min(AL.cur, AL.total + 1) - 1) / AL.total * 100)}%;background:var(--indigo)"></i></div></div>
-    <div class="albtns">${btns}</div></div>`;
+    <div class="albtns">${btns}</div></div>${typeof pimsHomeHTML === "function" ? pimsHomeHTML() : ""}`;
 }
 function bindAudioLesson() {
   const o = $("#alOpen"); if (o) o.onclick = () => { sfx.click(); alOpen(); };
-  const d = $("#alDone"); if (d) d.onclick = alMarkDone;
+  const d = $("#alDone"); if (d) d.onclick = () => alMarkDone(false);
+  const r = $("#alRepeat"); if (r) r.onclick = () => alMarkDone(true);
+  const pb = $("#pimsOpen"); if (pb) pb.onclick = () => { sfx.click(); go(pimsView); };
   const u = $("#alUndo"); if (u) u.onclick = alUndo;
 }
 function audioLessonSettingsHTML() {
@@ -3202,12 +3247,17 @@ function audioLessonSettingsHTML() {
     <div class="row alrow"><span>🔗 Lesson link<br><small class="muted">your course's web/app address · saved on this device only</small></span><input type="url" id="alUrl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…" value="${esc(AL.url)}"></div>
     <div class="row"><span>⏱️ Lesson length (min)</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="alMin" min="1" max="240" value="${AL.min}"></div>
     <div class="row"><span>▶️ Current lesson</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="alCur" min="1" max="999" value="${Math.min(AL.cur, AL.total)}"></div>
+    <div class="row pmlvrow"><span>📼 Pimsleur level<br><small class="muted">which Pimsleur Japanese level your lesson counter is in</small></span><div class="seg pmlv" id="alPLv" role="radiogroup" aria-label="Pimsleur level">${[1, 2, 3, 4, 5].map(l => `<button role="radio" aria-checked="${AL.plevel === l}" class="${AL.plevel === l ? "on" : ""}" data-lv="${l}">${l}</button>`).join("")}</div></div>
+    <div class="row"><span>➕ Add Pimsleur words when I finish a lesson<br><small class="muted">puts that lesson's words into Seen for review · ${typeof pimsHasLevel === "function" && pimsHasLevel(AL.plevel) ? "unofficial learner-made lists" : `no word list for Level ${AL.plevel} yet`}</small></span><button class="switch ${AL.pAdd ? "on" : ""}" id="alPAdd" role="switch" aria-checked="${AL.pAdd}" aria-label="Add Pimsleur words when I finish a lesson"></button></div>
     <div class="row"><span>🔢 Total lessons</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="alTotal" min="1" max="999" value="${AL.total}"></div>`;
 }
 function bindAudioLessonSettings(md) {
   const q = s => md.querySelector(s);
   q("#alOn").onclick = e => { AL.on = !AL.on; alsave(); e.currentTarget.classList.toggle("on", AL.on); e.currentTarget.setAttribute("aria-checked", AL.on); };
   q("#alUrl").onchange = e => { const u = alCleanUrl(e.target.value); if (u === null) { toast("That doesn't look like a web link (https://…)"); e.target.value = AL.url; return; } AL.url = u; e.target.value = u; alsave(); if (u) toast("Lesson link saved"); };
+  q("#alPAdd").onclick = e => { AL.pAdd = !AL.pAdd; alsave(); e.currentTarget.classList.toggle("on", AL.pAdd); e.currentTarget.setAttribute("aria-checked", AL.pAdd); };
+  q("#alPLv").onclick = e => { const b = e.target.closest("button"); if (!b) return; AL.plevel = +b.dataset.lv; alsave(); q("#alPLv").querySelectorAll("button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); });
+    const sm = q("#alPAdd").parentElement.querySelector("small"); if (sm) sm.textContent = `puts that lesson's words into Seen for review · ${pimsHasLevel(AL.plevel) ? "unofficial learner-made lists" : `no word list for Level ${AL.plevel} yet`}`; };
   q("#alMin").onchange = e => { AL.min = alClampInt(e.target.value, 1, 240, 30); e.target.value = AL.min; alsave(); };
   q("#alTotal").onchange = e => { AL.total = alClampInt(e.target.value, 1, 999, 30); e.target.value = AL.total; if (AL.cur > AL.total + 1) AL.cur = AL.total + 1; alsave(); };
   q("#alCur").onchange = e => { AL.cur = alClampInt(e.target.value, 1, 999, 1); if (AL.cur > AL.total) { AL.total = AL.cur; q("#alTotal").value = AL.total; } e.target.value = AL.cur; AL.opened = null; alsave(); };
@@ -3668,7 +3718,7 @@ const MERGE_RULES = {
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
-  AL: { log: "mapLww", cur: "max" }
+  AL: { log: "mapLww", rep: "mapMax", padd: "mapUnion" }   // cur (lesson number) = latest change wins; repeat counts = max; Pimsleur words added = union
 };
 const hash = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + s.length.toString(36); };
 /* record which settings changed since the last check (so the merge knows which side is newer). silent = just re-baseline. */
@@ -3723,6 +3773,7 @@ function mergeStore(n, a, b, LM, RM, OM) {
     else if (r === "max") o[k] = Math.max(+x || 0, +y || 0);
     else if (r === "union") o[k] = [...new Set([...(Array.isArray(x) ? x : []), ...(Array.isArray(y) ? y : [])])];
     else if (r === "mapMax") o[k] = mergeMap(x, y, (u, v) => Math.max(+u || 0, +v || 0));
+    else if (r === "mapUnion") o[k] = mergeMap(x, y, (u, v) => [...new Set([...(Array.isArray(u) ? u : []), ...(Array.isArray(v) ? v : [])])].sort((a, b) => a - b));
     else if (r === "days") o[k] = mergeMap(x, y, maxFields);
     else if (r === "games") o[k] = mergeGames(x, y);
     else if (r === "dailies") o[k] = mergeMap(x, y, sessionPick);
@@ -4066,6 +4117,120 @@ function bkBanner() {
 window.__syncReady = true;
 stampAll();                                    // migration: first run baselines every setting (stamp 0 = "older than any real change")
 setTimeout(() => { if (SY.token) syncSoon(0); }, 2500);   // app open
+
+/* ================= Pimsleur words (unofficial, compiled from learner notes; not affiliated with Pimsleur) =================
+   data/pimsleur-ja.json is embedded at build time (pimsleur_build.py): per level → lesson → words [jp, kana, en, id].
+   id < 50000 = an existing vocab entry (matched by kanji/kana + meaning, any level); id ≥ 50000 = the "Pimsleur" word set
+   (pseudo-level "pm", audio at audio/pm/w/<index>.mp3, same edge-tts voice as the rest of the app). Word lists only. */
+const PIMS = {"meta":{"title":"Pimsleur Japanese — words per lesson","label":"Unofficial, compiled from learner notes; not affiliated with Pimsleur.","note":"Word lists only (word, kana reading, English meaning, lesson). No course audio or transcripts. Lesson placement can differ between course editions.","confidence":{"high":"two independent learner sources agree","medium":"one detailed learner source","none":"no reliable list found"},"sources":[{"id":"K","name":"Kirby no Nihongo — Absolute Pimsleur's Japanese I notes (lessons 1–17)","url":"https://kirbynonihongo.blogspot.com/"},{"id":"A","name":"Andres Castano — Japanese I-1…I-30 study notes (lessons 1–30)","url":"https://acastano.com/japanese/1st-grade/"},{"id":"B","name":"Brainscape — Pimsleur 1 decks by Andreas Schärer (lessons 1–15, spot check)","url":"https://www.brainscape.com/packs/22579140"}],"levelsCovered":[1],"pmOffset":50000,"audio":"audio/pm/w/<index>.mp3 — edge-tts ja-JP-NanamiNeural (-10%), MP3 mono 24 kHz 40 kbps"},"levels":{"1":{"lessons":{"1":{"conf":"high","src":["K","A","B"],"words":[["すみません","すみません","excuse me; I'm sorry",20245],["少し","すこし","a little",334],["分かります","わかります","understand",711],["英語","えいご","English (language)",89],["日本語","にほんご","Japanese (language)",50000],["アメリカ","アメリカ","America",10351],["アメリカ人","アメリカじん","American (person)",50001],["はい","はい","yes",518],["いいえ","いいえ","no",44],["私","わたし","I; me",713],["あなた","あなた","you",27]]},"2":{"conf":"high","src":["K","A","B"],"words":[["おはようございます","おはようございます","good morning",30303],["いい","いい","good; fine",43],["お天気","おてんき","weather",50002],["そうですね","そうですね","that's right, isn't it",50003],["じゃ、また","じゃ、また","see you",50004],["ありがとうございます","ありがとうございます","thank you",20346],["上手","じょうず","skillful; good at",318]]},"3":{"conf":"high","src":["K","A","B"],"words":[["でも","でも","but",434],["まだ","まだ","still; not yet",625],["よく","よく","well; often",684],["嫌","いや","unpleasant; disagreeable",68],["どうも","どうも","thanks",449],["こんにちは","こんにちは","hello; good afternoon",20954],["日本","にほん","Japan",21685],["日本人","にほんじん","Japanese (person)",50005],["元気","げんき","healthy; well",240]]},"4":{"conf":"high","src":["K","A","B"],"words":[["ええ","ええ","yes (casual)",90],["話します","はなします","speak",540],["駅","えき","station",91],["新宿","しんじゅく","Shinjuku",50006],["上野","うえの","Ueno",50007],["公園","こうえん","park",244],["どこ","どこ","where",456],["ここ","ここ","here",251],["そこ","そこ","there",360],["あそこ","あそこ","over there",16]]},"5":{"conf":"high","src":["K","A","B"],"words":[["何か","なにか","something",21660],["食べます","たべます","eat",392],["飲みます","のみます","drink",514],["結構です","けっこうです","no thank you; I'm fine",236],["分かりません","わかりません","I don't understand; I don't know",50008]]},"6":{"conf":"high","src":["K","A","B"],"words":[["コーラ","コーラ","cola",50009],["所","ところ","place",457],["いつ","いつ","when",59],["今","いま","now",65],["後で","あとで","later",26],["私の","わたしの","my",50010],["私も","わたしも","me too",50011]]},"7":{"conf":"high","src":["K","A","B"],"words":[["レストラン","レストラン","restaurant",705],["何","なに","what",487],["お酒","おさけ","sake; alcohol",107],["ビール","ビール","beer",21809],["欲しい","ほしい","want (a thing)",604]]},"8":{"conf":"medium","src":["K","B"],"words":[["さん","さん","Mr.; Ms.",286],["昼ご飯","ひるごはん","lunch",573],["二","に","two",495],["本","ほん","counter for bottles and long objects",610],["お願いします","おねがいします","please",30298],["します","します","do",342],["ホテル","ホテル","hotel",608],["買います","かいます","buy",148],["誰","だれ","who",394]]},"9":{"conf":"high","src":["K","A","B"],"words":[["何時","なんじ","what time",50012],["一時","いちじ","one o'clock",50013],["二時","にじ","two o'clock",50014],["八時","はちじ","eight o'clock",50015],["九時","くじ","nine o'clock",50016],["それとも","それとも","or (else)",21343],["分かりました","わかりました","understood; I see",50017],["東京","とうきょう","Tokyo",50018]]},"10":{"conf":"medium","src":["K","B"],"words":[["ちょっと","ちょっと","a little; a bit",410],["食べたい","たべたい","want to eat",50019],["飲みたい","のみたい","want to drink",50020],["三時","さんじ","three o'clock",50021],["四時","よじ","four o'clock",50022],["五時","ごじ","five o'clock",50023]]},"11":{"conf":"high","src":["K","A"],"words":[["じゃあ","じゃあ","well then",309],["聞いてください","きいてください","please listen",50024],["もう一度","もういちど","once more",50025],["繰り返してください","くりかえしてください","please repeat",50026],["六時","ろくじ","six o'clock",50027],["七時","しちじ","seven o'clock",50028],["今晩","こんばん","this evening; tonight",272],["晩ご飯","ばんごはん","dinner",554],["十時","じゅうじ","ten o'clock",50029],["明日","あした","tomorrow",15],["今日","きょう","today",203],["また明日","またあした","see you tomorrow",50030],["コーヒー","コーヒー","coffee",250]]},"12":{"conf":"high","src":["K","A"],"words":[["もしもし","もしもし","hello (on the phone)",659],["いくら","いくら","how much",50],["円","えん","yen",93],["千","せん","thousand",351],["三千","さんぜん","three thousand",50031],["そして","そして","and; and then",359]]},"13":{"conf":"high","src":["K","A","B"],"words":[["こんばんは","こんばんは","good evening",30659],["お金","おかね","money",103],["持っています","もっています","have; hold",660],["一本","いっぽん","one (bottle / long object)",50032],["どうぞ","どうぞ","here you are; please",447],["ドル","ドル","dollar",50033],["十五","じゅうご","fifteen",50034]]},"14":{"conf":"high","src":["K","A","B"],"words":[["たくさん","たくさん","a lot; many",380],["下さい","ください","please give me",217],["あります","あります","there is; have (things)",39],["あげます","あげます","give",10460],["十七","じゅうしち","seventeen",50035],["十八","じゅうはち","eighteen",50036],["十九","じゅうきゅう","nineteen",50037]]},"15":{"conf":"high","src":["K","A","B"],"words":[["行ってきます","いってきます","I'm off (and will be back)",30190],["どこへ","どこへ","to where",50038],["食べられます","たべられます","can eat",50039],["買えます","かえます","can buy",50040],["全然","ぜんぜん","not at all",10602],["行きます","いきます","go",48],["来ます","きます","come",229]]},"16":{"conf":"high","src":["K","A"],"words":[["何ですか","なんですか","what is it?",50041],["すし","すし","sushi",50042],["多すぎます","おおすぎます","too much; too many",50043],["十分","じゅうぶん","enough",10419],["どういたしまして","どういたしまして","you're welcome",31214],["三十","さんじゅう","thirty",50044],["四十","よんじゅう","forty",50045],["電話","でんわ","telephone",440]]},"17":{"conf":"high","src":["K","A"],"words":[["どうもありがとう","どうもありがとう","thanks a lot",50046],["買い物","かいもの","shopping",147],["高い","たかい","expensive; tall",378],["高すぎます","たかすぎます","too expensive",50047],["早い","はやい","fast; early",542],["早すぎます","はやすぎます","too fast",50048],["ゆっくり","ゆっくり","slowly",50049],["私には","わたしには","for me; as for me",50050],["したい","したい","want to do",50051]]},"18":{"conf":"none","src":[],"words":[]},"19":{"conf":"medium","src":["A"],"words":[["ワシントン","ワシントン","Washington",50052],["ワイン","ワイン","wine",21189],["どこに","どこに","where (at)",50053],["はじめまして","はじめまして","nice to meet you",31354],["よろしく","よろしく","please treat me well",21153],["私たち","わたしたち","we; us",50054],["いらっしゃいませ","いらっしゃいませ","welcome (to a shop)",50055],["入ります","はいります","enter",521],["住んでいます","すんでいます","live (reside)",341]]},"20":{"conf":"medium","src":["A"],"words":[["子供","こども","child",262],["男","おとこ","man",118],["女","おんな","woman",139],["男の子","おとこのこ","boy",119],["女の子","おんなのこ","girl",140],["大きい","おおきい","big",98],["小さい","ちいさい","small",398],["何人","なんにん","how many people",50056],["三人","さんにん","three people",50057],["四人","よにん","four people",50058],["一緒に","いっしょに","together",61]]},"21":{"conf":"medium","src":["A"],"words":[["ニューヨーク","ニューヨーク","New York",50059],["本当","ほんとう","truth; really",21957],["お手洗い","おてあらい","restroom",115],["トイレ","トイレ","toilet",444],["一人","ひとり","one person; alone",566],["二人","ふたり","two people",583],["家族","かぞく","family",164],["ご家族","ごかぞく","(your) family",50060],["洗います","あらいます","wash",38]]},"22":{"conf":"medium","src":["A"],"words":[["車","くるま","car",230],["ガソリン","ガソリン","gasoline",10006],["リットル","リットル","liter",31771],["キロ","キロ","kilometer; kilogram",211],["言います","いいます","say",45],["答えます","こたえます","answer",256]]},"23":{"conf":"medium","src":["A"],"words":[["満タン","まんタン","full tank",50061],["まっすぐ","まっすぐ","straight ahead",628],["遠い","とおい","far",451],["待ってください","まってください","please wait",50062],["尋ねます","たずねます","ask",10462],["待ちます","まちます","wait",627]]},"24":{"conf":"medium","src":["A"],"words":[["横浜","よこはま","Yokohama",50063],["大阪","おおさか","Osaka",50064],["道","みち","road; way",640],["右","みぎ","right",635],["左","ひだり","left",562],["こちら","こちら","this way",257],["そちら","そちら","that way",361],["あちら","あちら","that way over there",21],["どちら","どちら","which way",460],["これ","これ","this one",267],["それ","それ","that one",367],["あれ","あれ","that one over there",42],["どれ","どれ","which one",474],["それから","それから","and then; after that",368]]},"25":{"conf":"medium","src":["A"],"words":[["から","から","because; from",50065],["もう","もう","already",657],["店","みせ","shop; store",638],["デパート","デパート","department store",433],["遅い","おそい","late; slow",113],["どうして","どうして","why",446],["見ます","みます","see; look",647],["開きます","あきます","open (a shop opens)",8],["閉まります","しまります","close (a shop closes)",306]]},"26":{"conf":"medium","src":["A"],"words":[["二日","ふつか","two days; the 2nd",584],["三日","みっか","three days; the 3rd",641],["二、三日","にさんにち","a few days",50066],["多分","たぶん","maybe; probably",390],["さよなら","さよなら","goodbye",30700],["タクシー","タクシー","taxi",381],["友達","ともだち","friend",468],["仕事","しごと","work; job",295],["会います","あいます","meet",1]]},"27":{"conf":"medium","src":["A"],"words":[["百","ひゃく","hundred",568],["いたい","いたい","want to stay",50067],["帰ります","かえります","go home; return",150],["帰りたい","かえりたい","want to go home",50068]]},"28":{"conf":"medium","src":["A"],"words":[["前","まえ","before; ago",620],["四日","よっか","four days; the 4th",686],["時間","じかん","time; hours",293],["三時間","さんじかん","three hours",50069],["一人で","ひとりで","alone; by oneself",50070],["意味","いみ","meaning",66],["過ごします","すごします","spend (time)",20227]]},"29":{"conf":"medium","src":["A"],"words":[["週","しゅう","week",20087],["一週間","いっしゅうかん","one week",50071],["いつから","いつから","since when",50072],["昨日","きのう","yesterday",199],["飲み物","のみもの","drink; beverage",513],["好き","すき","like",330]]},"30":{"conf":"medium","src":["A"],"words":[["言葉","ことば","word; language",261],["この","この","this (+ noun)",263],["今朝","けさ","this morning",234],["何も","なにも","nothing (with a negative)",21661],["着きます","つきます","arrive",415]]}}}},"pm":[["日本語","にほんご","Japanese (language)"],["アメリカ人","アメリカじん","American (person)"],["お天気","おてんき","weather"],["そうですね","そうですね","that's right, isn't it"],["じゃ、また","じゃ、また","see you"],["日本人","にほんじん","Japanese (person)"],["新宿","しんじゅく","Shinjuku"],["上野","うえの","Ueno"],["分かりません","わかりません","I don't understand; I don't know"],["コーラ","コーラ","cola"],["私の","わたしの","my"],["私も","わたしも","me too"],["何時","なんじ","what time"],["一時","いちじ","one o'clock"],["二時","にじ","two o'clock"],["八時","はちじ","eight o'clock"],["九時","くじ","nine o'clock"],["分かりました","わかりました","understood; I see"],["東京","とうきょう","Tokyo"],["食べたい","たべたい","want to eat"],["飲みたい","のみたい","want to drink"],["三時","さんじ","three o'clock"],["四時","よじ","four o'clock"],["五時","ごじ","five o'clock"],["聞いてください","きいてください","please listen"],["もう一度","もういちど","once more"],["繰り返してください","くりかえしてください","please repeat"],["六時","ろくじ","six o'clock"],["七時","しちじ","seven o'clock"],["十時","じゅうじ","ten o'clock"],["また明日","またあした","see you tomorrow"],["三千","さんぜん","three thousand"],["一本","いっぽん","one (bottle / long object)"],["ドル","ドル","dollar"],["十五","じゅうご","fifteen"],["十七","じゅうしち","seventeen"],["十八","じゅうはち","eighteen"],["十九","じゅうきゅう","nineteen"],["どこへ","どこへ","to where"],["食べられます","たべられます","can eat"],["買えます","かえます","can buy"],["何ですか","なんですか","what is it?"],["すし","すし","sushi"],["多すぎます","おおすぎます","too much; too many"],["三十","さんじゅう","thirty"],["四十","よんじゅう","forty"],["どうもありがとう","どうもありがとう","thanks a lot"],["高すぎます","たかすぎます","too expensive"],["早すぎます","はやすぎます","too fast"],["ゆっくり","ゆっくり","slowly"],["私には","わたしには","for me; as for me"],["したい","したい","want to do"],["ワシントン","ワシントン","Washington"],["どこに","どこに","where (at)"],["私たち","わたしたち","we; us"],["いらっしゃいませ","いらっしゃいませ","welcome (to a shop)"],["何人","なんにん","how many people"],["三人","さんにん","three people"],["四人","よにん","four people"],["ニューヨーク","ニューヨーク","New York"],["ご家族","ごかぞく","(your) family"],["満タン","まんタン","full tank"],["待ってください","まってください","please wait"],["横浜","よこはま","Yokohama"],["大阪","おおさか","Osaka"],["から","から","because; from"],["二、三日","にさんにち","a few days"],["いたい","いたい","want to stay"],["帰りたい","かえりたい","want to go home"],["三時間","さんじかん","three hours"],["一人で","ひとりで","alone; by oneself"],["一週間","いっしゅうかん","one week"],["いつから","いつから","since when"]]};
+LOFF.pm = PIMS.meta.pmOffset || 50000;
+LV.pm = { loaded: false, ids: [], kanjiIds: [], sets: [], exCount: 0, info: { count: PIMS.pm.length } };
+(() => {
+  const pos = w => /^[一二三四五六七八九十百千]+[時人日]?$|^[一二三四五六七八九十百千]+時間$/.test(w[0]) ? "num" : /ます$|たい$|ください$|します$/.test(w[1]) ? "v" : /[、ねかへに]$|です|ござい|ませ$|ありがとう|明日$/.test(w[0]) ? "exp" : "n";
+  const sets = [];
+  for (const lv in PIMS.levels) for (const n in PIMS.levels[lv].lessons) {
+    const ids = [...new Set(PIMS.levels[lv].lessons[n].words.map(w => w[3]).filter(id => id >= LOFF.pm).map(id => id - LOFF.pm))];
+    if (ids.length) sets.push({ id: `pm-${lv}-${n}`, name: `Level ${lv} · Lesson ${n}`, icon: "📼", ids });
+  }
+  addLevel("pm", { words: PIMS.pm, examples: [], pos: PIMS.pm.map(pos), sets, human: {}, source: "" });
+})();
+const pimsHasLevel = lv => !!(PIMS.levels[lv] && Object.values(PIMS.levels[lv].lessons).some(x => x.words.length));
+const pimsLesson = (lv, n) => (PIMS.levels[lv] && PIMS.levels[lv].lessons[n]) || null;
+const pimsLessonIds = (lv, n) => { const L = pimsLesson(lv, n); return L ? [...new Set(L.words.map(w => w[3]))] : []; };
+const pimsLessonNums = lv => PIMS.levels[lv] ? Object.keys(PIMS.levels[lv].lessons).map(Number).sort((a, b) => a - b) : [];
+/* lessons done at this Pimsleur level: completed at least once, words added, or (when the counter is on this level) before the current lesson */
+function pimsCompleted(lv = AL.plevel) {
+  const done = new Set();
+  for (const k in AL.rep) { const [l, n] = k.split(":"); if (+l === +lv && AL.rep[k] > 0) done.add(+n); }
+  for (const k in AL.padd) { const [l, n] = k.split(":"); if (+l === +lv) done.add(+n); }
+  if (+lv === +AL.plevel) for (let n = 1; n < AL.cur; n++) done.add(n);
+  return pimsLessonNums(lv).filter(n => done.has(n));
+}
+/* Put a lesson's words into Seen as new SRS items (box 0, due now). Idempotent: words that already have a card are left
+   alone, so doing a lesson twice never duplicates or resets anything. No `t` stamp: an unreviewed card never beats a
+   reviewed copy from another device in sync. Returns the ids this call created (for Undo). */
+function pimsAddLesson(lv, n, force) {
+  if (!force && !AL.pAdd) return null;
+  const ids = pimsLessonIds(lv, n); if (!ids.length) return null;
+  const key = `${lv}:${n}`, newKey = !AL.padd[key], created = [], now = Date.now();
+  for (const id of ids) if (!S.cards[id]) { S.cards[id] = { box: 0, due: now, ok: 0, bad: 0 }; created.push(id); }
+  AL.padd[key] = [...new Set([...(AL.padd[key] || []), ...ids])].sort((a, b) => a - b);
+  if (created.length) save();
+  return { created, newKey, total: ids.length };
+}
+const pimsUnreviewed = c => !!c && !(+c.ok || 0) && !(+c.bad || 0) && !c.t && !(+c.box || 0);
+/* Undo a lesson-done: drop only the words that action created and that haven't been reviewed since */
+function pimsUndo(t, key) {
+  let removed = 0;
+  for (const id of t.pw || []) if (pimsUnreviewed(S.cards[id])) { delete S.cards[id]; removed++; }
+  if (t.pk && removed === (t.pw || []).length) delete AL.padd[key];   // the lesson's words weren't added before this action
+  return removed;
+}
+async function pimsReady(ids) {   // matched words can live in N4–N1: load those lists before drilling
+  const need = [...new Set(ids.map(lvlOf))].filter(l => LV[l] && !LV[l].loaded);
+  if (need.length) { toast(`Loading ${need.map(LNAME).join(", ")}…`); await Promise.all(need.map(loadLevel)); }
+  return ids.filter(id => WORDS[id]);
+}
+async function pimsDrill(ids, title, back, mode = "mixed") {
+  const pool = await pimsReady(ids);
+  if (!pool.length) { toast("Couldn't load these words — offline? Try again when connected"); return; }
+  go(() => mode === "match" ? match(pool, back, `🧩 ${title}`) : quiz(mode, pool, `${MODES[mode].ic} ${title}`, back));
+}
+const pimsThisLesson = () => { const t = alToday(); return t && (t.lv || AL.plevel) === AL.plevel ? t.n : Math.min(AL.cur, pimsLessonNums(AL.plevel).slice(-1)[0] || AL.cur); };
+const pimsConfTag = c => `<span class="pmconf ${c}">${c === "high" ? "✓✓ high" : c === "medium" ? "✓ medium" : "no list"}</span>`;
+function pimsHomeHTML() {
+  if (!pimsHasLevel(AL.plevel)) return "";
+  const n = pimsThisLesson(), L = pimsLesson(AL.plevel, n), k = L ? L.words.length : 0;
+  return `<button class="pmhome" id="pimsOpen"><span>📼 <b>Pimsleur words</b> · Lesson ${n}${k ? ` · ${k} words` : ""}</span><span class="muted">${AL.pAdd ? "added when you finish" : "adding is off"} ›</span></button>`;
+}
+function pimsCardHTML() {
+  const done = pimsCompleted(), ids = [...new Set(done.flatMap(n => pimsLessonIds(AL.plevel, n)))], seen = ids.filter(id => S.cards[id]).length;
+  return `<div class="lvcard" data-lv="pims" role="button" tabindex="0" aria-label="Open Pimsleur words"><span class="lvring" style="--lc:var(--accent)"><span class="lvmix">📼</span></span>
+    <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">Pimsleur words · Level ${AL.plevel}</b><small>${pimsHasLevel(AL.plevel) ? `${done.length} lessons done · ${seen}/${ids.length} words seen` : "no word list for this level yet"} · unofficial</small></span><span class="lvchk" aria-hidden="true">${I("chevronR")}</span></div>`;
+}
+function pimsView() {
+  const lv = AL.plevel, has = pimsHasLevel(lv), done = pimsCompleted(lv), cur = pimsThisLesson();
+  const allIds = [...new Set(done.flatMap(n => pimsLessonIds(lv, n)))], curIds = pimsLessonIds(lv, cur);
+  view.innerHTML = topbar("📼 Pimsleur words", `<span class="muted">Level ${lv}</span>`) + `
+    <p class="pmnote">Unofficial, compiled from learner notes; not affiliated with Pimsleur. Word lists only — lesson placement can differ between course editions.</p>
+    <div class="seg pmlv" id="pmLv" role="radiogroup" aria-label="Pimsleur level">${[1, 2, 3, 4, 5].map(l => `<button role="radio" aria-checked="${l === lv}" class="${l === lv ? "on" : ""}" data-lv="${l}">Level ${l}</button>`).join("")}</div>
+    ${has ? `<div class="btnrow pmdrills"><button class="btn" id="pmDrillCur" ${curIds.length ? "" : "disabled"}>🎯 Drill Lesson ${cur}</button><button class="btn sec" id="pmDrillAll" ${allIds.length ? "" : "disabled"}>📚 Drill completed lessons (${allIds.length})</button></div>
+      <div class="panel pmlist" id="pmList">${pimsLessonNums(lv).map(n => { const L = pimsLesson(lv, n), ids = pimsLessonIds(lv, n), s = ids.filter(id => S.cards[id]).length, d = done.includes(n);
+        return `<button class="setcard pmrow ${ids.length ? "" : "locked"}" data-n="${n}"><span class="ic" style="--c:var(--accent)">${d ? "✅" : n}</span><span class="grow"><b>Lesson ${n}</b> <span class="muted">· ${ids.length ? `${ids.length} words` : "no reliable list yet"}</span> ${pimsConfTag(L.conf)}
+          ${ids.length ? `<div class="minibar"><i style="width:${s / ids.length * 100}%;background:var(--s2)"></i></div><small class="muted">${s}/${ids.length} in Seen${n === cur ? " · current lesson" : ""}</small>` : ""}</span></button>`; }).join("")}</div>`
+    : `<div class="panel" style="text-align:center"><div class="big">📼</div><p>No word list for Level ${lv} yet — I couldn't find reliable per-lesson learner notes for it. Your lesson counter, minutes and repeats still work.</p></div>`}
+    <p class="pmnote">Sources: ${PIMS.meta.sources.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>`).join(" · ")}. Confidence: ✓✓ high = two learner sources agree · ✓ medium = one detailed source.</p>`;
+  bindBack();
+  $("#pmLv").onclick = e => { const b = e.target.closest("button"); if (!b) return; sfx.click(); AL.plevel = +b.dataset.lv; alsave(); go(pimsView); };
+  if (!has) return;
+  $("#pmDrillCur").onclick = () => { sfx.click(); pimsDrill(curIds, `Pimsleur Lesson ${cur}`, pimsView); };
+  $("#pmDrillAll").onclick = () => { sfx.click(); pimsDrill(allIds, "Pimsleur · completed lessons", pimsView); };
+  $("#pmList").onclick = e => { const b = e.target.closest(".pmrow"); if (!b) return; const n = +b.dataset.n; if (!pimsLessonIds(lv, n).length) { sfx.bad(); toast("No reliable word list for this lesson yet"); return; } sfx.click(); go(() => pimsLessonView(lv, n)); };
+}
+async function pimsLessonView(lv, n) {
+  const L = pimsLesson(lv, n), ids0 = pimsLessonIds(lv, n), gen = viewGen;
+  view.innerHTML = topbar(`📼 Lesson ${n}`, "") + `<div class="panel" style="text-align:center"><p>Loading…</p></div>`; bindBack(pimsView);
+  const ids = await pimsReady(ids0); if (gen !== viewGen) return;
+  const missing = ids.filter(id => !S.cards[id]).length, kan = ids.filter(id => WORDS[id].hasKanji).length, back = () => pimsLessonView(lv, n);
+  const src = PIMS.meta.sources.filter(s => L.src.includes(s.id)).map(s => esc(s.name.split(" — ")[0])).join(", ");
+  view.innerHTML = topbar(`📼 Level ${lv} · Lesson ${n}`, `<span class="muted">${ids.length - missing}/${ids.length} seen</span>`) + `
+    <p class="pmnote">${pimsConfTag(L.conf)} ${L.conf === "high" ? "two learner sources agree" : "one learner source"} (${src}) · unofficial, not affiliated with Pimsleur.</p>
+    <div class="grid">
+      <button class="mode" data-m="mixed"><div class="ic">🎲</div><h3>Mixed</h3><p>All question types</p></button>
+      <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning</h3><p>JP → EN</p></button>
+      <button class="mode" data-m="reverse"><div class="ic">🔄</div><h3>Reverse</h3><p>EN → JP</p></button>
+      ${kan ? `<button class="mode" data-m="reading"><div class="ic">📖</div><h3>Reading</h3><p>${kan} kanji words</p></button>` : ""}
+      <button class="mode" data-m="typing"><div class="ic">⌨️</div><h3>Typing</h3><p>Type the Japanese</p></button>
+      ${canAudio() ? `<button class="mode" data-m="listen"><div class="ic">🎧</div><h3>Listening</h3><p>Hear & choose</p></button>` : ""}
+      <button class="mode" data-m="match"><div class="ic">🧩</div><h3>Match</h3><p>Pairs game</p></button>
+    </div>
+    ${missing ? `<div class="btnrow"><button class="btn sec" id="pmAdd">➕ Add ${missing} word${missing > 1 ? "s" : ""} to Seen</button></div>` : ""}
+    <div class="panel" id="pmWords">${ids.map(id => wordRow(WORDS[id]).replace('<span style="text-align:right', `<span class="pmsrc">${lvlOf(id) === "pm" ? "Pimsleur set" : LNAME(lvlOf(id))}</span><span style="text-align:right`)).join("")}</div>`;
+  bindBack(pimsView);
+  view.querySelectorAll("button.mode").forEach(b => b.onclick = () => { sfx.click(); pimsDrill(ids, `Lesson ${n} · ${b.dataset.m === "match" ? "Match" : MODES[b.dataset.m].t}`, back, b.dataset.m); });
+  const a = $("#pmAdd"); if (a) a.onclick = () => { const r = pimsAddLesson(lv, n, true); alsave(); toast(`➕ ${r ? r.created.length : 0} words added to Seen`); go(back); };
+  $("#pmWords").onclick = e => { const r = e.target.closest(".row"); if (r) wordModal(WORDS[+r.dataset.id]); };
+}
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { sfx.click(); go({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView }[b.dataset.tab]); });
@@ -4077,6 +4242,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Example sentences (${LEVELS.map(l => `${LNAME(l)} ${LV[l].loaded ? LV[l].exCount : LV[l].info.ex}`).join(" · ")} words covered): <a href="https://tatoeba.org" target="_blank" rel="noopener">Tatoeba</a> contributors, licensed <a href="https://creativecommons.org/licenses/by/2.0/fr/" target="_blank" rel="noopener">CC BY 2.0 FR</a> (Tanaka Corpus word index).<br>
   Audio: words, kana & most sentences are pre-generated with Microsoft Azure neural TTS voice <b>ja-JP-NanamiNeural</b> (via edge-tts)${hum.length ? `; ${hum.length} sentences (in loaded levels) use human recordings from Tatoeba by ${[...new Set(hum.map(h => h[0]))].map(u => `<a href="https://tatoeba.org/en/user/profile/${encodeURIComponent(u)}" target="_blank" rel="noopener">${esc(u)}</a>`).join(", ")} (${[...new Set(hum.map(h => h[1]))].join(", ")})` : ""}.<br>
   Kanji: meanings, readings, stroke counts & frequency from <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT, David Gouveia), derived from <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a> (EDRDG, CC BY-SA 4.0), with JLPT levels from Jonathan Waller's <a href="http://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">JLPT resources</a>. Stroke order & look-alike shapes from <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> © Ulrich Apel (CC BY-SA 3.0). The kanji data files (data/kanji-*.json) are shared under CC BY-SA.<br>
+  Pimsleur words: <b>unofficial, compiled from learner notes; not affiliated with Pimsleur</b> — word lists only (word, reading, meaning, lesson), cross-checked from ${PIMS.meta.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a>`).join(", ")}; the ${PIMS.pm.length} words not in the JLPT lists use the same NanamiNeural TTS. Pimsleur is a trademark of its owner.<br>
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
@@ -4088,7 +4254,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "cde63d499c49";
+const BUILD = "fc0e45932288";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -4138,7 +4304,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.__N5 = { get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.__N5 = { PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

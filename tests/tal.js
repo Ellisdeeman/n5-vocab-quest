@@ -49,7 +49,7 @@ const LINK='https://example.com/lesson';
  ok('history bar notes the lesson',await ev(()=>[...document.querySelectorAll('.bar')].some(b=>/lesson 3/.test(b.title))));
  await p.emulateMedia({colorScheme:'dark'});await tap('#tabHome');if(SHOT)await p.screenshot({path:SHOT+'al-done-dark.png'});
  await tap('#tabSettings');await tap('#alOn');await tap('#tabHome');ok('toggle off hides the step',!(await p.$('#alCard')));
- ok('vocab progress intact',await ev(()=>Object.keys(__N5.S().cards).length===300));
+ ok('vocab progress intact (the 300 studied cards untouched; Pimsleur words only added)',await ev(()=>{const C=__N5.S().cards;for(let i=0;i<300;i++)if(!C[i]||C[i].box!==3||C[i].ok!==3)return false;return Object.keys(C).length>=300;}));
  ok('no page errors',errs.length===0,JSON.stringify(errs.slice(0,3)));
  console.log('SUMMARY',BR,R.filter(x=>x).length,'/',R.length);await b.close();
 })().catch(e=>{console.log('CRASH',e.message.slice(0,500));process.exit(1)});

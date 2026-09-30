@@ -40,3 +40,8 @@ Human recordings from Tatoeba (https://tatoeba.org), used under their per-record
   n1/h/218563.mp3  sentence #218563 (https://tatoeba.org/en/sentences/show/218563)  speaker: Mizu  license: CC BY-NC 4.0  audio id 12721
 
 Sentence texts: Tatoeba contributors, CC BY 2.0 FR.
+
+pm/w/<index>.mp3 — the 73 "Pimsleur set" words (Pimsleur Japanese lesson words that are not in the JLPT lists), generated with
+edge-tts 7.2.8, voice ja-JP-NanamiNeural (rate -10%), encoded like the level audio (MP3 mono 24 kHz 40 kbps, silence trimmed).
+The word lists are unofficial, compiled from learner notes (see data/pimsleur-ja.json → meta.sources); not affiliated with Pimsleur.
+No Pimsleur course audio is included.
