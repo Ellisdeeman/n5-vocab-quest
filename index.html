@@ -11,34 +11,46 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="application-name" content="JLPT Quest">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <style>
+/* ---------- design tokens: "Stats Trainer" style (dark default look, suggested light mapping); theme setting = auto | light | dark ---------- */
 :root{
-  --bg:#f2f2f7;--bg2:#ffffff;--card:#ffffff;--card2:#f2f2f7;--fill:rgba(120,120,128,.12);--fill2:rgba(120,120,128,.2);
-  --label:#000;--label2:rgba(60,60,67,.62);--label3:rgba(60,60,67,.35);--sep:rgba(60,60,67,.2);
-  --accent:#007aff;--accentT:rgba(0,122,255,.12);--good:#34c759;--bad:#ff3b30;--orange:#ff9500;--yellow:#ffcc00;--purple:#af52de;--pink:#ff2d55;--teal:#30b0c7;--indigo:#5856d6;--mint:#00c7be;--cyan:#32ade6;
-  --kana:#00c7be;--n5:#34c759;--n4:#32ade6;--n3:#5856d6;--n2:#ff9500;--n1:#ff2d55;--tint:var(--accent);
-  --navbg:rgba(249,249,249,.78);--shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.06);--mark:#fff1a8;
-  --r:16px;--rs:12px;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);
-  color-scheme:light;
+  --tint:var(--accent);--r:16px;--rs:14px;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);
+  --bg:#f6f7f9;--bg2:#ffffff;--card:#ffffff;--card2:#f0f2f5;--border:#dde2e8;--track:#e3e7ec;--fill:rgba(91,101,116,.1);--fill2:rgba(91,101,116,.2);
+  --label:#111418;--label2:#5b6574;--label3:rgba(91,101,116,.6);--sep:#dde2e8;
+  --accent:#0f766e;--accent-ink:#ffffff;--accentT:rgba(15,118,110,.12);
+  --good:#15803d;--goodT:rgba(22,163,74,.12);--bad:#dc2626;--badT:rgba(220,38,38,.1);--idk:#a16207;
+  --orange:#c2410c;--yellow:#a16207;--purple:#9333ea;--pink:#db2777;--teal:#0d9488;--indigo:#4f46e5;--mint:#0e7490;--cyan:#0369a1;--blue:#2563eb;--lime:#4d7c0f;--rose:#e11d48;--gray:#64748b;
+  --kana:#86198f;--n5:#1d4ed8;--n4:#6d28d9;--n3:#be185d;--n2:#92400e;--n1:#9a3412;
+  --ring1:#e11d48;--ring2:#65a30d;--ring3:#0284c7;
+  --s1:#ea580c;--s2:#d97706;--s3:#65a30d;--s4:#14b8a6;--s5:#0f766e;
+  --pillmix:#000;--navbg:rgba(246,247,249,.92);--shadow:none;--mark:#fde68a;--toastbg:rgba(17,20,24,.92);color-scheme:light
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){
-  --bg:#000;--bg2:#1c1c1e;--card:#1c1c1e;--card2:#2c2c2e;--fill:rgba(118,118,128,.24);--fill2:rgba(118,118,128,.36);
-  --label:#fff;--label2:rgba(235,235,245,.62);--label3:rgba(235,235,245,.3);--sep:rgba(84,84,88,.6);
-  --accent:#0a84ff;--accentT:rgba(10,132,255,.2);--good:#30d158;--bad:#ff453a;--orange:#ff9f0a;--yellow:#ffd60a;--purple:#bf5af2;--pink:#ff375f;--teal:#40c8e0;--indigo:#5e5ce6;--mint:#63e6e2;--cyan:#64d2ff;
-  --kana:#63e6e2;--n5:#30d158;--n4:#64d2ff;--n3:#7d7aff;--n2:#ff9f0a;--n1:#ff375f;
-  --navbg:rgba(22,22,24,.78);--shadow:none;--mark:#5c4b00;color-scheme:dark}}
+  --bg:#0e1116;--bg2:#171b22;--card:#171b22;--card2:#1d222b;--border:#2a313c;--track:#262c36;--fill:rgba(154,164,178,.12);--fill2:rgba(154,164,178,.22);
+  --label:#e8ecf1;--label2:#9aa4b2;--label3:rgba(154,164,178,.6);--sep:#2a313c;
+  --accent:#2dd4bf;--accent-ink:#04201c;--accentT:rgba(45,212,191,.14);
+  --good:#22c55e;--goodT:rgba(34,197,94,.14);--bad:#ef4444;--badT:rgba(239,68,68,.14);--idk:#fbbf24;
+  --orange:#fb923c;--yellow:#fbbf24;--purple:#c084fc;--pink:#f472b6;--teal:#5eead4;--indigo:#818cf8;--mint:#67e8f9;--cyan:#38bdf8;--blue:#60a5fa;--lime:#a3e635;--rose:#fb7185;--gray:#94a3b8;
+  --kana:#e879f9;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
+  --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;
+  --s1:#fb923c;--s2:#fbbf24;--s3:#a3e635;--s4:#5eead4;--s5:#2dd4bf;
+  --pillmix:#fff;--navbg:rgba(14,17,22,.92);--shadow:none;--mark:rgba(251,191,36,.3);--toastbg:rgba(29,34,43,.96);color-scheme:dark}}
 :root[data-theme=dark]{
-  --bg:#000;--bg2:#1c1c1e;--card:#1c1c1e;--card2:#2c2c2e;--fill:rgba(118,118,128,.24);--fill2:rgba(118,118,128,.36);
-  --label:#fff;--label2:rgba(235,235,245,.62);--label3:rgba(235,235,245,.3);--sep:rgba(84,84,88,.6);
-  --accent:#0a84ff;--accentT:rgba(10,132,255,.2);--good:#30d158;--bad:#ff453a;--orange:#ff9f0a;--yellow:#ffd60a;--purple:#bf5af2;--pink:#ff375f;--teal:#40c8e0;--indigo:#5e5ce6;--mint:#63e6e2;--cyan:#64d2ff;
-  --kana:#63e6e2;--n5:#30d158;--n4:#64d2ff;--n3:#7d7aff;--n2:#ff9f0a;--n1:#ff375f;
-  --navbg:rgba(22,22,24,.78);--shadow:none;--mark:#5c4b00;color-scheme:dark}
+  --bg:#0e1116;--bg2:#171b22;--card:#171b22;--card2:#1d222b;--border:#2a313c;--track:#262c36;--fill:rgba(154,164,178,.12);--fill2:rgba(154,164,178,.22);
+  --label:#e8ecf1;--label2:#9aa4b2;--label3:rgba(154,164,178,.6);--sep:#2a313c;
+  --accent:#2dd4bf;--accent-ink:#04201c;--accentT:rgba(45,212,191,.14);
+  --good:#22c55e;--goodT:rgba(34,197,94,.14);--bad:#ef4444;--badT:rgba(239,68,68,.14);--idk:#fbbf24;
+  --orange:#fb923c;--yellow:#fbbf24;--purple:#c084fc;--pink:#f472b6;--teal:#5eead4;--indigo:#818cf8;--mint:#67e8f9;--cyan:#38bdf8;--blue:#60a5fa;--lime:#a3e635;--rose:#fb7185;--gray:#94a3b8;
+  --kana:#e879f9;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
+  --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;
+  --s1:#fb923c;--s2:#fbbf24;--s3:#a3e635;--s4:#5eead4;--s5:#2dd4bf;
+  --pillmix:#fff;--navbg:rgba(14,17,22,.92);--shadow:none;--mark:rgba(251,191,36,.3);--toastbg:rgba(29,34,43,.96);color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--label);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Hiragino Sans","Noto Sans JP",system-ui,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.35;-webkit-font-smoothing:antialiased}
@@ -371,6 +383,147 @@ body{overflow-x:clip}
 body.studying .updbar{bottom:calc(12px + var(--safe-b))}
 .errtoast{position:fixed;left:12px;right:12px;top:calc(8px + var(--safe-t));z-index:80;display:flex;gap:8px;align-items:flex-start;background:#3a1010;color:#fff;border-radius:14px;padding:10px 6px 10px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:.85rem;max-width:560px;margin:0 auto;word-break:break-word}
 .errtoast small{color:#f5c6c6}.errtoast .muted{color:#d9a0a0}.errtoast .iconbtn{color:#fff;width:36px;height:36px;flex:none}
+/* ================= "Stats Trainer" style layer =================
+   Near-black / light neutrals, 1px bordered cards (radius 16), 2px bordered list rows (radius 14), one teal accent for
+   primary actions, progress and selection; green/red only for right/wrong; tinted 14% pills; 18px base; 54px tap targets. */
+html,body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-size:18px;line-height:1.5}
+.card,.mode,.panel,.hero,.group,.stathead .st,.kjcard,.kjtile,#setlist,#krows,.leechrow,.tile,.kcell:not(.empty),.lvcard,.settingspage .box{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:none}
+.card{padding:22px 18px}
+.panel{padding:18px;margin-top:12px}
+.hero{border-radius:16px;padding:18px;margin-bottom:12px}
+.hero::before{width:3px;background:var(--accent)}
+.hero .ic,.hero.done .ic{background:var(--accentT);color:var(--accent)}
+.hero.done::before{background:var(--accent)}
+.hero p,.mode p,.subtitle{font-size:15px;line-height:1.4}
+.largetitle{font-size:28px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+@media (min-width:700px){.largetitle{font-size:34px}}
+h2,.panel h2{font-size:20px}.hero h2{font-size:20px}
+.sechead{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:22px 4px 8px}
+.muted,.legend,.lvhelp,.typehelp{color:var(--label2)}
+/* nav + tab bar */
+.navbar{background:var(--navbg);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.logo .appic{width:36px;height:36px;border-radius:10px;box-shadow:none}
+.logo b{color:var(--accent)}
+.pill{background:var(--card2);border:1px solid var(--border);color:var(--label)}
+.iconbtn{color:var(--accent)}
+.xpline>div{background:var(--accent)}
+.tabbar{background:var(--navbg);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--border)}
+.tabbar button{min-height:54px;color:var(--label2);font-size:12px;font-weight:600}
+.tabbar button.on{color:var(--accent)}
+.hbadge,.mode .badge,.badge{background:var(--accent);color:var(--accent-ink)}
+#app{padding-bottom:calc(104px + var(--safe-b))}
+/* buttons */
+.btn{background:var(--accent);color:var(--accent-ink);border-radius:14px;min-height:54px;padding:12px 20px;font-size:17px;font-weight:600;border:none}
+.btn:active{transform:scale(.99);opacity:1}
+@media (hover:hover){.btn:not(:disabled):hover{filter:brightness(1.12)}}
+.btn.sec{background:var(--accentT);color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+.btn.ghost{background:var(--card2);color:var(--label);box-shadow:inset 0 0 0 1px var(--border)}
+.btn.small{min-height:44px;padding:8px 16px;font-size:15px}
+.btn[style*="--bad"]{color:#fff}
+.backbtn{color:var(--accent);min-height:44px}
+/* mode tiles / categories: tinted icon chips instead of solid squares */
+.mode{padding:16px;min-height:54px}
+.mode .ic,.setcard .ic,.duerow .ic{background:var(--card2);background:color-mix(in srgb,var(--c,var(--accent)) 14%,transparent);color:var(--c,var(--accent))}
+.mode h3{font-size:17px}
+[data-m=meaning] .ic,[data-km=k2r] .ic{--c:var(--blue)}[data-m=match] .ic,[data-km=match] .ic{--c:var(--lime)}[data-m=typing] .ic,[data-km=type] .ic{--c:var(--gray)}
+[data-m=mixed] .ic{--c:var(--lime)}[data-m=leeches] .ic{--c:var(--rose)}[data-m=kana] .ic{--c:var(--kana)}
+.setcard.locked .ic{--c:var(--gray)}
+/* tag pills: colour at 14% + light (dark mode) / deep (light mode) text */
+.lvtag,.tag,.newtag{--c:var(--accent);display:inline-block;background:var(--card2);background:color-mix(in srgb,var(--c) 14%,transparent);color:color-mix(in srgb,var(--c) 62%,var(--pillmix));border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700;border:0}
+.tag{--c:var(--gray)}
+.pathsteps span.cur{background:color-mix(in srgb,var(--c) 14%,transparent);color:color-mix(in srgb,var(--c) 62%,var(--pillmix));box-shadow:inset 0 0 0 1.5px var(--c)}
+/* segmented controls + switch */
+.seg{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:3px}
+.seg button{border-radius:11px;min-height:40px;color:var(--label2)}
+.seg button.on,:root[data-theme=dark] .seg button.on{background:var(--accentT);color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .seg button.on{background:var(--accentT)}}
+.switch{width:52px;height:32px;background:var(--fill2);border-radius:32px}
+:root:not([data-theme=light]) .switch:not(.on){background:#39414d}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]) .switch:not(.on){background:#c9d0d9}}
+:root[data-theme=light] .switch:not(.on){background:#c9d0d9}
+.switch::after{width:26px;height:26px;left:3px;top:3px}
+.switch.on{background:var(--accent)}.switch.on::after{left:23px}
+input[type=number],.alrow input[type=url],.notebox{background:var(--card2);border:1px solid var(--border);border-radius:14px;color:var(--label)}
+.row{border-bottom:1px solid var(--border);min-height:52px}
+/* quiz: list-row choices */
+.choice{background:var(--card2);border:2px solid var(--border);border-radius:14px;min-height:58px;font-size:18px}
+@media (hover:hover){.choice:not(:disabled):hover{border-color:var(--accent)}}
+.choice:active{transform:scale(.99)}
+.choice.right{background:var(--goodT);color:var(--label);border-color:var(--good)}
+.choice.wrong{background:var(--badT);color:var(--label);border-color:var(--bad)}
+.choice.right small,.choice.wrong small{color:var(--label2)}
+.choice.right::after,.choice.wrong::after{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+.choice.right::after{content:"✓";background:var(--good)}.choice.wrong::after{content:"✕";background:var(--bad)}
+.choices:has(.choice.right) .choice:not(.right):not(.wrong){opacity:.6}
+.card .iconbtn{background:var(--accentT)}
+.bigspk{background:var(--accent);color:var(--accent-ink);box-shadow:none}
+.typein{background:var(--card2);border:2px solid var(--border);border-radius:14px}
+.typein:focus{border-color:var(--accent)}
+.ex,.kjex{background:var(--card2);border:1px solid var(--border);border-radius:14px}
+.note{background:rgba(251,191,36,.08);border-left:3px solid var(--yellow);border-radius:6px}
+.qtype{font-size:14px;letter-spacing:.04em;color:var(--label2);font-weight:700}
+.feedback{font-size:17px}
+/* progress */
+.sprog,.timebar,.minibar{background:var(--track);border-radius:999px}
+.sprog{height:8px}.sprog>div{background:var(--accent);border-radius:999px;transition:width .25s}
+.timebar>div{background:var(--accent)}
+.minibar{height:8px}.minibar i{border-radius:999px}
+.dots span{background:var(--card2);border:1px solid var(--border)}.dots span.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#map .b0,.legend .b0{background:var(--fill2)}#map .b1,.legend .b1{background:var(--s1)}#map .b2,.legend .b2{background:var(--s2)}#map .b3,.legend .b3{background:var(--s3)}#map .b4,.legend .b4{background:var(--s4)}#map .b5,.legend .b5{background:var(--s5)}
+.kb1{border-bottom-color:var(--s1)}.kb2{border-bottom-color:var(--s2)}.kb3{border-bottom-color:var(--s3)}.kb4{border-bottom-color:var(--s4)}.kb5{border-bottom-color:var(--s5)}
+.kjtile.b1,.kjtile.b0{box-shadow:inset 0 -3px 0 var(--s1)}.kjtile.b2,.kjtile.b3{box-shadow:inset 0 -3px 0 var(--s3)}.kjtile.b4,.kjtile.b5{box-shadow:inset 0 -3px 0 var(--s5)}
+.kjtile{border-radius:14px}
+.chart .bar i{background:color-mix(in srgb,var(--accent) 45%,transparent)}.chart .bar.met i{background:var(--accent)}
+.chart .goalline{border-top-color:var(--ring1)}.chart .goalline span{color:var(--ring1)}
+.goalpanel.met{box-shadow:none;border-color:var(--accent)}
+.duen{color:var(--accent)}
+.combo,.floatxp{color:var(--yellow)}
+/* lists: 2px bordered rows, selected = accent border */
+#setlist,#krows{padding:6px;display:flex;flex-direction:column;gap:6px}
+.setcard,.duerow{background:var(--card2);border:2px solid var(--border);border-radius:14px;min-height:58px}
+.setcard:last-child,.duerow:last-child{border-bottom:2px solid var(--border)}
+.duepanel{padding:0 8px 8px}.duepanel h2{padding:14px 6px 6px}.duepanel .duerow{margin-top:6px}
+details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padding-left:14px}details.duesets .duerow{padding-left:14px;margin-left:14px;width:calc(100% - 14px)}
+.lvcard{border:2px solid var(--border);border-radius:14px}
+.lvcard.on{border-color:var(--accent)}
+.lvcard .minibar i:last-child{background:var(--lc)!important}
+.lvlist{display:flex;flex-direction:column;gap:6px}
+.lvlist .lvcard{border:2px solid var(--border);border-radius:14px;background:var(--card2)}
+.lvlist .lvcard:last-child{border-bottom:2px solid var(--border)}
+.lvlist .lvcard.on{border-color:var(--accent);background:var(--card2)}
+.lvlist .lvcard .lvbadge{background:color-mix(in srgb,var(--lc) 14%,transparent);color:color-mix(in srgb,var(--lc) 62%,var(--pillmix))}
+.lvchk{color:var(--accent)}
+.lvhead{background:transparent;color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.04em}
+.pathbar{background:var(--card2);border:1px solid var(--border)}
+/* kanji */
+.kjsvgwrap{background:var(--card2);border:1px solid var(--border)}
+.kjsvg .kjst.cur{stroke:var(--accent)}
+.kjexrow{border-bottom:1px solid var(--border)}.kjexrow svg{color:var(--accent)}
+.kjcard svg:last-child{color:var(--label2)}
+/* sheets & toasts */
+.modal{background:rgba(0,0,0,.5)}
+.modal .box{background:var(--card);border:1px solid var(--border)}
+.toast{background:var(--toastbg);color:#e8ecf1;border:1px solid rgba(255,255,255,.08)}
+.updbar{background:var(--card);border:1px solid var(--border)}
+/* audio lesson card keeps its own identity only in the icon chip */
+.alcard:not(.done){--tint:var(--accent)}
+.alcard .ic{--c:var(--indigo);background:color-mix(in srgb,var(--indigo) 14%,transparent)!important;color:var(--indigo)!important}
+.alcard .minibar i{background:var(--accent)!important}
+/* small phones with the 18px type */
+@media (max-width:380px){html,body{font-size:17px}.btn{padding:12px 16px}.hero{padding:16px}.card{padding:18px 14px}.grid{gap:10px}.mode{padding:14px}}
+@media (max-width:340px){.grid{grid-template-columns:1fr 1fr}.mode{padding:12px}.mode h3{font-size:16px}}
+.duerow{flex-wrap:wrap;row-gap:8px}.duerow .grow{min-width:150px}.duerow .btn{margin-left:auto}
+/* contrast + tap-target fixes (WCAG AA checked in dark and light) */
+.choice .k{color:var(--label2)}
+.okuri{color:var(--label2);text-decoration:underline dotted;text-underline-offset:3px}
+.seg button.on,:root[data-theme=dark] .seg button.on{background:var(--card);color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .seg button.on{background:var(--card)}}
+.mode .ic,.setcard .ic,.duerow .ic{color:var(--c,var(--accent));color:color-mix(in srgb,var(--c,var(--accent)) 72%,var(--pillmix))}
+.duerow .ic b,.lvring b{color:var(--lc,inherit)}
+.duerow .ic.lvic b{color:inherit}
+.switch{overflow:visible}.switch::before{content:"";position:absolute;inset:-7px -4px}
+.goalpanel .progress-big>div{min-width:0}.goalrow span{flex-wrap:wrap;min-width:0}
+@media (max-width:380px){.goalrings{width:96px;height:96px}.goalpanel .progress-big{gap:12px}}
 </style>
 </head>
 <body>
@@ -708,7 +861,7 @@ function applyTheme() {
   const t = S.theme === "light" || S.theme === "dark" ? S.theme : "auto";
   if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
   const dark = t === "dark" || (t === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", dark ? "#000000" : "#f2f2f7"));
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", dark ? "#0e1116" : "#f6f7f9"));
 }
 applyTheme();
 try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme); } catch (e) {}
@@ -910,7 +1063,7 @@ addEventListener("resize", resizeCv); resizeCv();
 function confetti(n = 100) {   // tasteful: a small burst, skipped entirely with reduced motion
   if (REDUCED_MOTION()) return;
   n = Math.min(48, Math.round(n * 0.3));
-  const cols = ["#007aff", "#34c759", "#ff9500", "#ff2d55", "#5856d6", "#ffcc00"];
+  const cols = ["#2dd4bf", "#a3e635", "#fb923c", "#f472b6", "#818cf8", "#fbbf24"];
   for (let i = 0; i < n; i++) parts.push({ x: cv.width / 2 + (Math.random() - .5) * cv.width * .2, y: cv.height * .3, vx: (Math.random() - .5) * 11 * devicePixelRatio, vy: (-Math.random() * 11 - 3) * devicePixelRatio, s: (3 + Math.random() * 4) * devicePixelRatio, c: cols[rand(cols.length)], r: Math.random() * 6, vr: (Math.random() - .5) * .3, life: 70 + rand(40) });
   if (!confRunning) { confRunning = true; requestAnimationFrame(stepConf); }
 }
@@ -966,8 +1119,8 @@ function exampleHTML(id, max = 1) {
 }
 const noteHTML = id => S.notes[id] ? `<div class="note">💡 <b>Your note:</b> ${esc(S.notes[id])}</div>` : "";
 function revealHTML(w, ok, extra = "", idk = false) {
-  const head = `${esc(w.jp)}${w.jp !== w.kana ? "（" + esc(w.kana) + "）" : ""}${S.romaji ? ` <span style="font-weight:400;color:#8a86b0">${esc(ROMA(w.kana))}</span>` : ""} = ${esc(w.en)}`;
-  return `<div style="color:${ok ? "var(--good)" : idk ? "#b07d00" : "var(--bad)"}">${ok ? "✔" : idk ? "🤷" : "✘"} ${head}</div>${extra}${noteHTML(w.id)}${exampleHTML(w.id)}
+  const head = `${esc(w.jp)}${w.jp !== w.kana ? "（" + esc(w.kana) + "）" : ""}${S.romaji ? ` <span style="font-weight:400;color:var(--label2)">${esc(ROMA(w.kana))}</span>` : ""} = ${esc(w.en)}`;
+  return `<div style="color:${ok ? "var(--good)" : idk ? "var(--idk)" : "var(--bad)"}">${ok ? "✔" : idk ? "🤷" : "✘"} ${head}</div>${extra}${noteHTML(w.id)}${exampleHTML(w.id)}
     <div class="btnrow"><button class="btn ghost small" data-note="${w.id}">✏️ ${S.notes[w.id] ? "Edit" : "Add"} mnemonic</button>${isLeech(w.id) ? `<span class="tag">🧛 leech</span>` : ""}</div>`;
 }
 /* delegated handlers for sentence audio + note buttons */
@@ -1120,7 +1273,7 @@ let curView = null, viewGen = 0;   // viewGen: bumped on every screen change, so
 let curTab = "home";
 const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
-function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", a.length === 1 ? `var(--${a[0]})` : "var(--indigo)"); }
+function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
 function go(fn) { curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
   const v = $("#view"); v.style.animation = "none"; void v.offsetWidth; v.style.animation = "";
   fn(); const t = TAB_OF().get(fn); if (t) setTab(t); document.body.classList.toggle("studying", studyScreen); applyTint(); updateHeader(); }
@@ -1617,7 +1770,7 @@ function match(pool = ALL_IDS, back = home, title = "🧩 Matching Pairs") {
 /* ---------- Word sets ---------- */
 function setsView() {
   view.innerHTML = topbar("📚 Word Sets", `<span class="muted">${SETS.filter(setUnlocked).length}/${SETS.length} unlocked</span>`) +
-    `<p class="muted" style="margin:4px 0">Topics unlock in order: see ${Math.round(UNLOCK_AT * 100)}% of a set to open the next one${S.unlockAll ? " (all unlocked in Settings)" : ` · or <a href="#" id="unlockAllLink" style="color:var(--accent2)">unlock all</a>`}.</p><div id="setlist"></div>`;
+    `<p class="muted" style="margin:4px 0">Topics unlock in order: see ${Math.round(UNLOCK_AT * 100)}% of a set to open the next one${S.unlockAll ? " (all unlocked in Settings)" : ` · or <a href="#" id="unlockAllLink" style="color:var(--accent)">unlock all</a>`}.</p><div id="setlist"></div>`;
   bindBack();
   const list = $("#setlist");
   const multi = activeLevels().length > 1;
@@ -1625,14 +1778,14 @@ function setsView() {
     const k = s.k, un = setUnlocked(s), seen = setSeenFrac(s), mast = setMasteredFrac(s);
     if (multi && k === 0) list.insertAdjacentHTML("beforeend", `<h3 class="lvhead">${LNAME(s.lvl)} · ${LV[s.lvl].sets.length} sets · ${LV[s.lvl].ids.length} words</h3>`);
     list.insertAdjacentHTML("beforeend", `<button class="setcard ${un ? "" : "locked"}" data-sid="${esc(s.id)}"><span class="ic" style="--c:${setColor(s)}">${un ? s.icon : "🔒"}</span><span class="grow"><b>${esc(s.name)}</b> <span class="muted">· ${s.ids.length} words</span>
-      <div class="minibar"><i style="width:${seen * 100}%;background:#ffc857"></i><i style="width:${mast * 100}%;background:#2ec4b6"></i></div>
+      <div class="minibar"><i style="width:${seen * 100}%;background:var(--s2)"></i><i style="width:${mast * 100}%;background:var(--accent)"></i></div>
       <small class="muted">${Math.round(seen * 100)}% seen · ${Math.round(mast * 100)}% mastered${un ? "" : ` · reach ${Math.round(UNLOCK_AT * 100)}% seen in “${esc(LV[s.lvl].sets[k - 1].name)}” to unlock`}</small></span></button>`);
   });
   list.onclick = e => { const b = e.target.closest(".setcard"); if (!b) return; const k = b.dataset.sid; if (!setUnlocked(setById(k))) { sfx.bad(); toast("🔒 Locked — keep studying the previous set!"); return; } sfx.click(); go(() => setDetail(k)); };
   const ul = $("#unlockAllLink"); if (ul) ul.onclick = e => { e.preventDefault(); if (confirm("Unlock all word sets?")) { S.unlockAll = true; save(); go(setsView); } };
 }
-const SET_COLORS = { phrases: "var(--accent)", numbers: "var(--indigo)", pointing: "var(--teal)", people: "var(--orange)", time: "var(--pink)", food: "var(--orange)", places: "var(--cyan)", things: "var(--purple)", body: "var(--bad)",
-  nature: "var(--good)", adjectives: "var(--pink)", verbs: "var(--accent)", everyday: "#8e8e93", adverbs: "var(--mint)", feelings: "var(--pink)", study: "var(--indigo)", society: "var(--teal)" };
+const SET_COLORS = { phrases: "var(--blue)", numbers: "var(--indigo)", pointing: "var(--mint)", people: "var(--orange)", time: "var(--pink)", food: "var(--orange)", places: "var(--cyan)", things: "var(--purple)", body: "var(--rose)",
+  nature: "var(--lime)", adjectives: "var(--pink)", verbs: "var(--blue)", everyday: "var(--gray)", adverbs: "var(--mint)", feelings: "var(--pink)", study: "var(--indigo)", society: "var(--cyan)" };
 const setColor = s => SET_COLORS[s.id.replace(/^n\d-/, "").replace(/\d+$/, "")] || "var(--tint)";
 function setDetail(k) {
   const s = setById(k), back = setsView, kan = s.ids.filter(id => WORDS[id].hasKanji).length;
@@ -1961,9 +2114,9 @@ function kanaHome() {
     const un = sc.some(s => kUnlocked(s, g.id)), on = KS.sel[g.id] !== false;
     if (g.type !== lastType) { rows.insertAdjacentHTML("beforeend", `<div class="muted" style="margin:12px 0 0;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:1px">${g.type}${g.type === "Youon" ? " (combos)" : ""}</div>`); lastType = g.type; }
     const chars = sc.map(s => KBYGROUP[s][g.id].slice(0, 5).join("")).join(" ");
-    const bars = sc.map(s => { const lf = kLearnedFrac(s, g.id), mf = (KBYGROUP[s][g.id].filter(id => kcard(id).box >= MASTER_BOX).length / KBYGROUP[s][g.id].length); return `<div class="minibar" title="${s === "h" ? "hiragana" : "katakana"}"><i style="width:${lf * 100}%;background:#ffc857"></i><i style="width:${mf * 100}%;background:#2ec4b6"></i></div>`; }).join("");
+    const bars = sc.map(s => { const lf = kLearnedFrac(s, g.id), mf = (KBYGROUP[s][g.id].filter(id => kcard(id).box >= MASTER_BOX).length / KBYGROUP[s][g.id].length); return `<div class="minibar" title="${s === "h" ? "hiragana" : "katakana"}"><i style="width:${lf * 100}%;background:var(--s2)"></i><i style="width:${mf * 100}%;background:var(--accent)"></i></div>`; }).join("");
     rows.insertAdjacentHTML("beforeend", `<button class="setcard ${un ? "" : "locked"}" data-g="${g.id}"><span class="ic" style="font-size:1.3rem">${un ? (on ? "✅" : "⬜") : "🔒"}</span><span class="grow"><b>${esc(g.name)}</b> <span class="jp muted">${esc(chars)}${KBYGROUP[sc[0]][g.id].length > 5 ? "…" : ""}</span>${bars}
-      ${sc.map(s => kMasteredRow(s, g.id) ? `<small style="color:#7bd88f">★ ${s === "h" ? "hiragana" : "katakana"} mastered </small>` : "").join("")}</span></button>`);
+      ${sc.map(s => kMasteredRow(s, g.id) ? `<small style="color:var(--accent)">★ ${s === "h" ? "hiragana" : "katakana"} mastered </small>` : "").join("")}</span></button>`);
   });
   rows.onclick = e => {
     const b = e.target.closest(".setcard"); if (!b) return; const gid = b.dataset.g;
@@ -2050,8 +2203,8 @@ function kRenderMC(mode, it, pool, onAnswer) {
   return { choose, idk };
 }
 function kReveal(it, ok, wrong, idk) {
-  return `<div style="color:${ok ? "var(--good)" : idk ? "#b07d00" : "var(--bad)"};font-size:1.2rem">${ok ? "✔" : idk ? "🤷" : "✘"} <b class="jp" style="font-size:1.6rem">${esc(it.id)}</b> = ${esc(it.r)}${it.pair ? ` <span class="muted">(${it.s === "h" ? "カタカナ" : "ひらがな"} <span class="jp">${esc(it.pair)}</span>)</span>` : ""}</div>
-    ${wrong ? `<div class="muted" style="margin-top:6px">You chose <b class="jp" style="font-size:1.4rem;color:var(--ink)">${esc(wrong.id)}</b> = ${esc(wrong.r)} — compare the two shapes!</div>` : ""}
+  return `<div style="color:${ok ? "var(--good)" : idk ? "var(--idk)" : "var(--bad)"};font-size:1.2rem">${ok ? "✔" : idk ? "🤷" : "✘"} <b class="jp" style="font-size:1.6rem">${esc(it.id)}</b> = ${esc(it.r)}${it.pair ? ` <span class="muted">(${it.s === "h" ? "カタカナ" : "ひらがな"} <span class="jp">${esc(it.pair)}</span>)</span>` : ""}</div>
+    ${wrong ? `<div class="muted" style="margin-top:6px">You chose <b class="jp" style="font-size:1.4rem;color:var(--label)">${esc(wrong.id)}</b> = ${esc(wrong.r)} — compare the two shapes!</div>` : ""}
     ${canAudio() ? `<div class="btnrow"><button class="btn ghost small" data-ksay="${esc(it.id)}">🔈 Hear again</button></div>` : ""}`;
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-ksay]"); if (b) kSay(KITEMS[b.dataset.ksay]); });
@@ -2274,7 +2427,7 @@ function updateTimePill() { const el = $("#sTime"); if (el) el.textContent = `${
 
 /* Apple-Fitness-style concentric rings: minutes (outer), items reviewed, new words (only rings for goals that are set) */
 function ringsSVG(parts, size = 118) {
-  const cols = { min: "var(--pink)", items: "var(--good)", new: "var(--cyan)" }, W = 12, gap = 2.5;
+  const cols = { min: "var(--ring1)", items: "var(--ring2)", new: "var(--ring3)" }, W = 12, gap = 2.5;
   return `<svg class="goalrings" viewBox="0 0 ${size} ${size}" role="img" aria-label="${parts.map(p => `${p.have} of ${p.need} ${p.label}`).join(", ")}">${parts.map((p, k) => {
     const r = size / 2 - W / 2 - k * (W + gap), C = 2 * Math.PI * r, f = Math.min(1, p.have / p.need), over = p.have / p.need > 1;
     return `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${cols[p.k]};opacity:.22" stroke-width="${W}"/>
@@ -2282,7 +2435,7 @@ function ringsSVG(parts, size = 118) {
 }
 function goalPanelHTML() {
   const x = tget(todayStr()), parts = goalParts(), met = goalMet(), gs = goalStreak();
-  const cols = { min: "var(--pink)", items: "var(--good)", new: "var(--cyan)" };
+  const cols = { min: "var(--ring1)", items: "var(--ring2)", new: "var(--ring3)" };
   return `<div class="panel goalpanel ${met ? "met" : ""}"><div class="progress-big">
     ${ringsSVG(parts)}
     <div style="flex:1;min-width:0"><h2 style="margin:0 0 4px">${met ? "✅ Goal reached" : "Daily goal"}</h2>
@@ -2382,7 +2535,7 @@ async function ensureDueLevels(maxMs = 10000) {   // load every level that has s
   if (need.length || kneed.length) await Promise.race([Promise.all(need.map(loadLevel).concat(kneed.map(loadKanji))), new Promise(r => setTimeout(r, maxMs))]);
 }
 function dueRow(key, icon, name, r, sub = "") {
-  const c = /^n\d$/.test(key) ? `var(--${key})` : key.startsWith("kanji:") ? `var(--${key.slice(6)})` : key === "leech" ? "var(--bad)" : key.startsWith("kana") ? "var(--mint)" : key.startsWith("set:") ? setColor({ id: key.slice(4) }) : "var(--tint)";
+  const c = /^n\d$/.test(key) ? `var(--${key})` : key.startsWith("kanji:") ? `var(--${key.slice(6)})` : key === "leech" ? "var(--rose)" : key.startsWith("kana") ? "var(--kana)" : key.startsWith("set:") ? setColor({ id: key.slice(4) }) : "var(--tint)";
   return `<div class="duerow" data-key="${esc(key)}"><span class="ic ${/^n\d$/.test(key) ? "lvic" : ""}" style="--c:${c}">${/^n\d$/.test(key) ? `<b style="font-size:.8rem">${LNAME(key)}</b>` : icon}</span><span class="grow"><b>${name}</b>${sub ? ` <small class="muted">${sub}</small>` : ""}<br><small>${dueStatus(r)}</small></span>
     <button class="btn small ${r.ids.length ? "" : "ghost"}" data-review="${esc(key)}">${r.ids.length ? `Review all due (${batchOf(r.ids.length)})` : "Nothing due"}</button></div>`;
 }
@@ -2999,7 +3152,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "aadbb4128f24";
+const BUILD = "28ffc68376b4";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
