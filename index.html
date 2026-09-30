@@ -617,6 +617,36 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .pmconf.high,.pmdrills .btn.sec,#pmAdd{color:var(--pmink,var(--accent))}
 @media (prefers-color-scheme:light){:root:not([data-theme=dark]){--pmink:#0b5e58}}
 :root[data-theme=light]{--pmink:#0b5e58}
+
+/* All words map */
+.amsum{font-size:.95rem;margin:2px 2px 10px;color:var(--label)}.amsum b{font-size:1.25rem}
+.amchips,.amst{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 2px 8px;margin:0 -2px}
+.amchips::-webkit-scrollbar,.amst::-webkit-scrollbar{display:none}
+.amchip{flex:none;min-height:54px;min-width:54px;padding:6px 14px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:var(--label);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.9rem;font-weight:600;line-height:1.2}
+.amchip small{font-size:.74rem;font-weight:500;color:var(--label2)}
+.amchip.on{background:var(--accentT);border-color:var(--accent);color:var(--pmink,var(--accent));box-shadow:inset 0 0 0 1px var(--accent)}
+.amchip.on small{color:var(--label)}
+.amkjrow{margin:4px 0 8px}
+.amlegend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.8rem;color:var(--label2);margin:4px 2px 10px}
+.amlegend span{display:inline-flex;align-items:center;gap:5px}
+.amlegend i{display:inline-block;width:13px;height:13px;border-radius:3px}
+.amk0{background:var(--fill2)}.amk1{background:var(--s1);opacity:.45}.amk2{background:var(--s1)}.amk3{background:var(--s2)}.amk4{background:var(--s3)}.amk5{background:var(--s4)}.amk6{background:var(--s5)}
+.amlegend .amdue{background:var(--fill2);position:relative}.amlegend .amdue::after{content:"";position:absolute;right:1px;top:1px;width:5px;height:5px;border-radius:50%;background:var(--label)}
+.amlegend .amlee{background:var(--fill2);box-shadow:inset 0 0 0 2px var(--bad)}
+.amctl{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;background:var(--bg);padding:6px 0 6px;margin:0 0 4px}
+.amctl .amst{flex:1;min-width:0;padding-bottom:0}
+.amzoom{flex:none;width:54px;height:54px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:var(--label);font-size:1.5rem;font-weight:700;line-height:1}
+.amzoom:disabled{opacity:.4}
+.amhost{position:relative}
+.amhost canvas{position:sticky;top:0;display:block;width:100%;touch-action:pan-y}
+.amhint{font-size:.8rem;margin:10px 2px}
+.amsheet .box{text-align:center}
+.amsheet .amread{font-size:1.25rem;margin-top:2px}
+.amsheet .ammean{font-size:1.05rem;margin:8px 0}
+.amsheet .amstat{font-size:.9rem;color:var(--label2)}
+.ammini .minibar{margin:8px 0 12px}
+@media (prefers-reduced-motion:reduce){.amchip,.amzoom{transition:none}}
+.sfxrow .seg button{min-height:44px;min-width:58px}
 </style>
 </head>
 <body>
@@ -1028,7 +1058,7 @@ function checkUnlocks(l = "n5") {
     if (S.unlockedSets.includes(L[k].id)) continue;
     if (setUnlocked(L[k - 1]) && setSeenFrac(L[k - 1]) >= UNLOCK_AT) {
       S.unlockedSets.push(L[k].id); save();
-      if (!S.unlockAll) setTimeout(() => { toast(`🔓 New ${LNAME(l)} word set unlocked: ${L[k].icon} ${L[k].name}`); confetti(90); }, 400);
+      if (!S.unlockAll) setTimeout(() => { sfx.unlock(); toast(`🔓 New ${LNAME(l)} word set unlocked: ${L[k].icon} ${L[k].name}`); confetti(90); }, 400);
     }
   }
 }
@@ -1080,20 +1110,26 @@ function comboHit(correct, el, base = 10, soft = false) {
   const c = $("#combo"); if (c) { c.textContent = combo ? `🔥 ${combo} · x${multiplier()}` : ""; c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); }
 }
 
-/* ================= Sound (WebAudio) ================= */
-let actx = null;
+/* ================= Sound (WebAudio) =================
+   Two UI sound sets: "Analog" (default, app1s.js) and "Classic" (the original beeps below). Word/sentence audio is separate.
+   sfxOff = an OfflineAudioContext while a sound is being rendered for tests (bypasses the sound toggle). */
+let actx = null, sfxOff = null;
+function sfxCtx() {
+  if (sfxOff) return sfxOff;
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === "suspended") { try { actx.resume(); } catch (e) {} }
+  return actx;
+}
+const sfxVol = () => sfxOff ? 1 : ({ soft: 0.6, normal: 1, loud: 1.5 })[S.sfxVol] || 0.6;
 function tone(freq, dur = 0.12, type = "sine", when = 0, vol = 0.18) {
-  if (!S.sound) return;
   try {
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    if (actx.state === "suspended") actx.resume();
-    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    const ctx = sfxCtx(), t = ctx.currentTime + when, o = ctx.createOscillator(), g = ctx.createGain(), v = vol * sfxVol();
     o.type = type; o.frequency.setValueAtTime(freq, t);
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + dur + 0.02);
   } catch (e) {}
 }
-const sfx = {
+const sfxClassic = {
   good: () => { tone(660, .1, "triangle"); tone(990, .14, "triangle", .08); },
   bad: () => { tone(220, .18, "sawtooth", 0, .08); tone(160, .22, "sawtooth", .1, .08); },
   combo: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .12, "square", i * .07, .08)),
@@ -1101,8 +1137,14 @@ const sfx = {
   click: () => tone(880, .04, "square", 0, .05),
   idk: () => { tone(520, .1, "sine", 0, .1); tone(390, .16, "sine", .08, .1); },
   tick: () => tone(1200, .03, "square", 0, .04),
-  end: () => [784, 659, 523].forEach((f, i) => tone(f, .2, "triangle", i * .12))
+  end: () => [784, 659, 523].forEach((f, i) => tone(f, .2, "triangle", i * .12)),
+  goal: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .18, "triangle", i * .1)),
+  unlock: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .12, "square", i * .07, .08)),
+  hit: () => tone(150, .1, "square", 0, .08)
 };
+const SFX_NAMES = Object.keys(sfxClassic);
+const sfx = {};
+SFX_NAMES.forEach(n => sfx[n] = () => { if (!S.sound) return; const set = S.sfxStyle === "classic" || typeof sfxAnalog === "undefined" ? sfxClassic : sfxAnalog; try { set[n](); } catch (e) {} });
 
 /* ================= Speech synthesis ================= */
 const HAS_SPEECH = "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance === "function";
@@ -1169,6 +1211,83 @@ function stepConf() {
 }
 function floatText(t, el) { const r = el.getBoundingClientRect(), d = document.createElement("div"); d.className = "floatxp"; d.textContent = t; d.style.left = (r.left + r.width / 2 - 30) + "px"; d.style.top = (r.top - 10) + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 1000); }
 let toastT; function toast(t) { document.querySelectorAll(".toast").forEach(e => e.remove()); const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); clearTimeout(toastT); toastT = setTimeout(() => d.remove(), 2200); }
+
+/* ================= UI sounds: "Analog" set (default) =================
+   Synthesized live with Web Audio — no files. Soft marimba / kalimba / felt-piano / wood voices: sine & triangle partials
+   with 2–12 ms attacks, a little random detune + slow vibrato per note (tape wobble), a mallet "tock" of filtered noise,
+   then a shared bus: gentle tanh saturation → 70 Hz high-pass → 4.2 kHz low-pass (tape warmth) + a short, dark
+   generated-noise reverb. Short sounds stay under 0.4 s; celebrations (level, goal, combo, end) run ~1–1.6 s. */
+const anBuses = new WeakMap();
+function anBus(ctx) {
+  let b = anBuses.get(ctx); if (b) return b;
+  const inp = ctx.createGain(), sat = ctx.createWaveShaper(), hp = ctx.createBiquadFilter(), lp = ctx.createBiquadFilter(), out = ctx.createGain(), rv = ctx.createConvolver(), rvg = ctx.createGain();
+  const n = 1024, curve = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; curve[i] = Math.tanh(1.8 * x) / Math.tanh(1.8); }
+  sat.curve = curve; sat.oversample = "2x";
+  hp.type = "highpass"; hp.frequency.value = 70; lp.type = "lowpass"; lp.frequency.value = 4200; lp.Q.value = 0.4;
+  const len = Math.floor(ctx.sampleRate * 0.45), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lpv = 0; for (let i = 0; i < len; i++) { lpv += ((Math.random() * 2 - 1) - lpv) * 0.35; d[i] = lpv * Math.pow(1 - i / len, 4.5); } }
+  rv.buffer = ir; rvg.gain.value = 0.18; out.gain.value = 0.55;
+  inp.connect(sat); sat.connect(hp); hp.connect(lp); lp.connect(out); lp.connect(rv); rv.connect(rvg); rvg.connect(out); out.connect(ctx.destination);
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  b = { inp, noise: nb }; anBuses.set(ctx, b); return b;
+}
+const AN_KIND = {   // [ratio, wave, level, decay fraction] partials + attack (s) + mallet noise level
+  marimba: { atk: .006, p: [[1, "sine", 1, 1], [3.93, "sine", .16, .2]], mallet: .2 },
+  kalimba: { atk: .005, p: [[1, "sine", 1, 1], [5.9, "sine", .07, .15], [2, "triangle", .07, .5]], mallet: .2 },
+  felt: { atk: .012, p: [[1, "triangle", .7, 1], [1.004, "sine", .4, .9], [2, "sine", .18, .5], [3, "sine", .05, .3]], mallet: .15 },
+  wood: { atk: .007, p: [[1, "sine", 1, 1], [2.7, "sine", .22, .35]], mallet: .45, drop: 1.45 }
+};
+function anNote(f, when = 0, dur = .3, vol = .2, kind = "marimba") {
+  const ctx = sfxCtx(), bus = anBus(ctx), K = AN_KIND[kind], t = ctx.currentTime + when + .005, v = vol * sfxVol();
+  const g = ctx.createGain(); g.gain.value = v; g.connect(bus.inp);
+  const det = (Math.random() * 2 - 1) * 6, lfo = ctx.createOscillator(), lg = ctx.createGain();
+  lfo.frequency.value = 4 + Math.random() * 1.5; lg.gain.value = 5; lfo.connect(lg); lfo.start(t); lfo.stop(t + dur + .1);
+  for (const [r, wave, amp, dec] of K.p) {
+    const o = ctx.createOscillator(), og = ctx.createGain(), end = t + Math.max(.03, dur * dec);
+    o.type = wave; o.detune.value = det; lg.connect(o.detune);
+    if (K.drop) { o.frequency.setValueAtTime(f * r * K.drop, t); o.frequency.exponentialRampToValueAtTime(f * r, t + .035); } else o.frequency.setValueAtTime(f * r, t);
+    og.gain.setValueAtTime(0.0001, t); og.gain.linearRampToValueAtTime(amp, t + K.atk); og.gain.exponentialRampToValueAtTime(0.0001, end);
+    o.connect(og).connect(g); o.start(t); o.stop(end + .02);
+  }
+  if (K.mallet) {   // soft "tock": a few ms of band-passed noise
+    const s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), ng = ctx.createGain(); s.buffer = bus.noise;
+    bp.type = "bandpass"; bp.frequency.value = Math.min(2200, f * 2); bp.Q.value = 1.2;
+    ng.gain.setValueAtTime(0.0001, t); ng.gain.linearRampToValueAtTime(K.mallet * .3, t + .007); ng.gain.exponentialRampToValueAtTime(0.0001, t + .03);
+    s.connect(bp).connect(ng).connect(g); s.start(t); s.stop(t + .04);
+  }
+}
+const sfxAnalog = {
+  click: () => anNote(880, 0, .06, .07, "wood"),
+  tick: () => anNote(1320, 0, .04, .04, "wood"),
+  good: () => { anNote(784, 0, .2, .2, "marimba"); anNote(1175, .065, .22, .17, "marimba"); },
+  bad: () => { anNote(247, 0, .16, .2, "felt"); anNote(196, .08, .2, .2, "felt"); },          // soft low felt step down, no buzzer
+  idk: () => { anNote(440, 0, .16, .1, "kalimba"); anNote(392, .07, .2, .09, "kalimba"); },
+  combo: () => [659, 784, 988, 1319].forEach((f, i) => anNote(f, i * .065, .4, .13, "kalimba")),
+  unlock: () => [1047, 1319, 1568].forEach((f, i) => anNote(f, i * .055, .2, .11, "kalimba")),
+  hit: () => { anNote(140, 0, .13, .3, "wood"); anNote(330, .01, .12, .1, "marimba"); },
+  end: () => [784, 659, 523].forEach((f, i) => anNote(f, i * .12, .45, .16, "felt")),
+  level: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => anNote(f, i * .085, .35, .14, "marimba")); [523, 784, 1047].forEach(f => anNote(f, .47, 1.0, .09, "felt")); },
+  goal: () => { [587, 740, 880, 1175].forEach((f, i) => anNote(f, i * .08, .32, .14, "marimba")); [587, 880, 1175, 1480].forEach(f => anNote(f, .36, 1.2, .08, "felt")); }
+};
+/* iOS/Safari: audio may only start inside a user gesture — wake the context on the first tap (silent 1-sample buffer) */
+(() => {
+  const wake = () => { if (!S.sound) return; try { const c = sfxCtx(), b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {}
+    removeEventListener("touchend", wake, true); removeEventListener("pointerdown", wake, true); removeEventListener("keydown", wake, true); };
+  addEventListener("touchend", wake, true); addEventListener("pointerdown", wake, true); addEventListener("keydown", wake, true);
+})();
+/* render one UI sound offline (tests / diagnostics): length, peak, attack and a harshness measure */
+async function sfxRender(name, style = "analog") {
+  const Off = window.OfflineAudioContext || window.webkitOfflineAudioContext, sr = 44100, ctx = new Off(1, sr * 2, sr);
+  sfxOff = ctx; try { (style === "classic" ? sfxClassic : sfxAnalog)[name](); } finally { sfxOff = null; }
+  const buf = await ctx.startRendering(), d = buf.getChannelData(0);
+  let peak = 0, last = 0, sum = 0, diff = 0, first = -1; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; if (a > 0.001) { last = i; if (first < 0) first = i; } sum += a; if (i) diff += Math.abs(d[i] - d[i - 1]); }
+  let atk = 0; if (first >= 0) for (let i = first; i < first + sr * .003 && i < d.length; i++) atk = Math.max(atk, Math.abs(d[i]));
+  // share of energy above ~4 kHz (2nd-order Butterworth high-pass): buzzy square/saw beeps score high, soft sines low
+  const w = Math.tan(Math.PI * 4000 / sr), k = 1 / (1 + Math.SQRT2 * w + w * w), a0 = k, a1 = -2 * k, a2 = k, b1 = 2 * (w * w - 1) * k, b2 = (1 - Math.SQRT2 * w + w * w) * k;
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0, eh = 0, et = 0;
+  for (let i = 0; i < d.length; i++) { const x = d[i], y = a0 * x + a1 * x1 + a2 * x2 - b1 * y1 - b2 * y2; x2 = x1; x1 = x; y2 = y1; y1 = y; eh += y * y; et += x * x; }
+  return { dur: (last + 1) / sr, peak, attack3ms: peak ? atk / peak : 0, hf: et ? eh / et : 0 };
+}
 
 /* ================= Smarter distractors ================= */
 /* two words "conflict" if either could be a correct answer for the other */
@@ -1365,7 +1484,7 @@ function renderTyping(w, onAnswer, opts = {}) {
 let cleanup = null;
 let curView = null, viewGen = 0;   // viewGen: bumped on every screen change, so async views can tell if they are still on screen
 let curTab = "home";
-const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"], [pimsView, "levels"]]);
+const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"], [pimsView, "levels"], [allMapView, "stats"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
 function go(fn) { const wasStudy = studyScreen; curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
@@ -1948,7 +2067,9 @@ function settings(page = false) {
   const sw = (k, label, desc) => `<div class="row"><span style="text-align:left">${label}<br><small class="muted">${desc}</small></span><button class="switch ${S[k] ? "on" : ""}" data-k="${k}" aria-label="${label}"></button></div>`;
   md.innerHTML = `<div class="box settingsbox" style="text-align:left;max-height:92vh;overflow:auto" role="dialog" aria-label="Settings"><h2 style="margin-top:0">Settings</h2>
     <div class="row"><span>🌗 Appearance</span><span class="seg" id="themeSeg" style="min-width:210px">${[["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]].map(([k, t]) => `<button class="${(S.theme || "auto") === k ? "on" : ""}" data-t="${k}">${t}</button>`).join("")}</span></div>
-    ${sw("sound", "🔊 Sound effects", "WebAudio beeps & fanfares")}
+    ${sw("sound", "🔊 Sound effects", "Taps, answers & celebrations (not the word audio)")}
+    <div class="row sfxrow"><span style="text-align:left">🎵 Sound style<br><small class="muted">Analog: soft marimba, kalimba & felt piano · Classic: the original beeps</small></span><span class="seg" id="sfxSeg" role="radiogroup" aria-label="Sound style">${[["analog", "Analog"], ["classic", "Classic"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.sfxStyle || "analog") === k}" class="${(S.sfxStyle || "analog") === k ? "on" : ""}" data-sfx="${k}">${t}</button>`).join("")}</span></div>
+    <div class="row sfxrow"><span style="text-align:left">🔉 Effects volume</span><span class="seg" id="sfxVolSeg" role="radiogroup" aria-label="Effects volume">${[["soft", "Soft"], ["normal", "Normal"], ["loud", "Loud"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.sfxVol || "soft") === k}" class="${(S.sfxVol || "soft") === k ? "on" : ""}" data-v="${k}">${t}</button>`).join("")}</span></div>
     ${sw("romaji", "🔤 Romaji hints", "Show romaji generated from kana")}
     ${sw("speech", "🗣️ Pronunciation audio", audioOK === false ? (HAS_SPEECH ? "Audio files unavailable here — using device speech" + (jaVoice ? " (" + esc(jaVoice.name) + ")" : "") : "No audio available") : "Recorded neural-voice audio (falls back to device speech)")}
     ${sw("autoSpeak", "▶️ Auto-play audio", "Speak each Japanese prompt automatically")}
@@ -1989,6 +2110,8 @@ function settings(page = false) {
   md.querySelector("#pathKj").onclick = e => { S.pathKanji = S.pathKanji === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathKanji); e.currentTarget.setAttribute("aria-checked", S.pathKanji); };
   md.querySelector("#kjPer").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.kanjiPerDay = +b.dataset.v; dropUntouched(); save(); md.querySelectorAll("#kjPer button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
+  const segPick = (id, f) => { md.querySelector(id).onclick = e => { const b = e.target.closest("button"); if (!b) return; f(b); save(); md.querySelectorAll(id + " button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); sfx.good(); }; };
+  segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
   bindAudioLessonSettings(md); bindBackupSettings(md);
@@ -2085,7 +2208,7 @@ function kCheckUnlocks() {
       if (KS.unlocked.includes(key)) continue;
       if (kUnlocked(s, list[k - 1].id) && kLearnedFrac(s, list[k - 1].id) >= KUNLOCK_AT) {
         KS.unlocked.push(key); ksave();
-        if (!KS.unlockAll && (list[k].id !== "ext" || KS.ext)) setTimeout(() => { toast(`🔓 ${s === "h" ? "Hiragana" : "Katakana"} ${list[k].name} unlocked!`); confetti(70); }, 500);
+        if (!KS.unlockAll && (list[k].id !== "ext" || KS.ext)) setTimeout(() => { sfx.unlock(); toast(`🔓 ${s === "h" ? "Hiragana" : "Katakana"} ${list[k].name} unlocked!`); confetti(70); }, 500);
       }
     }
   }
@@ -2486,7 +2609,7 @@ function checkGoal() {
   const d = todayStr(), x = tday(d);
   if (!x.met && goalParts(d).every(p => p.have >= p.need)) {
     x.met = 1; tsave();
-    setTimeout(() => { sfx.level(); confetti(240); toast(`🎯 Daily goal reached! Goal streak: ${goalStreak()} day${goalStreak() === 1 ? "" : "s"}`); }, 300);
+    setTimeout(() => { sfx.goal(); confetti(240); toast(`🎯 Daily goal reached! Goal streak: ${goalStreak()} day${goalStreak() === 1 ? "" : "s"}`); }, 300);
   }
 }
 function goalStreak() {
@@ -2587,6 +2710,7 @@ function historyView(range = 7, asTab = false) {
     <div class="stathead"><div class="st"><small>⭐ Level</small><b>${L}</b><div class="minibar"><i style="width:${(S.xp - lo) / (hi - lo) * 100}%;background:var(--yellow)"></i></div><small>${S.xp} XP · ${hi - S.xp} to Lv ${L + 1}</small></div>
       <div class="st"><small>🔥 Streak</small><b>${currentStreak()} d</b><small>study days in a row</small></div>
       <div class="st"><small>🏆 Mastered</small><b>${Object.values(S.cards).filter(c => c.box >= MASTER_BOX).length}</b><small>words, all levels</small></div></div>
+    ${allMapCardHTML()}
     ${goalPanelHTML()}
     ${kanjiStatsHTML()}
     <div class="sechead" style="display:flex;align-items:center;justify-content:space-between;text-transform:none;font-size:1rem;color:var(--label);font-weight:700;margin:22px 2px 8px">Study time ${segH}</div>` : topbar("📊 Study history", segH)) + `
@@ -2602,6 +2726,7 @@ function historyView(range = 7, asTab = false) {
       <div class="mode"><div class="ic">🆕</div><h3>${all.reduce((n, [, x]) => n + x.newW, 0)}</h3><p>new words (tracked)</p></div>
       ${(() => { const a = alStats(); return a.n || AL.on ? `<div class="mode" id="hAud"><div class="ic">🎧</div><h3>${a.n}</h3><p>audio lessons · ${fmtMin(a.sec)}</p></div>` : ""; })()}
     </div>${gamesStatsHTML()}`;
+  { const amo = $("#amOpen"); if (amo) amo.onclick = () => { sfx.click(); go(allMapView); }; }
   if (asTab) {
     view.insertAdjacentHTML("beforeend", `<div class="sechead">Settings</div><div class="panel" style="padding:4px 16px">
       <div class="row" role="button" tabindex="0" id="stSettings" style="cursor:pointer"><span>⚙️ Settings</span><span class="muted">Sound, audio, offline, reset ›</span></div>
@@ -2977,7 +3102,7 @@ function kjGrade(c, ok) {
   x.due = Date.now() + INTERVALS[Math.max(1, x.box)] * (ok ? (0.9 + Math.random() * 0.2) : 1);
   const before = kjUnlockedCount(x.l);
   x.t = Date.now(); JS.cards[c] = x; jsave(); trackItem(isNew); touchStreak(); save();
-  if (kjUnlockedCount(x.l) > before) setTimeout(() => toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`), 700);
+  if (kjUnlockedCount(x.l) > before) setTimeout(() => { sfx.unlock(); toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`); }, 700);
 }
 /* ---------- stroke order (KanjiVG) ---------- */
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -3658,7 +3783,7 @@ function bossFight(l, boss, back) {
       st.answered++;
       if (q.k) kGrade(q.k.id, ok); else if (q.j) kjGrade(q.j.c, ok); else grade(q.w.id, ok);
       comboHit(ok, el, 10, !!info.idk);
-      if (ok) { st.combo++; st.right++; const dmg = Math.round(12 * Math.min(2, 1 + (st.combo - 1) * 0.25)); st.hp -= dmg; const ic = $("#bossIc"); ic.classList.remove("hit"); void ic.offsetWidth; ic.classList.add("hit"); floatText("-" + dmg, ic); }
+      if (ok) { st.combo++; st.right++; const dmg = Math.round(12 * Math.min(2, 1 + (st.combo - 1) * 0.25)); st.hp -= dmg; const ic = $("#bossIc"); ic.classList.remove("hit"); void ic.offsetWidth; ic.classList.add("hit"); floatText("-" + dmg, ic); setTimeout(() => sfx.hit(), 120); }
       else { st.combo = 0; st.hearts--; }
       hud();
       const fb = $("#fb"), nb = document.createElement("div"); nb.className = "btnrow";
@@ -4231,6 +4356,203 @@ async function pimsLessonView(lv, n) {
   const a = $("#pmAdd"); if (a) a.onclick = () => { const r = pimsAddLesson(lv, n, true); alsave(); toast(`➕ ${r ? r.created.length : 0} words added to Seen`); go(back); };
   $("#pmWords").onclick = e => { const r = e.target.closest(".row"); if (r) wordModal(WORDS[+r.dataset.id]); };
 }
+
+/* ================= All words map (Stats) =================
+   Every item in the program as one block: Kana, N5–N1 vocab, the Pimsleur set and (toggle) kanji, grouped by level.
+   One viewport-sized <canvas> (position:sticky, devicePixelRatio-aware) draws only the rows on screen, so ~10k tiles cost
+   a few hundred fillRects per frame and never 10k DOM nodes. Tile status comes straight from the saved SRS cards
+   (word id = level offset + index), so levels that aren't downloaded still show their true status; the word's text is
+   loaded on tap (from the offline cache when downloaded). Redraws only on scroll/resize/zoom/filter/theme change. */
+const AMKEY = "jlptVocabQuest.amap.v1";
+const AMS = { z: 0, lv: "all", st: "all", kj: false };
+try { Object.assign(AMS, JSON.parse(localStorage.getItem(AMKEY) || "{}")); } catch (e) {}
+const amSave = () => { try { localStorage.setItem(AMKEY, JSON.stringify(AMS)); } catch (e) {} };
+const AM_T = [9, 15, 28], AM_G = [1, 2, 3], AM_HEAD = 42, AM_PAD = 14;
+const AM_LVNAMES = { all: "All", kana: "Kana", n5: "N5", n4: "N4", n3: "N3", n2: "N2", n1: "N1", pm: "Pimsleur" };
+const AM_ST = [["all", "All"], ["due", "Due now"], ["leech", "Leeches"], ["mast", "Mastered"], ["unseen", "Unseen"]];
+const AM_STN = ["New", "Seen", "Learning", "Reviewing", "Familiar", "Mastered", "Rock-solid"];
+/* status byte: low 3 bits = 0 unseen · 1 seen (box 0) · 2 box 1 · 3 box 2 · 4 box 3 · 5 box 4 (mastered) · 6 box 5–6; 16 = due now; 32 = leech */
+function amStatus(kind, id, now) {
+  const c = kind === "v" ? S.cards[id] : kind === "k" ? KS.cards[id] : JS.cards[id];
+  if (!c) return 0;
+  const b = +c.box || 0; let s = b >= 5 ? 6 : b + 1;
+  if ((+c.due || 0) <= now) s |= 16;
+  if (kind === "v" && isLeech(id)) s |= 32;
+  return s;
+}
+const amMatch = (s, f) => f === "all" ? true : f === "due" ? !!(s & 16) : f === "leech" ? !!(s & 32) : f === "mast" ? (s & 7) >= 5 : (s & 7) === 0;
+function amSections() {
+  const now = Date.now(), out = [];
+  const add = (key, lv, name, kind, ids, loaded) => { const st = new Uint8Array(ids.length); for (let i = 0; i < ids.length; i++) st[i] = amStatus(kind, ids[i], now); out.push({ key, lv, name, kind, ids, st, loaded }); };
+  add("kana", "kana", "Kana · hiragana & katakana", "k", KALL.filter(id => KITEMS[id].g !== "ext" || KS.ext), true);
+  for (const l of LEVELS) {
+    const L = LV[l], n = L.loaded ? L.ids.length : (L.info.count || 0);
+    add(l, l, `${LNAME(l)} vocabulary`, "v", L.loaded ? L.ids : Array.from({ length: n }, (_, i) => LOFF[l] + i), L.loaded);
+  }
+  if (LV.pm) add("pm", "pm", "Pimsleur-only words", "v", LV.pm.ids, true);
+  if (AMS.kj) for (const l of LEVELS) { const ch = KJINFO[l] && KJINFO[l].chars ? [...KJINFO[l].chars] : []; if (ch.length) add("kanji:" + l, l, `${LNAME(l)} kanji`, "j", ch, KJL[l].loaded); }
+  return out;
+}
+const amFmt = n => n.toLocaleString("en-US");
+function amTotals(secs) {
+  let n = 0, m = 0, seen = 0, due = 0, lee = 0;
+  for (const s of secs) for (let i = 0; i < s.st.length; i++) { const x = s.st[i]; n++; if (x & 7) seen++; if ((x & 7) >= 5) m++; if (x & 16) due++; if (x & 32) lee++; }
+  return { n, m, seen, due, lee };
+}
+let AMV = null;   // live map state (for redraws / tests)
+function allMapView() {
+  const t0 = performance.now();
+  const all = amSections(), inLv = s => AMS.lv === "all" || s.lv === AMS.lv;
+  const secs = all.filter(inLv), tot = amTotals(secs), per = {};
+  for (const s of all) { const p = per[s.lv] || (per[s.lv] = { n: 0, m: 0 }); const t = amTotals([s]); p.n += t.n; p.m += t.m; }
+  const allT = amTotals(all);
+  view.innerHTML = topbar("🗺️ All words", `<span class="muted" id="amTot">${amFmt(tot.m)} / ${amFmt(tot.n)} mastered</span>`) + `
+    <div class="amsum"><b>${amFmt(tot.m)}</b> / ${amFmt(tot.n)} mastered <span class="muted">· ${amFmt(tot.seen)} seen · ${amFmt(tot.due)} due now · ${amFmt(tot.lee)} leeches</span></div>
+    <div class="amchips" id="amLv" role="radiogroup" aria-label="Level">${["all", "kana", ...LEVELS, "pm"].map(l => { const p = l === "all" ? allT : per[l] || { n: 0, m: 0 };
+      return `<button role="radio" aria-checked="${AMS.lv === l}" class="amchip ${AMS.lv === l ? "on" : ""}" data-lv="${l}"><b>${AM_LVNAMES[l]}</b><small>${amFmt(p.n)} · ${p.n ? Math.round(p.m / p.n * 100) : 0}%</small></button>`; }).join("")}</div>
+    <div class="row amkjrow"><span>字 Include kanji<br><small class="muted">${amFmt(LEVELS.reduce((n, l) => n + ((KJINFO[l] && KJINFO[l].chars) || "").length, 0))} kanji, grouped by level</small></span><button class="switch ${AMS.kj ? "on" : ""}" id="amKj" role="switch" aria-checked="${AMS.kj}" aria-label="Include kanji"></button></div>
+    <div class="amlegend" aria-label="Legend">${AM_STN.map((n, i) => `<span><i class="amk${i}"></i>${n}</span>`).join("")}<span><i class="amdue"></i>due now</span><span><i class="amlee"></i>leech</span></div>
+    <div class="amctl" id="amCtl"><div class="amst" id="amSt" role="radiogroup" aria-label="Status filter">${AM_ST.map(([k, n]) => `<button role="radio" aria-checked="${AMS.st === k}" class="amchip ${AMS.st === k ? "on" : ""}" data-st="${k}">${n}</button>`).join("")}</div>
+      <button class="amzoom" id="amOut" aria-label="Smaller tiles" ${AMS.z <= 0 ? "disabled" : ""}>−</button><button class="amzoom" id="amIn" aria-label="Bigger tiles" ${AMS.z >= 2 ? "disabled" : ""}>+</button></div>
+    <div class="amhost" id="amHost"><canvas id="amCanvas" role="img" aria-label="Word map: ${amFmt(tot.n)} items, ${amFmt(tot.m)} mastered. Tap a tile for details."></canvas></div>
+    <p class="muted amhint">Tap a tile for the word · pinch or −/+ to zoom · colours follow your SRS boxes.</p>`;
+  bindBack(statsView);
+  const host = $("#amHost"), cv = $("#amCanvas"), ctx = cv.getContext("2d");
+  const V = AMV = { secs, sel: null, total: 0, cols: 1, W: 0, H: 0, dpr: 1, off: 0, col: null, t0, firstMs: 0, draws: 0 };
+  const filt = () => { for (const s of secs) { if (AMS.st === "all") { s.idx = null; s.n = s.ids.length; continue; } const a = []; for (let i = 0; i < s.st.length; i++) if (amMatch(s.st[i], AMS.st)) a.push(i); s.idx = a; s.n = a.length; } };
+  const colors = () => { const cs = getComputedStyle(document.documentElement), g = v => cs.getPropertyValue(v).trim();
+    V.col = { c: [g("--fill2"), g("--s1"), g("--s1"), g("--s2"), g("--s3"), g("--s4"), g("--s5")], label: g("--label"), label2: g("--label2") || g("--label"), bad: g("--bad") || "#dc2626", bg: g("--bg"), accent: g("--accent") }; };
+  const navH = () => ($("#navbar") || { offsetHeight: 0 }).offsetHeight, tabH = () => { const t = $("#tabbar"); return t && getComputedStyle(t).display !== "none" ? t.offsetHeight : 0; };
+  function layout() {
+    const W = host.clientWidth, t = AM_T[AMS.z], g = AM_G[AMS.z], p = t + g, cols = Math.max(1, Math.floor((W + g) / p));
+    let y = 0; for (const s of secs) { s.y = y; s.rows = Math.ceil(s.n / cols); s.h = AM_HEAD + s.rows * p + (s.n ? AM_PAD : 4); y += s.h; }
+    Object.assign(V, { W, t, g, p, cols, total: y });
+    const ctl = $("#amCtl"); if (ctl) ctl.style.top = navH() + "px"; const top = navH() + (ctl ? ctl.offsetHeight : 0);
+    V.H = Math.max(120, Math.min(y, innerHeight - top - tabH()));
+    V.dpr = Math.min(3, window.devicePixelRatio || 1);
+    cv.style.top = top + "px"; cv.style.height = V.H + "px"; cv.width = Math.round(W * V.dpr); cv.height = Math.round(V.H * V.dpr);
+    host.style.height = Math.max(y, V.H) + "px";
+  }
+  function draw() {
+    V.draws++;
+    const off = Math.max(0, Math.min(V.total - V.H, cv.getBoundingClientRect().top - host.getBoundingClientRect().top)); V.off = off;
+    const { t, p, cols, H, W, col } = V, big = AMS.z === 2;
+    ctx.setTransform(V.dpr, 0, 0, V.dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    for (const s of secs) {
+      if (s.y > off + H || s.y + s.h < off) continue;
+      const hy = s.y - off, tt = amTotals([s]);
+      ctx.fillStyle = col.label; ctx.font = "700 14px -apple-system,system-ui,sans-serif"; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+      ctx.fillText(s.name + (s.loaded ? "" : " ⬇"), 0, hy + 26);
+      ctx.font = "500 12px -apple-system,system-ui,sans-serif"; ctx.fillStyle = col.label2; ctx.textAlign = "right";
+      ctx.fillText(`${AMS.st === "all" ? "" : amFmt(s.n) + " shown · "}${amFmt(tt.m)}/${amFmt(tt.n)} · ${tt.n ? Math.round(tt.m / tt.n * 100) : 0}%`, W, hy + 26);
+      ctx.textAlign = "left";
+      const y0 = s.y + AM_HEAD, r0 = Math.max(0, Math.floor((off - y0) / p)), r1 = Math.min(s.rows - 1, Math.floor((off + H - y0) / p));
+      if (big) { ctx.font = "600 16px 'Hiragino Sans','Noto Sans JP',sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; }
+      for (let r = r0; r <= r1; r++) for (let c = 0; c < cols; c++) {
+        const i = r * cols + c; if (i >= s.n) break;
+        const j = s.idx ? s.idx[i] : i, st = s.st[j], lv = st & 7, x = c * p, y = y0 + r * p - off;
+        ctx.fillStyle = col.c[lv]; if (lv === 1) ctx.globalAlpha = .45;
+        if (big) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, t, t, 5) : ctx.rect(x, y, t, t); ctx.fill(); } else ctx.fillRect(x, y, t, t);
+        ctx.globalAlpha = 1;
+        if (st & 32) { ctx.strokeStyle = col.bad; ctx.lineWidth = big ? 2.5 : 1.5; ctx.strokeRect(x + .75, y + .75, t - 1.5, t - 1.5); }
+        if (st & 16) { const d = Math.max(2.5, t * .28); ctx.fillStyle = col.label; ctx.beginPath(); ctx.arc(x + t - d * .75, y + d * .75, d / 2, 0, 6.2832); ctx.fill(); }
+        if (big && s.kind !== "v") { ctx.fillStyle = lv >= 3 ? "#0b1f1d" : col.label; ctx.fillText(s.ids[j], x + t / 2, y + t / 2 + 1); }
+        if (V.sel && V.sel.s === s && V.sel.j === j) { ctx.strokeStyle = col.accent; ctx.lineWidth = 2; ctx.strokeRect(x - 1.5, y - 1.5, t + 3, t + 3); }
+      }
+      if (big) { ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; }
+    }
+  }
+  let raf = 0; const redraw = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; if (cv.isConnected) draw(); }); };
+  function hit(cx, cy) {   // canvas-local CSS px → {s, j} (the whole pitch cell counts, so gaps never swallow a tap)
+    const y = cy + V.off;
+    for (const s of secs) { const y0 = s.y + AM_HEAD; if (y < y0 || y >= y0 + s.rows * V.p) continue;
+      const r = Math.floor((y - y0) / V.p), c = Math.floor(cx / V.p); if (c < 0 || c >= V.cols) return null;
+      const i = r * V.cols + c; return i < s.n ? { s, j: s.idx ? s.idx[i] : i } : null; }
+    return null;
+  }
+  function rectOf(key, id) {   // for tests: the tile's rect in canvas-local CSS px (null if filtered out / off-screen)
+    const s = secs.find(x => x.key === key); if (!s) return null; const j = s.ids.indexOf(id); if (j < 0) return null;
+    const i = s.idx ? s.idx.indexOf(j) : j; if (i < 0) return null;
+    return { x: (i % V.cols) * V.p, y: s.y + AM_HEAD + Math.floor(i / V.cols) * V.p, t: V.t };
+  }
+  function setZoom(z, anchorY) {   // keep the tile under the pinch / screen centre in the same place
+    z = Math.max(0, Math.min(2, z)); if (z === AMS.z) return;
+    const ay = anchorY == null ? V.H / 2 : anchorY; let h = null;
+    for (let x = 0; x < V.W && !h; x += V.p) h = hit(x, ay);
+    const d = h ? rectOf(h.s.key, h.s.ids[h.j]).y - V.off : 0, oldOff = V.off, oldTot = V.total;
+    AMS.z = z; amSave(); layout();
+    const newOff = h ? rectOf(h.s.key, h.s.ids[h.j]).y - d : oldOff * V.total / (oldTot || 1);
+    const hostTopDoc = host.getBoundingClientRect().top + scrollY, stickyTop = parseFloat(cv.style.top) || 0;
+    scrollTo(0, Math.max(0, hostTopDoc - stickyTop + Math.max(0, newOff)));
+    $("#amOut").disabled = AMS.z <= 0; $("#amIn").disabled = AMS.z >= 2; draw();
+  }
+  filt(); colors(); layout(); draw(); V.firstMs = performance.now() - t0;
+  Object.assign(V, { hit, rectOf, draw, redraw, layout, setZoom, colors });
+  const onScroll = () => redraw(), onResize = () => { layout(); draw(); };
+  addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onResize);
+  const mq = matchMedia("(prefers-color-scheme: dark)"), onTheme = () => { colors(); draw(); }; try { mq.addEventListener("change", onTheme); } catch (e) {}
+  // pinch zoom (3 steps) — two fingers never scroll/zoom the page here
+  let pd = 0; const dist = e => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  const ts = e => { if (e.touches.length === 2) { pd = dist(e); e.preventDefault(); } };
+  const tm = e => { if (e.touches.length !== 2 || !pd) return; e.preventDefault(); const r = dist(e) / pd, my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - cv.getBoundingClientRect().top;
+    if (r > 1.3) { setZoom(AMS.z + 1, my); pd = dist(e); } else if (r < 0.77) { setZoom(AMS.z - 1, my); pd = dist(e); } };
+  const te = e => { if (e.touches.length < 2) pd = 0; };
+  const gs = e => e.preventDefault();
+  cv.addEventListener("touchstart", ts, { passive: false }); cv.addEventListener("touchmove", tm, { passive: false }); cv.addEventListener("touchend", te);
+  cv.addEventListener("gesturestart", gs); cv.addEventListener("wheel", e => { if (!e.ctrlKey) return; e.preventDefault(); setZoom(AMS.z + (e.deltaY < 0 ? 1 : -1), e.clientY - cv.getBoundingClientRect().top); }, { passive: false });
+  cv.addEventListener("click", e => { const r = cv.getBoundingClientRect(), h = hit(e.clientX - r.left, e.clientY - r.top); if (!h) return; sfx.click(); V.sel = h; draw(); amDetail(h.s.kind, h.s.ids[h.j]); });
+  cleanup = () => { removeEventListener("scroll", onScroll); removeEventListener("resize", onResize); try { mq.removeEventListener("change", onTheme); } catch (e) {} if (raf) cancelAnimationFrame(raf); AMV = null; };
+  $("#amIn").onclick = () => { sfx.click(); setZoom(AMS.z + 1); };
+  $("#amOut").onclick = () => { sfx.click(); setZoom(AMS.z - 1); };
+  $("#amSt").onclick = e => { const b = e.target.closest("button"); if (!b) return; sfx.click(); AMS.st = b.dataset.st; amSave(); const y = scrollY; go(allMapView); scrollTo(0, y); };
+  $("#amLv").onclick = e => { const b = e.target.closest("button"); if (!b) return; sfx.click(); AMS.lv = b.dataset.lv; amSave(); go(allMapView); };
+  $("#amKj").onclick = () => { sfx.click(); AMS.kj = !AMS.kj; amSave(); go(allMapView); };
+}
+function amBoxText(c) {
+  if (!c) return "Not seen yet";
+  const b = +c.box || 0, s = b >= 5 ? 6 : b + 1, now = Date.now();
+  return `${AM_STN[s]} · box ${b}/${MAX_BOX}${c.due <= now ? " · due now" : ` · due ${fmtIn(c.due - now)}`} · ✔ ${+c.ok || 0} · ✘ ${+c.bad || 0}`;
+}
+/* detail sheet: word, reading, meaning, audio, SRS status and "Study now" (loads the level's words first if needed) */
+async function amDetail(kind, id) {
+  document.querySelectorAll(".modal.amsheet").forEach(m => m.remove());
+  const md = document.createElement("div"); md.className = "modal amsheet"; md.dataset.kind = kind; md.dataset.id = id;
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Word details"><p class="muted">Loading…</p></div>`; document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "amClose") md.remove(); };
+  const box = md.querySelector(".box"), back = allMapView;
+  let head = "", c = null, say = null, study = null, more = null, tag = "";
+  if (kind === "k") {
+    const it = KITEMS[id]; c = KS.cards[id] || null; tag = it.s === "h" ? "Hiragana" : "Katakana";
+    head = `<div class="prompt jp">${esc(id)}</div><div class="amread">${esc(it.r)}</div>`; say = () => kSay(it);
+    study = () => go(() => kanaDueSession([id], `Study · ${id}`, back));
+  } else if (kind === "j") {
+    const l = LEVELS.find(x => KJINFO[x] && (KJINFO[x].chars || "").includes(id)); tag = `${LNAME(l)} kanji`;
+    if (!KJ[id]) await loadKanji(l); if (!md.isConnected) return;
+    const k = KJ[id]; c = JS.cards[id] || null;
+    head = k ? `<div class="prompt jp">${esc(id)}</div><div class="amread jp">${esc([...(k.on || []), ...(k.kun || [])].slice(0, 4).join("・"))}</div><p class="ammean">${esc((k.mean || []).slice ? [].concat(k.mean).slice(0, 4).join(", ") : k.mean)}</p>` : `<div class="prompt jp">${esc(id)}</div><p class="muted">Kanji details need a connection (or download the kanji in Settings).</p>`;
+    study = k ? (c ? () => go(() => dueSession([{ j: 1, id }], `Study · ${id}`, back)) : () => { md.remove(); kjModal(id); }) : null;
+  } else {
+    const l = lvlOf(id); tag = l === "pm" ? "Pimsleur" : LNAME(l); c = S.cards[id] || null;
+    if (!WORDS[id]) { const ok = await loadLevel(l); if (!md.isConnected) return; if (!ok) head = `<p class="muted">This word's details need a connection — ${LNAME(l)} isn't downloaded yet.</p>`; }
+    const w = WORDS[id];
+    if (w) { head = `<div class="prompt jp">${esc(w.jp)}</div>${w.hasKanji ? `<div class="amread jp">${esc(w.kana)}</div>` : ""}${S.romaji ? `<div class="muted">${esc(ROMA(w.kana))}</div>` : ""}<p class="ammean">${esc(w.en)}</p>`;
+      say = () => speak(w, true); study = () => go(() => dueSession([id], `Study · ${w.jp}`, back)); more = () => { md.remove(); wordModal(w); }; }
+  }
+  const lee = kind === "v" && isLeech(id);
+  box.innerHTML = `${head}<div><span class="tag">${esc(tag)}</span>${lee ? `<span class="tag">🧛 leech</span>` : ""}</div>
+    <p class="amstat" id="amStat">${amBoxText(c)}</p>
+    <div class="btnrow">${study ? `<button class="btn" id="amStudy">${kind === "j" && !c ? "Learn now" : "Study now"}</button>` : ""}${say ? `<button class="btn sec" id="amSay">🔈 Listen</button>` : ""}</div>
+    <div class="btnrow">${more ? `<button class="btn ghost small" id="amMore">More details</button>` : ""}<button class="btn ghost small" id="amClose">Close</button></div>`;
+  const b1 = md.querySelector("#amStudy"); if (b1) b1.onclick = () => { sfx.click(); md.remove(); study(); };
+  const b2 = md.querySelector("#amSay"); if (b2) b2.onclick = say;
+  const b3 = md.querySelector("#amMore"); if (b3) b3.onclick = more;
+}
+function allMapCardHTML() {
+  const a = amSections(), t = amTotals(a);
+  return `<div class="panel ammini"><h2>🗺️ All words map</h2><p><b id="amMiniM">${amFmt(t.m)}</b> / ${amFmt(t.n)} mastered <span class="muted">· ${amFmt(t.seen)} seen · Kana, N5–N1${LV.pm ? ", Pimsleur" : ""}${AMS.kj ? " + kanji" : ""}</span></p>
+    <div class="minibar"><i style="width:${t.n ? t.seen / t.n * 100 : 0}%;background:var(--fill2)"></i><i style="width:${t.n ? t.m / t.n * 100 : 0}%"></i></div>
+    <button class="btn" id="amOpen">Open the map</button></div>`;
+}
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { sfx.click(); go({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView }[b.dataset.tab]); });
@@ -4254,7 +4576,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "fc0e45932288";
+const BUILD = "7fa6a9d861d6";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -4304,7 +4626,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.__N5 = { PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.__N5 = { sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

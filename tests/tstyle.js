@@ -61,6 +61,10 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await tap('#pimsOpen');await p.waitForSelector('#pmList');await check('pimsleur words');
   await tap('#pmList .pmrow[data-n="4"]');await p.waitForSelector('#pmWords');await check('pimsleur lesson');
   await tap('.tabbar [data-tab="settings"]');await p.waitForTimeout(400);await p.evaluate(()=>document.querySelector('#alPAdd').scrollIntoView({block:'center'}));await check('settings pimsleur');
+  await p.evaluate(()=>document.querySelector('#sfxSeg').scrollIntoView({block:'center'}));await check('settings sound style');
+  await tap('.tabbar [data-tab="stats"]');await p.waitForSelector('#amOpen');await p.evaluate(()=>document.querySelector('#amOpen').scrollIntoView({block:'center'}));await check('stats all-words card');
+  await tap('#amOpen');await p.waitForSelector('#amCtl');await p.waitForTimeout(400);await check('all words map');
+  await p.evaluate(()=>__N5.amDetail('n5',1));await p.waitForSelector('.amsheet #amClose');await p.waitForTimeout(900);await check('all words detail sheet');await tap('#amClose');
   // game screens
   await tap('.tabbar [data-tab="home"]');await tap('button.mode[data-m="games"]');await check('games hub');
   await tap('button.gtile[data-gl="n5"][data-game="sniper"]');await check('sniper start');
