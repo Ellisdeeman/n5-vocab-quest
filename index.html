@@ -572,6 +572,33 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .gresult{text-align:center}.gresult .big{font-size:56px}
 .gbadges{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
 .ghs{width:100%;border-collapse:collapse;font-size:15px}.ghs td,.ghs th{padding:6px 4px;border-bottom:1px solid var(--sep);text-align:left}.ghs td:not(:first-child),.ghs th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+/* ================= Backup & Sync ================= */
+.bksec{margin-top:18px;padding-top:6px;border-top:1px solid var(--sep)}
+.bkh{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:14px 0 4px}
+.bklabel{display:block;font-size:15px;font-weight:600;margin:10px 0 6px}
+.tokrow{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.tokrow input{flex:1 1 180px;min-width:0;min-height:54px;font-size:16px;padding:0 14px;border:2px solid var(--border);border-radius:14px;background:var(--card2);color:var(--label);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.tokrow input:focus{outline:none;border-color:var(--accent)}
+.tokrow .btn{min-height:54px}
+.bkerr{color:var(--bad);font-size:15px;display:block;margin:6px 0}
+.syncbox #syncStatus{margin:8px 0;font-size:15px}
+.bkbtns{flex-wrap:wrap;justify-content:flex-start}.bkbtns .btn{flex:1 1 200px}
+.tokhelp{margin:12px 0 4px;border:1px solid var(--border);border-radius:14px;padding:0 14px;background:var(--card2)}
+.tokhelp summary{min-height:54px;display:flex;align-items:center;font-weight:600;cursor:pointer;color:var(--accent);list-style:none}
+.tokhelp summary::-webkit-details-marker{display:none}
+.tokhelp summary::before{content:"›";display:inline-block;margin-right:8px;transition:transform .2s}.tokhelp[open] summary::before{transform:rotate(90deg)}
+.tokhelp ol{padding-left:22px;margin:0 0 8px;font-size:15px;line-height:1.5}.tokhelp li{margin:4px 0}
+.tokhelp p{font-size:14px;line-height:1.45}
+.tokhelp a,.syncbox a{color:var(--accent)}
+.bknote{background:color-mix(in srgb,var(--accent) var(--pillmix,14%),transparent);border-radius:12px;padding:10px 12px;color:var(--label)}
+.bkcmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.bkcmp>div{border:1px solid var(--border);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-size:15px}
+.bkcmp b{font-size:15px}
+.histlist{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto;margin:8px 0}
+.histrow{min-height:54px;width:100%;text-align:left;font:inherit;color:var(--label);background:var(--card);border:2px solid var(--border);border-radius:14px;padding:8px 14px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.bkbanner{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.bkbanner .iconbtn{width:44px;height:44px;flex:none}
+.btn.danger{background:#b91c1c;color:#fff}
 </style>
 </head>
 <body>
@@ -903,7 +930,7 @@ if (!S.dailyHistory || typeof S.dailyHistory !== "object") S.dailyHistory = {};
 if (!Array.isArray(S.unlockedSets)) S.unlockedSets = [];
 if (!Array.isArray(S.leechSeen)) S.leechSeen = [];
 if (!Array.isArray(S.levels) || !S.levels.length || S.levels.some(l => !LOFF.hasOwnProperty(l))) S.levels = ["n5"];   // v1–v4 saves: N5 only (ids unchanged)
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} if (typeof syncTouch === "function") syncTouch(); }
 /* appearance: "auto" follows the system (prefers-color-scheme), or a manual light / dark override */
 function applyTheme() {
   const t = S.theme === "light" || S.theme === "dark" ? S.theme : "auto";
@@ -930,7 +957,7 @@ function grade(id, correct) {
   if (correct) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; c.run = (c.run || 0) + 1; }
   else { if (c.box >= 3) c.lapses = (c.lapses || 0) + 1; c.box = missBox(c.box); c.bad++; c.run = 0; }
   c.due = Date.now() + INTERVALS[Math.max(1, c.box)] * (correct ? (0.9 + Math.random() * 0.2) : 1);
-  S.cards[id] = c;
+  c.t = Date.now(); S.cards[id] = c;
   S.answered++;
   touchStreak();
   save();
@@ -1322,9 +1349,11 @@ let curTab = "home";
 const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
-function go(fn) { curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
+function go(fn) { const wasStudy = studyScreen; curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
   const v = $("#view"); v.style.animation = "none"; void v.offsetWidth; v.style.animation = "";
-  fn(); const t = TAB_OF().get(fn); if (t) setTab(t); document.body.classList.toggle("studying", studyScreen); applyTint(); updateHeader(); }
+  fn(); const t = TAB_OF().get(fn); if (t) setTab(t); document.body.classList.toggle("studying", studyScreen); applyTint(); updateHeader();
+  if (wasStudy && !studyScreen && typeof syncSoon === "function") syncSoon();
+  if (fn === home && typeof bkBanner === "function") bkBanner(); }
 function topbar(title, extra = "") { return `<div class="topbar"><button class="backbtn" id="backBtn" aria-label="Back">${I("chevronL")}Back</button><b>${title}</b><span class="combo" id="combo"></span><span style="margin-left:auto">${extra}</span></div>`; }
 const tabRoot = () => ({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView })[curTab] || home;
 function bindBack(to) { const b = $("#backBtn"); if (!b) return; const dest = to || tabRoot(); b.onclick = () => { sfx.click(); go(dest); }; }
@@ -1918,9 +1947,10 @@ function settings(page = false) {
     <div class="row"><span>字 New kanji per session</span><span class="seg" id="kjPer">${[0, 2, 3, 5].map(v => `<button class="${(S.kanjiPerDay == null ? 3 : S.kanjiPerDay) === v ? "on" : ""}" data-v="${v}">${v}</button>`).join("")}</span></div>
     ${audioLessonSettingsHTML()}
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
-    <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small" id="resetBtn" style="background:var(--bad)">Reset</button></div>
-    <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small" id="resetKana" style="background:var(--bad)">Reset</button></div>
-    <div class="row"><span>🗑️ Reset kanji progress<br><small class="muted">Clears only kanji SRS (all levels)</small></span><button class="btn small" id="resetKanji" style="background:var(--bad)">Reset</button></div>
+    ${backupSettingsHTML()}
+    <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small danger" id="resetBtn">Reset</button></div>
+    <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small danger" id="resetKana">Reset</button></div>
+    <div class="row"><span>🗑️ Reset kanji progress<br><small class="muted">Clears only kanji SRS (all levels)</small></span><button class="btn small danger" id="resetKanji">Reset</button></div>
     <div style="text-align:right;margin-top:12px"><button class="btn" id="closeS">Done</button></div></div>`;
   if (page) { view.innerHTML = `<div class="largetitle">Settings</div><p class="subtitle">Saved on this device</p>`; view.appendChild(md); } else document.body.appendChild(md);
   md.querySelectorAll(".switch").forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = !S[k]; b.classList.toggle("on", S[k]); save(); updateHeader(); if (k === "sound" && S.sound) sfx.good(); });
@@ -1941,7 +1971,7 @@ function settings(page = false) {
   md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
-  bindAudioLessonSettings(md);
+  bindAudioLessonSettings(md); bindBackupSettings(md);
   md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); dropUntouched(); save(); updateDueBadge(); toast("Kanji progress reset"); } };
   md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
   if (page) { const c = md.querySelector("#closeS"); if (c) c.parentNode.remove(); return; }
@@ -1958,7 +1988,7 @@ let KS;
 try { KS = Object.assign(kanaDefault(), JSON.parse(localStorage.getItem(KKEY) || "{}")); } catch (e) { KS = kanaDefault(); }
 ["cards", "sel"].forEach(k => { if (!KS[k] || typeof KS[k] !== "object") KS[k] = {}; });
 ["unlocked", "mastered"].forEach(k => { if (!Array.isArray(KS[k])) KS[k] = []; });
-const ksave = () => { try { localStorage.setItem(KKEY, JSON.stringify(KS)); } catch (e) {} };
+const ksave = () => { try { localStorage.setItem(KKEY, JSON.stringify(KS)); } catch (e) {} if (typeof syncTouch === "function") syncTouch(); };
 
 /* groups: lines of cells ("" = empty grid cell), hiragana form; katakana derived. */
 const KGROUPS = [
@@ -2046,7 +2076,7 @@ function kGrade(id, ok) {
   const c = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, kcard(id));
   if (ok) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; } else { c.box = missBox(c.box); c.bad++; }
   c.due = Date.now() + INTERVALS[Math.max(1, c.box)] * (ok ? (0.9 + Math.random() * 0.2) : 1);
-  KS.cards[id] = c; ksave();
+  c.t = Date.now(); KS.cards[id] = c; ksave();
   touchStreak(); save();
   kCheckUnlocks();
   const key = it.s + ":" + it.g;
@@ -2420,7 +2450,7 @@ let TS;
 try { TS = Object.assign(timeDefault(), JSON.parse(localStorage.getItem(TKEY) || "{}")); } catch (e) { TS = timeDefault(); }
 if (!TS.days || typeof TS.days !== "object") TS.days = {};
 let studyScreen = false, lastAct = Date.now(), tDirty = 0, lastTick = Date.now(), tickCarry = 0, lastDayShown = null;
-function tsave() { try { localStorage.setItem(TKEY, JSON.stringify(TS)); } catch (e) {} tDirty = 0; }
+function tsave() { try { localStorage.setItem(TKEY, JSON.stringify(TS)); } catch (e) {} tDirty = 0; if (typeof syncTouch === "function") syncTouch(); }
 const tday = (d = todayStr()) => TS.days[d] || (TS.days[d] = { sec: 0, items: 0, newW: 0 });
 const tget = d => TS.days[d] || { sec: 0, items: 0, newW: 0 };
 function goalParts(d = todayStr()) {
@@ -2854,7 +2884,7 @@ const KJINFO = {"n5":{"count":79,"v":"becb1d74de","kb":27,"sv":"a033c529c5","skb
 let JS;
 try { JS = Object.assign({ cards: {} }, JSON.parse(localStorage.getItem(JKEY) || "{}")); } catch (e) { JS = { cards: {} }; }
 if (!JS.cards || typeof JS.cards !== "object") JS.cards = {};
-function jsave() { try { localStorage.setItem(JKEY, JSON.stringify(JS)); } catch (e) {} }
+function jsave() { try { localStorage.setItem(JKEY, JSON.stringify(JS)); } catch (e) {} if (typeof syncTouch === "function") syncTouch(); }
 const KJ = {}, KJX = {}, KJL = {};
 LEVELS.forEach(l => KJL[l] = { loaded: false, list: [] });
 const jcard = c => JS.cards[c] || { box: 0, due: 0, ok: 0, bad: 0 };
@@ -2914,7 +2944,7 @@ function kjDueScan(l) {
 const kjLevelsWithCards = () => LEVELS.filter(l => Object.values(JS.cards).some(x => x.l === l));
 function kjLearn(c) {    // learn card seen → the kanji enters the SRS (due now, so the quiz right after counts)
   if (JS.cards[c]) return;
-  JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl }; jsave(); trackItem(true); touchStreak(); save();
+  JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl, t: Date.now() }; jsave(); trackItem(true); touchStreak(); save();
 }
 function kjGrade(c, ok) {
   const isNew = !JS.cards[c];
@@ -2922,7 +2952,7 @@ function kjGrade(c, ok) {
   if (ok) { x.box = Math.min(MAX_BOX, x.box + 1); x.ok++; } else { x.box = missBox(x.box); x.bad++; }
   x.due = Date.now() + INTERVALS[Math.max(1, x.box)] * (ok ? (0.9 + Math.random() * 0.2) : 1);
   const before = kjUnlockedCount(x.l);
-  JS.cards[c] = x; jsave(); trackItem(isNew); touchStreak(); save();
+  x.t = Date.now(); JS.cards[c] = x; jsave(); trackItem(isNew); touchStreak(); save();
   if (kjUnlockedCount(x.l) > before) setTimeout(() => toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`), 700);
 }
 /* ---------- stroke order (KanjiVG) ---------- */
@@ -3106,7 +3136,7 @@ const alDefault = () => ({ on: true, url: "", min: 30, cur: 1, total: 30, opened
 let AL;
 try { AL = Object.assign(alDefault(), JSON.parse(localStorage.getItem(AKEY) || "{}")); } catch (e) { AL = alDefault(); }
 if (!AL.log || typeof AL.log !== "object") AL.log = {};
-function alsave() { try { localStorage.setItem(AKEY, JSON.stringify(AL)); } catch (e) {} }
+function alsave() { try { localStorage.setItem(AKEY, JSON.stringify(AL)); } catch (e) {} if (typeof syncTouch === "function") syncTouch(); }
 const alClampInt = (v, lo, hi, def) => { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
 /* only plain web links: never javascript:, data: etc. */
 function alCleanUrl(u) {
@@ -3609,6 +3639,433 @@ function gamesStatsHTML() {
     ${byLv.map(([l, ks]) => `<div class="gbadges"><b>${gLevelName(l)}</b> ${ks.map(k => { const id = k.split(":")[1], s = l !== "kana" && LV[l].loaded ? LV[l].sets.find(x => x.id === id) : null; return `<span class="tag" title="${esc(g.badges[k])}">🏅 ${esc(id === "level" ? LNAME(l) + " boss" : id === "kana" ? "Kana boss" : s ? s.name : id)}</span>`; }).join("")}</div>`).join("")}
     ${hs.length ? `<div class="sechead" style="margin:12px 0 4px">High scores</div><div class="ghs">${hs.sort().map(([k, v]) => { const [l, gm] = k.split(":"); return `<div class="row"><span>${GAMES[gm] ? GAMES[gm].ic + " " + GAMES[gm].t : gm} · ${gLevelName(l)}</span><b>${v}</b></div>`; }).join("")}</div>` : ""}</div>`;
 }
+
+/* ================= Backup & Sync =================
+   • Backup file: every app store (vocab SRS, kana, kanji, goals/time history, path/daily sessions, games, audio lesson,
+     settings) as one versioned JSON file, shared via the Web Share API (iPhone: Save to Files / iCloud) or downloaded.
+   • Gist sync: each person pastes their OWN GitHub token (gist scope only). It lives only in this device's localStorage
+     (SYKEY), is never logged, and is never part of a backup or the gist. Sync = pull → merge → push to a SECRET gist.
+   • Merge: SRS cards keep the latest review (then most reviews), counters take the max, history days take the max per
+     field, lists are unioned, settings are latest-wins using per-field modified stamps (SMKEY). */
+const SYKEY = "jlptVocabQuest.sync.v1";        // this device only: token, gist id, status — never exported
+const SMKEY = "jlptVocabQuest.syncmeta.v1";    // per-field "modified at" stamps used by the merge
+const SNAPKEY = "jlptVocabQuest.snapshot.v1";  // safety snapshot taken before any restore (for Undo)
+const GIST_DESC = "JLPT Vocab Quest sync", GIST_FILE = "jlpt-quest-sync.json", BK_APP = "jlpt-vocab-quest", BK_VER = 1;
+const SYNC_STORES = [["S", KEY], ["KS", KKEY], ["JS", JKEY], ["TS", TKEY], ["AL", AKEY]];
+const stGet = n => n === "S" ? S : n === "KS" ? KS : n === "JS" ? JS : n === "TS" ? TS : AL;
+const syDefault = () => ({ token: "", gistId: "", lastSync: 0, lastTry: 0, err: "", errAt: 0, rateUntil: 0, lastBackup: 0, remind: false, snooze: 0, device: "" });
+let SY; try { SY = Object.assign(syDefault(), JSON.parse(localStorage.getItem(SYKEY) || "{}")); } catch (e) { SY = syDefault(); }
+if (!SY.device) SY.device = Math.random().toString(36).slice(2, 10);
+function sysave() { try { localStorage.setItem(SYKEY, JSON.stringify(SY)); } catch (e) {} }
+sysave();
+let SM = null; try { SM = JSON.parse(localStorage.getItem(SMKEY) || "null"); } catch (e) { SM = null; }
+function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } catch (e) {} }
+
+/* ---------- merge rules (anything not listed is a setting: latest-wins by modified stamp) ---------- */
+const MERGE_RULES = {
+  S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
+       unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1" },
+  KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
+  JS: { cards: "cards", unl: "mapMax" },
+  TS: { days: "days" },
+  AL: { log: "mapLww", cur: "max" }
+};
+const hash = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + s.length.toString(36); };
+/* record which settings changed since the last check (so the merge knows which side is newer). silent = just re-baseline. */
+function stampAll(silent) {
+  const first = !SM || typeof SM !== "object" || !SM.snap; if (first) SM = { mod: {}, snap: {} };
+  if (!SM.mod) SM.mod = {};
+  const now = Date.now(), quiet = silent || first; let changed = first;
+  const chk = (p, v) => { const h = hash(JSON.stringify(v === undefined ? null : v)); if (SM.snap[p] !== h) { SM.snap[p] = h; if (!quiet) SM.mod[p] = now; changed = true; } };
+  for (const [n] of SYNC_STORES) {
+    const o = stGet(n) || {}, R = MERGE_RULES[n] || {}, pre = n + ".";
+    const keys = new Set(Object.keys(o)); for (const p in SM.snap) if (p.startsWith(pre) && p.indexOf(".", pre.length) < 0) keys.add(p.slice(pre.length));
+    for (const k of keys) {
+      const r = R[k] || "lww";
+      if (r === "lww") chk(pre + k, o[k]);
+      else if (r === "mapLww") { const m = o[k] && typeof o[k] === "object" ? o[k] : {}, pk = pre + k + "."; const es = new Set(Object.keys(m)); for (const p in SM.snap) if (p.startsWith(pk)) es.add(p.slice(pk.length)); for (const e of es) chk(pk + e, m[e]); }
+    }
+  }
+  if (changed) smsave();
+}
+let stampT = 0;
+function syncTouch() { if (!window.__syncReady) return; clearTimeout(stampT); stampT = setTimeout(() => stampAll(), 700); }
+
+const isObj = x => !!x && typeof x === "object" && !Array.isArray(x);
+function mergeMap(x, y, f) { x = isObj(x) ? x : {}; y = isObj(y) ? y : {}; const o = {}; for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) { const u = x[k], v = y[k]; o[k] = u === undefined ? v : v === undefined ? u : f(u, v, k); } return o; }
+const reviews = c => (+c.ok || 0) + (+c.bad || 0);
+/* SRS card: the side with the latest review wins (then the one with more reviews); ok/bad counters never go down */
+function mergeCard(a, b) {
+  if (!isObj(a)) return b; if (!isObj(b)) return a;
+  const ta = +a.t || 0, tb = +b.t || 0;
+  const w = ta !== tb ? (ta > tb ? a : b) : (reviews(a) !== reviews(b) ? (reviews(a) > reviews(b) ? a : b) : ((+a.due || 0) >= (+b.due || 0) ? a : b));
+  const o = Object.assign({}, w, { ok: Math.max(+a.ok || 0, +b.ok || 0), bad: Math.max(+a.bad || 0, +b.bad || 0) });
+  if (ta || tb) o.t = Math.max(ta, tb);
+  return o;
+}
+const maxFields = (u, v) => { if (!isObj(u) || !isObj(v)) return isObj(u) ? u : v; const o = Object.assign({}, v, u); for (const k in o) if (typeof u[k] === "number" || typeof v[k] === "number") o[k] = Math.max(+u[k] || 0, +v[k] || 0); return o; };
+const sessionPick = (u, v) => { if (!isObj(u) || !isObj(v)) return isObj(u) ? u : v; if ((u.date || "") !== (v.date || "")) return (u.date || "") > (v.date || "") ? u : v; if (!!u.done !== !!v.done) return u.done ? u : v; return (+v.pos || 0) > (+u.pos || 0) ? v : u; };
+function mergeGames(x, y) {
+  x = isObj(x) ? x : {}; y = isObj(y) ? y : {}; const o = Object.assign({}, y, x);
+  o.hs = mergeMap(x.hs, y.hs, (u, v) => Math.max(+u || 0, +v || 0));
+  o.badges = mergeMap(x.badges, y.badges, (u, v) => (String(u) <= String(v) ? u : v));   // keep the first day it was earned
+  o.kb = mergeMap(x.kb, y.kb, (u, v) => [...new Set([...(Array.isArray(u) ? u : []), ...(Array.isArray(v) ? v : [])])]);
+  return o;
+}
+function mergeStore(n, a, b, LM, RM, OM) {
+  a = isObj(a) ? a : {}; b = isObj(b) ? b : {};
+  const R = MERGE_RULES[n] || {}, o = {}, pre = n + ".";
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const p of new Set([...Object.keys(LM), ...Object.keys(RM)])) if (p.startsWith(pre) && p.indexOf(".", pre.length) < 0) keys.add(p.slice(pre.length));
+  for (const k of keys) {
+    const r = R[k] || "lww", x = a[k], y = b[k], p = pre + k;
+    if (r === "cards") o[k] = mergeMap(x, y, mergeCard);
+    else if (r === "max") o[k] = Math.max(+x || 0, +y || 0);
+    else if (r === "union") o[k] = [...new Set([...(Array.isArray(x) ? x : []), ...(Array.isArray(y) ? y : [])])];
+    else if (r === "mapMax") o[k] = mergeMap(x, y, (u, v) => Math.max(+u || 0, +v || 0));
+    else if (r === "days") o[k] = mergeMap(x, y, maxFields);
+    else if (r === "games") o[k] = mergeGames(x, y);
+    else if (r === "dailies") o[k] = mergeMap(x, y, sessionPick);
+    else if (r === "dailies1") { const w = x === undefined ? y : y === undefined ? x : sessionPick(x, y); if (w !== undefined) o[k] = w; }
+    else if (r === "streak") continue;
+    else if (r === "mapLww") {
+      const m = {}, xm = isObj(x) ? x : {}, ym = isObj(y) ? y : {}, pk = p + ".";
+      const es = new Set([...Object.keys(xm), ...Object.keys(ym)]); for (const q of new Set([...Object.keys(LM), ...Object.keys(RM)])) if (q.startsWith(pk)) es.add(q.slice(pk.length));
+      for (const e of es) { const ta = LM[pk + e] || 0, tb = RM[pk + e] || 0, u = xm[e], v = ym[e]; const w = tb > ta ? v : ta > tb ? u : (u !== undefined && u !== null ? u : v); if (w !== undefined && w !== null) m[e] = w; if (ta || tb) OM[pk + e] = Math.max(ta, tb); }
+      o[k] = m;
+    } else {   // setting: latest change wins; on a tie keep whichever side has a value (local first)
+      const ta = LM[p] || 0, tb = RM[p] || 0, w = tb > ta ? y : ta > tb ? x : (x !== undefined ? x : y);
+      if (w !== undefined) o[k] = w; if (ta || tb) OM[p] = Math.max(ta, tb);
+    }
+  }
+  if (n === "S") {   // streak travels with the day it was last extended
+    const la = a.lastDay || "", lb = b.lastDay || "";
+    if (la > lb) { o.lastDay = a.lastDay; o.streak = +a.streak || 0; } else if (lb > la) { o.lastDay = b.lastDay; o.streak = +b.streak || 0; }
+    else { o.lastDay = a.lastDay || b.lastDay || null; o.streak = Math.max(+a.streak || 0, +b.streak || 0); }
+  }
+  return o;
+}
+function localStores() { const o = {}; for (const [n, k] of SYNC_STORES) o[k] = stGet(n); return o; }
+function buildPayload(kind) {
+  stampAll();
+  return { app: BK_APP, kind, v: BK_VER, build: BUILD, exported: new Date().toISOString(), stores: JSON.parse(JSON.stringify(localStores())), mod: Object.assign({}, SM.mod) };
+}
+/* returns an error message, or "" when the file looks like one of ours */
+function validatePayload(p) {
+  if (!isObj(p) || p.app !== BK_APP) return "This isn't a JLPT Vocab Quest backup file.";
+  if (!(+p.v >= 1)) return "This backup file has no version number.";
+  if (+p.v > BK_VER) return "This backup was made by a newer version of the app. Update the app first, then try again.";
+  if (!isObj(p.stores) || !isObj(p.stores[KEY]) || !isObj(p.stores[KEY].cards)) return "The backup file is incomplete or damaged.";
+  for (const [, k] of SYNC_STORES) if (p.stores[k] !== undefined && !isObj(p.stores[k])) return "The backup file is damaged (" + k + ").";
+  if (p.mod !== undefined && !isObj(p.mod)) return "The backup file is damaged (timestamps).";
+  return "";
+}
+function payloadSummary(p) {
+  const s = p.stores[KEY] || {}, c = s.cards || {}, k = (p.stores[KKEY] || {}).cards || {}, j = (p.stores[JKEY] || {}).cards || {};
+  const learned = Object.values(c).filter(x => isObj(x) && (+x.box || 0) >= 1).length;
+  return { date: p.exported ? new Date(p.exported) : null, learned, studied: Object.keys(c).length, xp: +s.xp || 0, kana: Object.keys(k).length, kanji: Object.keys(j).length, badges: Object.keys(((s.games || {}).badges) || {}).length };
+}
+/* replace every store in memory + storage, then refresh whatever is on screen */
+function applyStores(stores, mod) {
+  const g = k => (isObj(stores[k]) ? JSON.parse(JSON.stringify(stores[k])) : {});
+  S = Object.assign(defaultState(), g(KEY));
+  if (!isObj(S.cards)) S.cards = {}; if (!isObj(S.notes)) S.notes = {}; if (!isObj(S.dailyHistory)) S.dailyHistory = {};
+  if (!Array.isArray(S.unlockedSets)) S.unlockedSets = []; if (!Array.isArray(S.leechSeen)) S.leechSeen = [];
+  if (!Array.isArray(S.levels) || !S.levels.length) S.levels = ["n5"]; S.levels = S.levels.filter(l => LOFF.hasOwnProperty(l)); if (!S.levels.length) S.levels = ["n5"];
+  KS = Object.assign(kanaDefault(), g(KKEY)); ["cards", "sel"].forEach(k => { if (!isObj(KS[k])) KS[k] = {}; }); ["unlocked", "mastered"].forEach(k => { if (!Array.isArray(KS[k])) KS[k] = []; });
+  JS = Object.assign({ cards: {} }, g(JKEY)); if (!isObj(JS.cards)) JS.cards = {};
+  TS = Object.assign(timeDefault(), g(TKEY)); if (!isObj(TS.days)) TS.days = {};
+  AL = Object.assign(alDefault(), g(AKEY)); if (!isObj(AL.log)) AL.log = {};
+  window.__syncReady = false; save(); ksave(); jsave(); tsave(); alsave(); window.__syncReady = true;
+  SM = { mod: Object.assign({}, isObj(mod) ? mod : {}), snap: {} }; stampAll(true); smsave();
+  applyTheme();
+  const refresh = () => { try { updateHeader(); updateDueBadge(); if (!studyScreen && curView && !document.querySelector(".modal")) go(curView); } catch (e) {} };
+  Promise.all(S.levels.map(l => loadLevel(l).catch(() => false))).then(refresh, refresh);
+}
+
+/* ---------- backup file ---------- */
+const bkName = () => `jlpt-quest-backup-${todayStr()}.json`;
+async function exportBackup() {
+  const txt = JSON.stringify(buildPayload("backup")), name = bkName();
+  let done = false;
+  try {
+    const f = typeof File === "function" ? new File([txt], name, { type: "application/json" }) : null;
+    if (f && navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: "JLPT Vocab Quest backup" }); done = true; }
+  } catch (e) { if (e && e.name === "AbortError") { toast("Backup cancelled"); return false; } }
+  if (!done) {
+    const u = URL.createObjectURL(new Blob([txt], { type: "application/json" })), a = document.createElement("a");
+    a.href = u; a.download = name; a.rel = "noopener"; a.style.display = "none"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 30000);
+  }
+  SY.lastBackup = Date.now(); sysave(); toast("💾 Backup saved"); bkRefresh();
+  return true;
+}
+function takeSnapshot(why) { try { localStorage.setItem(SNAPKEY, JSON.stringify({ at: Date.now(), why, p: buildPayload("snapshot") })); return true; } catch (e) { return false; } }
+const getSnapshot = () => { try { return JSON.parse(localStorage.getItem(SNAPKEY) || "null"); } catch (e) { return null; } };
+function restorePreview(p, source, after) {
+  const err = validatePayload(p); if (err) { bkAlert("Can't restore", err); return; }
+  const s = payloadSummary(p), cur = payloadSummary(buildPayload("preview"));
+  const md = document.createElement("div"); md.className = "modal"; md.id = "bkPreview";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Restore backup"><h2>Restore ${esc(source)}?</h2>
+    <div class="bkcmp"><div><small class="muted">Backup</small><b>${s.date ? esc(s.date.toLocaleString()) : "unknown date"}</b><span>${s.learned} words learned · ${s.xp} XP</span><span>${s.kana} kana · ${s.kanji} kanji · ${s.badges} badges</span></div>
+      <div><small class="muted">This device now</small><b>${cur.learned} words learned</b><span>${cur.xp} XP</span><span>${cur.kana} kana · ${cur.kanji} kanji · ${cur.badges} badges</span></div></div>
+    <p class="muted" style="font-size:15px">This replaces the progress on this device. A safety copy of your current progress is kept, so you can undo it.</p>
+    <div class="btnrow" style="flex-direction:column;align-items:stretch"><button class="btn" id="bkGo">Restore</button><button class="btn ghost" id="bkCancel">Cancel</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "bkCancel") md.remove(); };
+  md.querySelector("#bkGo").onclick = async () => {
+    if (!takeSnapshot(source)) { bkAlert("Not enough space", "Couldn't save a safety copy on this device, so nothing was changed."); md.remove(); return; }
+    md.remove(); applyStores(p.stores, p.mod); toast("✅ Restored — you can undo it in Settings");
+    if (after) await after();
+    bkRefresh();
+  };
+}
+function undoRestore() {
+  const sn = getSnapshot(); if (!sn || validatePayload(sn.p)) { toast("Nothing to undo"); return; }
+  applyStores(sn.p.stores, sn.p.mod); try { localStorage.removeItem(SNAPKEY); } catch (e) {}
+  toast("↩️ Restore undone"); bkRefresh(); if (SY.token) syncSoon(1500, true);
+}
+function bkAlert(title, msg) {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "bkAlert";
+  md.innerHTML = `<div class="box" role="alertdialog" aria-label="${esc(title)}"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="btnrow"><button class="btn" id="bkOk">OK</button></div></div>`;
+  document.body.appendChild(md); md.onclick = e => { if (e.target === md || e.target.id === "bkOk") md.remove(); };
+}
+function importFile(file) {
+  if (!file) return;
+  if (file.size > 20e6) { bkAlert("Can't restore", "That file is too large to be a JLPT Vocab Quest backup."); return; }
+  const rd = new FileReader();
+  rd.onload = () => { let p; try { p = JSON.parse(String(rd.result)); } catch (e) { bkAlert("Can't restore", "That file isn't a valid backup (it couldn't be read as JSON)."); return; } restorePreview(p, "this backup", SY.token ? () => pushOverwrite() : null); };
+  rd.onerror = () => bkAlert("Can't restore", "The file couldn't be read.");
+  rd.readAsText(file);
+}
+
+/* ---------- GitHub Gist API ---------- */
+class SyncErr extends Error { constructor(code, extra) { super(code); this.code = code; this.extra = extra; } }
+async function ghFetch(url, opts = {}, auth = true) {
+  if (navigator.onLine === false) throw new SyncErr("offline");
+  const ac = typeof AbortController === "function" ? new AbortController() : null, t = setTimeout(() => { try { ac && ac.abort(); } catch (e) {} }, 20000);
+  const h = { Accept: "application/vnd.github+json" }; if (auth) h.Authorization = "Bearer " + SY.token; if (opts.body) h["Content-Type"] = "application/json";
+  let r;
+  try { r = await fetch(url, { method: opts.method || "GET", headers: h, body: opts.body, cache: "no-store", signal: ac ? ac.signal : undefined }); }
+  catch (e) { throw new SyncErr(navigator.onLine === false ? "offline" : "network"); } finally { clearTimeout(t); }
+  if (r.ok) return r;
+  const rem = r.headers.get("x-ratelimit-remaining"), reset = +r.headers.get("x-ratelimit-reset") || 0;
+  if (r.status === 401) throw new SyncErr("token");
+  if (r.status === 429 || (r.status === 403 && rem === "0")) throw new SyncErr("rate", reset);
+  if (r.status === 403) throw new SyncErr("scope");
+  if (r.status === 404) throw new SyncErr("notfound");
+  if (r.status === 422) throw new SyncErr("rejected");
+  throw new SyncErr("http", r.status);
+}
+const gh = async (path, opts) => { const r = await ghFetch("https://api.github.com" + path, opts); return r.status === 204 ? null : r.json(); };
+async function gistContent(g) {
+  const f = g && g.files && g.files[GIST_FILE]; if (!f) return null;
+  let txt = f.content;
+  if (f.truncated || typeof txt !== "string") txt = await (await ghFetch(f.raw_url, {}, false)).text();
+  let p; try { p = JSON.parse(txt); } catch (e) { throw new SyncErr("data"); }
+  if (validatePayload(p)) throw new SyncErr("data");
+  return p;
+}
+async function findOrCreateGist(content) {
+  let byDesc = null;
+  for (let page = 1; page <= 5; page++) {
+    let list; try { list = await gh(`/gists?per_page=100&page=${page}`); } catch (e) { if (e.code === "notfound") throw new SyncErr("scope"); throw e; }
+    if (!Array.isArray(list)) break;
+    const hit = list.find(g => g.files && g.files[GIST_FILE]); if (hit) return { id: hit.id, created: false };
+    if (!byDesc) byDesc = list.find(g => g.description === GIST_DESC) || null;
+    if (list.length < 100) break;
+  }
+  if (byDesc) return { id: byDesc.id, created: false };
+  let g; try { g = await gh("/gists", { method: "POST", body: JSON.stringify({ description: GIST_DESC, public: false, files: { [GIST_FILE]: { content } } }) }); }
+  catch (e) { if (e.code === "notfound") throw new SyncErr("scope"); throw e; }
+  return { id: g.id, created: true };
+}
+const pushGist = (id, content) => gh(`/gists/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ files: { [GIST_FILE]: { content } } }) });
+const sameData = (a, b) => !!a && !!b && JSON.stringify(a.stores) === JSON.stringify(b.stores) && JSON.stringify(a.mod || {}) === JSON.stringify(b.mod || {});
+/* pull → merge → push. Never throws; the outcome lands in SY.err / SY.lastSync and the status line. */
+let syncing = null;
+function syncNow(reason = "manual") {
+  if (!SY.token) return Promise.resolve({ ok: false, err: "notoken" });
+  if (syncing) return syncing;
+  syncing = (async () => {
+    SY.lastTry = Date.now(); syncStatusUI("Syncing…");
+    let res;
+    try {
+      let id = SY.gistId, remote = null, g = null;
+      if (id) { try { g = await gh(`/gists/${encodeURIComponent(id)}`); } catch (e) { if (e.code === "notfound") { id = ""; SY.gistId = ""; } else throw e; } }
+      if (!id) {
+        const first = JSON.stringify(buildPayload("sync")), f = await findOrCreateGist(first);
+        id = SY.gistId = f.id; sysave();
+        if (f.created) { SY.lastSync = Date.now(); SY.err = ""; SY.created = Date.now(); sysave(); res = { ok: true, created: true }; return res; }
+        g = await gh(`/gists/${encodeURIComponent(id)}`);
+      }
+      remote = await gistContent(g);
+      let changed = false;
+      if (remote) changed = mergeRemote(remote);
+      const out = buildPayload("sync");
+      if (!sameData(out, remote)) await pushGist(id, JSON.stringify(out));
+      SY.lastSync = Date.now(); SY.err = ""; SY.rateUntil = 0; sysave();
+      res = { ok: true, pulled: changed, reason };
+    } catch (e) {
+      const code = e instanceof SyncErr ? e.code : "network";
+      SY.err = code; SY.errAt = Date.now(); if (code === "rate") SY.rateUntil = (e.extra ? e.extra * 1000 : Date.now() + 15 * 60e3); sysave();
+      res = { ok: false, err: code };
+    } finally { syncing = null; syncStatusUI(); }
+    return res;
+  })();
+  return syncing;
+}
+/* merge a remote payload into this device; returns true if local data changed */
+function mergeRemote(remote) {
+  stampAll();
+  const L = localStores(), OM = Object.assign({}, SM.mod), out = {};
+  for (const [n, k] of SYNC_STORES) out[k] = mergeStore(n, L[k], remote.stores[k], SM.mod, remote.mod || {}, OM);
+  for (const p in remote.mod || {}) if (!(p in OM)) OM[p] = remote.mod[p];
+  const changed = SYNC_STORES.some(([, k]) => JSON.stringify(out[k]) !== JSON.stringify(L[k]));
+  if (changed) applyStores(out, OM); else { SM.mod = OM; smsave(); }
+  return changed;
+}
+async function pushOverwrite() {   // after a restore: make the restored data the gist's latest version
+  if (!SY.token || !SY.gistId) return syncNow("restore");
+  try { await pushGist(SY.gistId, JSON.stringify(buildPayload("sync"))); SY.lastSync = Date.now(); SY.err = ""; sysave(); }
+  catch (e) { SY.err = e instanceof SyncErr ? e.code : "network"; SY.errAt = Date.now(); sysave(); }
+  syncStatusUI();
+}
+let syncT = 0;
+function syncSoon(ms = 4000, force) {
+  if (!SY.token) return; clearTimeout(syncT);
+  syncT = setTimeout(() => {
+    if (!SY.token || studyScreen) return;                        // mid-session: the session end triggers it again
+    if (!force && SY.rateUntil && Date.now() < SY.rateUntil) return;
+    syncNow("auto");
+  }, ms);
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && SY.token && Date.now() - (SY.lastTry || 0) > 60e3) syncSoon(1500); });
+addEventListener("online", () => { if (SY.token && /offline|network/.test(SY.err || "")) syncSoon(1500); });
+
+/* ---------- plain-language status ---------- */
+function agoTxt(ts) { if (!ts) return "never"; const s = (Date.now() - ts) / 1000; if (s < 60) return "just now"; if (s < 3600) return `${Math.round(s / 60)} min ago`; if (s < 86400) return `${Math.round(s / 3600)} h ago`; const d = Math.round(s / 86400); return d === 1 ? "yesterday" : `${d} days ago`; }
+function syncErrText(code) {
+  return ({
+    token: "GitHub didn't accept the token — it may be mistyped, expired or deleted. Remove it and paste a new one.",
+    scope: "The token isn't allowed to use gists. Create a token with only the “gist” scope (classic) or the “Gists” permission (fine-grained).",
+    rate: `GitHub's rate limit was reached. Sync will try again after ${SY.rateUntil ? new Date(SY.rateUntil).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "a few minutes"}.`,
+    offline: "You're offline. Your progress is saved on this device and will sync when you're back online.",
+    network: "Couldn't reach GitHub right now. Your progress is safe on this device; sync will try again later.",
+    data: "The sync file in your gist is damaged or from a newer app version. Update the app, or restore a previous version.",
+    rejected: "GitHub rejected the update. Try Sync now again in a minute.",
+    http: "GitHub had a problem. Try again in a few minutes."
+  })[code] || "Sync didn't finish. Try again later.";
+}
+const maskToken = t => t ? (t.length > 12 ? t.slice(0, 4) + "••••••••" + t.slice(-4) : "••••••••") : "";
+function syncStatusUI(busy) {
+  const el = $("#syncStatus"); if (!el) return;
+  if (busy) { el.className = "muted"; el.textContent = busy; return; }
+  if (SY.err) { el.className = "bkerr"; el.textContent = "⚠️ " + syncErrText(SY.err) + (SY.lastSync ? ` Last good sync: ${agoTxt(SY.lastSync)}.` : ""); }
+  else { el.className = "muted"; el.textContent = SY.lastSync ? `✅ Last synced ${agoTxt(SY.lastSync)}` : "Not synced yet"; }
+  const b = $("#syncNow"); if (b) b.disabled = !!syncing;
+}
+
+/* ---------- Settings section ---------- */
+function backupSettingsHTML() {
+  const sn = getSnapshot();
+  return `<div class="bksec" id="bkSec"><h3 class="bkh">☁️ Backup & Sync</h3>
+    <div class="row"><span>💾 Backup file<br><small class="muted" id="bkLast">Last backup: ${agoTxt(SY.lastBackup)}</small></span><button class="btn small" id="bkNow">Back up now</button></div>
+    <div class="row"><span>📂 Restore from file<br><small class="muted">Shows what's inside first · you can undo it</small></span><button class="btn small sec" id="bkRestore">Restore…</button><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
+    ${sn ? `<div class="row" id="bkUndoRow"><span>↩️ Undo last restore<br><small class="muted">Safety copy from ${esc(new Date(sn.at).toLocaleString())}</small></span><button class="btn small sec" id="bkUndo">Undo</button></div>` : ""}
+    <div class="row"><span>🔔 Weekly backup reminder<br><small class="muted">A banner on Home when your last backup or sync is over 7 days old</small></span><button class="switch ${SY.remind ? "on" : ""}" id="bkRemind" role="switch" aria-checked="${!!SY.remind}" aria-label="Weekly backup reminder"></button></div>
+    <div class="syncbox" id="syncBox">${syncBoxHTML()}</div></div>`;
+}
+function syncBoxHTML() {
+  if (!SY.token) return `<div class="row"><span>🔄 Sync with a secret GitHub Gist<br><small class="muted">Keep phone, tablet and computer in step. Uses your own free GitHub account.</small></span></div>
+    <label class="bklabel" for="tokIn">GitHub token (gist scope only)</label>
+    <div class="tokrow"><input type="password" id="tokIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ghp_… or github_pat_…" aria-label="GitHub token"><button class="btn small" id="tokSave">Save & sync</button></div>
+    <small class="bkerr" id="tokErr"></small>
+    ${tokenHelpHTML()}`;
+  return `<div class="row"><span>🔄 Gist sync<br><small class="muted">Token <span class="jp" id="tokMask">${esc(maskToken(SY.token))}</span> · saved only on this device</small></span><button class="btn small ghost" id="tokRemove">Remove token</button></div>
+    <p id="syncStatus" class="muted" role="status" aria-live="polite"></p>
+    <div class="btnrow bkbtns"><button class="btn" id="syncNow">🔄 Sync now</button><button class="btn sec" id="syncHist">Restore a previous version…</button></div>
+    ${SY.gistId ? `<small class="muted">Gist: <a href="https://gist.github.com/${encodeURIComponent(SY.gistId)}" target="_blank" rel="noopener">${esc(SY.gistId.slice(0, 8))}…</a> (secret)</small>` : ""}
+    ${tokenHelpHTML(true)}`;
+}
+function tokenHelpHTML(collapsed) {
+  return `<details class="tokhelp" ${collapsed ? "" : ""}><summary>How do I create a token?</summary>
+    <ol>
+      <li>Sign in at <b>github.com</b> (a free account is fine).</li>
+      <li>Click your profile picture (top right) → <b>Settings</b>.</li>
+      <li>In the left sidebar, scroll down → <b>Developer settings</b>.</li>
+      <li><b>Personal access tokens</b> → <b>Tokens (classic)</b>.</li>
+      <li><b>Generate new token</b> → <b>Generate new token (classic)</b>.</li>
+      <li>Note: “JLPT Vocab Quest”. Expiration: <b>1 year</b> (custom date) is a good choice; “No expiration” also works but GitHub recommends an expiry.</li>
+      <li>Under scopes, check <b>only “gist”</b>. Leave everything else unchecked.</li>
+      <li><b>Generate token</b>, copy it (it starts with <span class="jp">ghp_</span> and is shown only once) and paste it above.</li>
+    </ol>
+    <p class="muted">Shortcut: <a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=JLPT%20Vocab%20Quest" target="_blank" rel="noopener">open the classic token form with “gist” pre-checked</a>.
+      Prefer a fine-grained token? <a href="https://github.com/settings/personal-access-tokens/new?name=JLPT%20Vocab%20Quest&amp;expires_in=366&amp;gists=write" target="_blank" rel="noopener">This form</a> pre-selects the account permission <b>Gists: Read and write</b> and nothing else.</p>
+    <p class="bknote">🔒 Secret gists are <b>unlisted, not private</b>: anyone who has the link can open it. It only holds your study progress — never your token. <b>Never share your token</b>: it lets anyone write to your gists. If you share the app with friends, each person uses their own token and gist. The token is stored only in this browser on this device, is never put into backups or the gist, and you can remove it any time (and delete it on GitHub).</p>
+    <p class="muted">GitHub automatically deletes tokens that go unused for a year. When a token expires, sync shows a message; paste a new one.</p></details>`;
+}
+function bindBackupSettings(root) {
+  const q = s => root.querySelector(s);
+  q("#bkNow").onclick = () => exportBackup();
+  const fi = q("#bkFile"); q("#bkRestore").onclick = () => { fi.value = ""; fi.click(); }; fi.onchange = () => importFile(fi.files && fi.files[0]);
+  const u = q("#bkUndo"); if (u) u.onclick = () => undoRestore();
+  q("#bkRemind").onclick = e => { SY.remind = !SY.remind; sysave(); e.currentTarget.classList.toggle("on", SY.remind); e.currentTarget.setAttribute("aria-checked", SY.remind); };
+  bindSyncBox(root);
+}
+function bindSyncBox(root) {
+  const q = s => root.querySelector(s);
+  const save_ = q("#tokSave");
+  if (save_) save_.onclick = async () => {
+    const inp = q("#tokIn"), t = (inp.value || "").trim(), er = q("#tokErr");
+    if (!/^[A-Za-z0-9_]{20,255}$/.test(t)) { er.textContent = "That doesn't look like a GitHub token. It should be one long code like ghp_… or github_pat_… with no spaces."; return; }
+    inp.value = ""; SY.token = t; SY.err = ""; SY.gistId = ""; sysave(); bkRefresh();
+    const r = await syncNow("first");
+    if (r && r.ok) toast(r.created ? "☁️ Created your secret sync gist" : "☁️ Synced with your gist");
+  };
+  const rm = q("#tokRemove");
+  if (rm) rm.onclick = () => { SY.token = ""; SY.gistId = ""; SY.err = ""; SY.lastSync = 0; sysave(); bkRefresh(); toast("Token removed from this device"); };
+  const sn = q("#syncNow"); if (sn) sn.onclick = async () => { const r = await syncNow("manual"); if (r && r.ok) toast(r.pulled ? "☁️ Synced — progress from your other devices was merged" : "☁️ Synced"); };
+  const hi = q("#syncHist"); if (hi) hi.onclick = () => historySheet();
+  syncStatusUI();
+}
+function bkRefresh() {
+  const sec = $("#bkSec"); if (!sec) return;
+  const d = document.createElement("div"); d.innerHTML = backupSettingsHTML(); const n = d.firstElementChild;
+  const open = sec.querySelector("details[open]"); sec.replaceWith(n); if (open) { const dd = n.querySelector("details"); if (dd) dd.open = true; }
+  bindBackupSettings(n.parentNode);
+}
+async function historySheet() {
+  if (!SY.token) return;
+  const md = document.createElement("div"); md.className = "modal"; md.id = "bkHist";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Previous versions"><h2>Previous versions</h2><div id="histList"><p class="muted">Loading…</p></div><div class="btnrow"><button class="btn ghost" id="histClose">Close</button></div></div>`;
+  document.body.appendChild(md); md.onclick = e => { if (e.target === md || e.target.id === "histClose") md.remove(); };
+  const L = md.querySelector("#histList");
+  try {
+    if (!SY.gistId) { const r = await syncNow("history"); if (!r.ok) throw new SyncErr(r.err); }
+    const list = await gh(`/gists/${encodeURIComponent(SY.gistId)}/commits?per_page=30`);
+    if (!Array.isArray(list) || !list.length) { L.innerHTML = `<p class="muted">No versions yet.</p>`; return; }
+    L.innerHTML = `<p class="muted" style="font-size:15px">Pick a version to see what's in it. Restoring keeps a safety copy so you can undo.</p><div class="histlist">${list.slice(0, 30).map((c, i) => `<button class="duerow histrow" data-v="${esc(c.version)}"><span class="grow"><b>${esc(new Date(c.committed_at).toLocaleString())}</b>${i === 0 ? ` <span class="lvtag">latest</span>` : ""}</span><span class="muted">›</span></button>`).join("")}</div>`;
+    L.querySelectorAll(".histrow").forEach(b => b.onclick = async () => {
+      b.disabled = true;
+      try { const g = await gh(`/gists/${encodeURIComponent(SY.gistId)}/${encodeURIComponent(b.dataset.v)}`); const p = await gistContent(g); if (!p) throw new SyncErr("data"); md.remove(); restorePreview(p, "this version", () => pushOverwrite()); }
+      catch (e) { b.disabled = false; toast("⚠️ " + syncErrText(e.code)); }
+    });
+  } catch (e) { L.innerHTML = `<p class="bkerr">⚠️ ${esc(syncErrText(e && e.code))}</p>`; }
+}
+/* weekly reminder banner on Home */
+function bkBanner() {
+  if (!SY.remind || $("#bkBanner")) return;
+  const last = Math.max(SY.lastBackup || 0, SY.lastSync || 0), now = Date.now();
+  if (now - last < 7 * DAY || now - (SY.snooze || 0) < 3 * DAY) return;
+  const d = document.createElement("div"); d.className = "panel bkbanner"; d.id = "bkBanner";
+  d.innerHTML = `<span class="grow">💾 <b>Time for a backup</b><br><small class="muted">${last ? `Last backup ${agoTxt(last)}` : "You haven't backed up yet"}</small></span><button class="btn small" id="bkBanGo">Back up</button><button class="iconbtn" id="bkBanX" aria-label="Remind me later">✕</button>`;
+  view.prepend(d);
+  d.querySelector("#bkBanGo").onclick = async () => { if (await exportBackup()) d.remove(); };
+  d.querySelector("#bkBanX").onclick = () => { SY.snooze = Date.now(); sysave(); d.remove(); };
+}
+window.__syncReady = true;
+stampAll();                                    // migration: first run baselines every setting (stamp 0 = "older than any real change")
+setTimeout(() => { if (SY.token) syncSoon(0); }, 2500);   // app open
 /* ================= Boot ================= */
 $("#homeLogo").onclick = () => go(home);
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { sfx.click(); go({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView }[b.dataset.tab]); });
@@ -3631,7 +4088,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "4133c7c691ed";
+const BUILD = "cde63d499c49";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -3681,7 +4138,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.__N5 = { gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.__N5 = { get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

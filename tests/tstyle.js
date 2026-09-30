@@ -45,6 +45,15 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await tap('.kjdone .btn');
   await tap('.tabbar [data-tab="stats"]');await p.waitForTimeout(500);await check('stats');
   await tap('.tabbar [data-tab="settings"]');await p.waitForTimeout(500);await check('settings');
+  // Backup & Sync screens
+  await p.evaluate(()=>document.querySelector('#bkSec').scrollIntoView());await check('backup & sync');
+  await p.evaluate(()=>{const d=document.querySelector('.tokhelp');d.open=true;d.scrollIntoView();});await check('token help');
+  await p.evaluate(()=>{const y=__N5.SY;y.token='ghp_'+'x'.repeat(36);y.err='offline';y.lastSync=Date.now()-3600e3;});
+  await tap('.tabbar [data-tab="home"]');await tap('.tabbar [data-tab="settings"]');await p.evaluate(()=>document.querySelector('#syncBox').scrollIntoView());await check('sync status (error)');
+  const bk=await p.evaluate(()=>JSON.stringify(__N5.buildPayload('backup')));
+  await p.setInputFiles('#bkFile',{name:'b.json',mimeType:'application/json',buffer:Buffer.from(bk)});await p.waitForSelector('#bkPreview');await check('restore preview');
+  await tap('#bkCancel');await p.evaluate(()=>{const y=__N5.SY;y.token='';y.err='';y.remind=true;y.lastBackup=0;y.lastSync=0;y.snooze=0;});
+  await tap('.tabbar [data-tab="home"]');await p.waitForSelector('#bkBanner');await check('backup reminder banner');await p.evaluate(()=>{__N5.SY.remind=false;});
   // game screens
   await tap('.tabbar [data-tab="home"]');await tap('button.mode[data-m="games"]');await check('games hub');
   await tap('button.gtile[data-gl="n5"][data-game="sniper"]');await check('sniper start');
