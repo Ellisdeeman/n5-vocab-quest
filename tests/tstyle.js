@@ -62,6 +62,8 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await tap('#pmList .pmrow[data-n="4"]');await p.waitForSelector('#pmWords');await check('pimsleur lesson');
   await tap('.tabbar [data-tab="settings"]');await p.waitForTimeout(400);await p.evaluate(()=>document.querySelector('#alPAdd').scrollIntoView({block:'center'}));await check('settings pimsleur');
   await p.evaluate(()=>document.querySelector('#sfxSeg').scrollIntoView({block:'center'}));await check('settings sound style');
+  await p.evaluate(()=>__N5.go(()=>__N5.quiz('typing',__N5.ALL().ALL_IDS.slice(0,40),'Typing')));await p.waitForSelector('#typein');await p.waitForTimeout(300);await p.tap('#giveBtn');await p.waitForSelector('#rtIn');await p.waitForTimeout(500);await check('retype after a miss');
+  await p.fill('#rtIn','xx');await p.tap('#rtGo');await p.waitForTimeout(300);await check('retype not quite');await p.tap('#rtSkip');await p.waitForTimeout(200);await check('retype skipped');await tap('#backBtn');
   await tap('.tabbar [data-tab="stats"]');await p.waitForSelector('#amOpen');await p.evaluate(()=>document.querySelector('#amOpen').scrollIntoView({block:'center'}));await check('stats all-words card');
   await tap('#amOpen');await p.waitForSelector('#amCtl');await p.waitForTimeout(400);await check('all words map');
   await p.evaluate(()=>__N5.amDetail('n5',1));await p.waitForSelector('.amsheet #amClose');await p.waitForTimeout(900);await check('all words detail sheet');await tap('#amClose');

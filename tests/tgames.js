@@ -64,7 +64,7 @@ const seed2=()=>{const now=Date.now();const s=JSON.parse(localStorage.getItem('n
     const c=await ev(()=>__N5.gs.list[__N5.gs.i][0]);
     if(r===0){const a=await cardOf('j',c);await p.tap('.kbcard .idk');await W(150);const b2=await cardOf('j',c);idkOK=b2.bad===a.bad+1&&b2.ok===a.ok;}
     else{for(let k=0;k<5;k++){const e=await ev(()=>__N5.gs.need[0]);if(e==null||await ev(()=>!!document.querySelector('#nextBtn')))break;await p.tap(`.kbtile:not(:disabled)[data-e="${e}"]`);await W(80);}if(await ev(()=>/Built it/.test(document.querySelector('#fb').textContent)))clean++;}
-    await p.waitForSelector('#nextBtn');ok(`${l} builder r${r}: solved view shows strokes + example words`,await ev(()=>!!document.querySelector('#kbDone svg, #kbDone .kjglyph, #kbDone *')));await p.tap('#nextBtn');}
+    await p.waitForSelector('#nextBtn');ok(`${l} builder r${r}: solved view shows strokes + example words`,await ev(()=>!!document.querySelector('#kbDone svg, #kbDone .kjglyph, #kbDone *')));await (async()=>{if(await p.$('#rtSkip'))await p.tap('#rtSkip');await p.tap('#nextBtn')})();}
   ok(`${l} builder: IDK = miss`,idkOK);ok(`${l} builder: built kanji by tapping parts`,clean>=4,`${clean}/5`);
   ok(`${l} builder: finishes with a result`,await until(()=>!!document.querySelector('#gFinal'),5000));
   ok(`${l} builder: solved kanji recorded (unlocks more)`,await ev(l=>(__N5.GS().kb[l]||[]).length>=4,l));
@@ -83,7 +83,7 @@ const seed2=()=>{const now=Date.now();const s=JSON.parse(localStorage.getItem('n
       await W(150);if(await ev(()=>/Perfect/.test(document.querySelector('#fb').textContent)))sOK++;
       if(r===1&&await ev(()=>new Set(__N5.gs.answer).size>1)){const cw1=await cardOf('w',wid);ok(`${l} scramble: a wrong order first = miss (bad+1, not correct)`,cw1.bad===cw0.bad+1&&cw1.ok===cw0.ok&&await ev(()=>/wrong try/.test(document.querySelector('#fb').textContent)),JSON.stringify([cw0,cw1]));}}
     sAud=sAud||await ev(()=>{const a=[...document.querySelectorAll('audio')];return true;});
-    await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');}
+    await p.waitForSelector('#nextBtn');await (async()=>{if(await p.$('#rtSkip'))await p.tap('#rtSkip');await p.tap('#nextBtn')})();}
   ok(`${l} scramble: IDK = miss`,sIdk);ok(`${l} scramble: ordered sentences by tapping tiles`,sOK>=3,`${sOK} perfect (r1 had a deliberate wrong try)`);
   ok(`${l} scramble: finishes with a result`,await until(()=>!!document.querySelector('#gFinal'),5000));
   await toHub();
@@ -99,7 +99,7 @@ const seed2=()=>{const now=Date.now();const s=JSON.parse(localStorage.getItem('n
    for(;n<40;n++){if(await ev(()=>!!document.querySelector('#gFinal')))break;if(!(await until(()=>!!document.querySelector('#qhost .choice:not(:disabled)')||!!document.querySelector('#gFinal'),8000)))break;if(await ev(()=>!!document.querySelector('#gFinal')))break;
     if(win){const i=await choiceIdx();if(i<0){console.log('  no match',await ev(()=>JSON.stringify({m:__N5.gs.cur.mode})));}await p.tap(`#qhost .choice[data-i="${Math.max(0,i)}"]`);}
     else{const q=await ev(()=>{const q=__N5.gs.cur;return q.k?['k',q.k.id]:q.j?['j',q.j.c]:['w',q.w.id];});const a=await cardOf(q[0],q[1]);await p.tap('#qhost .idk');await W(120);const b2=await cardOf(q[0],q[1]);if(!(b2.bad===a.bad+1&&b2.ok===a.ok))idkMiss=false;}
-    await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');await W(100);}
+    await p.waitForSelector('#nextBtn');await (async()=>{if(await p.$('#rtSkip'))await p.tap('#rtSkip');await p.tap('#nextBtn')})();await W(100);}
    await until(()=>!!document.querySelector('#gFinal'),5000);return{n,idkMiss,won:await ev(()=>/Victory/.test(document.querySelector('.gresult')?.textContent||''))};};
   if(pickId){const h0=await ev(()=>__N5.gs&&0);
    const lose=await fight(pickId,false);ok(`${l} boss: 3× IDK → defeated, each IDK a miss`,!lose.won&&lose.n===3&&lose.idkMiss,JSON.stringify(lose));

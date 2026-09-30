@@ -12,8 +12,8 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
  const title=async()=>p.evaluate(()=>{const e=document.querySelector('.largetitle')||document.querySelector('.topbar b');return e?e.textContent.trim():''});
  const answerAll=async(max=120)=>{for(let i=0;i<max;i++){if(await p.$('#dueBack, #homeBtn, #homeBtn2'))return i;if(await p.$('#kjGot')){await p.tap('#kjGot');await p.waitForTimeout(80);continue;}
    const idk=await p.$('button.idk:not([disabled])'),give=await p.$('#giveBtn:not([disabled])');if(idk)await idk.tap();else if(give)await give.tap();else return -1;
-   await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');await p.waitForTimeout(60);}return -2;};
- const answerN=async n=>{for(let i=0;i<n;i++){if(await p.$('#kjGot')){await p.tap('#kjGot');await p.waitForTimeout(80);i--;continue;}const idk=await p.$('button.idk:not([disabled])'),give=await p.$('#giveBtn:not([disabled])');if(idk)await idk.tap();else await give.tap();await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');await p.waitForTimeout(60);}};
+   await p.waitForSelector('#nextBtn');await (async()=>{if(await p.$('#rtSkip'))await p.tap('#rtSkip');await p.tap('#nextBtn')})();await p.waitForTimeout(60);}return -2;};
+ const answerN=async n=>{for(let i=0;i<n;i++){if(await p.$('#kjGot')){await p.tap('#kjGot');await p.waitForTimeout(80);i--;continue;}const idk=await p.$('button.idk:not([disabled])'),give=await p.$('#giveBtn:not([disabled])');if(idk)await idk.tap();else await give.tap();await p.waitForSelector('#nextBtn');await (async()=>{if(await p.$('#rtSkip'))await p.tap('#rtSkip');await p.tap('#nextBtn')})();await p.waitForTimeout(60);}};
  // A: N5 chip on Home opens the N5 level page with a working Today's session button (touch taps)
  await tap('.lvgrid .lvcard[data-lv=n5]');
  ok('home N5 chip opens N5 level page',(await title()).includes('N5')&&!!(await p.$('#dailyBtn')),await title());

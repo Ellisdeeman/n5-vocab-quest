@@ -647,6 +647,20 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .ammini .minibar{margin:8px 0 12px}
 @media (prefers-reduced-motion:reduce){.amchip,.amzoom{transition:none}}
 .sfxrow .seg button{min-height:44px;min-width:58px}
+
+/* retype after a miss */
+.retype{margin:12px 0 4px;padding:12px;border-radius:16px;border:2px dashed var(--accent);background:var(--accentT);text-align:left}
+.retype .rtlabel{display:block;font-weight:600;color:var(--label);font-size:1rem}
+.retype .rtlabel b{font-size:1.35rem;color:var(--accent)}
+.retype .rtrow{display:flex;gap:8px;align-items:stretch;margin-top:8px}
+.retype .rtin{margin-top:0;flex:1;min-width:0;min-height:54px;font-size:1.4rem;background:var(--card)}
+.retype #rtGo{min-height:54px;min-width:64px;margin:0}
+.retype .rtmsg{font-size:.88rem;color:var(--label2);margin-top:6px}
+.retype .rtskip{display:block;margin:2px 0 0 auto;min-height:54px;min-width:64px;padding:0 14px;background:none;border:0;color:var(--label2);text-decoration:underline;font-size:.9rem}
+.retype.miss .rtin{border-color:var(--bad);animation:shake .3s}
+.retype.ok{border-style:solid;border-color:var(--good)}
+.retype.skip{border-style:solid;opacity:.75}
+#nextBtn:disabled{opacity:.45}
 </style>
 </head>
 <body>
@@ -970,7 +984,7 @@ function normAscii(s) {
 /* ================= State / persistence ================= */
 const KEY = "n5VocabQuest.v1";
 const defaultState = () => ({ cards: {}, xp: 0, streak: 0, lastDay: null, sound: true, romaji: true, speech: true, autoSpeak: false, bestSpeed: 0, bestMatch: 0, answered: 0,
-  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, leechSeen: [], levels: ["n5"] });
+  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, retype: true, retypeMC: false, leechSeen: [], levels: ["n5"] });
 let S;
 try { S = Object.assign(defaultState(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { S = defaultState(); }
 if (!S.notes || typeof S.notes !== "object") S.notes = {};
@@ -1401,6 +1415,7 @@ function renderMC(mode, w, onAnswer, opts = {}) {
     host.querySelector("#fb").innerHTML = revealHTML(w, ok);
     if ((mode === "reverse" || mode === "listen") && canSpeak()) speak(w);
     onAnswer(ok, btns[i]);
+    if (!ok && S.retypeMC && !opts.noRetype) wordRetype(host, w);
   };
   btns.forEach((b, i) => b.onclick = () => choose(i));
   const idkB = host.querySelector(".idk");
@@ -1411,6 +1426,7 @@ function renderMC(mode, w, onAnswer, opts = {}) {
     host.querySelector("#fb").innerHTML = revealHTML(w, false, IDK_NOTE, true);
     if (canSpeak()) speak(w);
     onAnswer(false, idkB, 0, { idk: true });
+    if (S.retypeMC && !opts.noRetype) wordRetype(host, w);
   };
   idkB.onclick = idk;
   return { choose, idk, submit: null };
@@ -1419,6 +1435,69 @@ function renderMC(mode, w, onAnswer, opts = {}) {
 const IDK_BTN = `<div class="btnrow idkrow"><button class="btn ghost idk" title="Show the answer (counts as a miss, comes back soon) · key 0 or ?">🤷 I don't know <kbd>0</kbd></button></div>`;
 const IDK_NOTE = `<div class="muted idknote" style="font-size:.9rem">No problem — here's the answer. It will come back again soon.</div>`;
 const isIdkKey = e => e.key === "0" || e.key === "?";
+/* ---------- Retype after a miss ----------
+   After a wrong answer or "I don't know" in a typing exercise (and, if enabled, multiple choice), the learner types the
+   correct answer once before Next unlocks. It never re-grades: the miss is already recorded (SRS, XP, combo, leeches).
+   Not used in timed modes or games (they pass opts.noRetype). A small Skip link stays available. */
+const RT = { box: null, shown: 0, locked: 0, skipped: 0 };
+const retypePending = () => !!(RT.box && RT.box.isConnected && RT.box.dataset.state === "wait");
+addEventListener("keydown", e => {   // while waiting, Enter/Space outside the retype field must not trigger "Next"
+  if (!retypePending() || e.target.id === "rtIn" || document.querySelector(".modal")) return;
+  if (e.key === "Enter" || e.key === " ") { if (e.target.closest && e.target.closest(".retype")) return; e.preventDefault(); e.stopImmediatePropagation(); const i = $("#rtIn"); if (i) i.focus(); }
+}, true);
+function wordRetypeCheck(w) {
+  const acc = new Set(); forms(w.kana, true).concat(forms(w.jp, true)).forEach(f => acc.add(normAns(f))); acc.delete("");
+  return (v, ascii) => acc.has(normAns(v)) || (!!ascii && acc.has(normAscii(ascii)));
+}
+function kanaRetypeCheck(it) {
+  const acc = new Set([it.r, ...(it.alt || [])]), target = normAns(it.id);
+  return v => { const x = v.trim().toLowerCase().replace(/\s+/g, ""); return acc.has(x) || normAns(v) === target || toHira(v.trim()) === toHira(it.id); };
+}
+/* host: question card host · check(value, rawAscii) · o: { show (answer HTML-safe text), ime (romaji→kana), ph } */
+function retypeAfterMiss(host, check, o) {
+  const fb = host.querySelector("#fb"), nb = fb && fb.querySelector("#nextBtn");
+  if (!fb || !nb) return null;   // no Next button (timed flow) → nothing to gate
+  RT.shown++;
+  const box = document.createElement("div"); box.className = "retype"; box.dataset.state = "wait";
+  box.innerHTML = `<label class="rtlabel" for="rtIn">✍️ Type it once to lock it in: <b class="jp">${esc(o.show)}</b></label>
+    <div class="rtrow"><input class="typein rtin" id="rtIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" ${o.ime ? `lang="ja"` : ""} placeholder="${esc(o.ph || "type it here…")}" aria-describedby="rtMsg"><button class="btn" id="rtGo">OK</button></div>
+    <div class="rtmsg" id="rtMsg" aria-live="polite">Doesn't change your score — just builds the memory.</div>
+    <button class="rtskip" id="rtSkip" type="button">Skip</button>`;
+  const head = fb.firstElementChild, row = nb.closest(".btnrow");
+  let anchor = head && head !== row ? head : null;   // after the verdict line + its 'You typed…' / I-don't-know note
+  while (anchor && anchor.nextElementSibling && anchor.nextElementSibling !== row && anchor.nextElementSibling.matches(".muted,.idknote")) anchor = anchor.nextElementSibling;
+  if (anchor) anchor.after(box); else fb.prepend(box);
+  box.after(row);   // Next sits right under the retype box
+  nb.disabled = true; nb.setAttribute("aria-disabled", "true"); nb.dataset.rt = "1";
+  RT.box = box;
+  const inp = box.querySelector("#rtIn"), msg = box.querySelector("#rtMsg");
+  if (o.ime) attachIME(inp);
+  let ascii = "";
+  inp.addEventListener("keydown", e => { if (e.key.length === 1 && /[a-zA-Z'\- ]/.test(e.key)) ascii += e.key; else if (e.key === "Backspace") ascii = ascii.slice(0, -1); }, true);
+  inp.addEventListener("input", () => { if (!inp.value) ascii = ""; box.classList.remove("miss"); });
+  const unlock = how => {
+    box.dataset.state = how; box.classList.add(how); inp.readOnly = true; inp.disabled = true;
+    box.querySelector("#rtGo").disabled = true; box.querySelector("#rtSkip").remove();
+    nb.disabled = false; nb.removeAttribute("aria-disabled");
+    if (how === "ok") { RT.locked++; inp.classList.add("ok"); msg.innerHTML = "✔ Locked in"; sfx.click(); } else { RT.skipped++; msg.textContent = "Skipped"; }
+    inp.blur(); setTimeout(() => { try { nb.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) {} }, 60);
+  };
+  const submit = () => {
+    if (box.dataset.state !== "wait") return;
+    const v = inp.value.trim(); if (!v) { inp.focus(); return; }
+    if (check(v, ascii)) unlock("ok");
+    else { box.classList.remove("miss"); void box.offsetWidth; box.classList.add("miss"); msg.innerHTML = `Not quite — copy it exactly: <b class="jp">${esc(o.show)}</b>`; inp.select(); }
+  };
+  box.querySelector("#rtGo").onclick = submit;
+  box.querySelector("#rtSkip").onclick = () => { if (box.dataset.state === "wait") unlock("skip"); };
+  inp.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); e.stopPropagation(); submit(); } });
+  inp.focus({ preventScroll: true });   // synchronous inside the tap → iOS keeps/opens the keyboard
+  const keep = () => { try { inp.scrollIntoView({ block: "center" }); } catch (e) {} };
+  setTimeout(keep, 50); setTimeout(keep, 400);   // again after the iOS keyboard slides up
+  return { box, inp };
+}
+const wordRetype = (host, w) => retypeAfterMiss(host, wordRetypeCheck(w), { show: w.kana, ime: true, ph: `e.g. ${ROMA(w.kana)}` });
+const kanaRetype = (host, it) => retypeAfterMiss(host, kanaRetypeCheck(it), { show: `${it.id} (${it.r})`, ime: false, ph: "romaji or kana" });
 /* ---------- typing (EN → JP, or listen → type) ---------- */
 function acceptedAnswers(w, kanaOnly) {
   const acc = new Set(), words = WORDS.filter(x => x.id === w.id || x.enN === w.enN);
@@ -1468,6 +1547,7 @@ function renderTyping(w, onAnswer, opts = {}) {
     host.querySelector("#fb").innerHTML = revealHTML(w, ok, extra, !ok && !given);
     if (!listen && canSpeak()) speak(w);
     onAnswer(ok, inp, hints, !ok && !given ? { idk: true } : undefined);
+    if (!ok && S.retype !== false && !opts.noRetype) wordRetype(host, w);
   };
   const submit = () => {
     if (done) return;
@@ -1916,7 +1996,7 @@ function speed(back) {
       $("#sscore").textContent = score + " pts";
       q = null;
       setTimeout(next, ok ? 350 : 1100);
-    });
+    }, { noRetype: true });
   };
   const end = () => {
     over = true; clearInterval(timer); q = null; sfx.end();
@@ -2075,6 +2155,8 @@ function settings(page = false) {
     ${sw("autoSpeak", "▶️ Auto-play audio", "Speak each Japanese prompt automatically")}
     ${sw("autoAdvance", "⏭️ Auto-advance", "Go to the next question after a correct answer")}
     ${canAudio() ? sw("listenType", "✍️ Listening: type what you hear", "Instead of picking the meaning") : ""}
+    ${sw("retype", "✍️ Retype after a miss", "Typing exercises: after a miss or 🤷, type the right answer once before Next (doesn't change your score)")}
+    ${sw("retypeMC", "✍️ Also in multiple choice", "After a wrong pick or 🤷, type the reading once")}
     ${(() => { const can = "caches" in window && (location.protocol === "https:" || location.hostname === "localhost");
       return `<div class="row"><span style="text-align:left">📥 Offline levels & audio<br><small class="muted" id="dlInfo">${can ? "Played audio is cached automatically. Pick levels to download their word list + all word/sentence audio (kana audio always included):" : "Available when the app is opened from its website."}</small>
       ${can ? `<span class="dlpick">${LEVELS.map(l => `<label><input type="checkbox" class="dlLv" value="${l}" ${activeLevels().includes(l) ? "checked" : ""}> ${LNAME(l)} <small class="muted">~${LV[l].info.mb || "?"} MB</small></label>`).join("")}</span>` : ""}</span>
@@ -2395,7 +2477,7 @@ function kanaGlyph(it) {
 }
 
 /* ---------- Kana question renderers ---------- */
-function kRenderMC(mode, it, pool, onAnswer) {
+function kRenderMC(mode, it, pool, onAnswer, ro = {}) {
   const opts = shuffle([it, ...kDistractors(it, 3, pool)]);
   const kanaChoices = mode !== "k2r";
   const host = $("#qhost");
@@ -2413,6 +2495,7 @@ function kRenderMC(mode, it, pool, onAnswer) {
     host.querySelector("#fb").innerHTML = kReveal(it, ok, ok ? null : opts[i]);
     if (mode !== "listen") kSay(it);
     onAnswer(ok, btns[i]);
+    if (!ok && S.retypeMC && !ro.noRetype) kanaRetype(host, it);
   };
   btns.forEach((b, i) => b.onclick = () => choose(i));
   const idkB = host.querySelector(".idk");
@@ -2423,6 +2506,7 @@ function kRenderMC(mode, it, pool, onAnswer) {
     host.querySelector("#fb").innerHTML = kReveal(it, false, null, true) + IDK_NOTE;
     kSay(it);
     onAnswer(false, idkB, { idk: true });
+    if (S.retypeMC && !ro.noRetype) kanaRetype(host, it);
   };
   idkB.onclick = idk;
   return { choose, idk };
@@ -2441,7 +2525,7 @@ function kRenderType(it, onAnswer) {
   const inp = host.querySelector("#typein"); setTimeout(() => inp.focus(), 30);
   let done = false;
   const acc = new Set([it.r, ...it.alt]);
-  const finish = (ok, idk) => { done = true; inp.disabled = true; inp.classList.add(ok ? "ok" : "no"); host.querySelectorAll(".btnrow button").forEach(b => b.disabled = true); host.querySelector("#fb").innerHTML = kReveal(it, ok, null, idk) + (idk ? IDK_NOTE : ""); kSay(it); onAnswer(ok, inp, idk ? { idk: true } : undefined); };
+  const finish = (ok, idk) => { done = true; inp.disabled = true; inp.classList.add(ok ? "ok" : "no"); host.querySelectorAll(".btnrow button").forEach(b => b.disabled = true); host.querySelector("#fb").innerHTML = kReveal(it, ok, null, idk) + (idk ? IDK_NOTE : ""); kSay(it); onAnswer(ok, inp, idk ? { idk: true } : undefined); if (!ok && S.retype !== false) kanaRetype(host, it); };
   const submit = () => { if (done) return; const v = inp.value.trim().toLowerCase().replace(/\s+/g, ""); if (!v) return; finish(acc.has(v)); };
   host.querySelector("#checkBtn").onclick = submit;
   host.querySelector("#giveBtn").onclick = () => { if (!done) finish(false, true); };
@@ -2495,7 +2579,7 @@ function kanaSpeed() {
   let t0, timer, q = null, score = 0, wrongs = 0, skips = 0, pen = 0, over = false;
   const rem = () => Math.max(0, DUR - (Date.now() - t0) / 1000 - pen);
   const next = () => { if (over) return; const it = KITEMS[kPick(pool)];
-    q = kRenderMC("k2r", it, pool, (ok, el, info) => { const idk = !!(info && info.idk); kGrade(it.id, ok); if (ok) score++; else { if (idk) { skips++; pen += 1; } else { wrongs++; pen += 2; } kRequeue(it.id); } comboHit(ok, el, 4, idk); $("#sscore").textContent = score + " pts"; q = null; setTimeout(next, ok ? 250 : 900); }); };
+    q = kRenderMC("k2r", it, pool, (ok, el, info) => { const idk = !!(info && info.idk); kGrade(it.id, ok); if (ok) score++; else { if (idk) { skips++; pen += 1; } else { wrongs++; pen += 2; } kRequeue(it.id); } comboHit(ok, el, 4, idk); $("#sscore").textContent = score + " pts"; q = null; setTimeout(next, ok ? 250 : 900); }, { noRetype: true }); };
   const end = () => { over = true; clearInterval(timer); q = null; sfx.end(); const best = score > KS.bestSpeed; if (best) { KS.bestSpeed = score; ksave(); confetti(200); } addXP(score);
     $("#qhost").innerHTML = `<div class="card"><div class="qtype">Time's up!</div><div class="big">${score}</div><p>kana read · ${wrongs + skips} missed${skips ? ` (${skips} I don't know)` : ""}${best ? " · <b>🏆 New best!</b>" : ` · best ${KS.bestSpeed}`}</p><button class="btn" id="again">Play again</button></div>`;
     $("#again").onclick = () => go(kanaSpeed); kMaybeRead(); };
@@ -3790,9 +3874,9 @@ function bossFight(l, boss, back) {
       if (st.hp <= 0 || st.hearts <= 0) { nb.innerHTML = `<button class="btn" id="nextBtn">${st.hp <= 0 ? "Finish him! 🏅" : "See result"}</button>`; fb.appendChild(nb); $("#nextBtn").onclick = () => end(st.hp <= 0); }
       else { nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb); $("#nextBtn").onclick = next; }
     };
-    if (q.k) st.q = kRenderMC(q.mode, q.k, kpool, onA);
+    if (q.k) st.q = kRenderMC(q.mode, q.k, kpool, onA, { noRetype: true });
     else if (q.j) st.q = kjRender(q.mode, q.j, onA);
-    else st.q = renderMC(q.mode, q.w, onA);
+    else st.q = renderMC(q.mode, q.w, onA, { noRetype: true });
   };
   const onKey = e => { if (st.over || !st.q) return; if (/^[1-4]$/.test(e.key) && st.q.choose) st.q.choose(+e.key - 1); else if (isIdkKey(e) && st.q.idk) { e.preventDefault(); st.q.idk(); } else if (e.key === "Enter" && $("#nextBtn")) { e.preventDefault(); $("#nextBtn").click(); } };
   addEventListener("keydown", onKey); cleanup = () => { st.over = true; removeEventListener("keydown", onKey); };
@@ -4576,7 +4660,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "7fa6a9d861d6";
+const BUILD = "406cce2696fb";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -4626,7 +4710,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.__N5 = { sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.__N5 = { go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

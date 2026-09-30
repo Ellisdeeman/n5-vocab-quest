@@ -20,7 +20,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
  await tap('#dailyBtn');let n=0,kanaQ=0,vocQ=0;
  for(;n<150;n++){if(await p.$('#homeBtn'))break;if(await p.$('.kprompt, .kchoice, .kroma'))kanaQ++;else vocQ++;
   const idk=await p.$('button.idk:not([disabled])'),give=await p.$('#giveBtn:not([disabled])');if(idk)await idk.tap();else if(give)await give.tap();else{console.log('stuck',await p.textContent('#qhost'));break;}
-  await p.waitForSelector('#nextBtn');await p.tap('#nextBtn');await p.waitForTimeout(40);}
+  await p.waitForSelector('#nextBtn');await (async()=>{if(await p.$('#rtSkip'))await p.tap('#rtSkip');await p.tap('#nextBtn')})();await p.waitForTimeout(40);}
  ok('mixed kana+vocab path session completes',!!(await p.$('#homeBtn')),`q=${n} kana=${kanaQ} vocab=${vocQ}`);
  ok('kana progress recorded',await ev(()=>Object.keys(__N5.KS().cards).length)>0);
  await tap('#homeBtn');
