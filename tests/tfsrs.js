@@ -138,8 +138,8 @@ const metrics=()=>{const N=__N5,S=N.S(),ids=Object.keys(S.cards).map(Number);con
  // boss battle IDK on review items through the UI
  await ev(()=>{const S=__N5.S(),now=Date.now();__N5.bossList('n5')[1].ids.forEach(i=>{S.cards[i]={box:3,due:now+5*864e5,ok:3,bad:0,t:now-864e5,f:{st:2,sp:null,s:9,d:5,lr:now-864e5,due:now+5*864e5}};});__N5.gsave();});
  await ev(()=>__N5.go(()=>__N5.bossFight('n5',__N5.bossList('n5')[1],()=>{})));await p.waitForSelector('#qhost .choice',{timeout:20000});
- const bq=await ev(()=>{const q=__N5.gs.cur;return q.w?q.w.id:null;});if(bq!=null){await p.tap('#qhost .idk');await W(200);}
- ok('boss battle: I don\'t know on a review word → Again',bq==null||await ev(i=>__N5.S().cards[i].f.st===3,bq));
+ const bq=await ev(()=>{const q=__N5.gs.cur;return q.w&&!q.j&&!q.k?q.w.id:null;});   /* a kanji question also carries its word */ if(bq!=null){await p.tap('#qhost .idk');await W(200);}
+ ok('boss battle: I don\'t know on a review word → Again',bq==null||await ev(i=>__N5.S().cards[i].f.st===3,bq),await ev(i=>JSON.stringify([i,__N5.S().cards[i],__N5.gs.cur.mode,document.querySelector('#fb')?.innerText]),bq));
  // ===== 8. kanji: own track =====
  await ev(()=>__N5.loadKanji('n5'));
  const kjr=await ev(()=>{const N=__N5,c='日',nv=JSON.stringify(N.S().cards),before=JSON.parse(JSON.stringify(N.JS().cards[c]));N.qStart(c,'mc');window.kjGradeT(c,true);const a=N.JS().cards[c];return {sep:JSON.stringify(N.S().cards)===nv,changed:JSON.stringify(a.f)!==JSON.stringify(before.f),rt:a.rt,ok:a.ok===before.ok+1};});
@@ -175,7 +175,7 @@ const metrics=()=>{const N=__N5,S=N.S(),ids=Object.keys(S.cards).map(Number);con
  ok('Pimsleur mark done: adds Seen cards with no FSRS stability',!pm||(pm.s==null&&pm.st===1&&pm.box===0),JSON.stringify(pm));
  // ===== 12. word detail + stats show FSRS info =====
  await ev(()=>__N5.go(__N5.statsView));await W(400);
- ok('Stats shows the FSRS memory card (estimated recall)',await ev(()=>/Estimated recall right now: \d+%/.test(document.querySelector('.fsrscard')?.textContent||'')));
+ ok('Stats shows the Memory (FSRS) section (estimated recall)',await (async()=>{for(let i=0;i<20;i++){if(await ev(()=>/\d+%\s*avg recall now/.test(document.querySelector('#memStats')?.innerText||'')))return true;await W(100);}return false;})());
  ok('detail sheet shows stability / next review',await ev(async i=>{__N5.amDetail('n5',i);await new Promise(r=>setTimeout(r,600));return /stability/.test(document.querySelector('.amsheet')?.textContent||'');},uniq[0]));
  ok('credits mention FSRS',await ev(()=>/FSRS-5/.test(document.querySelector('#credits').textContent)));
  ok('no page errors',errs.length===0,errs.join(' | '));

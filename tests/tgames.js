@@ -6,6 +6,7 @@ const URL=process.env.URL||'http://localhost:8766/';const BR=process.env.BROWSER
 const ONLY=(process.env.LEVELS||'kana,n5,n4,n3,n2,n1').split(',');
 const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
 const seed2=()=>{const now=Date.now();const s=JSON.parse(localStorage.getItem('n5VocabQuest.v1'));
+ s.newLimit='off';s.kjLimit='off';   // daily new-item caps are covered by tnewcap.js
  for(let L=1;L<5;L++)for(let i=0;i<60;i++)s.cards[L*10000+i]={box:1,due:now+864e5,ok:1,bad:0,seen:now-864e5};
  localStorage.setItem('n5VocabQuest.v1',JSON.stringify(s));
  const k=JSON.parse(localStorage.getItem('n5VocabQuest.kana.v1'));'かきくけこさしすせそたちつてとなにぬねのはひふへほ'.split('').forEach(c=>k.cards[c]={box:1,due:now+864e5,ok:1,bad:0});

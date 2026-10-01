@@ -663,6 +663,115 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 #nextBtn:disabled{opacity:.45}
 
 .fsrsrow .seg button{min-height:44px;min-width:58px}
+/* Detention (copy practice for leeches): chalkboard in the teal palette */
+.detboard,.detintro{--board:#173f3b;--chalkc:#eef7f5;background:var(--board);background-image:radial-gradient(ellipse at 30% 0,rgba(255,255,255,.07),transparent 60%);color:var(--chalkc);border:6px solid #8a6a4a;border-radius:16px;box-shadow:inset 0 0 30px rgba(0,0,0,.35)}
+[data-theme="dark"] .detboard,[data-theme="dark"] .detintro{--board:#0f2a28;border-color:#5c4632}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) .detboard,html:not([data-theme="light"]) .detintro{--board:#0f2a28;border-color:#5c4632}}
+.detintro{padding:14px 16px;margin-bottom:12px}.detintro p{margin:6px 0 0;color:var(--chalkc)}
+.chalk{font-family:"Chalkboard SE","Comic Sans MS","Segoe Print",cursive;font-size:1.5rem;letter-spacing:.5px;color:var(--chalkc);text-shadow:0 0 1px rgba(255,255,255,.6)}
+.detsel{justify-content:flex-start}
+.detlist{padding:4px 10px}
+.detpick{display:flex;align-items:center;gap:10px;min-height:54px;border-bottom:1px solid var(--sep);cursor:pointer}
+.detpick:last-child{border-bottom:0}
+.detpick input{width:24px;height:24px;flex:0 0 auto;accent-color:var(--accent)}
+.detjp{font-size:1.25rem;font-weight:700}.detEn{text-align:right;font-size:.85rem;color:var(--label2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.detboard{text-align:left;padding:14px}
+.detprompt{display:flex;align-items:center;gap:10px}
+.dettarget{font-size:2.4rem;font-weight:700;line-height:1.1}
+.detspk{margin-left:auto;min-width:54px;min-height:54px;color:var(--chalkc);background:rgba(255,255,255,.1);border-radius:14px}
+.detread{font-size:1.4rem;margin-top:2px}.detread .muted{color:rgba(238,247,245,.7);font-size:.9rem}
+.detmean{color:rgba(238,247,245,.85);margin:2px 0 8px}
+.detcount{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums;font-size:1.05rem}
+.detcount b{font-size:1.4rem}
+.detbar{flex:1;height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden}.detbar i{display:block;height:100%;width:0;background:#7ee0d0;transition:width .25s}
+.detform{display:flex;gap:8px;margin:10px 0}
+.detin{flex:1;min-height:54px;font-size:1.3rem;background:rgba(255,255,255,.95);color:#10302c;border-radius:12px}
+.detin.shake{animation:shake .3s;border-color:#f3a6a6}
+.detgo{min-width:64px;min-height:54px;margin:0}
+.detlines{list-style:decimal;margin:0;padding:0 0 0 30px;max-height:34vh;overflow:auto;font-family:"Chalkboard SE","Comic Sans MS",cursive;font-size:1.15rem;color:var(--chalkc)}
+.detlines li{padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.15);animation:detline .3s ease}
+.detlines li::marker{color:rgba(238,247,245,.5);font-size:.8rem}
+@keyframes detline{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.detdone{text-align:center}.detdone p{color:var(--chalkc)}.detdone .muted{color:rgba(238,247,245,.7)}
+.detdone .btn.ghost{color:var(--chalkc);border-color:rgba(255,255,255,.4)}
+/* next-review line after grading + session list */
+.schednote{font-size:.82rem;color:var(--label2);margin:2px 0 4px;display:flex;align-items:center;gap:6px;justify-content:center}
+.rtag{display:inline-block;font-size:.7rem;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--fill);color:var(--label2)}
+.rtag.r1{color:#b91c1c;background:color-mix(in srgb,var(--bad) 10%,transparent)}
+[data-theme=dark] .rtag.r1{color:#fca5a5}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .rtag.r1{color:#fca5a5}}
+.rtag.r2{color:#8a5a12;background:color-mix(in srgb,#d69e2e 14%,transparent)}
+.rtag.r3{color:var(--accent);background:var(--accentT)}
+.rtag.r4{color:#2b6cb0;background:color-mix(in srgb,#4299e1 14%,transparent)}
+[data-theme=dark] .rtag.r2{color:#f6c56b}[data-theme=dark] .rtag.r4{color:#90cdf4}
+.nextrev{text-align:left;margin:10px 0;background:var(--card2);border-radius:12px;padding:6px 12px}
+.nextrev summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}
+.nextrev ul{list-style:none;margin:0;padding:0;max-height:40vh;overflow:auto}
+.nextrev li{display:flex;align-items:center;gap:8px;min-height:44px;border-top:1px solid var(--sep);font-size:.92rem}
+.nextrev li[data-wid]{cursor:pointer}.nextrev .grow{flex:1}.nrwhen{min-width:82px;text-align:right;color:var(--label2);font-variant-numeric:tabular-nums}
+/* Flashcards */
+.herobtns{margin-left:auto;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.herobtns .btn{margin:0}
+.flopt{min-height:44px}
+.fldir{margin:0 0 6px}.fldir button{min-height:44px;flex:1}
+.flwrap{perspective:900px}
+.flcard{position:relative;min-height:230px;display:flex;flex-direction:column;justify-content:center;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:pointer;transition:transform .2s ease,opacity .2s}
+.flcard .newtag{position:absolute;top:10px;left:12px}
+.flfront{display:flex;flex-direction:column;align-items:center;gap:6px}
+.flword{font-size:2.6rem;margin:6px 0}.flen{font-size:1.4rem}
+.flspk{min-width:54px;min-height:54px}
+.flhint{color:var(--label2);font-size:.85rem;margin-top:10px}
+.flback{border-top:1px dashed var(--sep);margin-top:12px;padding-top:10px;text-align:center;animation:flin .25s ease}
+@keyframes flin{from{opacity:0;transform:rotateX(-12deg)}to{opacity:1;transform:none}}
+.flans{display:flex;justify-content:center;align-items:baseline;gap:10px;flex-wrap:wrap}
+.flword2{font-size:1.6rem;font-weight:700}.flkana{font-size:1.25rem;color:var(--accent)}
+.flmean{font-size:1.1rem;margin:4px 0 6px}
+.flkjs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0}
+.flkj{background:var(--card2);border-radius:8px;padding:2px 8px;font-size:.82rem;color:var(--label2)}.flkj b{color:var(--label);font-size:1rem}
+.flstamp{position:absolute;top:14px;right:14px;font-weight:800;font-size:1.1rem;padding:2px 10px;border:3px solid currentColor;border-radius:8px;transform:rotate(8deg);opacity:0;transition:opacity .12s}
+.flstamp.on{opacity:.9}.flstamp.r1{color:var(--bad)}.flstamp.r2{color:#d69e2e}.flstamp.r3{color:var(--accent)}.flstamp.r4{color:#4299e1}
+.flcard.fly1{transform:translateX(-120%) rotate(-12deg);opacity:0}.flcard.fly3{transform:translateX(120%) rotate(12deg);opacity:0}.flcard.fly4{transform:translateY(-120%);opacity:0}
+.flgrades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 4px}
+.flg{min-height:58px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--label);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:inherit;cursor:pointer}
+.flg b{font-size:.92rem}.flg small{font-size:.78rem;color:var(--label2);font-variant-numeric:tabular-nums}
+.flg.r1 b{color:var(--bad)}.flg.r2 b{color:#975a16}.flg.r3 b{color:var(--accent)}.flg.r4 b{color:#2b6cb0}
+[data-theme=dark] .flg.r2 b{color:#f6c56b}[data-theme=dark] .flg.r4 b{color:#90cdf4}
+.flg:active{transform:scale(.97)}
+.flshowrow{justify-content:center}.flshowrow[hidden]{display:none}.flshow{min-height:54px;min-width:200px}
+.flundo{justify-content:center}.flundo .btn{min-height:44px}
+/* Memory (FSRS) stats */
+.memstats h2{margin:0 0 8px}.memstats h3{font-size:.95rem;margin:14px 0 4px}
+.memseg{overflow-x:auto;scrollbar-width:none}.memseg button{min-height:44px;flex:1 0 auto;padding:0 10px}
+.memgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+.memret{background:var(--card2);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column}
+.memret b{font-size:1.3rem;font-variant-numeric:tabular-nums}.memret small{color:var(--label2);font-size:.75rem;line-height:1.25}
+.memret.low b{color:var(--bad)}
+.memstates{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.85rem;color:var(--label2)}
+.memstates i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.memstates .s0{background:var(--track)}.memstates .s1{background:#d69e2e}.memstates .s2{background:var(--accent)}.memstates .s3{background:var(--bad)}
+.memstates b{color:var(--label)}
+.memchart{width:100%;height:auto;display:block;overflow:visible}
+.memchart rect{fill:var(--accent);opacity:.85}.memchart text{font-size:9px;fill:var(--label2);text-anchor:middle}.memchart text.mv{fill:var(--label);font-size:9px}
+.memhard{list-style:none;margin:0;padding:0}
+.memitem{width:100%;display:flex;align-items:center;gap:8px;min-height:48px;background:none;border:0;border-top:1px solid var(--sep);color:var(--label);font:inherit;text-align:left;cursor:pointer;padding:0 2px}
+.memitem .jp{font-size:1.1rem;font-weight:700;flex:0 0 auto}.memitem .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.memd,.meml{font-size:.75rem;color:var(--label2);white-space:nowrap;font-variant-numeric:tabular-nums}.memd{color:var(--bad)}
+.memfoot{font-size:.75rem;margin:8px 0 0}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .rtag.r2,:root:not([data-theme=light]) .flg.r2 b{color:#f6c56b}:root:not([data-theme=light]) .rtag.r4,:root:not([data-theme=light]) .flg.r4 b{color:#90cdf4}}
+/* daily new-items limit */
+.newtoday{font-size:.88rem;color:var(--label2);margin:6px 0 4px;line-height:1.35}
+.newtoday b{color:var(--label);font-variant-numeric:tabular-nums}
+.newtoday.full b{color:var(--orange)}
+.limrow{flex-wrap:wrap;gap:8px}
+.limctl{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.limctl select{min-height:44px;font-size:16px;border-radius:10px;padding:0 8px;background:var(--card2);color:var(--label);border:1px solid var(--border)}
+.limctl input{width:74px;min-height:44px;font-size:16px}
+.limctl input[hidden]{display:none}
+.limrow.flash{animation:limflash 1.6s ease}
+@keyframes limflash{0%,60%{background:color-mix(in srgb,var(--accent) 16%,transparent)}100%{background:transparent}}
+.capcard .capmsg{font-size:1.05rem;font-weight:600;margin:8px 0 14px}
+.capbtns{flex-direction:column;align-items:stretch}
+.capbtns .btn{min-height:54px;margin:4px 0}
 </style>
 </head>
 <body>
@@ -986,7 +1095,7 @@ function normAscii(s) {
 /* ================= State / persistence ================= */
 const KEY = "n5VocabQuest.v1";
 const defaultState = () => ({ cards: {}, xp: 0, streak: 0, lastDay: null, sound: true, romaji: true, speech: true, autoSpeak: false, bestSpeed: 0, bestMatch: 0, answered: 0,
-  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, retype: true, retypeMC: false, retention: 0.9, maxIvl: 1095, leechSeen: [], levels: ["n5"] });
+  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, retype: true, retypeMC: false, retention: 0.9, maxIvl: 1095, newLimit: 15, kjLimit: 10, newLog: {}, newLogK: {}, leechSeen: [], levels: ["n5"] });
 let S;
 try { S = Object.assign(defaultState(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { S = defaultState(); }
 if (!S.notes || typeof S.notes !== "object") S.notes = {};
@@ -1015,9 +1124,10 @@ const leechIds = () => ALL_IDS.filter(isLeech);
 /* ctx: { game: true } for games (correct answers don't touch the schedule), { listen } to force the track */
 function grade(id, correct, ctx = {}) {
   const wasLeech = isLeech(id), wasNew = !S.cards[id];
+  if (wasNew) markNew(id);   // daily new-word counter (no-op if it was already introduced today)
   const c = S.cards[id] ? JSON.parse(JSON.stringify(S.cards[id])) : { box: 0, due: 0, ok: 0, bad: 0 };
   srsAnswer(c, id, correct, ctx, true);
-  c.t = Date.now(); S.cards[id] = c;
+  c.t = Date.now(); S.cards[id] = c; schedShow(c, ctx, "w", id);
   S.answered++;
   touchStreak();
   save();
@@ -1039,16 +1149,19 @@ let sessionQueue = [], sessionTick = 0, recent = [];
 function pickNext(pool) {
   sessionTick++;
   const allowed = new Set(pool);
-  const qi = sessionQueue.findIndex(q => q.after <= sessionTick && allowed.has(q.id));
+  const qi = sessionQueue.findIndex(q => q.after <= sessionTick && allowed.has(q.id) && canIntro(q.id));
   if (qi >= 0) { const id = sessionQueue[qi].id; sessionQueue.splice(qi, 1); return remember(id); }
-  const now = Date.now();
+  const now = Date.now(), okNew = newLeft() > 0;
   const seen = pool.filter(id => S.cards[id] && !recent.includes(id));
   const due = seen.filter(id => card(id).due <= now).sort((a, b) => card(a).box - card(b).box || card(a).due - card(b).due);
-  const unseen = pool.filter(id => !S.cards[id] && !recent.includes(id));
+  // unseen words only while today's new-word allowance lasts (words already introduced today are always fine)
+  const unseen = pool.filter(id => !S.cards[id] && !recent.includes(id) && (okNew || !isNewWord(id)));
   if (due.length && (!unseen.length || Math.random() < 0.65)) return remember(due[rand(Math.min(3, due.length))]);
   if (unseen.length) return remember(unseen[rand(Math.min(25, unseen.length))]);
-  const rest = (seen.length ? seen : pool.filter(id => !recent.includes(id))).slice().sort((a, b) => card(a).due - card(b).due);
-  return remember(rest.length ? rest[rand(Math.min(5, rest.length))] : pool[rand(pool.length)]);
+  const usable = okNew ? pool : pool.filter(id => !isNewWord(id));
+  if (!usable.length) return null;   // limit reached and nothing seen in this pool: caller shows the "reviews only" card
+  const rest = (seen.length ? seen : usable.filter(id => !recent.includes(id))).slice().sort((a, b) => card(a).due - card(b).due);
+  return remember(rest.length ? rest[rand(Math.min(5, rest.length))] : usable[rand(usable.length)]);
 }
 function remember(id) { recent.push(id); if (recent.length > 4) recent.shift(); return id; }
 function requeue(id) { if (!sessionQueue.some(q => q.id === id)) sessionQueue.push({ id, after: sessionTick + 3 + rand(2) }); }
@@ -1349,19 +1462,22 @@ const startOfTomorrow = () => { const d = new Date(); d.setHours(24, 0, 0, 0); r
 function srsAnswer(c, id, correct, ctx = {}, allowListen = false) {
   const now = Date.now();
   if (!c.f) { if (S.cards[id] === c || (c.ok || c.bad || c.box)) fsrsMigrateCard(c, now); else c.f = fNew(now); }
-  const tr = allowListen && (ctx.listen != null ? ctx.listen : (QT.id === String(id) && QT.listen)) ? "L" : "f";
+  let tr = allowListen && (ctx.listen != null ? ctx.listen : (QT.id === String(id) && QT.listen)) ? "L" : "f";
+  if (tr === "L" && ctx.game && !c.L) tr = "f";   // games never start a listening track; a miss lands on the reading track
   if (correct) { c.ok = (+c.ok || 0) + 1; c.run = (+c.run || 0) + 1; } else { c.bad = (+c.bad || 0) + 1; c.run = 0; }
   let r = 0;
   if (ctx.game) { if (!correct && c[tr] && c[tr].st === 2) r = 1; }   // games: correct = no schedule change; a clear miss on a review item = Again
-  else r = autoRating(correct, id);
+  else r = ctx.rating || autoRating(correct, id);   // flashcards: self-graded rating
   if (r) {
     const prev = c[tr];
+    if (prev && prev.st === 2) revLogAdd(allowListen ? lvlOf(+id) : c.l ? "kj" + c.l : "kana", allowListen ? (tr === "L" ? "l" : "r") : c.l ? "j" : "k", r > 1);
     if (r === 1 && tr === "f") { if (prev && prev.st === 2) c.lapses = (+c.lapses || 0) + 1; delete c.lb; }
-    c[tr] = fsrsNext(prev, r, now, fCfg());
+    c[tr] = ctx.fnext && ctx.fnext[r] ? Object.assign({}, ctx.fnext[r]) : fsrsNext(prev, r, now, fCfg());   // flashcards pass the exact previewed result
     const other = tr === "f" ? c.L : c.f;   // one review per word per day: a second track that is also due waits until tomorrow
     if (other && other.st === 2 && other.due <= now) other.due = startOfTomorrow();
     c.rt = r;   // last automatic rating (1–4)
   }
+  LAST_SCHED = { tr, r };
   if (!c.f) c.f = fNew(now);
   fsrsSync(c);
   return r;
@@ -1389,6 +1505,128 @@ function fsrsStatsHTML() {
 }
 /* average predicted recall right now over review-state reading tracks (cheap, for Stats) */
 function retentionNow(cards) { const now = Date.now(); let n = 0, sum = 0; for (const k in cards) { const f = cards[k] && cards[k].f; if (f && f.st === 2 && f.s && f.lr) { n++; sum += fRet(Math.max(0, (now - f.lr) / F_DAY), f.s); } } return n ? { n, r: sum / n } : null; }
+/* ---------- "Back in …" after every graded answer + per-session next-review list ---------- */
+const RATE_NAMES = ["", "Again", "Hard", "Good", "Easy"];
+let LAST_SCHED = null, SESSION_GRADED = [];
+function backIn(due, now = Date.now()) {
+  const ms = due - now; if (ms <= 60e3) return "Back now";
+  if (ms < 3600e3) return `Back in ${Math.max(1, Math.round(ms / 60e3))} min`;
+  const a = new Date(now), b = new Date(due), days = Math.round((new Date(b.getFullYear(), b.getMonth(), b.getDate()) - new Date(a.getFullYear(), a.getMonth(), a.getDate())) / F_DAY);
+  if (days <= 0) { const h = Math.round(ms / 3600e3); return `Back in ${h} h`; }
+  if (days === 1) return "Back tomorrow";
+  if (days < 45) return `Back in ${days} days`;
+  if (days < 365) return `Back in ~${Math.round(days / 30.4)} mo`;
+  return `Back in ~${(days / 365).toFixed(days < 730 ? 1 : 0)} y`;
+}
+function schedNoteHTML(f, r, game) {
+  if (!r || !f) return game ? `<div class="schednote muted">Schedule unchanged</div>` : "";
+  return `<div class="schednote"><span class="rtag r${r}">${RATE_NAMES[r]}</span> ${backIn(f.due)}${game ? " · game miss" : ""}</div>`;
+}
+/* called by grade / kGrade / kjGrade right after srsAnswer */
+function schedShow(c, ctx, kind, id) {
+  const r = LAST_SCHED ? LAST_SCHED.r : 0, tr = LAST_SCHED ? LAST_SCHED.tr : "f", f = c[tr];
+  if (r && !ctx.game) { SESSION_GRADED = SESSION_GRADED.filter(x => !(x.k === kind && x.id === id)); SESSION_GRADED.push({ k: kind, id, r, tr, due: f.due }); }
+  if (ctx.quiet) return;
+  const fb = document.querySelector("#fb"); if (!fb || fb.querySelector(".schednote")) return;
+  const h = schedNoteHTML(f, r, !!ctx.game); if (!h) return;
+  if (fb.firstElementChild) fb.firstElementChild.insertAdjacentHTML("afterend", h); else fb.insertAdjacentHTML("beforeend", h);
+}
+function nextReviewListHTML(list = SESSION_GRADED) {
+  if (!list.length) return "";
+  const rows = list.slice(-60).reverse().map(x => {
+    const lab = x.k === "w" ? (WORDS[x.id] ? WORDS[x.id].jp : "#" + x.id) : x.id;
+    return `<li ${x.k === "w" ? `data-wid="${x.id}"` : ""}><span class="jp">${esc(lab)}</span>${x.tr === "L" ? ` <small class="muted">🎧</small>` : ""}<span class="grow"></span><span class="rtag r${x.r}">${RATE_NAMES[x.r]}</span><span class="nrwhen">${backIn(x.due).replace("Back ", "")}</span></li>`; }).join("");
+  return `<details class="nextrev" open><summary>Next reviews (${list.length})</summary><ul>${rows}</ul></details>`;
+}
+function bindNextReview(root = document) { root.querySelectorAll(".nextrev li[data-wid]").forEach(li => li.onclick = () => { const w = WORDS[+li.dataset.wid]; if (w) wordModal(w); }); }
+/* review log for "true retention": per day, per level+track: answered / correct on review-state cards
+   S.revLog = {"YYYY-MM-DD": {"n5r": 12, "n5r+": 11, "kanak": 3, ...}} (synced as per-field max) */
+function revLogAdd(lv, trk, ok) {
+  if (!S.revLog || typeof S.revLog !== "object") S.revLog = {};
+  const t = todayStr(), d = S.revLog[t] || (S.revLog[t] = {}), k = lv + trk;
+  d[k] = (d[k] || 0) + 1; if (ok) d[k + "+"] = (d[k + "+"] || 0) + 1;
+  const cut = daysAgo(60); for (const x in S.revLog) if (x < cut) delete S.revLog[x];
+}
+/* ================= Daily new-items limit =================
+   S.newLimit: words per local day (default 15, or "off"); S.kjLimit: kanji per day (default 10, or "off").
+   A word counts as "new today" the first time it is shown/answered as an unseen item that day (any level).
+   Kanji have their own counter (separate budget, since a 3–5 kanji batch would eat most of a word budget).
+   Kana are exempt: the alphabet is already paced by its row unlocks. Pimsleur "Mark lesson done" creates
+   Seen cards directly, so it neither counts nor is blocked. Logs are {"YYYY-MM-DD": [ids]} and sync as a
+   union per day, so two devices together still respect the cap. */
+const NEW_PRESETS = [5, 10, 15, 20, 30], KJ_PRESETS = [3, 5, 10, 20];
+const limV = (v, d) => v === "off" ? Infinity : (v == null || v === "" || isNaN(+v)) ? d : Math.max(1, Math.min(500, Math.round(+v)));
+const newLimitV = () => limV(S.newLimit, 15), kjLimitV = () => limV(S.kjLimit, 10);
+function nlog(k) {
+  if (!S[k] || typeof S[k] !== "object" || Array.isArray(S[k])) S[k] = {};
+  return S[k];
+}
+function nlPrune(k) {   // keep ~30 days
+  const L = nlog(k), cut = daysAgo(30);
+  for (const d in L) if (d < cut) delete L[d];
+}
+const newToday = () => nlog("newLog")[todayStr()] || [];
+const newTodayK = () => nlog("newLogK")[todayStr()] || [];
+const newLeft = () => Math.max(0, newLimitV() - newToday().length);
+const newLeftK = () => Math.max(0, kjLimitV() - newTodayK().length);
+/* "new" = never seen and not already introduced today (re-showing a word introduced earlier today is free) */
+const isNewWord = id => !S.cards[id] && !newToday().includes(+id);
+const isNewKj = c => !JS.cards[c] && !newTodayK().includes(c);
+const canIntro = id => !isNewWord(id) || newLeft() > 0;
+const canIntroK = c => !isNewKj(c) || newLeftK() > 0;
+function markNew(id) {
+  id = +id; if (!isNewWord(id)) return false;
+  const L = nlog("newLog"), t = todayStr(); (L[t] = L[t] || []).push(id); nlPrune("newLog"); return true;
+}
+function markNewK(c) {
+  if (!isNewKj(c)) return false;
+  const L = nlog("newLogK"), t = todayStr(); (L[t] = L[t] || []).push(c); nlPrune("newLogK"); return true;
+}
+/* keep every seen / already-introduced item, plus at most newLeft() brand-new ones (order preserved) */
+function capPool(ids) { let left = newLeft(); return ids.filter(id => !isNewWord(id) || (left > 0 && left--)); }
+function capPoolK(cs) { let left = newLeftK(); return cs.filter(c => !isNewKj(c) || (left > 0 && left--)); }
+const capReached = (kj = false) => kj ? kjLimitV() !== Infinity && newLeftK() <= 0 : newLimitV() !== Infinity && newLeft() <= 0;
+function newTodayText(kj = false) {
+  const n = kj ? newTodayK().length : newToday().length, lim = kj ? kjLimitV() : newLimitV();
+  return lim === Infinity ? `${n} · no limit` : `${n}/${lim}`;
+}
+function newTodayHTML(path = false) {
+  const full = capReached();
+  return `<div class="newtoday ${full ? "full" : ""}" id="newToday">🆕 New today: <b>${newTodayText()}</b>${(path || JS && Object.keys(JS.cards).length) && S.kjLimit !== "off" ? ` <span class="muted">· 字 ${newTodayText(true)}</span>` : ""}${full ? ` <span class="muted">· reviews only until tomorrow</span>` : ""}</div>`;
+}
+/* friendly "limit reached" card with Review due / Practice seen / raise limit */
+function capView(kj = false, back, host) {
+  host = host || $("#qhost");
+  const lim = kj ? kjLimitV() : newLimitV(), what = kj ? "kanji" : "words";
+  const seen = kj ? Object.keys(JS.cards).filter(c => KJ[c]) : ALL_IDS.filter(id => S.cards[id] && WORDS[id]), due = totalDue();
+  const html = `<div class="card capcard" id="capCard"><div class="big">🌙</div><div class="qtype">Daily limit reached</div>
+    <p class="capmsg">You've hit today's ${lim} new ${what} — reviews only until tomorrow</p>
+    <div class="btnrow capbtns">${due ? `<button class="btn" id="capDue">Review due (${due})</button>` : ""}${seen.length ? `<button class="btn ${due ? "ghost" : ""}" id="capSeen">Practice seen ${what}</button>` : ""}
+    <button class="btn ghost" id="capRaise">Raise the limit in Settings</button></div></div>`;
+  if (!host) { view.innerHTML = topbar(kj ? "字 Kanji" : "Study") + `<div id="qhost">${html}</div>`; bindBack(typeof back === "function" ? back : home); }
+  else host.innerHTML = html;
+  const b = typeof back === "function" ? back : undefined;
+  const d = $("#capDue"); if (d) d.onclick = () => { sfx.click(); go(dueView); };
+  const s = $("#capSeen"); if (s) s.onclick = () => { sfx.click(); go(kj ? () => kjSession(shuffle(seen).slice(0, 20).map(c => ({ j: 1, id: c })), "字 Practice seen kanji", b || home, "") : () => quiz("mixed", seen, "🎲 Practice seen words", b)); };
+  $("#capRaise").onclick = () => { sfx.click(); go(settingsView); setTimeout(() => { const r = $(kj ? "#kjLimRow" : "#newLimRow"); if (r) { r.scrollIntoView({ block: "center" }); r.classList.add("flash"); } }, 60); };
+}
+/* Settings rows: select with presets / Custom… / Off, plus a number input for custom */
+function limitRowHTML(id, label, desc, v, presets, def) {
+  const isP = v == null || v === "off" || presets.includes(+v), cur = v == null ? def : v;
+  return `<div class="row limrow" id="${id}Row"><span style="text-align:left">${label}<br><small class="muted">${desc}</small></span><span class="limctl">
+    <select id="${id}Sel" aria-label="${label}">${presets.map(p => `<option value="${p}" ${String(cur) === String(p) ? "selected" : ""}>${p}${p === def ? " (default)" : ""}</option>`).join("")}
+    <option value="custom" ${isP ? "" : "selected"}>Custom…</option><option value="off" ${cur === "off" ? "selected" : ""}>Off</option></select>
+    <input type="number" id="${id}Num" min="1" max="500" inputmode="numeric" aria-label="${label}: custom number" value="${isP ? (cur === "off" ? def : cur) : cur}" ${isP ? "hidden" : ""}></span></div>`;
+}
+function bindLimitRow(md, id, key, def, after) {
+  const sel = md.querySelector("#" + id + "Sel"), num = md.querySelector("#" + id + "Num");
+  sel.onchange = () => {
+    if (sel.value === "custom") { num.hidden = false; num.focus(); S[key] = limV(num.value, def); }
+    else { num.hidden = true; S[key] = sel.value === "off" ? "off" : +sel.value; }
+    save(); after && after();
+  };
+  num.onchange = () => { if (sel.value !== "custom") return; S[key] = limV(num.value, def); num.value = S[key]; save(); after && after(); };
+}
 
 /* ================= UI sounds: "Analog" set (default) =================
    Synthesized live with Web Audio — no files. Soft marimba / kalimba / felt-piano / wood voices: sine & triangle partials
@@ -1569,7 +1807,7 @@ function renderMC(mode, w, onAnswer, opts = {}) {
   const big = host.querySelector("#bigspk"); if (big) { big.onclick = () => speak(w, true); setTimeout(() => speak(w, true), 250); }
   const pk = host.querySelector("#peek"); if (pk) pk.onclick = () => { pk.outerHTML = noteHTML(w.id); };
   if (S.autoSpeak && (mode === "meaning" || mode === "reading")) speak(w);
-  qStart(w.id, "mc", { listen: mode === "listen" });
+  qStart(w.id, "mc", { listen: mode === "listen" }); markNew(w.id);
   let done = false;
   const btns = [...host.querySelectorAll(".choice")];
   const choose = i => {
@@ -1696,7 +1934,7 @@ function renderTyping(w, onAnswer, opts = {}) {
   const big = host.querySelector("#bigspk"); if (big) { big.onclick = () => { speak(w, true); inp.focus(); }; setTimeout(() => speak(w, true), 250); }
   const pk = host.querySelector("#peek"); if (pk) pk.onclick = () => { pk.outerHTML = noteHTML(w.id); };
   const acc = acceptedAnswers(w, listen);
-  qStart(w.id, "type", { listen, len: [...w.kana].length });
+  qStart(w.id, "type", { listen, len: [...w.kana].length }); markNew(w.id);
   let done = false, hints = 0;
   host.querySelector("#hintBtn").onclick = () => {
     hints++; QT.hints = hints; const k = w.k1;
@@ -1734,7 +1972,7 @@ let curTab = "home";
 const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"], [pimsView, "levels"], [allMapView, "stats"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
-function go(fn) { const wasStudy = studyScreen; curView = fn; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
+function go(fn) { const wasStudy = studyScreen; curView = fn; SESSION_GRADED = []; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
   const v = $("#view"); v.style.animation = "none"; void v.offsetWidth; v.style.animation = "";
   fn(); const t = TAB_OF().get(fn); if (t) setTab(t); document.body.classList.toggle("studying", studyScreen); applyTint(); updateHeader();
   if (wasStudy && !studyScreen && typeof syncSoon === "function") syncSoon();
@@ -1762,18 +2000,30 @@ function mixedMode(w, forNew) {
           or items: [{id, mode}] (finite queue, e.g. daily), back, onItemDone(ok), onFinish(), peekNote } */
 function runSession(cfg) {
   studyScreen = true;
-  let right = 0, total = 0, q = null, answered = false, advancing = null, cur = null;
+  let right = 0, total = 0, q = null, answered = false, advancing = null, cur = null, heldNew = 0, heldNewK = 0, learned = 0;
   const finite = !!cfg.items;
   view.innerHTML = topbar(cfg.title, `<span class="muted" id="score">${finite ? "" : "0/0"}</span>`) +
     (finite ? `<div class="sprog"><div id="sprog" style="width:0"></div></div>` : "") +
-    `<div id="qhost"></div><p class="muted" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>0</kbd> I don't know · <kbd>Enter</kbd> check / next</p>`;
+    (cfg.showNew ? newTodayHTML(cfg.showNew === "path") : "") + `<div id="qhost"></div><p class="muted" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>0</kbd> I don't know · <kbd>Enter</kbd> check / next</p>`;
   bindBack(cfg.back || home);
-  const progress = () => { if (finite) { const p = cfg.progress(); $("#sprog").style.width = (p.done / p.total * 100) + "%"; $("#score").textContent = `${p.done}/${p.total}`; } else $("#score").textContent = `${right}/${total}`; };
+  const ntUpd = () => { const nt = $("#newToday"); if (nt) nt.outerHTML = newTodayHTML(cfg.showNew === "path"); };
+  const progress = () => { ntUpd(); if (finite) { const p = cfg.progress(); $("#sprog").style.width = (p.done / p.total * 100) + "%"; $("#score").textContent = `${p.done}/${p.total}`; } else $("#score").textContent = `${right}/${total}`; };
   const next = () => {
     clearTimeout(advancing); advancing = null; answered = false;
     let id, mode;
-    if (finite) { const it = cfg.nextItem(); if (!it) { progress(); cfg.onFinish(); return; } if (it.k) return nextKana(it); if (it.j) return nextKanji(it); id = it.id; mode = it.mode; }
-    else { id = pickNext(cfg.pool); mode = cfg.mode; }
+    if (finite) {
+      const it = cfg.nextItem();
+      if (!it) { progress(); if ((heldNew || heldNewK) && !total && !learned) return capView(!heldNew, cfg.back); cfg.onFinish(); return; }
+      // daily new-item limit: items that would introduce an unseen word/kanji are held back (kana are exempt)
+      const held = it.j ? (KJ[it.id] && !canIntroK(it.id)) : !it.k && WORDS[it.id] && !canIntro(it.id);
+      if (held) {
+        if (!heldNew && !heldNewK) toast(it.j ? `Today's ${kjLimitV()} new kanji are done — new ones wait until tomorrow` : `Today's ${newLimitV()} new words are done — new ones wait until tomorrow`);
+        if (it.j) heldNewK++; else heldNew++;
+        cfg.onItemDone(true, it.id, it.mode, true); return next();
+      }
+      if (it.k) return nextKana(it); if (it.j) return nextKanji(it); id = it.id; mode = it.mode;
+    }
+    else { id = pickNext(cfg.pool); mode = cfg.mode; if (id == null) { progress(); return capView(false, cfg.back); } }
     const w = WORDS[id];
     if (!w) { if (finite) { cfg.onItemDone(true, id, mode, true); return next(); } return; }   // word from a level that isn't loaded
     if (mode === "mixed") mode = mixedMode(w, !S.cards[id]);
@@ -1796,6 +2046,7 @@ function runSession(cfg) {
     q = mode === "typing" ? renderTyping(w, onAnswer, { peekNote: cfg.peekNote })
       : (mode === "listen" && S.listenType) ? renderTyping(w, onAnswer, { listen: true, peekNote: cfg.peekNote })
       : renderMC(mode, w, onAnswer, { peekNote: cfg.peekNote });
+    ntUpd();
   };
   const nextKana = it => {   // kana item inside a mixed (path) session
     const K = KITEMS[it.id];
@@ -1829,7 +2080,7 @@ function runSession(cfg) {
       if (l && !KJ[it.id] && it._tried) { toast(`Couldn't load ${LNAME(l)} kanji — offline? Skipped for now`); }
       cfg.onItemDone(true, it.id, "kanji", true); return next();
     }
-    if (it.mode === "learn") { answered = false; q = kjLearnStep(K, () => { cfg.onItemDone(true, K.c, "kanji:learn"); progress(); next(); }); return; }
+    if (it.mode === "learn") { answered = false; q = kjLearnStep(K, () => { learned++; cfg.onItemDone(true, K.c, "kanji:learn"); progress(); next(); }); return; }
     const mode = it.mode && KJ_MODES[it.mode] ? it.mode : kjPickMode(K);
     const onA = (ok, el, info) => {
       answered = true; total++; if (ok) right++;
@@ -1863,6 +2114,7 @@ function quiz(mode, pool = ALL_IDS, title, back) {
 
 /* ---------- Daily session ---------- */
 function newWordsForToday(n, exclude, levels = activeLevels()) {
+  n = Math.min(n, newLeft());   // daily new-word limit
   // per selected level: unseen words from unlocked sets first (in set order), then locked ones; levels are interleaved round-robin
   const lists = levels.filter(l => LV[l].loaded).map(l => { const L = LV[l].sets, ordered = L.filter(setUnlocked).concat(L.filter(s => !setUnlocked(s))), out = [];
     for (const s of ordered) for (const id of s.ids) if (!S.cards[id] && !exclude.has(id)) out.push(id);
@@ -1917,10 +2169,11 @@ function dailySession(back, key) {
   // skip due-review items that were already reviewed elsewhere since the session was built (they're no longer due)
   const stale = it => it && it.rev && (it.j ? JS.cards[it.id] && jcard(it.id).due > Date.now() : it.k ? KS.cards[it.id] && kcard(it.id).due > Date.now() : S.cards[it.id] && card(it.id).due > Date.now());
   const skipStale = () => { while (stale(D.items[D.pos])) D.items.splice(D.pos, 1); };
+  if (!D.items.length && (capReached() || capReached(true))) { view.innerHTML = topbar("📅 Today's session") + newTodayHTML(key === "path") + `<div id="qhost"></div>`; bindBack(typeof back === "function" ? back : home); return capView(!capReached(), back); }
   if (!D.items.length) { toast("Nothing to study — every word is learned?! 🎉"); return go(home); }
   runSession({
     title: "📅 Today's session",
-    items: true, back: typeof back === "function" ? back : home,
+    items: true, showNew: key === "path" ? "path" : true, back: typeof back === "function" ? back : home,
     progress: () => ({ done: D.pos, total: D.items.length }),
     nextItem: () => { skipStale(); return D.items[D.pos] || null; },
     onItemDone: (ok, id, mode, skipped) => {
@@ -1936,9 +2189,9 @@ function dailySession(back, key) {
     onFinish: () => {
       if (!D.done) { D.done = true; S.dailyHistory[D.date] = 1; touchStreak(); save(); addXP(50); sfx.level(); confetti(220); }
       $("#qhost").innerHTML = `<div class="card"><div class="qtype">Done for today!</div><div class="big">✅</div>
-        <p>${D.correct} correct answers · ${D.newCount} new words · 🔥 ${currentStreak()}-day streak</p><p class="sub">+50 XP session bonus</p>
+        <p>${D.correct} correct answers · ${D.newCount} new words · 🔥 ${currentStreak()}-day streak</p><p class="sub">+50 XP session bonus</p>${nextReviewListHTML()}
         <div class="btnrow"><button class="btn" id="homeBtn">Home</button><button class="btn ghost" id="moreBtn">Extra practice</button></div></div>`;
-      $("#homeBtn").onclick = () => go(typeof back === "function" ? back : home);
+      bindNextReview($("#qhost")); $("#homeBtn").onclick = () => go(typeof back === "function" ? back : home);
       $("#moreBtn").onclick = () => go(() => quiz("mixed", unlockedIds(), "🎲 Extra practice", typeof back === "function" ? back : undefined));
     }
   });
@@ -1949,10 +2202,12 @@ function dailyHeroHTML(D, path = false) {
   return `<div class="hero ${D.done ? "done" : ""}"><div class="ic">${D.done ? "✅" : "📅"}</div>
     <div><h2>${D.done ? "Done for today!" : "Today's session"} <span class="lvtag">${esc(path ? PNAME(D.stage || pathState().cur) : levelLabel())}</span></h2>
     <p>${D.done ? `Great work — come back tomorrow to keep your 🔥 ${currentStreak()}-day streak.` : `${D.pos}/${D.items.length} done · ${D.reviewCount + (D.kanjiRev || 0)} reviews${path ? " (all levels & kana)" : ""} + ${D.newCount} new ${path ? "items" : "words"}${D.kanjiNew ? ` + ${D.kanjiNew} kanji` : ""} · mixed modes`}</p>
-    ${path ? pathHTML() : ""}<div class="dots">${dots}</div></div>
-    <button class="btn" id="dailyBtn">${D.done ? (path && totalDue() ? "Review due" : "Extra practice") : D.pos ? "Continue ▶" : "Start ▶"}</button></div>`;
+    ${newTodayHTML(path)}${path ? pathHTML() : ""}<div class="dots">${dots}</div></div>
+    <div class="herobtns"><button class="btn" id="dailyBtn">${D.done ? (path && totalDue() ? "Review due" : "Extra practice") : D.pos ? "Continue ▶" : "Start ▶"}</button>${!D.done && D.items.some(it => !it.k && !it.j) ? `<button class="btn ghost small flopt" id="dailyFlash">🃏 As flashcards</button>` : ""}</div></div>`;
 }
 function bindDailyBtn(D, back, key) {
+  const fl = $("#dailyFlash");
+  if (fl) fl.onclick = () => { sfx.click(); const ids = [...new Set(D.items.filter(it => !it.k && !it.j).map(it => it.id))]; go(() => flashcards(ids, "🃏 Today's flashcards", typeof back === "function" ? back : home, { nNew: D.newCount || 0 })); };
   const b = $("#dailyBtn"); if (!b) return;
   b.onclick = () => { sfx.click(); go(D.done ? (key === "path" ? (totalDue() ? dueView : dueOrPractice) : () => quiz("mixed", unlockedIds(), "🎲 Extra practice", back)) : () => dailySession(back, key)); };
 }
@@ -2113,6 +2368,7 @@ function levelPage(l) {
       <button class="mode" data-m="speed"><div class="ic">⚡</div><h3>Speed Round</h3><p>60 seconds! Best: ${S.bestSpeed}</p></button>
       <button class="mode" data-m="match"><div class="ic">🧩</div><h3>Matching Pairs</h3><p>Match 6 words to meanings</p></button>
       <button class="mode" data-m="mixed"><div class="ic">🎲</div><h3>Mixed Quiz</h3><p>All question types</p></button>
+      <button class="mode" data-m="flash"><div class="ic">🃏</div><h3>Flashcards</h3><p>Flip & self-grade (FSRS)</p></button>
       <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${SETS.filter(setUnlocked).length} unlocked</p></button>
       <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing</p></button>
       <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
@@ -2124,7 +2380,7 @@ function levelPage(l) {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me) };
+    const special = { speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: () => flashcards(LV[l].ids, `🃏 Flashcards · ${LNAME(l)}`, me) };
     go(() => special[m] ? special[m]() : quiz(m, ALL_IDS, undefined, me));
   });
   bindGameTiles(view, l, me);
@@ -2156,7 +2412,9 @@ function speed(back) {
   const remaining = () => Math.max(0, DUR - (Date.now() - t0) / 1000 - penalty);
   const next = () => {
     if (over) return;
-    const w = WORDS[pickNext(ALL_IDS)];
+    const pid = pickNext(ALL_IDS);
+    if (pid == null) { over = true; clearInterval(timer); q = null; return capView(false, back); }
+    const w = WORDS[pid];
     q = renderMC("meaning", w, (ok, el, _h, info) => {
       const idk = !!(info && info.idk);
       grade(w.id, ok);
@@ -2176,6 +2434,7 @@ function speed(back) {
   };
   $("#startBtn").onclick = () => {
     t0 = Date.now(); next();
+    if (over) return;   // daily new-word limit: nothing to ask (capped card shown)
     timer = setInterval(() => {
       const r = remaining(); $("#tleft").textContent = Math.ceil(r); $("#tbar").style.width = (r / DUR * 100) + "%";
       if (r <= 5 && Math.ceil(r) !== lastTick) { lastTick = Math.ceil(r); sfx.tick(); }
@@ -2191,15 +2450,18 @@ function speed(back) {
 function match(pool = ALL_IDS, back = home, title = "🧩 Matching Pairs") {
   studyScreen = true;
   const t0 = Date.now(); let misses = 0, sel = null, timer;
-  const ids = []; let guard = 0;
+  const ids = []; let guard = 0, nNew = 0;
   while (ids.length < 6 && guard++ < 400) {
     const id = pickNext(pool);
-    if (!ids.includes(id) && !ids.some(o => conflicts(WORDS[o], WORDS[id], "match"))) ids.push(id);
+    if (id == null) break;
+    if (isNewWord(id) && nNew >= newLeft()) continue;   // daily new-word limit
+    if (!ids.includes(id) && !ids.some(o => conflicts(WORDS[o], WORDS[id], "match"))) { ids.push(id); if (isNewWord(id)) nNew++; }
   }
   const N = ids.length; let left = N;
   view.innerHTML = topbar(title, `<span class="muted" id="mtime">0s</span>`) + `<p class="muted" style="margin:0 0 10px">Tap a Japanese word, then its meaning. Best: ${S.bestMatch ? S.bestMatch + "s" : "—"}</p><div class="match" id="mgrid"></div>`;
   bindBack(back);
-  if (N < 2) { $("#mgrid").innerHTML = `<p class="muted">Not enough distinct words here for a board.</p>`; return; }
+  if (N < 2) { if (capReached() && pool.some(id => isNewWord(id))) { $("#mgrid").outerHTML = `<div id="qhost"></div>`; return capView(false, back); } $("#mgrid").innerHTML = `<p class="muted">Not enough distinct words here for a board.</p>`; return; }
+  ids.forEach(id => markNew(id));   // the board shows them: they count as introduced
   timer = setInterval(() => { const m = $("#mtime"); if (m) m.textContent = Math.floor((Date.now() - t0) / 1000) + "s"; }, 250);
   cleanup = () => clearInterval(timer);
   const jpSide = shuffle(ids), enSide = shuffle(ids), grid = $("#mgrid");
@@ -2280,7 +2542,7 @@ function leechView() {
   const ids = leechIds().sort((a, b) => card(b).bad - card(a).bad);
   view.innerHTML = topbar("🧛 Leeches", `<span class="muted">${ids.length} words</span>`) +
     `<p class="muted" style="margin:4px 0 10px">A word becomes a leech after 4+ misses or 2+ lapses (forgotten after being learned). Get it right 4 times in a row to tame it. Write a mnemonic — it's shown whenever the word is reviewed.</p>
-    ${ids.length ? `<div class="btnrow" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button></div><div id="llist"></div>`
+    ${ids.length ? `<div class="btnrow" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button><button class="btn sec" id="detention">📝 Detention</button></div><div id="llist"></div>`
       : `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>No leeches right now — nice! Words you keep missing will show up here.</p></div>`}`;
   bindBack();
   if (!ids.length) return;
@@ -2291,6 +2553,7 @@ function leechView() {
   const drill = mode => go(() => runSession({ title: mode === "typing" ? "⌨️ Leech typing drill" : "🎯 Leech drill", mode, pool: ids, back: leechView, peekNote: true }));
   $("#drill").onclick = () => drill("mixed");
   $("#drillType").onclick = () => drill("typing");
+  $("#detention").onclick = () => { sfx.click(); go(() => detentionPick(leechView)); };
 }
 
 /* ---------- Browse ---------- */
@@ -2341,6 +2604,8 @@ function settings(page = false) {
     <div class="row"><span>字 New kanji per session</span><span class="seg" id="kjPer">${[0, 2, 3, 5].map(v => `<button class="${(S.kanjiPerDay == null ? 3 : S.kanjiPerDay) === v ? "on" : ""}" data-v="${v}">${v}</button>`).join("")}</span></div>
     ${audioLessonSettingsHTML()}
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
+    ${limitRowHTML("newLim", "🚦 Daily new words limit", "Most unseen words introduced per day (all levels, every mode & game). After that: reviews only until midnight. Kana don't count; Pimsleur \"Mark lesson done\" doesn't count.", S.newLimit, NEW_PRESETS, 15)}
+    ${limitRowHTML("kjLim", "🚦 Daily new kanji limit", "Kanji have their own daily limit (separate from words)", S.kjLimit, KJ_PRESETS, 10)}
     ${backupSettingsHTML()}
     <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small danger" id="resetBtn">Reset</button></div>
     <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small danger" id="resetKana">Reset</button></div>
@@ -2353,8 +2618,10 @@ function settings(page = false) {
     const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; // rebuild untouched sessions
     save();
   };
+  bindLimitRow(md, "newLim", "newLimit", 15, () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; save(); });
+  bindLimitRow(md, "kjLim", "kjLimit", 10, () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; save(); });
   md.querySelector("#resetBtn").onclick = () => {
-    if (confirm("Really reset ALL progress (including notes)? This cannot be undone.")) { const keep = { sound: S.sound, romaji: S.romaji, speech: S.speech, autoSpeak: S.autoSpeak, newPerDay: S.newPerDay, autoAdvance: S.autoAdvance, levels: S.levels }; S = Object.assign(defaultState(), keep); save(); md.remove(); toast("Progress reset"); go(home); }
+    if (confirm("Really reset ALL progress (including notes)? This cannot be undone.")) { const keep = { sound: S.sound, romaji: S.romaji, speech: S.speech, autoSpeak: S.autoSpeak, newPerDay: S.newPerDay, autoAdvance: S.autoAdvance, levels: S.levels, newLimit: S.newLimit, kjLimit: S.kjLimit }; S = Object.assign(defaultState(), keep); save(); md.remove(); toast("Progress reset"); go(home); }
   };
   const dl = md.querySelector("#dlAll"); if (dl) dl.onclick = () => { const ls = [...md.querySelectorAll(".dlLv:checked")].map(x => x.value); if (!ls.length) { toast("Pick at least one level"); return; } downloadAllAudio(dl, md.querySelector("#dlInfo"), ls); };
   const dropUntouched = () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; };
@@ -2472,7 +2739,7 @@ function kGrade(id, ok, ctx = {}) {
   const it = KITEMS[id], wasM = kMasteredRow(it.s, it.g);
   const c = KS.cards[id] ? JSON.parse(JSON.stringify(KS.cards[id])) : { box: 0, due: 0, ok: 0, bad: 0 };
   srsAnswer(c, id, ok, ctx);
-  c.t = Date.now(); KS.cards[id] = c; ksave();
+  c.t = Date.now(); KS.cards[id] = c; ksave(); schedShow(c, ctx, "k", id);
   touchStreak(); save();
   kCheckUnlocks();
   const key = it.s + ":" + it.g;
@@ -2967,7 +3234,7 @@ function historyView(range = 7, asTab = false) {
     <div class="stathead"><div class="st"><small>⭐ Level</small><b>${L}</b><div class="minibar"><i style="width:${(S.xp - lo) / (hi - lo) * 100}%;background:var(--yellow)"></i></div><small>${S.xp} XP · ${hi - S.xp} to Lv ${L + 1}</small></div>
       <div class="st"><small>🔥 Streak</small><b>${currentStreak()} d</b><small>study days in a row</small></div>
       <div class="st"><small>🏆 Mastered</small><b>${Object.values(S.cards).filter(c => c.box >= MASTER_BOX).length}</b><small>words, all levels</small></div></div>
-    ${allMapCardHTML()}${fsrsStatsHTML()}
+    ${allMapCardHTML()}${memStatsHTML()}
     ${goalPanelHTML()}
     ${kanjiStatsHTML()}
     <div class="sechead" style="display:flex;align-items:center;justify-content:space-between;text-transform:none;font-size:1rem;color:var(--label);font-weight:700;margin:22px 2px 8px">Study time ${segH}</div>` : topbar("📊 Study history", segH)) + `
@@ -3058,7 +3325,7 @@ function renderDue() {
     <div class="hero ${total ? "" : "done"}"><div class="ic">${total ? "⏰" : "✅"}</div><div><h2>${total ? `${total} reviews due` : "All caught up!"}</h2>
       <p>${total ? `${vAll.ids.length} words · ${jAll.ids.length} kanji · ${kAll.ids.length} kana — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
       <div class="seg dueseg" id="dueBatch">${["20", "50", "all"].map(b => `<button class="${(S.dueBatch || "all") === b ? "on" : ""}" data-b="${b}">${b === "all" ? "All" : "Batch " + b}</button>`).join("")}</div></div>
-      <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button></div>
+      <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button>${vAll.ids.length ? `<button class="btn ghost small flopt" id="dueFlash">🃏 Due words as flashcards</button>` : ""}</div>
     <div class="panel duepanel"><h2>Levels</h2>
       ${dueRow("kana:h", "あ", "Kana · Hiragana", secs["kana:h"].r)}${dueRow("kana:k", "ア", "Kana · Katakana", secs["kana:k"].r)}
       ${LEVELS.map(l => { const sec = secs[l], sets = LV[l].sets.map(s => ["set:" + s.id, secs["set:" + s.id]]).filter(x => x[1]), dueSets = sets.filter(x => x[1].r.ids.length);
@@ -3074,6 +3341,7 @@ function renderDue() {
   view.querySelectorAll("details.duesets").forEach(d => d.ontoggle = () => { dueOpen[d.dataset.l] = d.open; });
   $("#dueBatch").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.dueBatch = b.dataset.b; save(); renderDue(); };
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review); });
+  const dfl = $("#dueFlash"); if (dfl) dfl.onclick = () => { sfx.click(); go(() => flashcards(dueScan().ids.filter(id => WORDS[id]), "🃏 Due flashcards", dueView, { dueOnly: true })); };
   updateDueBadge();
 }
 /* upcoming (not yet due) items of a section, soonest first — for "Review ahead" */
@@ -3141,9 +3409,9 @@ async function startDueReview(key, back = dueView) {
 }
 function dueFinishCard(correct, n, back, extra = "") {
   $("#qhost").innerHTML = `<div class="card"><div class="qtype">Reviews done!</div><div class="big">✅</div><p>${correct}/${n} correct${extra}</p>
-    <div class="btnrow"><button class="btn" id="dueBack">${back && back !== dueView ? "Done" : "⏰ Due reviews"}</button><button class="btn ghost" id="homeBtn2">Home</button></div></div>`;
+    ${nextReviewListHTML()}<div class="btnrow"><button class="btn" id="dueBack">${back && back !== dueView ? "Done" : "⏰ Due reviews"}</button><button class="btn ghost" id="homeBtn2">Home</button></div></div>`;
   sfx.level(); confetti(120);
-  $("#dueBack").onclick = () => go(back || dueView); $("#homeBtn2").onclick = () => go(home);
+  bindNextReview($("#qhost")); $("#dueBack").onclick = () => go(back || dueView); $("#homeBtn2").onclick = () => go(home);
 }
 function dueSession(ids, title, back, then) {
   if (!ids.length) { toast("Nothing due"); return go(back || dueView); }
@@ -3335,7 +3603,8 @@ function kjUnlockedCount(l) {
   return n;
 }
 const kjUnlocked = l => KJL[l].list.slice(0, kjUnlockedCount(l));
-const kjNewFor = (l, n) => kjUnlocked(l).filter(c => !JS.cards[c]).slice(0, n);
+const kjNewFor0 = (l, n) => kjUnlocked(l).filter(c => !JS.cards[c]).slice(0, n);
+const kjNewFor = (l, n) => capPoolK(kjNewFor0(l, n));   // within today's kanji allowance
 function kjStats(l) {
   const now = Date.now(); let seen = 0, mast = 0, due = 0;
   for (const c in JS.cards) { const x = JS.cards[c]; if (x.l !== l) continue; seen++; if (x.box >= MASTER_BOX) mast++; if (x.due <= now) due++; }
@@ -3350,14 +3619,16 @@ function kjDueScan(l) {
 const kjLevelsWithCards = () => LEVELS.filter(l => Object.values(JS.cards).some(x => x.l === l));
 function kjLearn(c) {    // learn card seen → the kanji enters the SRS (due now, so the quiz right after counts)
   if (JS.cards[c]) return;
+  markNewK(c);
   JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl, t: Date.now(), f: fNew(Date.now()) }; jsave(); trackItem(true); touchStreak(); save();
 }
 function kjGrade(c, ok, ctx = {}) {
   const isNew = !JS.cards[c];
+  if (isNew) markNewK(c);
   const x = Object.assign(JS.cards[c] ? JSON.parse(JSON.stringify(JS.cards[c])) : { box: 0, due: 0, ok: 0, bad: 0 }, { l: KJ[c].lvl });
   srsAnswer(x, c, ok, ctx);
   const before = kjUnlockedCount(x.l);
-  x.t = Date.now(); JS.cards[c] = x; jsave(); trackItem(isNew); touchStreak(); save();
+  x.t = Date.now(); JS.cards[c] = x; jsave(); schedShow(x, ctx, "j", c); trackItem(isNew); touchStreak(); save();
   if (kjUnlockedCount(x.l) > before) setTimeout(() => { sfx.unlock(); toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`); }, 700);
 }
 /* ---------- stroke order (KanjiVG) ---------- */
@@ -3489,12 +3760,12 @@ const kanjiPageFn = l => KJPAGE[l] || (KJPAGE[l] = () => kanjiView(l));
 function kanjiView(l) {
   if (!KJL[l].loaded) { view.innerHTML = topbar(LNAME(l)) + `<div class="panel"><p>Loading ${LNAME(l)} kanji…</p></div>`; bindBack(levelPageFn(l));
     loadKanji(l).then(ok => { if (curView === kanjiPageFn(l)) { if (ok) go(kanjiPageFn(l)); else { view.querySelector(".panel").innerHTML = `<p>Couldn't load the kanji list — offline? Open once online or use Download in Settings.</p><button class="btn" id="kjRetry">Try again</button>`; $("#kjRetry").onclick = () => go(kanjiPageFn(l)); } } }); return; }
-  const me = kanjiPageFn(l), st = kjStats(l), list = KJL[l].list, un = kjUnlockedCount(l), fresh = kjNewFor(l, KJ_BATCH), due = kjDueScan(l);
+  const me = kanjiPageFn(l), st = kjStats(l), list = KJL[l].list, un = kjUnlockedCount(l), fresh = kjNewFor(l, KJ_BATCH), due = kjDueScan(l), capped = !fresh.length && kjNewFor0(l, 1).length > 0;
   const learned = list.filter(c => JS.cards[c]);
   view.innerHTML = topbar(LNAME(l)) + `<div class="largetitle" style="display:flex;align-items:center;gap:12px">${lvRing("字", st.mast / (st.total || 1), `var(--${l})`, 52)}Kanji · ${LNAME(l)}</div>
     <p class="subtitle">${st.total} kanji, easiest first · ${st.mast} mastered · ${st.seen} learned · ${un} unlocked${st.due ? ` · <b>${st.due} due</b>` : ""}</p>
-    <div class="hero"><div class="ic">字</div><div><h2>${fresh.length ? `Learn ${fresh.length} new kanji` : un < list.length ? "Next batch locked" : "All kanji learned"}</h2>
-      <p>${fresh.length ? `Next up: <span class="jp" style="font-size:1.2rem">${fresh.map(esc).join(" ")}</span> — learn card with stroke order, then a quick quiz.` : un < list.length ? `Get ${Math.ceil(un * 0.8)} of your ${un} unlocked kanji past the first review to unlock ${Math.min(KJ_BATCH, list.length - un)} more.` : "Keep them fresh with reviews and practice."}</p></div>
+    <div class="hero"><div class="ic">字</div><div><h2>${fresh.length ? `Learn ${fresh.length} new kanji` : capped ? "Today's new-kanji limit reached" : un < list.length ? "Next batch locked" : "All kanji learned"}</h2>
+      <p>${capped && !fresh.length ? `You've hit today's ${kjLimitV()} new kanji — reviews only until tomorrow.` : fresh.length ? `Next up: <span class="jp" style="font-size:1.2rem">${fresh.map(esc).join(" ")}</span> — learn card with stroke order, then a quick quiz.` : un < list.length ? `Get ${Math.ceil(un * 0.8)} of your ${un} unlocked kanji past the first review to unlock ${Math.min(KJ_BATCH, list.length - un)} more.` : "Keep them fresh with reviews and practice."}</p></div>
       <button class="btn ${fresh.length ? "" : "ghost"}" id="kjLearnBtn">Learn ▶</button></div>
     <div class="panel duepanel">${dueRow("kanji:" + l, "字", `Kanji due · ${LNAME(l)}`, due)}</div>
     <div class="sechead">Practice learned kanji</div>
@@ -3519,6 +3790,7 @@ function kjSession(items, title, back, doneMsg) {
 }
 function kanjiLearnSession(l, back) {
   const fresh = kjNewFor(l, KJ_BATCH);
+  if (!fresh.length && kjNewFor0(l, 1).length) { view.innerHTML = topbar(`字 Learn ${LNAME(l)} kanji`) + `<div id="qhost"></div>`; bindBack(back); return capView(true, back); }
   if (!fresh.length) { const un = kjUnlockedCount(l), n = KJL[l].list.length; toast(un < n ? `Next batch locked — get ${Math.ceil(un * 0.8)} of your ${un} kanji past their first review` : `All ${LNAME(l)} kanji learned — review or practice them`); return; }
   const items = fresh.map(c => ({ j: 1, id: c, mode: "learn" })).concat(shuffle(fresh).map(c => ({ j: 1, id: c, mode: "k2m" })), shuffle(fresh).map(c => ({ j: 1, id: c, mode: KJ[c].ex.length ? "wr" : "m2k" })));
   kjSession(items, `字 Learn ${LNAME(l)} kanji`, back, ` · ${fresh.length} new kanji learned`);
@@ -3685,7 +3957,7 @@ async function gReady(l, needKanji) {
 function gWordPool(l, n = 60) {
   const ids = LV[l].ids, seen = shuffle(ids.filter(id => S.cards[id])), unl = new Set(LV[l].sets.filter(setUnlocked).flatMap(s => s.ids));
   const rest = shuffle(ids.filter(id => !S.cards[id] && unl.has(id))), first = ids.filter(id => !S.cards[id] && !unl.has(id)).slice(0, 40);
-  return [...new Set(seen.concat(rest, first))].slice(0, Math.max(n, 12));
+  return capPool([...new Set(seen.concat(rest, first))]).slice(0, Math.max(n, 12));   // daily new-word limit
 }
 const shortEn = w => { let s = w.en.split(/[;]/)[0].replace(/\s*\(.*?\)\s*/g, " ").trim(); if (s.length > 28) s = s.split(",")[0].trim(); return s.length > 30 ? s.slice(0, 29) + "…" : s; };
 /* one persistent <audio> element: once "unlocked" by the Start tap, iOS lets later plays happen without a new tap */
@@ -3766,6 +4038,7 @@ function sniperRun(l, host, back, again) {
   const kana = l === "kana", reduced = REDUCED_MOTION();
   const pool = kana ? shuffle(KALL.filter(id => KITEMS[id].g !== "ext" && (KS.cards[id] || kPool().includes(id)))).concat(shuffle(KALL.filter(id => KITEMS[id].s === "h" && KITEMS[id].g !== "ext"))).filter((x, i, a) => a.indexOf(x) === i).slice(0, 60)
     : gWordPool(l, 60);
+  if (!kana && pool.length < 4) { host.innerHTML = `<div id="qhost"></div>`; return capView(false, back); }
   const st = gState = { game: "sniper", l, lives: 3, score: 0, wave: 0, combo: 0, answered: 0, right: 0, targets: [], correct: -1, busy: false, paused: false, over: false };
   host.innerHTML = `<div class="gbar"><span id="gLives">${gHearts(3)}</span><span class="gmult" id="gMult">x1</span><button class="btn ghost small" id="gReplay" aria-label="Play the sound again">🔊 Replay</button></div>
     <div class="arena" id="arena" aria-live="polite"><div class="gmsg" id="gMsg"></div></div>
@@ -3855,7 +4128,9 @@ function builderGame(l, back) {
     const all = GD[l].kb.filter(x => KJ[x[0]]), solved = new Set(GS().kb[l] || []);
     const unl = all.slice(0, Math.min(all.length, kbUnlocked(l)));
     // unsolved first, then due/weak ones
-    const pick = shuffle(unl.filter(x => !solved.has(x[0]))).concat(shuffle(unl.filter(x => solved.has(x[0]))).sort((a, b) => jcard(a[0]).box - jcard(b[0]).box)).slice(0, 6);
+    const okK = (() => { let left = newLeftK(); return x => !isNewKj(x[0]) || (left > 0 && left--); })();   // daily new-kanji limit
+    const pick = shuffle(unl.filter(x => !solved.has(x[0]) && okK(x))).concat(shuffle(unl.filter(x => solved.has(x[0]))).sort((a, b) => jcard(a[0]).box - jcard(b[0]).box)).slice(0, 6);
+    if (!pick.length && unl.length) { host.innerHTML = `<div id="qhost"></div>`; return capView(true, back); }
     const st = gState = { game: "builder", l, i: 0, list: pick, score: 0, right: 0, answered: 0, combo: 0, unlocked: unl.length, total: all.length };
     const round = () => {
       if (!host.isConnected) return;
@@ -3920,7 +4195,8 @@ function scrambleGame(l, back) {
     if (!(await gReady(l))) { host.innerHTML = `<div class="card"><p>Couldn't load ${LNAME(l)} (offline?).</p></div>`; return; }
     if (!host.isConnected) return;
     const items = GD[l].sc.filter(x => WORDS[x[0]]);
-    const known = shuffle(items.filter(x => S.cards[x[0]])), rest = shuffle(items.filter(x => !S.cards[x[0]]));
+    const known = shuffle(items.filter(x => !isNewWord(x[0]))), rest = shuffle(items.filter(x => isNewWord(x[0]))).slice(0, newLeft());
+    if (!known.length && !rest.length) { host.innerHTML = `<div id="qhost"></div>`; return capView(false, back); }
     const st = gState = { game: "scramble", l, i: 0, list: known.concat(rest).slice(0, 6), score: 0, right: 0, answered: 0, combo: 0 };
     const round = () => {
       if (!host.isConnected) return;
@@ -4021,7 +4297,7 @@ function bossFight(l, boss, back) {
     if (kana) { const K = KITEMS[kpool[rand(kpool.length)]], modes = ["k2r", "r2k"]; if (canAudio()) modes.push("listen"); return { k: K, mode: modes[rand(modes.length)] }; }
     const w = WORDS[ids[rand(ids.length)]], modes = ["meaning", "meaning", "reverse"];
     if (w.hasKanji) modes.push("reading"); if (canAudio()) modes.push("listen");
-    const kc = [...new Set(w.jp)].filter(c => KJ[c] && KJ[c].lvl === l); if (kc.length) modes.push("kanji");
+    const kc = [...new Set(w.jp)].filter(c => KJ[c] && KJ[c].lvl === l && canIntroK(c)); if (kc.length) modes.push("kanji");
     const mode = modes[rand(modes.length)];
     return mode === "kanji" ? { j: KJ[kc[rand(kc.length)]], mode: rand(2) ? "k2m" : "m2k", w } : { w, mode };
   };
@@ -4057,7 +4333,8 @@ function bossFight(l, boss, back) {
   ready().then(() => {
     if (!$("#qhost")) return;
     if (kana) { kpool = KALL.filter(id => KS.cards[id] && KITEMS[id].g !== "ext"); if (kpool.length < 6) kpool = KALL.filter(id => KITEMS[id].s === "h" && KITEMS[id].g !== "ext").slice(0, 46); }
-    else { ids = (boss.level ? LV[l].ids.filter(id => S.cards[id]) : boss.ids).filter(id => WORDS[id]); if (ids.length < 4) ids = LV[l].ids.slice(0, 40); }
+    else { ids = capPool((boss.level ? LV[l].ids.filter(id => S.cards[id]) : boss.ids).filter(id => WORDS[id])); if (ids.length < 4) ids = capPool(LV[l].ids.slice(0, 40));
+      if (ids.length < 4) { st.over = true; return capView(false, back); } }
     next();
   });
 }
@@ -4096,7 +4373,8 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 /* ---------- merge rules (anything not listed is a setting: latest-wins by modified stamp) ---------- */
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
-       unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1" },
+       unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -4161,6 +4439,7 @@ function mergeStore(n, a, b, LM, RM, OM) {
     else if (r === "max") o[k] = Math.max(+x || 0, +y || 0);
     else if (r === "union") o[k] = [...new Set([...(Array.isArray(x) ? x : []), ...(Array.isArray(y) ? y : [])])];
     else if (r === "mapMax") o[k] = mergeMap(x, y, (u, v) => Math.max(+u || 0, +v || 0));
+    else if (r === "mapUnionS") o[k] = mergeMap(x, y, (u, v) => [...new Set([...(Array.isArray(u) ? u : []), ...(Array.isArray(v) ? v : [])])].sort());
     else if (r === "mapUnion") o[k] = mergeMap(x, y, (u, v) => [...new Set([...(Array.isArray(u) ? u : []), ...(Array.isArray(v) ? v : [])])].sort((a, b) => a - b));
     else if (r === "days") o[k] = mergeMap(x, y, maxFields);
     else if (r === "games") o[k] = mergeGames(x, y);
@@ -4817,6 +5096,305 @@ function allMapCardHTML() {
     <div class="minibar"><i style="width:${t.n ? t.seen / t.n * 100 : 0}%;background:var(--fill2)"></i><i style="width:${t.n ? t.m / t.n * 100 : 0}%"></i></div>
     <button class="btn" id="amOpen">Open the map</button></div>`;
 }
+/* ================= Detention: copy-practice for leeches =================
+   Write each leech's reading 10 times with the word, reading, meaning and audio in view ("lines" on a chalkboard).
+   It's copying, not recall: no FSRS change, no new-word count. Study minutes count (study screen); modest XP.
+   Afterwards an optional quick recall check (answer hidden) that IS graded normally. */
+const DET_N = 10;
+function detentionPick(back = leechView) {
+  const ids = leechIds().sort((a, b) => card(b).bad - card(a).bad);
+  view.innerHTML = topbar("📝 Detention", `<span class="muted">${ids.length} leeches</span>`) +
+    `<div class="detintro"><div class="chalk">Detention</div><p>Pick the leeches that stay after class. Write each reading <b>${DET_N}×</b> — copy it while you look at it. Copying doesn't change your review schedule.</p></div>
+    ${ids.length ? `<div class="btnrow detsel"><button class="btn ghost small" id="detAll">Select all</button><button class="btn ghost small" id="detNone">Clear</button></div>
+    <div class="panel detlist" id="detList">${ids.map(id => { const w = WORDS[id]; return `<label class="detpick"><input type="checkbox" value="${id}" checked><span class="jp detjp">${esc(w.jp)}</span><span class="muted jp">${w.hasKanji ? esc(w.kana) : ""}</span><span class="grow detEn">${esc(w.en)}</span></label>`; }).join("")}</div>
+    <div class="btnrow"><button class="btn" id="detGo">Start detention ▶</button></div>`
+      : `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>No leeches — nobody's in detention today.</p></div>`}`;
+  bindBack(back);
+  if (!ids.length) return;
+  const boxes = () => [...view.querySelectorAll("#detList input")];
+  const upd = () => { const n = boxes().filter(b => b.checked).length; $("#detGo").disabled = !n; $("#detGo").textContent = n ? `Start detention ▶ (${n})` : "Pick at least one"; };
+  $("#detAll").onclick = () => { boxes().forEach(b => b.checked = true); upd(); };
+  $("#detNone").onclick = () => { boxes().forEach(b => b.checked = false); upd(); };
+  $("#detList").onchange = upd; upd();
+  $("#detGo").onclick = () => { const sel = boxes().filter(b => b.checked).map(b => +b.value); if (sel.length) { sfx.click(); go(() => detentionRun(sel, back)); } };
+}
+function detentionRun(ids, back = leechView) {
+  studyScreen = true;
+  const D = { ids, i: 0, n: 0, lines: 0, wrong: 0, t0: Date.now() };
+  window.__det = D;
+  view.innerHTML = topbar("📝 Detention", `<span class="muted" id="detWord"></span>`) +
+    `<div class="card detboard" id="detBoard">
+      <div class="detprompt"><span class="jp dettarget" id="detJp"></span><button class="iconbtn detspk" id="detSpk" aria-label="Play the word">${I("speaker")}</button></div>
+      <div class="detread jp" id="detKana"></div><div class="detmean" id="detEn"></div>
+      <div class="detcount" aria-live="polite"><b id="detN">0</b>/${DET_N}<span class="detbar"><i id="detFill"></i></span></div>
+      <div class="detform"><input class="typein detin" id="detIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="ja" enterkeyhint="done" aria-label="Type the reading" placeholder="type the reading…"><button class="btn detgo" id="detOk" aria-label="Write the line">✍️</button></div>
+      <ol class="detlines" id="detLines" aria-label="Lines written"></ol></div>`;
+  bindBack(back);
+  const inp = $("#detIn"); attachIME(inp);
+  let acc = null, w = null;
+  const keepKb = b => b.addEventListener("pointerdown", e => e.preventDefault());   // tapping a button doesn't drop the iOS keyboard
+  keepKb($("#detSpk")); keepKb($("#detOk"));
+  const show = () => {
+    w = WORDS[ids[D.i]]; acc = acceptedAnswers(w, true); D.n = 0;
+    $("#detJp").textContent = w.jp; $("#detKana").innerHTML = esc(w.kana) + (S.romaji ? ` <span class="muted">${esc(ROMA(w.kana))}</span>` : "");
+    $("#detEn").textContent = w.en; $("#detWord").textContent = `word ${D.i + 1}/${ids.length}`;
+    $("#detN").textContent = 0; $("#detFill").style.width = "0"; $("#detLines").innerHTML = "";
+    inp.value = ""; inp.focus(); speak(w);
+  };
+  $("#detSpk").onclick = () => { speak(w, true); inp.focus(); };
+  const submit = () => {
+    const v = inp.value.trim(); if (!v) { inp.focus(); return; }
+    if (acc.has(normAns(v)) || acc.has(normAns(romajiToKana(v, false)))) {
+      D.n++; D.lines++; sfx.click();
+      $("#detLines").insertAdjacentHTML("afterbegin", `<li class="jp">${esc(w.kana)}</li>`);
+      $("#detN").textContent = D.n; $("#detFill").style.width = (D.n / DET_N * 100) + "%";
+      inp.value = "";
+      if (D.n >= DET_N) {
+        addXP(5); sfx.good();
+        if (D.i + 1 >= ids.length) return finish();
+        D.i++; setTimeout(show, 450);
+      }
+    } else {
+      D.wrong++; inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");   // gentle shake, doesn't count
+      inp.select();
+    }
+    inp.focus();
+  };
+  $("#detOk").onclick = submit;
+  inp.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); submit(); } });
+  const finish = () => {
+    const min = Math.max(1, Math.round((Date.now() - D.t0) / 60000));
+    addXP(Math.min(30, ids.length * 3)); confetti(160); sfx.level();
+    $("#detBoard").outerHTML = `<div class="card detboard detdone" id="detDone"><div class="chalk">Released from detention</div><div class="big">🔔</div>
+      <p>${D.lines} lines written for ${ids.length} word${ids.length > 1 ? "s" : ""} · ~${min} min${D.wrong ? ` · ${D.wrong} slip${D.wrong > 1 ? "s" : ""} erased` : ""}</p>
+      <p class="muted">Your review schedule didn't change — copying isn't recall. Want to test yourself now?</p>
+      <div class="btnrow capbtns"><button class="btn" id="detCheck">🧠 Quick recall check (graded)</button><button class="btn ghost" id="detBack">Back to leeches</button></div></div>`;
+    $("#detBack").onclick = () => go(back);
+    $("#detCheck").onclick = () => go(() => detentionCheck(ids, back));
+  };
+  show();
+}
+/* recall check: typing with the answer hidden, graded normally */
+function detentionCheck(ids, back) {
+  const D = { items: shuffle(ids.slice()).map(id => ({ id, mode: "typing" })), pos: 0, correct: 0 };
+  runSession({ title: "🧠 Recall check", items: true, back,
+    progress: () => ({ done: D.pos, total: D.items.length }),
+    nextItem: () => D.items[D.pos] || null,
+    onItemDone: (ok, id, mode, skipped) => { D.pos++; if (!skipped && ok) D.correct++; },
+    onFinish: () => { addXP(Math.min(40, D.items.length * 2)); dueFinishCard(D.correct, D.items.length, back, " · recall check after detention"); const b = $("#dueBack"); if (b) b.textContent = "Done"; }
+  });
+}
+/* ================= Flashcards (Anki-style self-grading) =================
+   Due words first, then new words (within the daily new-word limit). Front → flip → Again/Hard/Good/Easy, each
+   labelled with the FSRS interval it would schedule; the label is the exact result that gets saved (same fuzz).
+   Directions (S.flashDir): "jp" (JP→EN), "en" (EN→JP) — reading/meaning track; "listen" (audio-only front) — listening track.
+   Swipe when flipped: left = Again, right = Good, up = Easy. Undo restores the last card exactly. */
+const FL_DIRS = [["jp", "JP → EN"], ["en", "EN → JP"], ["listen", "🎧 Listen"]];
+const flIvl = ms => { const m = ms / 60e3; return m < 60 ? Math.max(1, Math.round(m)) + "m" : m < 1440 ? Math.round(m / 60) + "h" : m < 1440 * 30 ? Math.round(m / 1440) + "d" : m < 1440 * 365 ? (m / 43800).toFixed(1).replace(/\.0$/, "") + "mo" : (m / 525600).toFixed(1).replace(/\.0$/, "") + "y"; };
+/* the FSRS outcome for each rating, from the card's current state on that track */
+function flPreview(id, tr, now = Date.now()) {
+  const c = S.cards[id], o = [null];
+  let base = c ? c[tr] || null : null;
+  if (c && !c.f && tr === "f") { const t = JSON.parse(JSON.stringify(c)); fsrsMigrateCard(t, now); base = t.f; }
+  for (let r = 1; r <= 4; r++) o.push(fsrsNext(base, r, now, fCfg()));
+  for (let r = 3; r <= 4; r++) if (o[r].st === 2 && o[r - 1].st === 2 && o[r].due <= o[r - 1].due) o[r].due = o[r - 1].due + F_DAY;   // fuzz never puts Easy before Good (Anki-style ordering)
+  return o;
+}
+function flQueue(pool, opts = {}) {
+  const now = Date.now(), tr = (S.flashDir || "jp") === "listen" ? "L" : "f";
+  const due = pool.filter(id => { const c = S.cards[id]; if (!c) return false; const f = c[tr]; return tr === "L" ? !!f && f.due <= now : (f ? f.due : c.due) <= now; })
+    .sort((a, b) => card(a).box - card(b).box || card(a).due - card(b).due);
+  if (opts.dueOnly) return due;
+  const nNew = opts.nNew != null ? opts.nNew : Math.min(20, Math.max(0, S.newPerDay | 0) || 10);
+  const fresh = tr === "L" ? pool.filter(id => S.cards[id] && !S.cards[id].L).slice(0, nNew)   // listening: seen words starting their listening track
+    : capPool(pool.filter(id => !S.cards[id])).slice(0, nNew);
+  return due.concat(fresh);
+}
+function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
+  studyScreen = true;
+  const dir = S.flashDir || "jp", tr = dir === "listen" ? "L" : "f";
+  if (tr === "L" && !canAudio()) { S.flashDir = "jp"; return flashcards(pool, title, back, opts); }
+  const Q = flQueue(pool.filter(id => WORDS[id]), opts);
+  const dirSeg = `<div class="fldir seg" id="flDir" role="radiogroup" aria-label="Card direction">${FL_DIRS.map(([k, t]) => `<button role="radio" aria-checked="${k === dir}" class="${k === dir ? "on" : ""}" data-d="${k}">${t}</button>`).join("")}</div>`;
+  view.innerHTML = topbar(title, `<span class="muted" id="score"></span>`) + `<div class="sprog"><div id="sprog" style="width:0"></div></div>${dirSeg}${newTodayHTML()}<div id="qhost"></div>`;
+  bindBack(back);
+  $("#flDir").onclick = e => { const b = e.target.closest("button"); if (!b || b.dataset.d === S.flashDir) return; S.flashDir = b.dataset.d; save(); go(() => flashcards(pool, title, back, opts)); };
+  if (!Q.length) {
+    if (capReached() && pool.some(id => isNewWord(id)) && !opts.dueOnly) return capView(false, back);
+    $("#qhost").innerHTML = `<div class="card"><div class="big">🎉</div><p>Nothing due here${tr === "L" ? " on the listening track" : ""} right now.</p><div class="btnrow"><button class="btn" id="flBackBtn">Back</button></div></div>`;
+    $("#flBackBtn").onclick = () => go(back || home); return;
+  }
+  const F = { q: Q.slice(), pos: 0, done: 0, counts: [0, 0, 0, 0, 0], hist: [], flipped: false, prev: null, dir, tr, busy: false };
+  window.__fl = F;
+  const prog = () => { $("#score").textContent = `${F.done} done · ${Math.max(0, F.q.length - F.pos)} left`; $("#sprog").style.width = (F.pos / Math.max(1, F.q.length) * 100) + "%"; const nt = $("#newToday"); if (nt) nt.outerHTML = newTodayHTML(); };
+  const show = () => {
+    F.flipped = false;
+    while (F.pos < F.q.length && !S.cards[F.q[F.pos]] && !canIntro(F.q[F.pos])) F.q.splice(F.pos, 1);   // limit reached mid-session
+    prog();
+    if (F.pos >= F.q.length) return finish();
+    const id = F.q[F.pos], w = WORDS[id], isNew = !S.cards[id];
+    markNew(id); qStart(id, "flash", { listen: tr === "L" });
+    const front = dir === "en" ? `<div class="prompt en flen">${esc(w.en)}</div><div class="sub"><span class="tag">${POS_NAMES[w.pos] || "word"}</span></div>`
+      : dir === "listen" ? `<button class="bigspk" id="flSpk" aria-label="Play the word">🔊</button>`
+      : `<div class="prompt jp flword">${esc(w.jp)}</div>${canAudio() ? `<button class="iconbtn flspk" id="flSpk" aria-label="Play the word">${I("speaker")}</button>` : ""}`;
+    $("#qhost").innerHTML = `<div class="flwrap"><div class="card flcard" id="flCard" tabindex="0" aria-label="Flashcard — tap to flip">
+      ${isNew ? `<span class="newtag">NEW</span>` : ""}<div class="flfront">${front}</div><div class="flback" id="flBackSide" hidden></div>
+      <div class="flhint" id="flHint">Tap the card or press Space to flip</div><div class="flstamp" id="flStamp"></div></div></div>
+      <div class="btnrow flshowrow" id="flShowRow"><button class="btn flshow" id="flShow">Show answer</button></div>
+      <div class="flgrades" id="flGrades" hidden></div>
+      <div class="btnrow flundo"><button class="btn ghost small" id="flUndo" ${F.hist.length ? "" : "disabled"}>↩︎ Undo</button></div>`;
+    const spk = $("#flSpk"); if (spk) spk.onclick = e => { e.stopPropagation(); speak(w, true); };
+    if (dir === "listen") setTimeout(() => speak(w, true), 200); else if (dir === "jp" && S.autoSpeak) speak(w);
+    $("#flCard").onclick = e => { if (e.target.closest("button, a")) return; if (!F.flipped) flip(); };
+    $("#flUndo").onclick = undo; $("#flShow").onclick = flip;
+    swipe($("#flCard"));
+  };
+  const flip = () => {
+    if (F.flipped || F.pos >= F.q.length) return; F.flipped = true;
+    const id = F.q[F.pos], w = WORDS[id];
+    const kj = typeof KJ !== "undefined" ? [...new Set(w.jp)].filter(ch => KJ[ch]).map(ch => `<span class="flkj"><b class="jp">${esc(ch)}</b> ${esc(KJ[ch].mean)}</span>`).join("") : "";
+    $("#flBackSide").hidden = false; $("#flHint").hidden = true; $("#flShowRow").hidden = true;
+    $("#flBackSide").innerHTML = `<div class="flans"><span class="jp flword2">${esc(w.jp)}</span>${w.jp !== w.kana ? `<span class="jp flkana">${esc(w.kana)}</span>` : ""}${S.romaji ? ` <span class="muted">${esc(ROMA(w.kana))}</span>` : ""}</div>
+      <div class="flmean">${esc(w.en)}</div>${kj ? `<div class="flkjs">${kj}</div>` : ""}${noteHTML(id)}${exampleHTML(id)}`;
+    if (dir === "en") speak(w);
+    F.prev = flPreview(id, tr);
+    const now = Date.now();
+    $("#flGrades").hidden = false;
+    $("#flGrades").innerHTML = [1, 2, 3, 4].map(r => `<button class="flg r${r}" data-r="${r}" aria-label="${RATE_NAMES[r]}, next in ${flIvl(F.prev[r].due - now)}"><small class="flivl">${flIvl(F.prev[r].due - now)}</small><b>${RATE_NAMES[r]}</b></button>`).join("");
+    $("#flGrades").onclick = e => { const b = e.target.closest("button[data-r]"); if (b) rate(+b.dataset.r); };
+  };
+  const rate = r => {
+    if (!F.flipped || F.busy) return; F.busy = true;
+    const id = F.q[F.pos];
+    F.hist.push({ id, pos: F.pos, q: F.q.slice(), done: F.done, counts: F.counts.slice(), card: S.cards[id] ? JSON.stringify(S.cards[id]) : null,
+      nl: JSON.stringify(newToday()), ans: S.answered, sg: JSON.stringify(SESSION_GRADED), xp: S.xp, rl: JSON.stringify(S.revLog || {}) });
+    if (F.hist.length > 30) F.hist.shift();
+    grade(id, r > 1, { rating: r, fnext: F.prev, listen: tr === "L", quiet: true });
+    if (r > 1) addXP(r === 4 ? 6 : 4); else sfx.bad();
+    F.counts[r]++; F.done++;
+    const c = S.cards[id], f = c[tr];
+    if (f && f.due - Date.now() < 15 * 60e3) F.q.splice(Math.min(F.q.length, F.pos + 4), 0, id);   // short (re)learning step: back this session
+    F.pos++;
+    const st = $("#flStamp"); if (st) { st.textContent = RATE_NAMES[r]; st.className = "flstamp on r" + r; }
+    setTimeout(() => { F.busy = false; if ($("#flStamp") || $("#flCard")) show(); }, 160);
+  };
+  const undo = () => {
+    const h = F.hist.pop(); if (!h) return;
+    if (h.card) S.cards[h.id] = JSON.parse(h.card); else delete S.cards[h.id];
+    nlog("newLog")[todayStr()] = JSON.parse(h.nl); S.answered = h.ans; SESSION_GRADED = JSON.parse(h.sg); S.revLog = JSON.parse(h.rl);
+    if (S.xp > h.xp) { S.xp = h.xp; updateHeader(); }
+    F.q = h.q; F.pos = h.pos; F.done = h.done; F.counts = h.counts; save(); sfx.click(); toast("↩︎ Undone");
+    show(); flip();
+  };
+  const swipe = el => {
+    let x0 = null, y0 = 0, dx = 0, dy = 0;
+    const swR = () => dy < -90 && Math.abs(dy) > Math.abs(dx) ? 4 : dx > 80 ? 3 : dx < -80 ? 1 : 0;
+    el.addEventListener("pointerdown", e => { if (!F.flipped || e.target.closest("button, a")) return; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; el.style.transition = "none"; });
+    el.addEventListener("pointermove", e => { if (x0 == null) return; dx = e.clientX - x0; dy = e.clientY - y0;
+      el.style.transform = `translate(${dx}px,${Math.min(0, dy)}px) rotate(${dx / 20}deg)`;
+      const st = $("#flStamp"), r = swR(); st.textContent = r ? RATE_NAMES[r] : ""; st.className = "flstamp" + (r ? " on r" + r : ""); });
+    const end = () => { if (x0 == null) return; x0 = null; el.style.transition = ""; const r = swR(); el.style.transform = ""; if (r) { el.classList.add("fly" + r); rate(r); } else $("#flStamp").className = "flstamp"; };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", () => { x0 = null; el.style.transition = ""; el.style.transform = ""; });
+  };
+  const finish = () => {
+    if (F.done && !F.xpDone) { F.xpDone = 1; addXP(Math.min(40, F.done * 2)); sfx.level(); confetti(100); }
+    $("#qhost").innerHTML = `<div class="card fldone" id="flDoneCard"><div class="qtype">Flashcards done!</div><div class="big">🃏</div>
+      <p>${F.done} card${F.done === 1 ? "" : "s"} graded</p><p><span class="rtag r1">Again ${F.counts[1]}</span> <span class="rtag r2">Hard ${F.counts[2]}</span> <span class="rtag r3">Good ${F.counts[3]}</span> <span class="rtag r4">Easy ${F.counts[4]}</span></p>
+      ${nextReviewListHTML()}<div class="btnrow"><button class="btn" id="flDone">Done</button>${F.hist.length ? `<button class="btn ghost" id="flUndo">↩︎ Undo last</button>` : ""}</div></div>`;
+    bindNextReview($("#qhost")); $("#flDone").onclick = () => go(back || home); const u = $("#flUndo"); if (u) u.onclick = undo;
+  };
+  const onKey = e => {
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if ((e.key === " " || e.key === "Enter") && !F.flipped) { e.preventDefault(); flip(); }
+    else if (F.flipped && /^[1-4]$/.test(e.key)) { e.preventDefault(); rate(+e.key); }
+    else if (F.flipped && e.key === " ") { e.preventDefault(); rate(3); }
+    else if ((e.key === "z" || e.key === "u") && F.hist.length) { e.preventDefault(); undo(); }
+  };
+  addEventListener("keydown", onKey); cleanup = () => removeEventListener("keydown", onKey);
+  show();
+}
+/* ================= Memory (FSRS) stats =================
+   Per level (or All) and track (reading / listening / kana / kanji): true retention from the review log vs target,
+   30-day forecast, stability + difficulty histograms, averages, state counts, lapses, hardest items. Inline SVG. */
+const MEM_TRACKS = [["r", "Reading"], ["l", "Listening"], ["k", "Kana"], ["j", "Kanji"]];
+const MEM_SB = [["<1d", 1], ["1–3d", 3], ["3–7d", 7], ["7–21d", 21], ["21–90d", 90], ["90d–1y", 365], [">1y", Infinity]];
+let memSel = { lv: "all", tr: "r" };
+/* items for a selection: [{key, kind, f, c, label}] (+ total item count for "new") */
+function memItems(lv, tr) {
+  const out = []; let total = 0;
+  if (tr === "k") { for (const id of KALL) { total++; const c = KS.cards[id]; if (c && c.f) out.push({ key: id, kind: "k", f: c.f, c }); } return { out, total }; }
+  if (tr === "j") {
+    for (const l of LEVELS) { if (lv !== "all" && l !== lv) continue; total += (KJINFO[l] && KJINFO[l].chars ? [...KJINFO[l].chars].length : 0); }
+    for (const ch in JS.cards) { const c = JS.cards[ch]; if (lv !== "all" && c.l !== lv) continue; if (c.f) out.push({ key: ch, kind: "j", f: c.f, c }); }
+    return { out, total };
+  }
+  for (const l of LEVELS) if (lv === "all" || l === lv) total += LV[l].loaded ? LV[l].ids.length : (LV[l].info.count || 0);
+  for (const k in S.cards) { const id = +k, l = lvlOf(id); if (l === "pm" || (lv !== "all" && l !== lv)) continue; const c = S.cards[k], f = tr === "l" ? c.L : c.f; if (f) out.push({ key: id, kind: "w", f, c }); }
+  return { out, total };
+}
+/* true retention: correct / answered on review-state cards in the last n days (from S.revLog) */
+function memTrueRet(lv, tr, n) {
+  let a = 0, ok = 0; const L = S.revLog || {}, cut = daysAgo(n - 1);
+  for (const d in L) { if (d < cut) continue; const x = L[d];
+    for (const k in x) { if (k.endsWith("+")) continue;
+      const trk = k.slice(-1), lvk = k.slice(0, -1); if (trk !== tr) continue;
+      const lvl = trk === "j" ? lvk.slice(2) : lvk;   // kanji keys: "kjn5j"
+      if (tr !== "k" && lv !== "all" && lvl !== lv) continue;
+      a += x[k]; ok += x[k + "+"] || 0; } }
+  return a ? { n: a, r: ok / a } : null;
+}
+function memStats(lv, tr, now = Date.now()) {
+  const { out, total } = memItems(lv, tr);
+  const st = { learning: 0, review: 0, relearning: 0 }, sb = MEM_SB.map(() => 0), db = Array(10).fill(0), fc = Array(30).fill(0);
+  let sS = 0, nS = 0, sR = 0, nR = 0, lapses = 0;
+  const end0 = new Date(now); end0.setHours(24, 0, 0, 0); const e0 = +end0;
+  for (const it of out) {
+    const f = it.f; st[f.st === 1 ? "learning" : f.st === 3 ? "relearning" : "review"]++;
+    if (tr !== "l") lapses += +it.c.lapses || 0;
+    if (f.s != null) { const i = MEM_SB.findIndex(b => f.s < b[1]); sb[i]++; }
+    if (f.d != null) db[Math.min(9, Math.max(0, Math.ceil(f.d) - 1))]++;
+    if (f.st === 2 && f.s) { sS += f.s; nS++; if (f.lr) { sR += fRet(Math.max(0, (now - f.lr) / F_DAY), f.s); nR++; } }
+    const di = f.due < e0 ? 0 : Math.floor((f.due - e0) / F_DAY) + 1; if (di < 30) fc[di]++;
+  }
+  const hard = out.filter(it => it.f.d != null).sort((a, b) => (b.f.d - a.f.d) || ((+b.c.lapses || 0) - (+a.c.lapses || 0))).slice(0, 10);
+  return { n: out.length, total, newN: Math.max(0, total - out.length), st, sb, db, fc, lapses, avgS: nS ? sS / nS : null, avgR: nR ? sR / nR : null,
+    tr7: memTrueRet(lv, tr, 7), tr30: memTrueRet(lv, tr, 30), hard, target: +S.retention || 0.9 };
+}
+function memBars(vals, labels, o = {}) {
+  const W = 340, H = o.h || 120, n = vals.length, max = Math.max(1, ...vals), bw = W / n, pad = Math.max(1, bw * 0.18);
+  const bars = vals.map((v, i) => { const h = v ? Math.max(2, v / max * (H - 26)) : 0; return `<rect x="${(i * bw + pad / 2).toFixed(1)}" y="${(H - 16 - h).toFixed(1)}" width="${(bw - pad).toFixed(1)}" height="${h.toFixed(1)}" rx="2"><title>${labels[i]}: ${v}</title></rect>${o.vals && v ? `<text class="mv" x="${(i * bw + bw / 2).toFixed(1)}" y="${(H - 19 - h).toFixed(1)}">${v}</text>` : ""}`; }).join("");
+  const lab = labels.map((l, i) => (o.every ? i % o.every === 0 : true) ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 3}">${l}</text>` : "").join("");
+  return `<svg class="memchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label || "")}" preserveAspectRatio="none">${bars}${lab}</svg>`;
+}
+function memStatsHTML() { queueMicrotask(memMount); return `<div class="panel memstats" id="memStats"></div>`; }
+function memMount() {
+  const host = $("#memStats"); if (!host) return;
+  const lvs = ["all", ...activeLevels()]; if (!lvs.includes(memSel.lv)) memSel.lv = "all";
+  const t0 = performance.now(), M = memStats(memSel.lv, memSel.tr), ms = performance.now() - t0;
+  const pct = x => x == null ? "—" : Math.round(x * 100) + "%";
+  const retCell = (x, d) => `<div class="memret ${x && x.r < M.target - 0.05 ? "low" : ""}"><b>${x ? pct(x.r) : "—"}</b><small>true retention · ${d} days${x ? ` · ${x.n} reviews` : " · no reviews yet"}</small></div>`;
+  const fcLab = M.fc.map((_, i) => i === 0 ? "today" : i % 7 === 0 ? "+" + i + "d" : "");
+  host.innerHTML = `<h2>🧠 Memory (FSRS)</h2>
+    <div class="seg memseg" id="memLv" role="radiogroup" aria-label="Level">${lvs.map(l => `<button role="radio" aria-checked="${l === memSel.lv}" class="${l === memSel.lv ? "on" : ""}" data-lv="${l}">${l === "all" ? "All" : LNAME(l)}</button>`).join("")}</div>
+    <div class="seg memseg" id="memTr" role="radiogroup" aria-label="Track">${MEM_TRACKS.map(([k, t]) => `<button role="radio" aria-checked="${k === memSel.tr}" class="${k === memSel.tr ? "on" : ""}" data-tr="${k}">${t}</button>`).join("")}</div>
+    <div class="memgrid">${retCell(M.tr7, 7)}${retCell(M.tr30, 30)}
+      <div class="memret"><b>${pct(M.target)}</b><small>target retention</small></div>
+      <div class="memret"><b>${pct(M.avgR)}</b><small>avg recall now (est.)</small></div>
+      <div class="memret"><b>${M.avgS == null ? "—" : fmtDays(M.avgS * F_DAY)}</b><small>avg stability</small></div>
+      <div class="memret"><b>${M.lapses}</b><small>lapses total</small></div></div>
+    <div class="memstates" id="memStates"><span><i class="s0"></i>New <b>${M.newN}</b></span><span><i class="s1"></i>Learning <b>${M.st.learning}</b></span><span><i class="s2"></i>Review <b>${M.st.review}</b></span><span><i class="s3"></i>Relearning <b>${M.st.relearning}</b></span></div>
+    <h3>Reviews due · next 30 days</h3>${memBars(M.fc, fcLab, { label: "30-day review forecast", h: 130 })}
+    <h3>Stability</h3>${memBars(M.sb, MEM_SB.map(b => b[0]), { label: "Stability distribution", vals: 1 })}
+    <h3>Difficulty <small class="muted">1 easy → 10 hard</small></h3>${memBars(M.db, M.db.map((_, i) => i + 1), { label: "Difficulty distribution", vals: 1 })}
+    <h3>Hardest ${memSel.tr === "k" ? "kana" : memSel.tr === "j" ? "kanji" : "words"}</h3>
+    ${M.hard.length ? `<ul class="memhard" id="memHard">${M.hard.map(it => { const w = it.kind === "w" ? WORDS[it.key] : null, lab = w ? w.jp : it.key;
+      return `<li><button class="memitem" data-k="${it.kind}" data-id="${esc(String(it.key))}"><span class="jp">${esc(lab)}</span><small class="muted grow">${w ? esc(w.en) : it.kind === "j" && typeof KJ !== "undefined" && KJ[it.key] ? esc(KJ[it.key].mean) : ""}</small><span class="memd">D ${it.f.d.toFixed(1)}</span><span class="meml">${+it.c.lapses || 0} lapses</span></button></li>`; }).join("")}</ul>` : `<p class="muted">No graded items here yet.</p>`}
+    <p class="muted memfoot">${M.n} items with a schedule · computed in ${ms.toFixed(0)} ms</p>`;
+  host.querySelector("#memLv").onclick = e => { const b = e.target.closest("button"); if (b) { memSel.lv = b.dataset.lv; sfx.click(); memMount(); } };
+  host.querySelector("#memTr").onclick = e => { const b = e.target.closest("button"); if (b) { memSel.tr = b.dataset.tr; sfx.click(); memMount(); } };
+  host.querySelectorAll(".memitem").forEach(b => b.onclick = () => { const k = b.dataset.k, id = b.dataset.id; if (k === "w" && WORDS[+id]) wordModal(WORDS[+id]); else if (k === "j" && typeof KJ !== "undefined" && KJ[id]) kjModal(id); });
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -4842,7 +5420,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "ece6d8544e91";
+const BUILD = "4db5237c38c4";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -4892,7 +5470,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { detentionPick, detentionRun, detentionCheck, flashcards, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

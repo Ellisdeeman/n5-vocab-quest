@@ -81,5 +81,16 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await tap('#qhost .idk');await check('boss answered');
   for(let i=0;i<2;i++){await tap('#nextBtn');await p.waitForSelector('#qhost .idk:not(:disabled)');await tap('#qhost .idk');}
   await tap('#nextBtn');await p.waitForSelector('#gFinal');await p.waitForTimeout(400);await check('game result');
+  // daily cap, flashcards, detention, memory stats, next-review line
+  await p.evaluate(()=>__N5.go(()=>__N5.flashcards(__N5.ALL().ALL_IDS.slice(0,60),'🃏 Flashcards',__N5.home)));await p.waitForSelector('#flCard');await check('flashcards front');
+  await tap('#flShow');await check('flashcards back');await tap('.flg.r3');await check('flashcards next card');
+  await p.evaluate(()=>__N5.go(__N5.leechView));await p.waitForSelector('#detention');await tap('#detention');await check('detention picker');
+  await tap('#detGo');await p.waitForSelector('#detIn');await p.fill('#detIn','zz');await p.press('#detIn','Enter');await p.fill('#detIn',await p.evaluate(()=>__N5.WORDS[window.__det.ids[0]].kana));await p.press('#detIn','Enter');await check('detention board');
+  await p.evaluate(()=>{const S=__N5.S();S._nl=S.newLimit;S.newLimit=1;(S.newLog[__N5.todayStr()]=S.newLog[__N5.todayStr()]||[]).push(99999);__N5.go(()=>__N5.quiz('meaning',__N5.ALL().ALL_IDS.filter(id=>__N5.isNewWord(id)).slice(0,30),'t'));});await p.waitForSelector('#capCard');await check('daily limit reached card');
+  await p.evaluate(()=>__N5.go(__N5.home));await p.waitForTimeout(400);await check('home (limit reached counter)');
+  await p.evaluate(()=>{const S=__N5.S();S.newLimit=S._nl;delete S._nl;});
+  await p.evaluate(()=>__N5.go(__N5.settingsView));await p.waitForSelector('#newLimRow');await p.evaluate(()=>document.querySelector('#newLimRow').scrollIntoView({block:'center'}));await check('settings daily limits');
+  await p.evaluate(()=>__N5.go(__N5.statsView));await p.waitForSelector('#memStats');await p.evaluate(()=>document.querySelector('#memStats').scrollIntoView());await check('memory (FSRS) stats');
+  await p.evaluate(()=>document.querySelector('#memHard')&&document.querySelector('#memHard').scrollIntoView({block:'center'}));await check('memory hardest words');
   await ctx.close();}
  await b.close();console.log('SUMMARY',BR,R.filter(Boolean).length,'/',R.length);process.exit(R.every(Boolean)?0:1);})();
