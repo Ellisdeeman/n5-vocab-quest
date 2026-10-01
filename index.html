@@ -661,6 +661,8 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .retype.ok{border-style:solid;border-color:var(--good)}
 .retype.skip{border-style:solid;opacity:.75}
 #nextBtn:disabled{opacity:.45}
+
+.fsrsrow .seg button{min-height:44px;min-width:58px}
 </style>
 </head>
 <body>
@@ -984,7 +986,7 @@ function normAscii(s) {
 /* ================= State / persistence ================= */
 const KEY = "n5VocabQuest.v1";
 const defaultState = () => ({ cards: {}, xp: 0, streak: 0, lastDay: null, sound: true, romaji: true, speech: true, autoSpeak: false, bestSpeed: 0, bestMatch: 0, answered: 0,
-  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, retype: true, retypeMC: false, leechSeen: [], levels: ["n5"] });
+  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, retype: true, retypeMC: false, retention: 0.9, maxIvl: 1095, leechSeen: [], levels: ["n5"] });
 let S;
 try { S = Object.assign(defaultState(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { S = defaultState(); }
 if (!S.notes || typeof S.notes !== "object") S.notes = {};
@@ -1003,22 +1005,18 @@ function applyTheme() {
 applyTheme();
 try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme); } catch (e) {}
 
-/* ================= Spaced repetition (Leitner, boxes 0–6) ================= */
+/* ================= Spaced repetition: FSRS-5 (see app1f.js) =================
+   box (0–6) is now a display level derived from FSRS stability; MASTER_BOX 4 ⇔ stability ≥ 21 days. */
 const MIN = 60e3, DAY = 864e5;
-const INTERVALS = [0, 1 * MIN, 10 * MIN, 1 * DAY, 3 * DAY, 7 * DAY, 16 * DAY];
 const MAX_BOX = 6, MASTER_BOX = 4;
-/* any miss — wrong answer or "I don't know" — resets the interval; an item that never passed stays at box 0, so a miss
-   can never land in the same box as a first correct answer (and never counts toward unlocks / mastery) */
-const missBox = b => (b >= 2 ? 1 : 0);   // (a missed item is still re-reviewed after INTERVALS[1], not instantly)
 const card = id => S.cards[id] || { box: 0, due: 0, ok: 0, bad: 0 };
 const isLeech = id => { const c = S.cards[id]; return !!c && (c.bad >= 4 || (c.lapses || 0) >= 2) && (c.run || 0) < 4; };
 const leechIds = () => ALL_IDS.filter(isLeech);
-function grade(id, correct) {
+/* ctx: { game: true } for games (correct answers don't touch the schedule), { listen } to force the track */
+function grade(id, correct, ctx = {}) {
   const wasLeech = isLeech(id), wasNew = !S.cards[id];
-  const c = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, card(id));
-  if (correct) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; c.run = (c.run || 0) + 1; }
-  else { if (c.box >= 3) c.lapses = (c.lapses || 0) + 1; c.box = missBox(c.box); c.bad++; c.run = 0; }
-  c.due = Date.now() + INTERVALS[Math.max(1, c.box)] * (correct ? (0.9 + Math.random() * 0.2) : 1);
+  const c = S.cards[id] ? JSON.parse(JSON.stringify(S.cards[id])) : { box: 0, due: 0, ok: 0, bad: 0 };
+  srsAnswer(c, id, correct, ctx, true);
   c.t = Date.now(); S.cards[id] = c;
   S.answered++;
   touchStreak();
@@ -1226,6 +1224,172 @@ function stepConf() {
 function floatText(t, el) { const r = el.getBoundingClientRect(), d = document.createElement("div"); d.className = "floatxp"; d.textContent = t; d.style.left = (r.left + r.width / 2 - 30) + "px"; d.style.top = (r.top - 10) + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 1000); }
 let toastT; function toast(t) { document.querySelectorAll(".toast").forEach(e => e.remove()); const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); clearTimeout(toastT); toastT = setTimeout(() => d.remove(), 2200); }
 
+/* ================= FSRS-5 spaced repetition =================
+   A plain-JS port of the open-source FSRS-5 scheduler as implemented in py-fsrs 4.x (MIT, Open Spaced Repetition,
+   https://github.com/open-spaced-repetition/py-fsrs), with its default parameters. Learning steps 1 min → 10 min,
+   relearning step 10 min, then FSRS takes over. States: 1 Learning · 2 Review · 3 Relearning. Ratings: 1 Again · 2 Hard ·
+   3 Good · 4 Easy (chosen automatically from correctness + answer time — no rating buttons).
+   Card fields (vocab/kana/kanji): f = reading/meaning track {st, sp, s, d, lr, due}; vocab words may also have L = listening
+   track (created the first time a word is answered in a listening mode). Legacy fields stay for every other reader:
+   due = earliest track due · box = display level derived from stability (0 seen … 6 rock-solid; ≥4 = "mastered") ·
+   lb = Leitner box carried over by the migration (a floor for box until the first lapse) · ok/bad/run/lapses as before. */
+const FSRS_W = [0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621];
+const F_DECAY = -0.5, F_FACTOR = Math.pow(0.9, 1 / F_DECAY) - 1;
+const F_LEARN = [60e3, 600e3], F_RELEARN = [600e3], F_DAY = 864e5;
+const F_FUZZ = [[2.5, 7, 0.15], [7, 20, 0.1], [20, Infinity, 0.05]];
+const fClamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const fS0 = r => Math.max(FSRS_W[r - 1], 0.1);
+const fD0 = r => fClamp(FSRS_W[4] - Math.exp(FSRS_W[5] * (r - 1)) + 1, 1, 10);
+const fRet = (days, s) => Math.pow(1 + F_FACTOR * days / s, F_DECAY);
+const fIvlDays = (s, ret, max) => Math.min(max, Math.max(1, Math.round(s / F_FACTOR * (Math.pow(ret, 1 / F_DECAY) - 1))));
+const fShortS = (s, r) => s * Math.exp(FSRS_W[17] * (r - 3 + FSRS_W[18]));
+const fNextD = (d, r) => fClamp(FSRS_W[7] * fD0(4) + (1 - FSRS_W[7]) * (d + (10 - d) * (-FSRS_W[6] * (r - 3)) / 9), 1, 10);
+const fForgetS = (d, s, R) => Math.min(FSRS_W[11] * Math.pow(d, -FSRS_W[12]) * (Math.pow(s + 1, FSRS_W[13]) - 1) * Math.exp((1 - R) * FSRS_W[14]), s / Math.exp(FSRS_W[17] * FSRS_W[18]));
+const fRecallS = (d, s, R, r) => s * (1 + Math.exp(FSRS_W[8]) * (11 - d) * Math.pow(s, -FSRS_W[9]) * (Math.exp((1 - R) * FSRS_W[10]) - 1) * (r === 2 ? FSRS_W[15] : 1) * (r === 4 ? FSRS_W[16] : 1));
+function fFuzzDays(days, max) {
+  if (days < 2.5) return days;
+  let delta = 1; for (const [a, b, k] of F_FUZZ) delta += k * Math.max(Math.min(days, b) - a, 0);
+  let lo = Math.round(days - delta), hi = Math.min(Math.round(days + delta), max); lo = Math.min(Math.max(2, lo), hi);
+  return Math.min(Math.round(Math.random() * (hi - lo + 1) + lo), max);
+}
+/* one review: f0 = track state or null (new) · r = rating 1–4 · now = ms · o = {ret, max, fuzz}. Returns a new track object. */
+function fsrsNext(f0, r, now, o = {}) {
+  const ret = o.ret || 0.9, max = o.max || 36500;
+  const f = f0 ? Object.assign({}, f0) : { st: 1, sp: 0, s: null, d: null, lr: null, due: now };
+  const days = f.lr != null ? Math.floor((now - f.lr) / F_DAY) : null;
+  const upd = () => {
+    if (days !== null && days < 1) f.s = fShortS(f.s, r);
+    else { const R = f.lr == null ? 0 : fRet(Math.max(0, days), f.s); f.s = r === 1 ? fForgetS(f.d, f.s, R) : fRecallS(f.d, f.s, R, r); }
+    f.d = fNextD(f.d, r);
+  };
+  const toReview = () => { f.st = 2; f.sp = null; return fIvlDays(f.s, ret, max) * F_DAY; };
+  const steps = (st, list) => {   // shared learning / relearning step logic
+    if (!list.length || f.sp > list.length) return toReview();
+    if (r === 1) { f.sp = 0; return list[0]; }
+    if (r === 2) return f.sp === 0 && list.length === 1 ? list[0] * 1.5 : f.sp === 0 ? (list[0] + list[1]) / 2 : list[f.sp];
+    if (r === 3) { if (f.sp + 1 === list.length) return toReview(); f.sp++; return list[f.sp]; }
+    return toReview();
+  };
+  let ivl;
+  if (f.st === 1) { if (f.s == null || f.d == null) { f.s = fS0(r); f.d = fD0(r); } else upd(); ivl = steps(1, F_LEARN); }
+  else if (f.st === 2) { upd(); if (r === 1 && F_RELEARN.length) { f.st = 3; f.sp = 0; ivl = F_RELEARN[0]; } else ivl = fIvlDays(f.s, ret, max) * F_DAY; }
+  else { upd(); ivl = steps(3, F_RELEARN); }
+  if (o.fuzz && f.st === 2) ivl = fFuzzDays(Math.round(ivl / F_DAY), max) * F_DAY;
+  f.lr = now; f.due = now + ivl;
+  return f;
+}
+
+/* ---------- app glue ---------- */
+const fCfg = () => ({ ret: [0.85, 0.9, 0.95].includes(+S.retention) ? +S.retention : 0.9, max: +S.maxIvl || 1095, fuzz: true });
+const MASTER_S = 21;   // "mastered" = reading-track stability ≥ 21 days (or a carried-over Leitner box ≥ 4 that hasn't lapsed since)
+const boxFromF = f => !f ? 0 : f.st === 1 ? (f.sp >= 1 ? 1 : 0) : f.st === 3 ? 1 : f.s < 7 ? 2 : f.s < MASTER_S ? 3 : f.s < 60 ? 4 : f.s < 180 ? 5 : 6;
+function fsrsSync(c) {   // recompute the legacy fields every other part of the app reads
+  if (!c.f) return c;
+  c.box = Math.max(boxFromF(c.f), +c.lb || 0);
+  c.due = c.L ? Math.min(c.f.due, c.L.due) : c.f.due;
+  return c;
+}
+const fNew = now => ({ st: 1, sp: 0, s: null, d: null, lr: null, due: now });
+/* ----- migration from the Leitner ladder: replay the old intervals through FSRS (Good each time) to estimate stability ----- */
+const LEITNER = [0, 60e3, 600e3, 864e5, 3 * 864e5, 7 * 864e5, 16 * 864e5];
+const F_LADDER = (() => { const o = [null]; let f = null, t = 0; for (let b = 1; b <= 6; b++) { f = fsrsNext(f, 3, t); o.push({ s: f.s, d: f.d }); t += LEITNER[b]; } return o; })();
+function fsrsMigrateCard(c, now = Date.now()) {
+  if (!c || typeof c !== "object" || (c.f && typeof c.f === "object")) return false;
+  const b = Math.max(0, Math.min(6, Math.round(+c.box || 0))), due = Number.isFinite(+c.due) && +c.due > 0 ? +c.due : now;
+  const last = +c.t || (b ? due - LEITNER[Math.max(1, b)] : null);
+  if (b === 0) c.f = { st: 1, sp: 0, s: null, d: null, lr: null, due };
+  else {
+    const L = F_LADDER[b], n = (+c.ok || 0) + (+c.bad || 0), badR = n ? (+c.bad || 0) / n : 0;
+    const s = L.s * Math.pow(0.75, Math.min(3, +c.lapses || 0)), d = fClamp(L.d + 4 * badR, 1, 10);
+    c.f = b === 1 ? { st: 1, sp: 1, s, d, lr: last, due } : { st: 2, sp: null, s, d, lr: last, due };
+    if (b >= 2) c.lb = b;
+  }
+  fsrsSync(c);
+  return true;
+}
+const PREFSRS_KEY = "jlptVocabQuest.preFsrs.v1";
+/* idempotent: only cards without FSRS state are converted. The first time anything is converted, the untouched old stores are kept. */
+function fsrsMigrateAll(stores = [S, typeof KS !== "undefined" ? KS : null, typeof JS !== "undefined" ? JS : null]) {
+  const need = stores.some(st => st && st.cards && Object.values(st.cards).some(c => c && typeof c === "object" && !c.f));
+  if (!need) return 0;
+  try { if (!localStorage.getItem(PREFSRS_KEY)) localStorage.setItem(PREFSRS_KEY, JSON.stringify({ at: Date.now(), [KEY]: localStorage.getItem(KEY), [KKEY]: localStorage.getItem(KKEY), [JKEY]: localStorage.getItem(JKEY) })); } catch (e) {}
+  const now = Date.now(); let n = 0;
+  for (const st of stores) if (st && st.cards) for (const k in st.cards) if (fsrsMigrateCard(st.cards[k], now)) n++;
+  return n;
+}
+
+/* ----- automatic rating from answer + time (renderers call qStart when a question appears) -----
+   Typing (len = answer length in kana; kana typing: romaji letters):   words  Easy ≤ 1.5 s + 0.35 s/kana, Hard > 6 s + 1 s/kana
+                                                                         kana   Easy ≤ 1.2 s + 0.3 s/letter, Hard > 5 s + 0.8 s/letter
+     listen-and-type adds 1.5 s (Easy) / 2 s (Hard) for the audio · a hint caps the rating at Hard · an answer accepted only
+     thanks to tolerance (long-vowel/ou spelling, a synonym) caps at Good.
+   Multiple choice: Good, or Hard when slower than 8 s (10.5 s listening, 5 s kana) — never Easy.
+   Wrong / I don't know = Again everywhere. If the app was in the background during the question, time is ignored (Good). */
+const QT = { id: null, t0: 0, kind: "", listen: false, len: 0, hints: 0, slip: false, hid: false };
+function qStart(id, kind, o = {}) { Object.assign(QT, { id: String(id), t0: performance.now(), kind, listen: !!o.listen, len: o.len || 0, hints: 0, slip: false, hid: document.hidden }); }
+document.addEventListener("visibilitychange", () => { if (document.hidden) QT.hid = true; });
+function rateThresholds(kind, len, listen) {
+  if (kind === "type" || kind === "ktype") { const k = kind === "ktype", L = Math.max(1, len || 3);
+    return { easy: (k ? 1200 + 300 * L : 1500 + 350 * L) + (listen ? 1500 : 0), hard: (k ? 5000 + 800 * L : 6000 + 1000 * L) + (listen ? 2000 : 0) }; }
+  return { easy: Infinity, hard: kind === "kmc" ? 5000 : 8000 + (listen ? 2500 : 0) };
+}
+function autoRating(ok, id, ms) {
+  if (!ok) return 1;
+  if (QT.id !== String(id) || !QT.t0) return 3;
+  if (ms == null) ms = performance.now() - QT.t0;
+  const typing = QT.kind === "type" || QT.kind === "ktype", T = rateThresholds(QT.kind, QT.len, QT.listen);
+  if (typing && QT.hints) return 2;
+  if (QT.hid) return 3;
+  if (ms > T.hard) return 2;
+  if (typing && ms <= T.easy && !QT.slip) return 4;
+  return 3;
+}
+const startOfTomorrow = () => { const d = new Date(); d.setHours(24, 0, 0, 0); return +d; };
+/* apply one answer to a card object (any store). ctx: { game, listen }. Returns the rating used (0 = no schedule change). */
+function srsAnswer(c, id, correct, ctx = {}, allowListen = false) {
+  const now = Date.now();
+  if (!c.f) { if (S.cards[id] === c || (c.ok || c.bad || c.box)) fsrsMigrateCard(c, now); else c.f = fNew(now); }
+  const tr = allowListen && (ctx.listen != null ? ctx.listen : (QT.id === String(id) && QT.listen)) ? "L" : "f";
+  if (correct) { c.ok = (+c.ok || 0) + 1; c.run = (+c.run || 0) + 1; } else { c.bad = (+c.bad || 0) + 1; c.run = 0; }
+  let r = 0;
+  if (ctx.game) { if (!correct && c[tr] && c[tr].st === 2) r = 1; }   // games: correct = no schedule change; a clear miss on a review item = Again
+  else r = autoRating(correct, id);
+  if (r) {
+    const prev = c[tr];
+    if (r === 1 && tr === "f") { if (prev && prev.st === 2) c.lapses = (+c.lapses || 0) + 1; delete c.lb; }
+    c[tr] = fsrsNext(prev, r, now, fCfg());
+    const other = tr === "f" ? c.L : c.f;   // one review per word per day: a second track that is also due waits until tomorrow
+    if (other && other.st === 2 && other.due <= now) other.due = startOfTomorrow();
+    c.rt = r;   // last automatic rating (1–4)
+  }
+  if (!c.f) c.f = fNew(now);
+  fsrsSync(c);
+  return r;
+}
+/* which track a due word should be asked in (Today's session / Review all due / mixed): listening only if that track is due */
+function trackMode(w, mode, alt) {
+  const c = S.cards[w.id]; if (!c || !c.f) return mode;
+  const now = Date.now(), fDue = c.f.due <= now, lDue = !!(c.L && c.L.due <= now);
+  if (mode === "listen" && fDue) return alt();   // both due → the main (reading/meaning) track first; listening waits
+  if (mode !== "listen" && lDue && !fDue && canAudio()) return "listen";
+  return mode;
+}
+/* human-readable state for detail views */
+const fmtDays = ms => { const d = ms / F_DAY; return d < 1 / 24 ? Math.max(1, Math.round(ms / 60e3)) + " min" : d < 1 ? Math.round(d * 24) + " h" : d < 60 ? Math.round(d) + " d" : d < 730 ? Math.round(d / 30.4) + " mo" : (d / 365).toFixed(1) + " y"; };
+function trackText(f, label = "") {
+  if (!f) return "";
+  const now = Date.now(), st = f.st === 1 ? "learning" : f.st === 3 ? "relearning" : "review";
+  const R = f.s && f.lr ? fRet(Math.max(0, (now - f.lr) / F_DAY), f.s) : null;
+  return `${label}${f.due <= now ? "due now" : "next review in " + fmtDays(f.due - now)}${f.s ? ` · stability ${fmtDays(f.s * F_DAY)}` : ""}${R != null && f.st === 2 ? ` · recall now ~${Math.round(R * 100)}%` : ""} · ${st}`;
+}
+function fsrsStatsHTML() {
+  const r = retentionNow(S.cards), now = Date.now(); if (!r) return "";
+  let wk = 0, lst = 0; for (const k in S.cards) { const c = S.cards[k]; if (c && c.due > now && c.due <= now + 7 * F_DAY) wk++; if (c && c.L) lst++; }
+  return `<div class="card fsrscard" style="text-align:left"><b>🧠 Memory (FSRS)</b><p class="muted" style="margin:6px 0 0">Estimated recall right now: <b>${Math.round(r.r * 100)}%</b> across ${r.n} words in review · target ${Math.round((+S.retention || 0.9) * 100)}% · ${wk} reviews coming in the next 7 days${lst ? ` · ${lst} words with a listening track` : ""}</p></div>`;
+}
+/* average predicted recall right now over review-state reading tracks (cheap, for Stats) */
+function retentionNow(cards) { const now = Date.now(); let n = 0, sum = 0; for (const k in cards) { const f = cards[k] && cards[k].f; if (f && f.st === 2 && f.s && f.lr) { n++; sum += fRet(Math.max(0, (now - f.lr) / F_DAY), f.s); } } return n ? { n, r: sum / n } : null; }
+
 /* ================= UI sounds: "Analog" set (default) =================
    Synthesized live with Web Audio — no files. Soft marimba / kalimba / felt-piano / wood voices: sine & triangle partials
    with 2–12 ms attacks, a little random detune + slow vibrato per note (tape wobble), a mallet "tock" of filtered noise,
@@ -1361,7 +1525,7 @@ function wordModal(w, focusNote) {
   const md = document.createElement("div"); md.className = "modal";
   md.innerHTML = `<div class="box wordinfo" style="max-height:92vh;overflow:auto"><div class="prompt jp">${esc(w.jp)}</div><div class="jp" style="font-size:1.3rem">${esc(w.kana)}</div><div class="muted">${esc(ROMA(w.kana))}</div>
   <p style="font-size:1.1rem;margin:8px 0">${esc(w.en)}</p><div><span class="tag">${LNAME(w.lvl)}</span><span class="tag">${POS_NAMES[w.pos] || "word"}</span><span class="tag">${esc((LV[w.lvl].sets.find(s => s.ids.includes(w.id)) || {}).name || "")}</span>${isLeech(w.id) ? `<span class="tag">🧛 leech</span>` : ""}</div>
-  <p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}${c.lapses ? " · lapses " + c.lapses : ""}</p>
+  <p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}${c.lapses ? " · lapses " + c.lapses : ""}</p>${c.f ? `<p class="muted fsrsline" style="font-size:.85rem">📖 ${trackText(c.f)}${c.L ? `<br>🎧 ${trackText(c.L)}` : ""}</p>` : ""}
   ${exampleHTML(w.id, 2) || `<p class="muted" style="font-size:.85rem">No example sentence available for this word.</p>`}
   <div style="text-align:left;margin-top:12px"><label class="muted" style="font-size:.85rem">💡 Mnemonic note (saved on this device)</label><textarea class="notebox" id="mdNote" placeholder="e.g. 会う (au) — 'Ow! I bumped into someone I MEET'">${esc(S.notes[w.id] || "")}</textarea></div>
   <div class="btnrow">${canAudio() ? `<button class="btn sec" id="mdSpeak">🔈 Listen</button>` : ""}<button class="btn" id="mdClose">Close</button></div></div>`;
@@ -1405,6 +1569,7 @@ function renderMC(mode, w, onAnswer, opts = {}) {
   const big = host.querySelector("#bigspk"); if (big) { big.onclick = () => speak(w, true); setTimeout(() => speak(w, true), 250); }
   const pk = host.querySelector("#peek"); if (pk) pk.onclick = () => { pk.outerHTML = noteHTML(w.id); };
   if (S.autoSpeak && (mode === "meaning" || mode === "reading")) speak(w);
+  qStart(w.id, "mc", { listen: mode === "listen" });
   let done = false;
   const btns = [...host.querySelectorAll(".choice")];
   const choose = i => {
@@ -1531,9 +1696,10 @@ function renderTyping(w, onAnswer, opts = {}) {
   const big = host.querySelector("#bigspk"); if (big) { big.onclick = () => { speak(w, true); inp.focus(); }; setTimeout(() => speak(w, true), 250); }
   const pk = host.querySelector("#peek"); if (pk) pk.onclick = () => { pk.outerHTML = noteHTML(w.id); };
   const acc = acceptedAnswers(w, listen);
+  qStart(w.id, "type", { listen, len: [...w.kana].length });
   let done = false, hints = 0;
   host.querySelector("#hintBtn").onclick = () => {
-    hints++; const k = w.k1;
+    hints++; QT.hints = hints; const k = w.k1;
     inp.placeholder = k.slice(0, Math.min(hints, k.length - 1)) + "…".repeat(Math.max(1, k.length - hints)) + ` (${k.length} kana)`;
     inp.value = ""; inp.focus();
   };
@@ -1544,6 +1710,7 @@ function renderTyping(w, onAnswer, opts = {}) {
     let extra = !ok && !given ? IDK_NOTE : "";
     if (!ok && given) { const g = normAns(given), close = [...acc].some(a => lev(a, g) <= 1 && a.length >= 4); extra = `<div class="muted" style="font-size:.9rem">You typed: <b class="jp">${esc(romajiToKana(given, true))}</b>${close ? " — so close! (one letter off)" : ""}</div>`; }
     if (ok && !forms(w.kana).some(f => normAns(f) === normAns(given)) && !forms(w.jp).some(f => normAns(f) === normAns(given))) extra = `<div class="muted" style="font-size:.9rem">Accepted (same meaning). Target word shown below.</div>`;
+    if (ok) { const g = toHira(romajiToKana(given.replace(/\s+/g, ""), false)); QT.slip = !forms(w.kana, true).concat(forms(w.jp, true)).some(f => toHira(f) === g); }   // accepted only via tolerance → at most Good
     host.querySelector("#fb").innerHTML = revealHTML(w, ok, extra, !ok && !given);
     if (!listen && canSpeak()) speak(w);
     onAnswer(ok, inp, hints, !ok && !given ? { idk: true } : undefined);
@@ -1612,6 +1779,8 @@ function runSession(cfg) {
     if (mode === "mixed") mode = mixedMode(w, !S.cards[id]);
     if (mode === "reading" && !w.hasKanji) mode = "meaning";
     if (mode === "listen" && !canAudio()) mode = "meaning";
+    if (finite || cfg.mode === "mixed") mode = trackMode(w, mode, () => { let m; do m = mixedMode(w, false); while (m === "listen"); return m; });   // ask a due word in the track that is due
+    if (mode === "reading" && !w.hasKanji) mode = "meaning";
     cur = { w, mode };
     const onAnswer = (ok, el, hints = 0, info = {}) => {
       answered = true; total++; if (ok) right++;
@@ -2047,7 +2216,7 @@ function match(pool = ALL_IDS, back = home, title = "🧩 Matching Pairs") {
     if (sel.dataset.side === t.dataset.side) { sel.classList.remove("sel"); sel = t; t.classList.add("sel"); sfx.click(); return; }
     const a = sel, b = t; sel = null; a.classList.remove("sel");
     if (a.dataset.id === b.dataset.id) {
-      const id = +a.dataset.id; grade(id, !missed.has(id)); comboHit(true, b, 12);
+      const id = +a.dataset.id; grade(id, !missed.has(id), { game: true, listen: false }); comboHit(true, b, 12);
       a.classList.add("done"); b.classList.add("done"); if (--left === 0) finish();
     } else {
       misses++; comboHit(false);
@@ -2157,6 +2326,8 @@ function settings(page = false) {
     ${canAudio() ? sw("listenType", "✍️ Listening: type what you hear", "Instead of picking the meaning") : ""}
     ${sw("retype", "✍️ Retype after a miss", "Typing exercises: after a miss or 🤷, type the right answer once before Next (doesn't change your score)")}
     ${sw("retypeMC", "✍️ Also in multiple choice", "After a wrong pick or 🤷, type the reading once")}
+    <div class="row fsrsrow"><span style="text-align:left">🧠 Desired retention<br><small class="muted">How likely you are to still know an item when it comes back — higher means more frequent reviews</small></span><span class="seg" id="retSeg" role="radiogroup" aria-label="Desired retention">${[0.85, 0.9, 0.95].map(v => `<button role="radio" aria-checked="${(+S.retention || 0.9) === v}" class="${(+S.retention || 0.9) === v ? "on" : ""}" data-v="${v}">${Math.round(v * 100)}%</button>`).join("")}</span></div>
+    <div class="row fsrsrow"><span style="text-align:left">📅 Longest review gap<br><small class="muted">Even well-known items come back at least this often</small></span><span class="seg" id="maxIvlSeg" role="radiogroup" aria-label="Longest review gap">${[[365, "1 yr"], [1095, "3 yrs"], [3650, "10 yrs"]].map(([v, t]) => `<button role="radio" aria-checked="${(+S.maxIvl || 1095) === v}" class="${(+S.maxIvl || 1095) === v ? "on" : ""}" data-v="${v}">${t}</button>`).join("")}</span></div>
     ${(() => { const can = "caches" in window && (location.protocol === "https:" || location.hostname === "localhost");
       return `<div class="row"><span style="text-align:left">📥 Offline levels & audio<br><small class="muted" id="dlInfo">${can ? "Played audio is cached automatically. Pick levels to download their word list + all word/sentence audio (kana audio always included):" : "Available when the app is opened from its website."}</small>
       ${can ? `<span class="dlpick">${LEVELS.map(l => `<label><input type="checkbox" class="dlLv" value="${l}" ${activeLevels().includes(l) ? "checked" : ""}> ${LNAME(l)} <small class="muted">~${LV[l].info.mb || "?"} MB</small></label>`).join("")}</span>` : ""}</span>
@@ -2193,6 +2364,7 @@ function settings(page = false) {
   md.querySelector("#kjPer").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.kanjiPerDay = +b.dataset.v; dropUntouched(); save(); md.querySelectorAll("#kjPer button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
   const segPick = (id, f) => { md.querySelector(id).onclick = e => { const b = e.target.closest("button"); if (!b) return; f(b); save(); md.querySelectorAll(id + " button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); sfx.good(); }; };
+  segPick("#retSeg", b => { S.retention = +b.dataset.v; }); segPick("#maxIvlSeg", b => { S.maxIvl = +b.dataset.v; });
   segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
@@ -2295,12 +2467,11 @@ function kCheckUnlocks() {
     }
   }
 }
-function kGrade(id, ok) {
+function kGrade(id, ok, ctx = {}) {
   trackItem(!KS.cards[id]);
   const it = KITEMS[id], wasM = kMasteredRow(it.s, it.g);
-  const c = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, kcard(id));
-  if (ok) { c.box = Math.min(MAX_BOX, c.box + 1); c.ok++; } else { c.box = missBox(c.box); c.bad++; }
-  c.due = Date.now() + INTERVALS[Math.max(1, c.box)] * (ok ? (0.9 + Math.random() * 0.2) : 1);
+  const c = KS.cards[id] ? JSON.parse(JSON.stringify(KS.cards[id])) : { box: 0, due: 0, ok: 0, bad: 0 };
+  srsAnswer(c, id, ok, ctx);
   c.t = Date.now(); KS.cards[id] = c; ksave();
   touchStreak(); save();
   kCheckUnlocks();
@@ -2470,7 +2641,7 @@ function kanaGlyph(it) {
   const c = kcard(it.id), md = document.createElement("div"); md.className = "modal";
   md.innerHTML = `<div class="box"><div class="kbig jp">${esc(it.id)}</div><div style="font-size:1.6rem;font-weight:800">${esc(it.r)}${it.alt.length ? ` <small class="muted" style="font-size:.9rem">(also ${esc(it.alt.join(", "))})</small>` : ""}</div>
     <p class="muted">${it.s === "h" ? "Hiragana" : "Katakana"} · ${esc(KGROUPS[it.gi].name)}${it.pair ? ` · ${it.s === "h" ? "katakana" : "hiragana"}: <b class="jp" style="font-size:1.3rem;color:#fff">${esc(it.pair)}</b>` : ""}</p>
-    <p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}</p>
+    <p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}</p>${c.f ? `<p class="muted fsrsline" style="font-size:.85rem">${trackText(c.f)}</p>` : ""}
     <div class="btnrow">${canAudio() ? `<button class="btn sec" id="kgSay">🔈 Listen</button>` : ""}<button class="btn" id="kgClose">Close</button></div></div>`;
   document.body.appendChild(md);
   md.onclick = e => { if (e.target === md || e.target.id === "kgClose") md.remove(); if (e.target.id === "kgSay") kSay(it); };
@@ -2486,6 +2657,7 @@ function kRenderMC(mode, it, pool, onAnswer, ro = {}) {
     ${prompt}${mode === "listen" ? `<div class="sub" style="font-size:.85rem">Tap to replay</div>` : ""}
     <div class="choices">${opts.map((o, i) => `<button class="choice ${kanaChoices ? "jpc jp kchoice" : "kroma"}" data-i="${i}"><span class="k">${i + 1}</span>${esc(kanaChoices ? o.id : o.r)}</button>`).join("")}</div>${IDK_BTN}<div class="feedback" id="fb"></div></div>`;
   const big = host.querySelector("#bigspk"); if (big) { big.onclick = () => kSay(it); setTimeout(() => kSay(it), 200); }
+  qStart(it.id, "kmc", { listen: mode === "listen" });
   let done = false; const btns = [...host.querySelectorAll(".choice")];
   const choose = i => {
     if (done || !btns[i]) return; done = true;
@@ -2523,6 +2695,7 @@ function kRenderType(it, onAnswer) {
     <input class="typein" id="typein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="romaji…" style="font-family:inherit">
     <div class="btnrow"><button class="btn" id="checkBtn">Check</button><button class="btn ghost" id="giveBtn">🤷 I don't know</button></div><div class="feedback" id="fb"></div></div>`;
   const inp = host.querySelector("#typein"); setTimeout(() => inp.focus(), 30);
+  qStart(it.id, "ktype", { len: it.r.length });
   let done = false;
   const acc = new Set([it.r, ...it.alt]);
   const finish = (ok, idk) => { done = true; inp.disabled = true; inp.classList.add(ok ? "ok" : "no"); host.querySelectorAll(".btnrow button").forEach(b => b.disabled = true); host.querySelector("#fb").innerHTML = kReveal(it, ok, null, idk) + (idk ? IDK_NOTE : ""); kSay(it); onAnswer(ok, inp, idk ? { idk: true } : undefined); if (!ok && S.retype !== false) kanaRetype(host, it); };
@@ -2612,7 +2785,7 @@ function kanaMatch() {
     if (sel.dataset.side === t.dataset.side) { sel.classList.remove("sel"); sel = t; t.classList.add("sel"); return; }
     const a = sel, b = t; sel = null; a.classList.remove("sel");
     if (a.dataset.id === b.dataset.id) {
-      const h = a.dataset.id, ok = !missed.has(h); kGrade(h, ok); kGrade(KITEMS[h].pair, ok); comboHit(true, b, 6);
+      const h = a.dataset.id, ok = !missed.has(h); kGrade(h, ok, { game: true }); kGrade(KITEMS[h].pair, ok, { game: true }); comboHit(true, b, 6);
       a.classList.add("done"); b.classList.add("done");
       if (--left === 0) { clearInterval(timer); const secs = Math.round((Date.now() - t0) / 1000), best = pick.length === 6 && (!KS.bestMatch || secs < KS.bestMatch); if (best) { KS.bestMatch = secs; ksave(); } if (!misses) confetti(140); addXP(misses ? 8 : 20);
         grid.innerHTML = `<div class="card" style="grid-column:1/-1"><div class="qtype">Board cleared!</div><div class="big">${secs}s</div><p>${misses} miss${misses === 1 ? "" : "es"}${best ? " · 🏆 New best" : ""}</p><button class="btn" id="again">Next board</button></div>`;
@@ -2794,7 +2967,7 @@ function historyView(range = 7, asTab = false) {
     <div class="stathead"><div class="st"><small>⭐ Level</small><b>${L}</b><div class="minibar"><i style="width:${(S.xp - lo) / (hi - lo) * 100}%;background:var(--yellow)"></i></div><small>${S.xp} XP · ${hi - S.xp} to Lv ${L + 1}</small></div>
       <div class="st"><small>🔥 Streak</small><b>${currentStreak()} d</b><small>study days in a row</small></div>
       <div class="st"><small>🏆 Mastered</small><b>${Object.values(S.cards).filter(c => c.box >= MASTER_BOX).length}</b><small>words, all levels</small></div></div>
-    ${allMapCardHTML()}
+    ${allMapCardHTML()}${fsrsStatsHTML()}
     ${goalPanelHTML()}
     ${kanjiStatsHTML()}
     <div class="sechead" style="display:flex;align-items:center;justify-content:space-between;text-transform:none;font-size:1rem;color:var(--label);font-weight:700;margin:22px 2px 8px">Study time ${segH}</div>` : topbar("📊 Study history", segH)) + `
@@ -3177,13 +3350,12 @@ function kjDueScan(l) {
 const kjLevelsWithCards = () => LEVELS.filter(l => Object.values(JS.cards).some(x => x.l === l));
 function kjLearn(c) {    // learn card seen → the kanji enters the SRS (due now, so the quiz right after counts)
   if (JS.cards[c]) return;
-  JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl, t: Date.now() }; jsave(); trackItem(true); touchStreak(); save();
+  JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl, t: Date.now(), f: fNew(Date.now()) }; jsave(); trackItem(true); touchStreak(); save();
 }
-function kjGrade(c, ok) {
+function kjGrade(c, ok, ctx = {}) {
   const isNew = !JS.cards[c];
-  const x = Object.assign({ box: 0, due: 0, ok: 0, bad: 0 }, jcard(c), { l: KJ[c].lvl });
-  if (ok) { x.box = Math.min(MAX_BOX, x.box + 1); x.ok++; } else { x.box = missBox(x.box); x.bad++; }
-  x.due = Date.now() + INTERVALS[Math.max(1, x.box)] * (ok ? (0.9 + Math.random() * 0.2) : 1);
+  const x = Object.assign(JS.cards[c] ? JSON.parse(JSON.stringify(JS.cards[c])) : { box: 0, due: 0, ok: 0, bad: 0 }, { l: KJ[c].lvl });
+  srsAnswer(x, c, ok, ctx);
   const before = kjUnlockedCount(x.l);
   x.t = Date.now(); JS.cards[c] = x; jsave(); trackItem(isNew); touchStreak(); save();
   if (kjUnlockedCount(x.l) > before) setTimeout(() => { sfx.unlock(); toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`); }, 700);
@@ -3286,6 +3458,7 @@ function kjRender(mode, k, onAnswer) {
   host.innerHTML = `<div class="card"><div class="qtype">${qtype}</div>${prompt}
     <div class="choices">${opts.map((o, i) => `<button class="choice ${choiceCls}" data-i="${i}"><span class="k">${i + 1}</span>${label(o)}</button>`).join("")}</div>
     ${IDK_BTN}<div class="feedback" id="fb"></div></div>`;
+  qStart(k.c, "mc");
   let done = false;
   const btns = [...host.querySelectorAll(".choice")], idkB = host.querySelector(".idk");
   const reveal = (ok, idk) => {
@@ -3634,7 +3807,7 @@ function sniperRun(l, host, back, again) {
   const resolve = (ok, how, i) => {
     if (st.busy || st.over) return; st.busy = true; st.answered++;
     const it = cur.item;
-    if (kana) kGrade(it.id, ok); else grade(it.id, ok);
+    if (kana) kGrade(it.id, ok, { game: true }); else grade(it.id, ok, { game: true, listen: true });   // games: see srsAnswer
     comboHit(ok, st.targets[i >= 0 ? i : st.correct].el, 10, how === "idk");
     st.targets.forEach((t, j) => { if (t.ok) t.el.classList.add("right"); else if (j === i && !ok) t.el.classList.add("wrong"); });
     if (ok) { st.combo++; st.right++; const tg = st.targets[i], frac = tg ? Math.max(0, Math.min(1, tg.dir > 0 ? 1 - (tg.x + tg.w) / (arena.clientWidth + tg.w) : tg.x / arena.clientWidth)) : 0; st.score += Math.round((100 + 50 * frac) * mult()); }
@@ -3711,7 +3884,7 @@ function builderRound(l, st, host, done) {
   const draw = () => { canvas.innerHTML = P ? `<svg class="kbsvg big" viewBox="0 0 109 109" aria-label="${esc(placed.join(" + "))}">${placed.map((p, j) => p.idx.map(i => `<path class="p${j}" d="${P[i]}"/>`).join("")).join("")}</svg>` : `<div class="jp kbtext">${esc(placed.map(p => p.e).join(" + "))}</div>`; slots.forEach((s, j) => s.classList.toggle("on", j < placed.length)); };
   const finish = (ok, idk) => {
     over = true; st.answered++;
-    kjGrade(c, ok); comboHit(ok, canvas, 12, idk);
+    kjGrade(c, ok, { game: true }); comboHit(ok, canvas, 12, idk);
     if (ok) { st.right++; st.combo++; st.score += Math.round(100 * Math.min(3, 1 + st.combo * 0.25)); const s = GS().kb[l] || (GS().kb[l] = []); if (!s.includes(c)) { s.push(c); save(); } } else st.combo = 0;
     $("#gscore").textContent = st.score;
     host.querySelectorAll(".kbtile").forEach(b => b.disabled = true); host.querySelector(".idk").disabled = true;
@@ -3778,7 +3951,7 @@ function scrambleRound(l, st, host, done) {
   };
   const finish = (ok, idk) => {
     over = true; st.answered++;
-    grade(wid, ok); comboHit(ok, A, 12, idk);
+    grade(wid, ok, { game: true, listen: false }); comboHit(ok, A, 12, idk);
     if (ok) { st.right++; st.combo++; st.score += Math.round(100 * Math.min(3, 1 + st.combo * 0.25)); } else st.combo = 0;
     $("#gscore").textContent = st.score;
     ans = tiles.map((t, i) => ({ t, i })); tray = []; render();
@@ -3865,7 +4038,7 @@ function bossFight(l, boss, back) {
     const onA = (ok, el, a3, a4) => {
       const info = (a4 && typeof a4 === "object") ? a4 : (a3 && typeof a3 === "object") ? a3 : {};
       st.answered++;
-      if (q.k) kGrade(q.k.id, ok); else if (q.j) kjGrade(q.j.c, ok); else grade(q.w.id, ok);
+      if (q.k) kGrade(q.k.id, ok, { game: true }); else if (q.j) kjGrade(q.j.c, ok, { game: true }); else grade(q.w.id, ok, { game: true });
       comboHit(ok, el, 10, !!info.idk);
       if (ok) { st.combo++; st.right++; const dmg = Math.round(12 * Math.min(2, 1 + (st.combo - 1) * 0.25)); st.hp -= dmg; const ic = $("#bossIc"); ic.classList.remove("hit"); void ic.offsetWidth; ic.classList.add("hit"); floatText("-" + dmg, ic); setTimeout(() => sfx.hit(), 120); }
       else { st.combo = 0; st.hearts--; }
@@ -3960,6 +4133,12 @@ function mergeCard(a, b) {
   const w = ta !== tb ? (ta > tb ? a : b) : (reviews(a) !== reviews(b) ? (reviews(a) > reviews(b) ? a : b) : ((+a.due || 0) >= (+b.due || 0) ? a : b));
   const o = Object.assign({}, w, { ok: Math.max(+a.ok || 0, +b.ok || 0), bad: Math.max(+a.bad || 0, +b.bad || 0) });
   if (ta || tb) o.t = Math.max(ta, tb);
+  // FSRS: each memory track keeps its own newest review (reading on one device, listening on another both survive).
+  // If the newest side is still old-format (no FSRS state), its box/due win and are converted after the merge.
+  const lr = x => (isObj(x) ? +x.lr || 0 : -1), v = w === a ? b : a;
+  if (isObj(w.f) && isObj(v.f) && lr(v.f) > lr(w.f)) { o.f = v.f; if (v.lb) o.lb = v.lb; else delete o.lb; }
+  if (isObj(a.L) || isObj(b.L)) o.L = lr(a.L) >= lr(b.L) ? a.L : b.L;
+  if (isObj(o.f) && typeof fsrsSync === "function") fsrsSync(o);
   return o;
 }
 const maxFields = (u, v) => { if (!isObj(u) || !isObj(v)) return isObj(u) ? u : v; const o = Object.assign({}, v, u); for (const k in o) if (typeof u[k] === "number" || typeof v[k] === "number") o[k] = Math.max(+u[k] || 0, +v[k] || 0); return o; };
@@ -4036,6 +4215,7 @@ function applyStores(stores, mod) {
   JS = Object.assign({ cards: {} }, g(JKEY)); if (!isObj(JS.cards)) JS.cards = {};
   TS = Object.assign(timeDefault(), g(TKEY)); if (!isObj(TS.days)) TS.days = {};
   AL = Object.assign(alDefault(), g(AKEY)); if (!isObj(AL.log)) AL.log = {};
+  fsrsMigrateAll([S, KS, JS]);   // old-format (Leitner) backups / gists convert on the way in; new-format cards are left alone
   window.__syncReady = false; save(); ksave(); jsave(); tsave(); alsave(); window.__syncReady = true;
   SM = { mod: Object.assign({}, isObj(mod) ? mod : {}), snap: {} }; stampAll(true); smsave();
   applyTheme();
@@ -4362,7 +4542,7 @@ function pimsAddLesson(lv, n, force) {
   if (!force && !AL.pAdd) return null;
   const ids = pimsLessonIds(lv, n); if (!ids.length) return null;
   const key = `${lv}:${n}`, newKey = !AL.padd[key], created = [], now = Date.now();
-  for (const id of ids) if (!S.cards[id]) { S.cards[id] = { box: 0, due: now, ok: 0, bad: 0 }; created.push(id); }
+  for (const id of ids) if (!S.cards[id]) { S.cards[id] = { box: 0, due: now, ok: 0, bad: 0, f: fNew(now) }; created.push(id); }   // Seen only: FSRS starts at the first real review
   AL.padd[key] = [...new Set([...(AL.padd[key] || []), ...ids])].sort((a, b) => a - b);
   if (created.length) save();
   return { created, newKey, total: ids.length };
@@ -4595,7 +4775,7 @@ function allMapView() {
 function amBoxText(c) {
   if (!c) return "Not seen yet";
   const b = +c.box || 0, s = b >= 5 ? 6 : b + 1, now = Date.now();
-  return `${AM_STN[s]} · box ${b}/${MAX_BOX}${c.due <= now ? " · due now" : ` · due ${fmtIn(c.due - now)}`} · ✔ ${+c.ok || 0} · ✘ ${+c.bad || 0}`;
+  return `${AM_STN[s]} · box ${b}/${MAX_BOX}${c.due <= now ? " · due now" : ` · due ${fmtIn(c.due - now)}`} · ✔ ${+c.ok || 0} · ✘ ${+c.bad || 0}${c.f && c.f.s ? ` · stability ${fmtDays(c.f.s * F_DAY)}` : ""}${c.L ? ` · 🎧 ${c.L.due <= now ? "due now" : "in " + fmtDays(c.L.due - now)}` : ""}`;
 }
 /* detail sheet: word, reading, meaning, audio, SRS status and "Study now" (loads the level's words first if needed) */
 async function amDetail(kind, id) {
@@ -4638,6 +4818,7 @@ function allMapCardHTML() {
     <button class="btn" id="amOpen">Open the map</button></div>`;
 }
 /* ================= Boot ================= */
+if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { sfx.click(); go({ home, review: dueView, levels: levelsView, stats: statsView, settings: settingsView }[b.dataset.tab]); });
 $("#settingsBtn").onclick = () => { sfx.click(); settings(); };
@@ -4650,6 +4831,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Kanji: meanings, readings, stroke counts & frequency from <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT, David Gouveia), derived from <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a> (EDRDG, CC BY-SA 4.0), with JLPT levels from Jonathan Waller's <a href="http://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">JLPT resources</a>. Stroke order & look-alike shapes from <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> © Ulrich Apel (CC BY-SA 3.0). The kanji data files (data/kanji-*.json) are shared under CC BY-SA.<br>
   Pimsleur words: <b>unofficial, compiled from learner notes; not affiliated with Pimsleur</b> — word lists only (word, reading, meaning, lesson), cross-checked from ${PIMS.meta.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a>`).join(", ")}; the ${PIMS.pm.length} words not in the JLPT lists use the same NanamiNeural TTS. Pimsleur is a trademark of its owner.<br>
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
+  Scheduling: <a href="https://github.com/open-spaced-repetition/py-fsrs" target="_blank" rel="noopener">FSRS-5</a> (Free Spaced Repetition Scheduler, MIT, Open Spaced Repetition — default parameters), ported to plain JavaScript.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
 if (HAS_SPEECH) setTimeout(() => { loadVoices(); }, 800);
@@ -4660,7 +4842,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "406cce2696fb";
+const BUILD = "ece6d8544e91";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -4710,7 +4892,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.__N5 = { go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, missBox, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

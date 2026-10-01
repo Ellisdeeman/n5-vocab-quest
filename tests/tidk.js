@@ -25,8 +25,10 @@ const R=[];const ok=(n,c,i='')=>{R.push(c);console.log(c?'PASS':'FAIL',n,i);};
   const ch=[];for(const kind of ['v','k','j'])for(const id in z[kind]){const o=a[kind][id],n=z[kind][id];if(!o||o.box!==n.box||o.bad!==n.bad||o.ok!==n.ok)ch.push({kind,id,o:o||{box:0,ok:0,bad:0},n});}
   const c=ch[0]||{};const mb=b=>b>=2?1:0;
   ok(`${name}: exactly one item graded`,ch.length===1,JSON.stringify(ch.map(x=>x.id)));
-  ok(`${name}: SRS miss (box reset, bad+1, ok unchanged)`,c.n&&c.n.box===mb(c.o.box||0)&&c.n.bad===(c.o.bad||0)+1&&c.n.ok===(c.o.ok||0),JSON.stringify([c.o,c.n]));
-  ok(`${name}: reviewed again soon, not instantly due`,c.n&&c.n.due>Date.now()+30e3&&c.n.due<Date.now()+11*60e3);
+  // FSRS: a miss is rated Again → back to (re)learning (box ≤ 1), bad+1, ok unchanged
+  ok(`${name}: SRS miss (Again, box reset, bad+1, ok unchanged)`,c.n&&c.n.rt===1&&c.n.box<=Math.min(1,c.o.box||0)+(c.o.box>=1?0:0)&&c.n.box<=1&&c.n.bad===(c.o.bad||0)+1&&c.n.ok===(c.o.ok||0),JSON.stringify([c.o,c.n]));
+  const tr=c.n?[c.n.f,c.n.L].filter(Boolean).sort((x,y)=>(y.lr||0)-(x.lr||0))[0]:null;   // the track that was just graded
+  ok(`${name}: reviewed again soon, not instantly due`,!!tr&&tr.due>Date.now()+30e3&&tr.due<Date.now()+11*60e3,JSON.stringify(tr));
   ok(`${name}: no XP`,z.xp===a.xp,`${a.xp}->${z.xp}`);
   ok(`${name}: combo broken`,await ev(()=>__N5.combo())===0);
   ok(`${name}: counts as a review attempt for the daily goal`,z.items===a.items+1);
