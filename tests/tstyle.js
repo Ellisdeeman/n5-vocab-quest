@@ -81,6 +81,19 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await tap('#qhost .idk');await check('boss answered');
   for(let i=0;i<2;i++){await tap('#nextBtn');await p.waitForSelector('#qhost .idk:not(:disabled)');await tap('#qhost .idk');}
   await tap('#nextBtn');await p.waitForSelector('#gFinal');await p.waitForTimeout(400);await check('game result');
+  // Kanaatro
+  await p.evaluate(()=>{window.__kaPick=()=>{const K=__N5.KA;let pp=__N5.kaPossible(K)[0];if(!pp){K.hand=[...'いぬねこ'].map((ch,i)=>({id:5000+i+Math.floor(Math.random()*1e4)*10,ch})).concat(K.hand.slice(4));pp=__N5.kaPossible(K)[0];}K.sel=pp.seq.map(i=>K.hand[i].id);__N5.kaRenderHand(K);};window.__kaSeed=3;window.__kaFast=true;__N5.gOpen('n5','kanaatro',__N5.home);});await p.waitForSelector('#kaStart');await check('kanaatro intro');
+  await tap('#kaStart');await p.waitForSelector('#kaGo');await check('kanaatro blind select');
+  await p.evaluate(()=>{const K=__N5.KA;K.jokers=[{id:'tanuki'},{id:'demon'},{id:'kitsune'}];K.cons=[{t:'tarot',id:'brush'}];});
+  await tap('#kaGo');await p.waitForSelector('#kaHand .katile');await p.waitForTimeout(500);
+  await p.evaluate(()=>{__kaPick();document.querySelector('#kaHint').click();});await check('kanaatro table (selection + hints)');
+  await p.evaluate(()=>__kaPick());await tap('#kaPlay');await p.waitForSelector('#kaMC .kaopt');await check('kanaatro meaning check');
+  await p.evaluate(async()=>{const K=__N5.KA,W=ms=>new Promise(r=>setTimeout(r,ms));K.mc.choose(K.mc.right);while(K.busy)await W(30);if(!document.querySelector('#kaCash')){K.score=__N5.kaTarget(K)-1;__kaPick();document.querySelector('#kaPlay').click();while(!K.mc)await W(20);K.mc.choose(K.mc.right);}while(!document.querySelector('#kaCash'))await W(30);});
+  await check('kanaatro cash out');await tap('#kaCash');await p.waitForSelector('#kaNext');await check('kanaatro shop');
+  await tap('#kaJokers .kaj');await p.waitForSelector('#kaSell');await check('kanaatro joker sheet');await tap('#kaSheet [data-close]');
+  await p.evaluate(()=>{const K=__N5.KA;K.blind=2;K.boss='kata';});await tap('#kaNext');await p.waitForSelector('#kaGo');await tap('#kaGo');await p.waitForSelector('#kaHand .katile');await p.waitForTimeout(400);await check('kanaatro boss table');
+  await p.evaluate(async()=>{const K=__N5.KA,W=ms=>new Promise(r=>setTimeout(r,ms));K.hands=1;K.score=0;__kaPick();document.querySelector('#kaPlay').click();while(!K.mc)await W(20);K.mc.choose((K.mc.right+1)%4);while(!document.querySelector('#kaFinal'))await W(30);});
+  await check('kanaatro summary');
   // daily cap, flashcards, detention, memory stats, next-review line
   await p.evaluate(()=>__N5.go(()=>__N5.flashcards(__N5.ALL().ALL_IDS.slice(0,60),'🃏 Flashcards',__N5.home)));await p.waitForSelector('#flCard');await check('flashcards front');
   await tap('#flShow');await check('flashcards back');await tap('.flg.r3');await check('flashcards next card');
