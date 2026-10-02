@@ -6,7 +6,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
 (async()=>{
  const b=BR==='webkit'?await pw.webkit.launch():await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
  const mk=async seed=>{const ctx=await b.newContext({viewport:{width:375,height:667},deviceScaleFactor:2,hasTouch:true,timezoneId:'America/New_York',serviceWorkers:'block',...(BR==='chromium'?{isMobile:true}:{})});
-  await ctx.addInitScript(seed);const p=await ctx.newPage();p.setDefaultTimeout(15000);p.errs=[];p.on('pageerror',e=>p.errs.push(''+e));
+  await ctx.addInitScript(()=>{window.__plays=[];const op=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){window.__plays.push(this.src||'');return op.call(this);};if(window.speechSynthesis){const os=speechSynthesis.speak.bind(speechSynthesis);speechSynthesis.speak=u=>{window.__plays.push('tts:'+u.text);try{os(u);}catch(e){}};}});await ctx.addInitScript(seed);const p=await ctx.newPage();p.setDefaultTimeout(15000);p.errs=[];p.on('pageerror',e=>p.errs.push(''+e));
   await p.goto(URL+'?t='+Date.now());await p.waitForSelector('.tabbar');await p.waitForTimeout(900);return p;};
  let p=await mk(()=>{if(localStorage.getItem('seeded'))return;localStorage.setItem('seeded',1);const now=Date.now(),D=864e5,cards={};
   for(let i=0;i<12;i++)cards[i]={box:2,due:now-36e5,ok:3,bad:1,f:{st:2,sp:null,s:4+i,d:5,lr:now-6*D,due:now-36e5}};
@@ -52,7 +52,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  ok('no page errors (A)',!p.errs.length,p.errs.join('|'));
  await p.context().close();
  p=await mk(()=>{if(localStorage.getItem('seeded'))return;localStorage.setItem('seeded',1);const now=Date.now(),D=864e5;
-  localStorage.setItem('n5VocabQuest.v1',JSON.stringify({cards:{},levels:['n5'],newLimit:3,pathFocus:'kana',xp:5}));
+  localStorage.setItem('n5VocabQuest.v1',JSON.stringify({cards:{},levels:['n5'],newLimit:3,pathFocus:'kana',autoSpeak:true,xp:5}));
   const kc=(s)=>({box:2,due:now-36e5,ok:3,bad:0,f:{st:2,sp:null,s,d:5,lr:now-6*D,due:now-36e5}});
   localStorage.setItem('n5VocabQuest.kana.v1',JSON.stringify({cards:{'あ':kc(5),'い':kc(6)}}));});
  ok('Kana stage: Home card shows',await home());I=await info();
@@ -60,7 +60,14 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  await p.tap('#flHomeGo');await until(()=>window.__fl&&document.querySelector('#flCard'));
  q=await ev(()=>window.__fl.q.slice());
  ok('Kana deck: due kana first, then new kana (no words)',q.slice(0,2).sort().join()==='k:あ,k:い'&&q.every(x=>typeof x==='string'&&x.startsWith('k:'))&&q.length>2,JSON.stringify(q));
- await p.tap('#flCard');await W(200);
+ await W(500);
+ let fa=await ev(()=>({spk:!!document.querySelector('#flSpk'),plays:window.__plays.slice()}));
+ ok('kana JP->EN front: no audio button and no autoplay (autoSpeak on)',!fa.spk&&!fa.plays.length,JSON.stringify(fa));
+ await p.tap('#flCard');await W(300);
+ fa=await ev(()=>({bs:!!document.querySelector('#flBackSpk'),h:document.querySelector('#flBackSpk')?.getBoundingClientRect().height,plays:window.__plays.slice()}));
+ ok('kana back: audio plays on flip and a back audio button (>=54px) is shown',fa.bs&&fa.h>=53.9&&fa.plays.some(x=>/\/k\/|tts:/.test(x)),JSON.stringify(fa));
+ await ev(()=>{window.__plays=[];});await p.tap('#flBackSpk');await W(200);
+ ok('back audio button plays the kana',await ev(()=>window.__plays.length>0));
  let g=await ev(()=>{const F=window.__fl,now=Date.now();return {id:F.q[F.pos],p:F.prev[3],btn:[...document.querySelectorAll('.flg small')].map(s=>s.textContent),exp:[1,2,3,4].map(r=>__N5.flIvl(F.prev[r].due-now)),back:document.querySelector('.flmean').textContent};});
  ok('kana back shows romaji; labels match previews',/^[a-z]/.test(g.back.trim())&&JSON.stringify(g.btn)===JSON.stringify(g.exp),JSON.stringify(g));
  const kb=await ev(id=>JSON.stringify(__N5.KS().cards[id.slice(2)]),g.id);
@@ -71,6 +78,11 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  ok('Undo restores the kana card exactly',await ev(([id,s])=>JSON.stringify(__N5.KS().cards[id.slice(2)])===s&&window.__fl.q[window.__fl.pos]===id,[g.id,kb]));
  for(let i=0;i<4;i++){await p.tap('.flg.r3').catch(()=>{});await W(260);await p.tap('#flCard').catch(()=>{});await W(150);}
  ok('new kana graded without counting toward the new-word limit',await ev(()=>Object.keys(__N5.KS().cards).length>2&&__N5.newToday().length===0));
+ for(const d of ['en','listen']){await ev(d=>{__N5.S().flashDir=d;window.__plays=[];__N5.go(()=>__N5.flashcards(__N5.flKanaPool(),'K',__N5.home));},d);await W(600);
+  fa=await ev(()=>({id:window.__fl.q[window.__fl.pos],spk:!!document.querySelector('#flSpk'),en:!!document.querySelector('.flen'),plays:window.__plays.slice()}));
+  if(d==='en')ok('kana EN->JP (romaji front): no audio button and no autoplay',fa.id.startsWith('k:')&&fa.en&&!fa.spk&&!fa.plays.length,JSON.stringify(fa));
+  else ok('kana Listening keeps the audio-only front (button + autoplay)',fa.id.startsWith('k:')&&fa.spk&&fa.plays.length>0,JSON.stringify(fa));}
+ await p.tap('#flShow');await W(300);ok('Listening: back side has the character and audio button',await ev(()=>!!document.querySelector('#flBackSpk')&&/\S/.test(document.querySelector('.flword2').textContent)));
  ok('no page errors (B)',!p.errs.length,p.errs.join('|'));
  await b.close();const n=R.filter(Boolean).length;console.log(`SUMMARY ${BR} tflhome ${n}/${R.length} passed`);process.exit(n===R.length?0:1);
 })().catch(e=>{console.error(e);process.exit(2);});

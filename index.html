@@ -5252,7 +5252,7 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
     const say = force => K ? kSay(kit) : speak(w, force);
     const front = K ? (dir === "en" ? `<div class="prompt en flen">${esc(kit.r)}</div><div class="sub"><span class="tag">${kit.s === "h" ? "hiragana" : "katakana"}</span></div>`
       : dir === "listen" ? `<button class="bigspk" id="flSpk" aria-label="Play the sound">🔊</button>`
-      : `<div class="prompt jp flword flkch">${esc(kit.id)}</div>${canAudio() ? `<button class="iconbtn flspk" id="flSpk" aria-label="Play the sound">${I("speaker")}</button>` : ""}`)
+      : `<div class="prompt jp flword flkch">${esc(kit.id)}</div>`)   /* kana: no front audio except in Listening (it would give the answer away) */
       : dir === "en" ? `<div class="prompt en flen">${esc(w.en)}</div><div class="sub"><span class="tag">${POS_NAMES[w.pos] || "word"}</span></div>`
       : dir === "listen" ? `<button class="bigspk" id="flSpk" aria-label="Play the word">🔊</button>`
       : `<div class="prompt jp flword">${esc(w.jp)}</div>${canAudio() ? `<button class="iconbtn flspk" id="flSpk" aria-label="Play the word">${I("speaker")}</button>` : ""}`;
@@ -5263,7 +5263,7 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
       <div class="flgrades" id="flGrades" hidden></div>
       <div class="btnrow flundo"><button class="btn ghost small" id="flUndo" ${F.hist.length ? "" : "disabled"}>↩︎ Undo</button></div>`;
     const spk = $("#flSpk"); if (spk) spk.onclick = e => { e.stopPropagation(); say(true); };
-    if (dir === "listen") setTimeout(() => say(true), 200); else if (dir === "jp" && S.autoSpeak) say(false);
+    if (dir === "listen") setTimeout(() => say(true), 200); else if (dir === "jp" && S.autoSpeak && !K) say(false);
     $("#flCard").onclick = e => { if (e.target.closest("button, a")) return; if (!F.flipped) flip(); };
     $("#flUndo").onclick = undo; $("#flShow").onclick = flip;
     swipe($("#flCard"));
@@ -5274,8 +5274,9 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
     if (flIsK(id)) {
       const kit = KITEMS[id.slice(2)];
       $("#flBackSide").hidden = false; $("#flHint").hidden = true; $("#flShowRow").hidden = true;
-      $("#flBackSide").innerHTML = `<div class="flans"><span class="jp flword2">${esc(kit.id)}</span></div><div class="flmean">${esc(kit.r)}${kit.alt && kit.alt.length ? ` <span class="muted">/ ${esc(kit.alt.join(" / "))}</span>` : ""}</div>
+      $("#flBackSide").innerHTML = `<div class="flans"><span class="jp flword2">${esc(kit.id)}</span>${canAudio() ? ` <button class="iconbtn flspk" id="flBackSpk" aria-label="Play the sound">${I("speaker")}</button>` : ""}</div><div class="flmean">${esc(kit.r)}${kit.alt && kit.alt.length ? ` <span class="muted">/ ${esc(kit.alt.join(" / "))}</span>` : ""}</div>
         <p class="muted">${kit.s === "h" ? "Hiragana" : "Katakana"}${kit.pair ? ` · ${kit.s === "h" ? "katakana" : "hiragana"} <span class="jp">${esc(kit.pair)}</span>` : ""}</p>`;
+      const bs = $("#flBackSpk"); if (bs) bs.onclick = e => { e.stopPropagation(); kSay(kit); };
       if (dir !== "listen") kSay(kit);
       F.prev = flPreview(id, "f");
       return gradeBtns();
@@ -5500,7 +5501,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "916bedd21dea";
+const BUILD = "ca6909ba8724";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
