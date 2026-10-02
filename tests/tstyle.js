@@ -92,7 +92,7 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await check('kanaatro cash out');await tap('#kaCash');await p.waitForSelector('#kaNext');await check('kanaatro shop');
   await tap('#kaJokers .kaj');await p.waitForSelector('#kaSell');await check('kanaatro joker sheet');await tap('#kaSheet [data-close]');
   await p.evaluate(()=>{const K=__N5.KA;K.blind=2;K.boss='kata';});await tap('#kaNext');await p.waitForSelector('#kaGo');await tap('#kaGo');await p.waitForSelector('#kaHand .katile');await p.waitForTimeout(400);await check('kanaatro boss table');
-  await p.evaluate(async()=>{const K=__N5.KA,W=ms=>new Promise(r=>setTimeout(r,ms));K.hands=1;K.score=0;__kaPick();document.querySelector('#kaPlay').click();while(!K.mc)await W(20);K.mc.choose((K.mc.right+1)%4);while(!document.querySelector('#kaFinal'))await W(30);});
+  await p.evaluate(async()=>{const K=__N5.KA,W=ms=>new Promise(r=>setTimeout(r,ms));K.hands=1;K.score=-1e6;__kaPick();document.querySelector('#kaPlay').click();while(!K.mc)await W(20);K.mc.choose((K.mc.right+1)%4);while(!document.querySelector('#kaFinal'))await W(30);});
   await check('kanaatro summary');
   // daily cap, flashcards, detention, memory stats, next-review line
   await p.evaluate(()=>__N5.go(()=>__N5.flashcards(__N5.ALL().ALL_IDS.slice(0,60),'🃏 Flashcards',__N5.home)));await p.waitForSelector('#flCard');await check('flashcards front');

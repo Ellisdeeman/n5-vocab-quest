@@ -23,10 +23,10 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  await ev(()=>{window.__kaSeed=777;window.__kaFast=true;});
  await p.tap('.gtile[data-game="kanaatro"][data-gl="n5"]');await p.waitForSelector('#kaStart');
  ok('intro screen with Start (≥54px)',await ev(()=>document.querySelector('#kaStart').getBoundingClientRect().height>=53.9));
- await p.tap('#kaStart');await p.waitForSelector('#kaGo');await p.tap('#kaGo');await until(()=>document.querySelectorAll('#kaHand .katile').length===8);
+ await p.tap('#kaStart');await p.waitForSelector('#kaGo');await p.tap('#kaGo');await until(()=>document.querySelectorAll('#kaHand .katile').length===12);
  let s=await ev(()=>{const K=__N5.KA,r=t=>t.getBoundingClientRect();return {hand:K.hand.length,hands:K.hands,disc:K.discards,money:K.money,deck:K.deck.length,seed:K.seed,tileH:Math.min(...[...document.querySelectorAll('#kaHand .katile')].map(t=>r(t).height)),tileW:Math.min(...[...document.querySelectorAll('#kaHand .katile')].map(t=>r(t).width)),play:r(document.querySelector('#kaPlay')).height,overflow:document.documentElement.scrollWidth>innerWidth};});
- ok('table: 8 tiles, 4 hands, 3 discards, $4, 52-tile seeded deck',s.hand===8&&s.hands===4&&s.disc===3&&s.money===4&&s.deck===52&&s.seed===777,JSON.stringify(s));
- ok('tiles and Play ≥54px, no horizontal overflow',s.tileH>=54&&s.tileW>=54&&s.play>=53.9&&!s.overflow,JSON.stringify(s));
+ ok('table: 12 tiles (2 rows of 6), 4 hands, 3 discards, $4, 52-tile seeded deck',s.hand===12&&s.hands===4&&s.disc===3&&s.money===4&&s.deck===52&&s.seed===777,JSON.stringify(s));
+ ok('tiles ≥54px tall / ≥46px wide, Play ≥54px, no horizontal overflow',s.tileH>=54&&s.tileW>=46&&s.play>=53.9&&!s.overflow,JSON.stringify(s));
  // ---- validation
  const setHand=chs=>ev(chs=>{const K=__N5.KA;K.hand=[...chs].map((ch,i)=>({id:9000+i+Math.floor(Math.random()*1e5)*10,ch}));K.sel=[];__N5.kaRenderHand(K);return K.hand.map(t=>t.id);},chs);
  const look=async(chs,order)=>ev(([chs,order])=>{const K=__N5.KA;K.hand=[...chs].map((ch,i)=>({id:8000+i,ch}));K.sel=order.map(i=>8000+i);const r=__N5.kaLookup(K);return {state:r.state,id:r.id,key:r.key};},[chs,order]);
@@ -119,8 +119,8 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  ok('wrong on a learning word: schedule unchanged',after.f.due===before.f.due&&after.f.st===1&&after.rt===before.rt,JSON.stringify([before.f,after.f]));
  // discard + hint
  s=await ev(()=>{const K=__N5.KA;K.phase='play';K.score=0;K.hands=4;K.discards=3;K.money=5;__N5.kaRenderTable(K);return K.hand.map(t=>t.id);});
- await p.tap(`#kaHand [data-t="${s[0]}"]`);await p.tap(`#kaHand [data-t="${s[1]}"]`);await W(60);await p.tap('#kaDiscard');await until(()=>__N5.KA.discards===2&&!__N5.KA.busy&&__N5.KA.hand.length===8);
- ok('discard: 2 tiles gone, refilled to 8, discards 3→2',await ev(ids=>__N5.KA.hand.length===8&&!__N5.KA.hand.some(t=>ids.includes(t.id))&&__N5.KA.discards===2,s.slice(0,2)));
+ await p.tap(`#kaHand [data-t="${s[0]}"]`);await p.tap(`#kaHand [data-t="${s[1]}"]`);await W(60);await p.tap('#kaDiscard');await until(()=>__N5.KA.discards===2&&!__N5.KA.busy&&__N5.KA.hand.length===12);
+ ok('discard: 2 tiles gone, refilled to 12, discards 3→2',await ev(ids=>__N5.KA.hand.length===12&&!__N5.KA.hand.some(t=>ids.includes(t.id))&&__N5.KA.discards===2,s.slice(0,2)));
  await setHand('いぬねこえき');await p.tap('#kaHint');await W(150);
  ok('hint costs $1 and lists possible words',await ev(()=>__N5.KA.money===4&&document.querySelectorAll('#kaHints .kahintw').length>=3));
  await p.tap('#kaHints .kahintw');await W(100);ok('tapping a hint selects its tiles',await ev(()=>__N5.KA.sel.length>=2&&__N5.kaLookup(__N5.KA).state==='ok'));
@@ -150,20 +150,53 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  ok('reroll: $5, next reroll $6, new offers',await ev(b=>__N5.KA.money===15&&__N5.KA.reroll===6&&JSON.stringify(__N5.KA.offers)!==b,offBefore));
  await p.tap('#kaJokers .kaj[data-j="0"]');await p.waitForSelector('#kaSell');await p.tap('#kaSell');await W(120);
  ok('sell a joker for half its price',await ev(c=>__N5.KA.jokers.length===0&&__N5.KA.money===15+Math.max(1,Math.floor(c/2)),c0));
+ // hand-size upgrades: Tsuru voucher + Origami Crane (cap 14)
+ const vi=await ev(()=>{const K=__N5.KA;K.money=30;K.handPlus=0;K.jokers=[];__N5.kaShop(K);return K.offers.findIndex(o=>o.k==='voucher');});
+ ok('shop offers a Tsuru voucher (+1 hand size, $8)',vi>=0&&await ev(i=>__N5.KA.offers[i].cost===8&&!!document.querySelector('.kaoffer.kavch'),vi));
+ await p.tap(`[data-b="${vi}"]`);await W(150);
+ ok('buying the voucher: −$8, hand size 13 for the run',await ev(()=>__N5.KA.money===22&&__N5.KA.handPlus===1&&__N5.kaHandSize(__N5.KA)===13));
+ await ev(()=>{const K=__N5.KA;K.jokers=[{id:'crane'}];__N5.kaShopRoll(K);__N5.kaShop(K,true);});
+ ok('Origami Crane: +1 → 14 = cap; no more vouchers offered / buyable',await ev(()=>{const K=__N5.KA;return __N5.kaHandSize(K)===14&&!K.offers.some(o=>o.k==='voucher')&&__N5.kaBuy(K,K.offers.push({k:'voucher',id:'hand',cost:8})-1)===false;}));
+ await ev(()=>{const K=__N5.KA;K.offers.pop();K.blind=0;__N5.kaBeginBlind(K);});await until(()=>document.querySelectorAll('#kaHand .katile').length===14);
+ const h14=await ev(()=>{const ts=[...document.querySelectorAll('#kaHand .katile')].map(t=>t.getBoundingClientRect());return {n:ts.length,cls:document.querySelector('#kaHand').classList.contains('kah7'),w:Math.min(...ts.map(t=>t.width)),h:Math.min(...ts.map(t=>t.height)),ov:document.documentElement.scrollWidth>innerWidth};});
+ ok('14-tile hand: 2 rows of 7, tiles ≥44px wide / ≥52px tall, no overflow',h14.n===14&&h14.cls&&h14.w>=43.5&&h14.h>=52&&!h14.ov,JSON.stringify(h14));
  ok('no page errors (main)',!p.errs.length,p.errs.join('|'));
  await p.context().close();
  // ---- daily new-word cap
  p=await mk({newLimit:1});
- await ev(()=>{window.__kaSeed=5;window.__kaFast=true;__N5.gOpen('n5','kanaatro',__N5.home);});await p.waitForSelector('#kaStart');await p.tap('#kaStart');await p.waitForSelector('#kaGo');await p.tap('#kaGo');await until(()=>__N5.KA&&__N5.KA.hand.length===8);
- const un=await ev(()=>{const K=__N5.KA,out=[];for(const [k,ids] of K.dict.map){if(k.length>=2&&k.length<=4&&ids.every(id=>!__N5.S().cards[id])&&!/ー/.test(k))out.push({k,id:ids[0]});if(out.length>=2)break;}return out;});
+ await ev(()=>{window.__kaSeed=5;window.__kaFast=true;__N5.gOpen('n5','kanaatro',__N5.home);});await p.waitForSelector('#kaStart');await p.tap('#kaStart');await p.waitForSelector('#kaGo');await p.tap('#kaGo');await until(()=>__N5.KA&&__N5.KA.hand.length===12);
+ const un=await ev(()=>{const K=__N5.KA,W=__N5.WORDS,out=[];for(const e of K.lib.keys){const k=e.key;if(k.length>=2&&k.length<=4&&!/ー/.test(k)&&e.ids.length===1&&W[e.ids[0]].lvl==='n5'&&!__N5.S().cards[e.ids[0]])out.push({k,id:e.ids[0]});if(out.length>=3)break;}return out;});
  const pw2=async k=>{const ids=await ev(chs=>{const K=__N5.KA;K.hand=[...chs].map((ch,i)=>({id:6000+i+Math.floor(Math.random()*1e4)*10,ch}));K.sel=[];__N5.kaRenderHand(K);return K.hand.map(t=>t.id);},k);for(let i=0;i<k.length;i++)await p.tap(`#kaHand [data-t="${ids[i]}"]`);await W(80);};
- await ev(()=>{__N5.KA.score=-1e6;});await pw2(un[0].k);ok('unseen word playable while under the cap (NEW tag)',await ev(()=>!document.querySelector('#kaPlay').disabled&&!!document.querySelector('#kaWord .kanew')));
- await p.tap('#kaPlay');await until(()=>__N5.KA.mc&&document.querySelector('#kaMC .kaopt'));await ev(()=>__N5.KA.mc.choose(__N5.KA.mc.right));await until(()=>!__N5.KA.busy);
- ok('playing it introduces the word (counts toward the cap: 1/1)',await ev(id=>__N5.newToday().length===1&&!!__N5.S().cards[id],un[0].id));
+ const playRight=async()=>{await p.tap('#kaPlay');await until(()=>__N5.KA.mc&&document.querySelector('#kaMC .kaopt'));await ev(()=>__N5.KA.mc.choose(__N5.KA.mc.right));await until(()=>!__N5.KA.busy);};
+ await ev(()=>{__N5.KA.score=-1e6;});await pw2(un[0].k);
+ ok('unseen word under the cap: playable with ✨ Discovery badge, no limit note',await ev(()=>!document.querySelector('#kaPlay').disabled&&!!document.querySelector('#kaWord .kadisco')&&!document.querySelector('#kaWord .kanote')));
+ await playRight();
+ const d0=await ev(id=>{const K=__N5.KA,L=K.lastScore;return {disc:L.disc,step:L.steps.some(s=>s.k==='disc'&&s.chips===15&&s.mult===2),seen:!!__N5.S().cards[id],nt:__N5.newToday().length,sd:K.stats.disc,na:K.stats.notAdded};},un[0].id);
+ ok('Discovery bonus scored (+15 Chips, +2 Mult) and the word is introduced (Seen + FSRS, cap 1/1)',d0.disc&&d0.step&&d0.seen&&d0.nt===1&&d0.sd===1&&d0.na===0,JSON.stringify(d0));
  await pw2(un[1].k);
- const cap=await ev(k=>({dis:document.querySelector('#kaPlay').disabled,txt:document.querySelector('#kaWord').textContent,st:__N5.kaLookup(__N5.KA).state,inHint:__N5.kaPossible(__N5.KA).some(x=>x.key===k)}),un[1].k);
- ok('cap hit: another unseen word is "not learned yet", Play disabled, not in hints',cap.dis&&/not learned yet/.test(cap.txt)&&cap.st==='locked'&&!cap.inHint,JSON.stringify(cap));
- await p.tap('#kaPlay').catch(()=>{});await W(150);ok('still 1 new word today',await ev(()=>__N5.newToday().length===1));
+ const cap=await ev(k=>({dis:document.querySelector('#kaPlay').disabled,txt:document.querySelector('#kaWord').textContent,st:__N5.kaLookup(__N5.KA).state,inHint:__N5.kaPossible(__N5.KA).some(x=>x.key===k),badge:!!document.querySelector('#kaWord .kadisco'),note:!!document.querySelector('#kaWord .kanote')}),un[1].k);
+ ok('cap hit: unseen word still playable + in hints, Discovery badge + "not added: daily limit" note, no 🔒 block',!cap.dis&&cap.st==='ok'&&cap.inHint&&cap.badge&&cap.note&&/not added: daily limit/.test(cap.txt)&&!/not learned yet|🔒/.test(cap.txt),JSON.stringify(cap));
+ const cards0=await ev(()=>Object.keys(__N5.S().cards).length);
+ await playRight();
+ const d1=await ev(id=>{const K=__N5.KA,L=K.lastScore;return {disc:L.disc,tot:L.total,seen:!!__N5.S().cards[id],nt:__N5.newToday().length,na:K.stats.notAdded,nc:Object.keys(__N5.S().cards).length};},un[1].id);
+ ok('over the cap: scores with Discovery, NOT added to Seen/FSRS, cap unchanged (1)',d1.disc&&d1.tot>0&&!d1.seen&&d1.nt===1&&d1.na===1&&d1.nc===cards0,JSON.stringify(d1));
+ await pw2(un[1].k);ok('replaying the same discovered word in this run: no second Discovery bonus',await ev(()=>{const K=__N5.KA,r=__N5.kaLookup(K);return !__N5.kaScore(K,r.id,K.sel.map(id=>K.hand.find(t=>t.id===id)),{preview:true}).disc&&!document.querySelector('#kaWord .kadisco');}));
+ // whole library: N1 words, level mult, discovery math, performance
+ const lib=await ev(()=>{const K=__N5.KA,W=__N5.WORDS,L=K.lib;let n1=null;for(const e of L.keys){if(e.len>=3&&e.len<=5&&!/ー/.test(e.key)&&e.ids.every(id=>W[id].lvl==='n1'))
+   {n1=e;break;}}const id=n1.ids[0],w=W[id],T=[...n1.key].map((ch,i)=>({id:7700+i,ch}));K.jokers=[];K.lv={};K.blind=0;K.hand=T.concat(K.hand.slice(0,8-T.length));K.sel=T.map(t=>t.id);
+   const r=__N5.kaLookup(K),a=__N5.kaScore(K,id,T,{disc:false}),b=__N5.kaScore(K,id,T,{disc:true}),cats={noun:[10,2],verb:[15,3],adj:[15,3],count:[20,3],kata:[15,2],phrase:[10,2]};
+   const t0=performance.now();for(let i=0;i<20;i++)__N5.kaPossible(K);const ms=(performance.now()-t0)/20;
+   return {size:L.size,lvls:[...new Set([...L.map.values()].flat().map(i=>W[i].lvl))].sort().join(),key:n1.key,ok:r.state==='ok'&&r.id===id,lvl:w.lvl,base:a.steps[0].mult,len:T.length,cat:a.cat,cm:__N5.KA_CATS[a.cat].mult,dc:b.chips-a.chips,dm:b.mult-a.mult,ms};});
+ ok('library index covers N5–N1 (≥7,000 spellings)',lib.size>=7000&&lib.lvls==='n1,n2,n3,n4,n5',JSON.stringify({size:lib.size,lvls:lib.lvls}));
+ ok('an N1-only word is a valid play at N5',lib.ok&&lib.lvl==='n1',JSON.stringify(lib));
+ ok('JLPT level still in Mult: N1 base = category + length bonus + 4',lib.base===lib.cm+Math.max(0,lib.len-2)+4,JSON.stringify(lib));
+ ok('Discovery adds exactly +15 Chips and +2 Mult',lib.dc===15&&lib.dm===2,JSON.stringify(lib));
+ ok('whole-library hand search is fast (<40ms per hand)',lib.ms<40,lib.ms.toFixed(1)+'ms');
+ // unlock toasts wait while a game is on screen
+ await ev(()=>{document.querySelectorAll('.toast').forEach(e=>e.remove());__N5.queueUnlock('🔓 Test set unlocked');});await W(900);
+ {const st=await ev(()=>({on:__N5.GAME_ON,t:!!document.querySelector('.toast'),q:[...__N5.PENDING_UNLOCKS],go:typeof __N5.go}));ok('set-unlock toast is held while the game is active',st.on&&!st.t&&st.q.includes('🔓 Test set unlocked'),JSON.stringify(st));}
+ await ev(()=>__N5.go(__N5.home));await W(1300);
+ {const st=await ev(()=>({on:__N5.GAME_ON,t:(document.querySelector('.toast')||{}).textContent||'',q:__N5.PENDING_UNLOCKS.length}));ok('…and shown after leaving the game',!st.on&&/unlocked/.test(st.t)&&!st.q,JSON.stringify(st));}
  ok('no page errors (cap)',!p.errs.length,p.errs.join('|'));
  await p.context().close();
  // ---- full seeded run → summary

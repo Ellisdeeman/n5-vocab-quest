@@ -863,7 +863,7 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .katile.deal{animation:kaDeal .42s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:calc(var(--i) * 55ms)}
 @keyframes kaDeal{from{transform:translate(140px,-300px) rotate(30deg);opacity:0}to{transform:rotate(var(--r,0deg));opacity:1}}
 .katile.played{animation:kaUp .32s ease-in forwards;pointer-events:none}
-@keyframes kaUp{to{transform:translateY(-150px) scale(.75);opacity:0}}
+@keyframes kaUp{to{transform:translateY(-150px) scale(.75);opacity:0;visibility:hidden}}
 .katile.toss{animation:kaToss .28s ease-in forwards;pointer-events:none}
 @keyframes kaToss{to{transform:translate(170px,40px) rotate(45deg);opacity:0}}
 .kastile{width:46px;height:58px;cursor:default;animation:kaPop .32s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(var(--i) * 60ms)}.kastile .kach{font-size:28px}
@@ -951,6 +951,26 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .kaempty{display:block;aspect-ratio:3/4;border-radius:7px;border:1.5px dashed rgba(255,255,255,.18)}
 .kajokers,.kacons{min-height:0}
 .katile{background-color:#f6efdf}.katile.kk{background-color:#e9eef9}.kalogo span{background-color:#f3ead4}
+/* Kanaatro: Discovery */
+.kadisco{background-color:#ffe08a;color:#3a2600;border-radius:6px;padding:0 6px;font-size:.7rem;font-weight:900;box-shadow:0 0 10px rgba(255,214,102,.55)}
+.kanote{background-color:#173a2f;color:#cfe0d6;font-size:.7rem;font-weight:600;opacity:.9;border-radius:6px;padding:0 4px}
+.kalvl{background-color:#2a3550;color:#dfe7ff;border-radius:6px;padding:0 5px;font-size:.68rem;font-weight:800}
+.kafloat.g{background-color:#ffe08a;color:#3a2600;font-size:.95rem;box-shadow:0 0 18px rgba(255,214,102,.8);white-space:nowrap}
+.kafloat.n{background-color:#173a2f;color:#e2efe8;font-size:.75rem;font-weight:600}
+.kapanel.disco{animation:kaDisco .9s ease-out}
+@keyframes kaDisco{0%{box-shadow:0 0 0 0 rgba(255,224,138,.9),inset 0 0 0 2px #ffe08a}60%{box-shadow:0 0 34px 8px rgba(255,214,102,.45),inset 0 0 0 2px #ffe08a}100%{box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.kapanel.disco{animation:none}}
+.kamus{min-width:44px;min-height:44px;border-radius:50%;border:1px solid rgba(255,209,102,.5);background-color:#173a2f;color:#ffd166;font-size:1.25rem;font-weight:900;line-height:1;margin-left:6px;position:relative;cursor:pointer}
+.kamus.off{color:#9fb3a8;border-color:rgba(159,179,168,.4)}
+.kamus.off::after{content:"";position:absolute;left:10px;right:10px;top:50%;height:2px;background-color:#ff8a7a;transform:rotate(-40deg)}
+/* Kanaatro: 12-tile hand (2 rows of 6; 7 columns when the hand grows to 13–14) */
+.kahand{grid-template-columns:repeat(var(--cols,6),minmax(0,1fr));gap:8px 5px}
+.katile{height:58px;border-radius:10px}.kach{font-size:30px}
+.kahand.kah7{gap:7px 4px}.kahand.kah7 .katile{height:54px}.kahand.kah7 .kach{font-size:26px}
+.kahand .kacv{font-size:.6rem;right:3px;bottom:2px}
+@media (max-width:360px){.katile{height:56px}.kach{font-size:27px}.kahand{gap:7px 4px}.kahand.kah7 .kach{font-size:23px}}
+.kaoffer.kavch{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;justify-content:center;text-align:left;background-color:#2a2410;border-color:rgba(255,214,102,.35)}
+.kaoffer.kavch .kaj{width:50px}.kaoffer.kavch .kaod{flex:1 1 140px}
 </style>
 </head>
 <body>
@@ -1355,6 +1375,15 @@ function setUnlocked(s) {
   const prev = LV[s.lvl].sets[s.k - 1];
   return setSeenFrac(prev) >= UNLOCK_AT && setUnlocked(prev);
 }
+/* set-unlock celebrations wait while a game is on screen (they'd cover the game); shown when the game ends / on the next screen */
+let GAME_ON = false; const PENDING_UNLOCKS = [];
+function flushUnlocks() {
+  if (GAME_ON || !PENDING_UNLOCKS.length) return;
+  const msgs = PENDING_UNLOCKS.splice(0);
+  sfx.unlock(); toast(msgs.length > 1 ? `${msgs[0]} (+${msgs.length - 1} more)` : msgs[0]); confetti(90);
+}
+function queueUnlock(msg) { PENDING_UNLOCKS.push(msg); if (!GAME_ON) setTimeout(flushUnlocks, 400); }
+function gameEnded() { GAME_ON = false; setTimeout(flushUnlocks, 700); }
 function checkUnlocks(l = "n5") {
   if (!LEVELS.includes(l)) return;   // Pimsleur lesson sets are never locked
   const L = LV[l].sets;
@@ -1362,7 +1391,7 @@ function checkUnlocks(l = "n5") {
     if (S.unlockedSets.includes(L[k].id)) continue;
     if (setUnlocked(L[k - 1]) && setSeenFrac(L[k - 1]) >= UNLOCK_AT) {
       S.unlockedSets.push(L[k].id); save();
-      if (!S.unlockAll) setTimeout(() => { sfx.unlock(); toast(`🔓 New ${LNAME(l)} word set unlocked: ${L[k].icon} ${L[k].name}`); confetti(90); }, 400);
+      if (!S.unlockAll) queueUnlock(`🔓 New ${LNAME(l)} word set unlocked: ${L[k].icon} ${L[k].name}`);
     }
   }
 }
@@ -2151,7 +2180,7 @@ let curTab = "home";
 const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"], [pimsView, "levels"], [allMapView, "stats"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
-function go(fn) { const wasStudy = studyScreen; curView = fn; SESSION_GRADED = []; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
+function go(fn) { if (GAME_ON) gameEnded(); const wasStudy = studyScreen; curView = fn; SESSION_GRADED = []; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
   const v = $("#view"); v.style.animation = "none"; void v.offsetWidth; v.style.animation = "";
   fn(); const t = TAB_OF().get(fn); if (t) setTab(t); document.body.classList.toggle("studying", studyScreen); applyTint(); updateHeader();
   if (wasStudy && !studyScreen && typeof syncSoon === "function") syncSoon();
@@ -2763,6 +2792,7 @@ function settings(page = false) {
     ${sw("sound", "🔊 Sound effects", "Taps, answers & celebrations (not the word audio)")}
     <div class="row sfxrow"><span style="text-align:left">🎵 Sound style<br><small class="muted">Analog: soft marimba, kalimba & felt piano · Classic: the original beeps</small></span><span class="seg" id="sfxSeg" role="radiogroup" aria-label="Sound style">${[["analog", "Analog"], ["classic", "Classic"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.sfxStyle || "analog") === k}" class="${(S.sfxStyle || "analog") === k ? "on" : ""}" data-sfx="${k}">${t}</button>`).join("")}</span></div>
     <div class="row sfxrow"><span style="text-align:left">🔉 Effects volume</span><span class="seg" id="sfxVolSeg" role="radiogroup" aria-label="Effects volume">${[["soft", "Soft"], ["normal", "Normal"], ["loud", "Loud"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.sfxVol || "soft") === k}" class="${(S.sfxVol || "soft") === k ? "on" : ""}" data-v="${k}">${t}</button>`).join("")}</span></div>
+    <div class="row sfxrow"><span style="text-align:left">🎶 Game music<br><small class="muted">Original lounge soundtrack in Kanaatro</small></span><span class="seg" id="musVolSeg" role="radiogroup" aria-label="Game music">${[["off", "Off"], ["soft", "Soft"], ["normal", "Normal"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.musicVol || "soft") === k}" class="${(S.musicVol || "soft") === k ? "on" : ""}" data-mv="${k}">${t}</button>`).join("")}</span></div>
     ${sw("romaji", "🔤 Romaji hints", "Show romaji generated from kana")}
     ${sw("speech", "🗣️ Pronunciation audio", audioOK === false ? (HAS_SPEECH ? "Audio files unavailable here — using device speech" + (jaVoice ? " (" + esc(jaVoice.name) + ")" : "") : "No audio available") : "Recorded neural-voice audio (falls back to device speech)")}
     ${sw("autoSpeak", "▶️ Auto-play audio", "Speak each Japanese prompt automatically")}
@@ -2813,7 +2843,7 @@ function settings(page = false) {
   md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
   const segPick = (id, f) => { md.querySelector(id).onclick = e => { const b = e.target.closest("button"); if (!b) return; f(b); save(); md.querySelectorAll(id + " button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); sfx.good(); }; };
   segPick("#retSeg", b => { S.retention = +b.dataset.v; }); segPick("#maxIvlSeg", b => { S.maxIvl = +b.dataset.v; });
-  segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; });
+  segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; }); segPick("#musVolSeg", b => { S.musicVol = b.dataset.mv; if (typeof kmTick === "function") kmTick(); });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
   bindAudioLessonSettings(md); bindBackupSettings(md);
@@ -2910,7 +2940,7 @@ function kCheckUnlocks() {
       if (KS.unlocked.includes(key)) continue;
       if (kUnlocked(s, list[k - 1].id) && kLearnedFrac(s, list[k - 1].id) >= KUNLOCK_AT) {
         KS.unlocked.push(key); ksave();
-        if (!KS.unlockAll && (list[k].id !== "ext" || KS.ext)) setTimeout(() => { sfx.unlock(); toast(`🔓 ${s === "h" ? "Hiragana" : "Katakana"} ${list[k].name} unlocked!`); confetti(70); }, 500);
+        if (!KS.unlockAll && (list[k].id !== "ext" || KS.ext)) queueUnlock(`🔓 ${s === "h" ? "Hiragana" : "Katakana"} ${list[k].name} unlocked!`);
       }
     }
   }
@@ -3810,7 +3840,7 @@ function kjGrade(c, ok, ctx = {}) {
   srsAnswer(x, c, ok, ctx);
   const before = kjUnlockedCount(x.l);
   x.t = Date.now(); JS.cards[c] = x; jsave(); schedShow(x, ctx, "j", c); trackItem(isNew); touchStreak(); save();
-  if (kjUnlockedCount(x.l) > before) setTimeout(() => { sfx.unlock(); toast(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`); }, 700);
+  if (kjUnlockedCount(x.l) > before) queueUnlock(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`);
 }
 /* ---------- stroke order (KanjiVG) ---------- */
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -4156,13 +4186,13 @@ function gPlay(path, text, rate = 0.9) {
 const wordPath = w => wordAudioPath(w);
 /* shared shell + results */
 function gShell(title, back, right = "") {
-  studyScreen = true; combo = 0;
+  studyScreen = true; combo = 0; GAME_ON = true;
   view.innerHTML = topbar(title, right) + `<div id="ghost" class="ghost"></div>`;
   bindBack(back); document.body.classList.add("studying");
   return $("#ghost");
 }
 function gResult({ l, game, score, lines = [], won = null, back, again, bonus = 0 }) {
-  studyScreen = false; document.body.classList.remove("studying");
+  studyScreen = false; document.body.classList.remove("studying"); gameEnded();
   const best = gSetBest(l, game, score);
   if (bonus) addXP(bonus);
   const host = $("#ghost") || view;
@@ -5666,8 +5696,14 @@ const KA_JOKERS = {
   kappa:    { n: "Kappa", c: 5, d: "+3 Mult for each small kana (ゃゅょっ…)" },
   neko:     { n: "Maneki-neko", c: 5, d: "Earn $1 every time you play a word with kanji" },
   daruma:   { n: "Daruma", c: 6, d: "+2 Mult for each meaning check in a row you got right" },
-  kitsune:  { n: "Kitsune Sensei", c: 6, d: "×2 Mult for words that are due for review" }
+  kitsune:  { n: "Kitsune Sensei", c: 6, d: "×2 Mult for words that are due for review" },
+  crane:    { n: "Origami Crane", c: 6, d: "+1 hand size: hold one more tile" }
 };
+/* hand size: 12, +1 per Origami Crane, +1 per Tsuru voucher; capped at 14 */
+const KA_HAND = 12, KA_HAND_MAX = 14;
+const kaHandSize = K => Math.min(KA_HAND_MAX, KA_HAND + K.jokers.filter(j => j.id === "crane").length + (K.handPlus || 0));
+const KA_VOUCHER = { n: "Tsuru voucher", c: 8, d: "+1 hand size for the rest of this run (max hand 14)" };
+const kaVoucherArt = () => kaSvg("#f3d27a", "#8a5a12", `<rect x="8" y="22" width="44" height="36" rx="4" fill="#fff6dc" stroke="#8a5a12" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M18 46l12-16 4 7 9-5-7 12z" fill="#d94b3d"/><path d="M30 30l4 7" stroke="#8a2b1d" stroke-width="1"/><text x="30" y="56" text-anchor="middle" font-size="7" font-weight="700" fill="#8a5a12">+1 手札</text>`, "vch");
 const KA_CATS = {
   noun: { n: "Noun", chips: 10, mult: 1 }, verb: { n: "Verb", chips: 15, mult: 2 }, adj: { n: "Adjective", chips: 15, mult: 2 },
   count: { n: "Counter", chips: 20, mult: 2 }, kata: { n: "Katakana", chips: 20, mult: 2 }, phrase: { n: "Phrase", chips: 10, mult: 1 }
@@ -5686,7 +5722,7 @@ const KA_BOSSES = {
   neck:  { n: "Rokurokubi", d: "Words shorter than 3 kana don't score", ic: "🧣" },
   imp:   { n: "Particle Imp", d: "Function words (expressions, adverbs, pronouns, conjunctions) are debuffed", ic: "😈" }
 };
-const KA_TARGETS = [[150, 250, 350], [400, 600, 800], [900, 1300, 1800]];
+const KA_TARGETS = [[300, 500, 750], [1000, 1600, 2250], [2600, 3800, 5300]];   // tuned with the autoplayer: whole-library dictionary, 12-tile hand (~30% wins at 90% accuracy)
 const KA_LVB = { n5: 0, n4: 1, n3: 2, n2: 3, n1: 4 };
 const KA_ANIMAL = /\b(dog|puppy|cat|kitten|bird|horse|cow|cattle|ox|pig|fish|insect|bug|animal|bear|monkey|mouse|rat|rabbit|fox|snake|frog|turtle|tortoise|elephant|deer|sheep|chicken|hen|tiger|lion|whale|dolphin|pet|worm|butterfly|duck|crow|owl|wolf|goat|squirrel|shark|crab|octopus|squid|bee|ant|mosquito|panda|raccoon dog|tanuki|giraffe|penguin|eagle|hawk|sparrow|pigeon|dove)s?\b/i;
 const KA_WORK = /\b(work|job|company|office|employ\w*|business|meeting|salary|boss|occupation|career|colleague|staff|factory|industry|manager|president of a company|overtime|wage|commut\w*|profession\w*)\b/i;
@@ -5720,11 +5756,25 @@ function kaDict(l) {
   for (const id of ids) { const w = WORDS[id]; if (!w) continue; for (const sp of kaSpellings(w)) { const k = kaNorm(sp); if (!map.has(k)) map.set(k, []); map.get(k).push(id); } }
   return { map, work };
 }
-const kaPlayable = id => !!S.cards[id] || canIntro(id);
+const kaPlayable = () => true;   // every library word is playable now (unseen words over the daily limit score but aren't added)
+/* whole-library index (all loaded levels): normalized spelling → ids, plus per-key char counts for fast hand matching. Built once per set of loaded levels. */
+let KA_LIB = null;
+function kaLib() {
+  const sig = LEVELS.filter(l => LV[l] && LV[l].loaded).join(",");
+  if (KA_LIB && KA_LIB.sig === sig) return KA_LIB;
+  const map = new Map();
+  for (const l of LEVELS) { if (!LV[l] || !LV[l].loaded) continue; for (const id of LV[l].ids) { const w = WORDS[id]; for (const sp of kaSpellings(w)) { const k = kaNorm(sp); const a = map.get(k); if (a) { if (!a.includes(id)) a.push(id); } else map.set(k, [id]); } } }
+  const keys = [];
+  for (const [key, ids] of map) { const cnt = {}; for (const ch of key) cnt[ch] = (cnt[ch] || 0) + 1; keys.push({ key, ids, len: key.length, cnt: Object.entries(cnt) }); }
+  keys.sort((a, b) => a.len - b.len);
+  return (KA_LIB = { sig, map, keys, size: map.size });
+}
+const KA_DISC = { chips: 15, mult: 2 };
+const kaIsDisc = (K, id) => !S.cards[id] && !K.found.has(id);
 /* frequency of each kana over the playable words → chip tiers (common 2 … rare 10) and the deck */
 function kaFreq(dict) {
   const f = {};
-  for (const [, ids] of dict.map) { if (!ids.some(kaPlayable)) continue; const w = WORDS[ids[0]], sp = kaSpellings(w).find(s => dict.map.get(kaNorm(s))) || kaSpellings(w)[0]; for (const ch of sp) f[ch] = (f[ch] || 0) + 1; }
+  for (const [, ids] of dict.map) { const w = WORDS[ids[0]], sp = kaSpellings(w).find(s => dict.map.get(kaNorm(s))) || kaSpellings(w)[0]; for (const ch of sp) f[ch] = (f[ch] || 0) + 1; }
   return f;
 }
 function kaChipTable(freq) {
@@ -5743,23 +5793,26 @@ function kaShuffle(a, rng) { a = a.slice(); for (let i = a.length - 1; i > 0; i-
 /* every word the tiles can spell (multiset, script-insensitive; ー literal), best first */
 function kaPossible(K, tiles = K.hand) {
   const have = {}; tiles.forEach(t => { const k = kaNorm(t.ch); have[k] = (have[k] || 0) + 1; });
-  const out = [];
-  for (const [key, ids] of K.dict.map) {
-    if (key.length > tiles.length) continue;
-    const need = {}; let ok = true;
-    for (const ch of key) { need[ch] = (need[ch] || 0) + 1; if (need[ch] > (have[ch] || 0)) { ok = false; break; } }
+  const out = [], n = tiles.length;
+  for (const e of K.lib.keys) {
+    if (e.len > n) break;
+    let ok = true;
+    for (const [ch, c] of e.cnt) if ((have[ch] || 0) < c) { ok = false; break; }
     if (!ok) continue;
-    const id = kaPickId(K, ids); if (id == null) continue;
+    const key = e.key, id = kaPickId(K, e.ids); if (id == null) continue;
     const used = new Set(), seq = [...key].map(ch => { const i = tiles.findIndex((t, j) => !used.has(j) && kaNorm(t.ch) === ch); used.add(i); return i; });
     const sc = kaScore(K, id, seq.map(i => tiles[i]), { preview: true });
-    out.push({ key, id, seq, score: sc.total });
+    out.push({ key, id, seq, score: sc.total, rank: kaCommon(K, id) });
   }
   return out.sort((a, b) => b.score - a.score || (a.key < b.key ? -1 : 1));
 }
-/* homophones: prefer due, then seen, then new words that the daily limit still allows */
+/* commonness tier for hints: seen words, then by JLPT level (N5 most common) */
+const kaCommon = (K, id) => S.cards[id] ? 0 : 1 + (KA_LVB[WORDS[id].lvl] ?? 4);
+/* homophones: prefer due, then seen, then unseen words from the current level, then the lowest (most common) level */
 function kaPickId(K, ids) {
-  const now = Date.now(), ok = ids.filter(kaPlayable); if (!ok.length) return null;
-  return ok.find(id => S.cards[id] && card(id).due <= now) ?? ok.find(id => S.cards[id]) ?? ok[0];
+  if (!ids || !ids.length) return null;
+  const now = Date.now();
+  return ids.find(id => S.cards[id] && card(id).due <= now) ?? ids.find(id => S.cards[id]) ?? ids.find(id => WORDS[id].lvl === K.l) ?? ids.slice().sort((a, b) => (KA_LVB[WORDS[a].lvl] ?? 4) - (KA_LVB[WORDS[b].lvl] ?? 4) || a - b)[0];
 }
 
 /* ---------- scoring (pure; returns the ordered steps the animation plays back) ---------- */
@@ -5769,6 +5822,8 @@ function kaScore(K, id, tiles, o = {}) {
   const cat = kaCat(w, kataPlay), lv = K.lv[cat] || 0, base = KA_CATS[cat], steps = [];
   let chips = base.chips + lv * 10 + len * 5, mult = base.mult + lv + Math.max(0, len - 2) + (KA_LVB[w.lvl] || 0);
   steps.push({ k: "base", label: `${base.n}${lv ? " lv." + (lv + 1) : ""} · ${len} kana`, chips, mult });
+  const disc = o.disc ?? kaIsDisc(K, id);
+  if (disc) { chips += KA_DISC.chips; mult += KA_DISC.mult; steps.push({ k: "disc", label: "Discovery!", chips: KA_DISC.chips, mult: KA_DISC.mult }); }
   const kanjiOk = w.hasKanji && boss !== "mask";
   if (kanjiOk) { mult += 1; steps.push({ k: "kanji", label: "Kanji word", mult: 1 }); }
   const debuff = (boss === "verb" && w.pos !== "v") || (boss === "neck" && len < 3) || (boss === "imp" && kaFuncWord(w));
@@ -5797,12 +5852,13 @@ function kaScore(K, id, tiles, o = {}) {
   if (debuff) steps.push({ k: "debuff", label: `${KA_BOSSES[boss].n}: no score` });
   mult = Math.round(mult * 100) / 100;
   const total = debuff ? 0 : Math.floor(chips * mult);
-  return { chips, mult, total, steps, cat, kataPlay, debuff, animal: KA_ANIMAL.test(w.en) };
+  return { chips, mult, total, steps, cat, kataPlay, debuff, disc, animal: KA_ANIMAL.test(w.en) };
 }
 
 /* ---------- art: hand-drawn SVG jokers and consumables (no external images) ---------- */
 const kaSvg = (bg1, bg2, body, id) => `<svg viewBox="0 0 60 80" class="kaart" aria-hidden="true"><defs><linearGradient id="kg${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bg1}"/><stop offset="1" stop-color="${bg2}"/></linearGradient></defs><rect width="60" height="80" rx="6" fill="url(#kg${id})"/><circle cx="30" cy="34" r="25" fill="#fff" opacity=".07"/>${body}</svg>`;
 const KA_ART = {
+  crane: () => kaSvg("#bfe3f2", "#24557a", `<circle cx="44" cy="18" r="7" fill="#f6e7b0" opacity=".9"/><path d="M6 44l22-6 6-20 4 18 16-12-10 20 6 6-18-2-6 10-2-12z" fill="#fff" stroke="#c9d6e0" stroke-width="1"/><path d="M28 38l6-20 4 18z" fill="#e8eef3"/><path d="M38 36l16-12-10 20z" fill="#f2f6f9"/><path d="M6 44l22-6" stroke="#d94b3d" stroke-width="2"/><path d="M8 64q22-8 44 0" stroke="#7fb3cf" stroke-width="1.5" fill="none"/><text x="30" y="74" text-anchor="middle" font-size="9" fill="#173a52" font-family="serif">鶴</text>`, "crane"),
   tanuki: () => kaSvg("#f2c46d", "#b86b2a", `<path d="M22 14c3 3 3 7 8 7s5-4 8-7c-1 6-3 9-8 9s-7-3-8-9z" fill="#4c9a4a"/><ellipse cx="30" cy="38" rx="17" ry="15" fill="#8a5a33"/><circle cx="16" cy="25" r="5" fill="#5d3a1f"/><circle cx="44" cy="25" r="5" fill="#5d3a1f"/><path d="M15 37c5-6 11-6 13 0-3 4-10 4-13 0zM45 37c-5-6-11-6-13 0 3 4 10 4 13 0z" fill="#2b1a0e"/><circle cx="22" cy="37" r="2.2" fill="#fff"/><circle cx="38" cy="37" r="2.2" fill="#fff"/><ellipse cx="30" cy="46" rx="7" ry="5" fill="#f1dfc2"/><ellipse cx="30" cy="44" rx="2.6" ry="2" fill="#2b1a0e"/><path d="M27 49q3 2 6 0" stroke="#2b1a0e" stroke-width="1.2" fill="none"/><text x="30" y="72" text-anchor="middle" font-size="11" font-weight="900" fill="#3b230f" font-family="serif">狸</text>`, "tn"),
   demon: () => kaSvg("#ff6b5b", "#7a0f1c", `<path d="M17 22l-5-12 11 8zM43 22l5-12-11 8z" fill="#f6e7b0"/><ellipse cx="30" cy="38" rx="17" ry="16" fill="#d92b2b"/><path d="M18 33l9 3M42 33l-9 3" stroke="#2a0606" stroke-width="2.5" stroke-linecap="round"/><circle cx="23" cy="38" r="3" fill="#ffe14d"/><circle cx="37" cy="38" r="3" fill="#ffe14d"/><path d="M21 48q9 6 18 0l-3 4h-12z" fill="#2a0606"/><path d="M24 49l1.5 3 1.5-3M33 49l1.5 3 1.5-3" fill="#fff"/><text x="46" y="20" font-size="16" font-weight="900" fill="#fff" font-family="serif">゛</text><text x="30" y="72" text-anchor="middle" font-size="11" font-weight="900" fill="#ffe9e3" font-family="serif">鬼</text>`, "dm"),
   salary: () => kaSvg("#9fb6d6", "#2d4466", `<circle cx="30" cy="30" r="13" fill="#f2d2b0"/><path d="M17 28q1-13 13-13t13 13q-4-6-13-6t-13 6z" fill="#1e1e24"/><rect x="20" y="28" width="8" height="5" rx="1.5" fill="none" stroke="#111" stroke-width="1.6"/><rect x="32" y="28" width="8" height="5" rx="1.5" fill="none" stroke="#111" stroke-width="1.6"/><path d="M28 30h4" stroke="#111" stroke-width="1.4"/><path d="M26 38q4 2 8 0" stroke="#6b3b2a" stroke-width="1.3" fill="none"/><path d="M12 62q2-16 18-18 16 2 18 18z" fill="#2b2f3a"/><path d="M26 44l4 4 4-4-2 16h-4z" fill="#fff"/><path d="M29 47h2l1 11-2 3-2-3z" fill="#d6322d"/><rect x="38" y="55" width="13" height="9" rx="2" fill="#6b4320"/><text x="30" y="75" text-anchor="middle" font-size="10" font-weight="900" fill="#e8eef8" font-family="serif">社員</text>`, "sm"),
@@ -5831,6 +5887,7 @@ const kaSfx = {
   mult: () => { kaN(262, 0, .22, .13, "felt"); kaN(392, .03, .18, .08, "marimba"); },
   xmult: () => { kaN(196, 0, .3, .15, "felt"); kaN(294, .06, .3, .12, "felt"); kaN(587, .1, .2, .08, "kalimba"); },
   coin: () => { kaN(1568, 0, .08, .06, "kalimba"); kaN(2093, .07, .1, .05, "kalimba"); },
+  disc: () => { [784, 988, 1175, 1568].forEach((f, i) => kaN(f, i * .06, .22, .07, "kalimba")); },
   big: () => sfx.combo(), win: () => sfx.level(), lose: () => sfx.end(), buy: () => sfx.unlock(), bad: () => sfx.bad(), good: () => sfx.good(), click: () => sfx.click()
 };
 
@@ -5838,21 +5895,25 @@ const kaSfx = {
 let KA = null;
 const kaT = ms => KA && KA.fast ? Math.min(ms, 15) : KA && KA.rm ? Math.round(ms * 0.35) : ms;
 const kaWait = ms => new Promise(r => setTimeout(r, kaT(ms)));
-const kaTarget = K => K.ante <= 3 ? KA_TARGETS[K.ante - 1][K.blind] : Math.round(KA_TARGETS[2][K.blind] * Math.pow(1.9, K.ante - 3) / 50) * 50;
+const kaTT = () => window.__kaTargets || KA_TARGETS;
+const kaTarget = K => K.ante <= 3 ? kaTT()[K.ante - 1][K.blind] : Math.round(kaTT()[2][K.blind] * Math.pow(1.9, K.ante - 3) / 50) * 50;
 const KA_BLINDS = ["Small blind", "Big blind", "Boss blind"];
 const kaReward = b => [3, 4, 5][b];
 
 function kanaatroGame(l, back, opts = {}) {
-  const me = () => kanaatroGame(l, back), host = gShell(`🎴 Kanaatro · ${LNAME(l)}`, back, `<span class="muted" id="gscore"></span>`);
+  const me = () => kanaatroGame(l, back), host = gShell(`🎴 Kanaatro · ${LNAME(l)}`, back, `<span class="muted" id="gscore"></span><button class="kamus ${S.kaMusicMute ? "off" : ""}" id="kaMus" aria-label="Music" aria-pressed="${!S.kaMusicMute}">♫</button>`);
+  $("#kaMus").onclick = () => { S.kaMusicMute = !S.kaMusicMute; save(); const b = $("#kaMus"); b.classList.toggle("off", !!S.kaMusicMute); b.setAttribute("aria-pressed", !S.kaMusicMute); if (KA && !KA.dead && !KA.summarized) kmPlay(KM.mood || "normal"); else kmTick(); };
   host.innerHTML = `<div class="ka kaintro" id="ka"><div class="kalogo"><span>カ</span><span>ナ</span><span>ア</span><span>ト</span><span>ロ</span></div>
-    <h2 class="katitle">Kanaatro</h2><p class="kasub">Spell words from your ${esc(LNAME(l))} vocab with kana tiles. Chips × Mult. Beat 3 antes.</p>
+    <h2 class="katitle">Kanaatro</h2><p class="kasub">Spell any Japanese word (N5–N1) with kana tiles. Chips × Mult. Beat 3 antes.</p>
     <div class="kaintrocards">${["tanuki", "demon", "kitsune"].map((j, i) => `<div class="kaj kajbig" style="--r:${(i - 1) * 10}deg;--y:${Math.abs(i - 1) * 8}px">${KA_ART[j]()}</div>`).join("")}</div>
-    <ul class="kahow"><li>Tap tiles <b>in order</b> to spell a word, then <b>Play</b> (4 hands, 3 discards per blind).</li><li>Answer the meaning check: right = full score and a real review; wrong = Mult ÷2.</li><li>Spend $ in the shop on Jokers, tarots and planets.</li></ul>
+    <ul class="kahow"><li>Tap tiles <b>in order</b> to spell a word, then <b>Play</b> (4 hands, 3 discards per blind).</li><li>Answer the meaning check: right = full score and a real review; wrong = Mult ÷2.</li><li>Words you've never studied are a <b>✨ Discovery</b>: bonus Chips and Mult.</li><li>Spend $ in the shop on Jokers, tarots and planets.</li></ul>
     <p class="kasub small">Best run: ${gBest(l, "kanaatro") || "—"}${REDUCED_MOTION() ? " · reduced motion on" : ""}</p>
     <div class="btnrow"><button class="btn kaplay" id="kaStart">Start run ▶</button></div></div>`;
   $("#kaStart").onclick = async () => {
-    sfx.click(); host.innerHTML = `<div class="ka"><p class="kasub">Shuffling the deck…</p></div>`;
+    sfx.click(); kmPlay("normal");   // inside the tap: iOS allows audio to start host.innerHTML = `<div class="ka"><p class="kasub">Shuffling the deck…</p></div>`;
     if (!(await gReady(l))) { host.innerHTML = `<div class="card"><p>Couldn't load ${LNAME(l)} (offline?).</p></div>`; return; }
+    host.innerHTML = `<div class="ka"><p class="kasub">Loading the full N5–N1 word library…</p></div>`;
+    await Promise.all(LEVELS.map(x => loadLevel(x)));   // whatever fails (offline) is simply left out of the library
     if (!host.isConnected) return;
     kaStart(l, back, host, me, opts);
   };
@@ -5864,13 +5925,13 @@ function kaStart(l, back, host, again, opts = {}) {
   const K = KA = gState = {
     game: "kanaatro", l, back, again, host, seed, rng, dict, freq, chipT: kaChipTable(freq), deck: kaBuildDeck(freq, rng), nextId: 1000,
     ante: 1, blind: 0, boss: null, bossesUsed: [], score: 0, total: 0, hands: 4, discards: 3, money: 4, pile: [], hand: [], sel: [],
-    jokers: [], cons: [], lv: {}, tanuki: 0, streak: 0, reroll: 5, endless: false, busy: false, dead: false, phase: "blind",
-    fast: !!(opts.fast ?? window.__kaFast), rm: REDUCED_MOTION() || !!opts.rm, gradedIds: new Set(),
-    stats: { words: [], best: null, reviews: 0, again: 0, newWords: 0, blindsWon: 0, hands: 0 }
+    jokers: [], cons: [], lv: {}, tanuki: 0, streak: 0, reroll: 5, handPlus: 0, endless: false, busy: false, dead: false, phase: "blind",
+    fast: !!(opts.fast ?? window.__kaFast), rm: REDUCED_MOTION() || !!opts.rm, gradedIds: new Set(), found: new Set(), lib: kaLib(),
+    stats: { words: [], best: null, reviews: 0, again: 0, newWords: 0, blindsWon: 0, hands: 0, disc: 0, notAdded: 0 }
   };
   K.boss = kaPickBoss(K);
   window.__ka = K;
-  cleanup = () => { K.dead = true; if (K.fxRaf) cancelAnimationFrame(K.fxRaf); };
+  cleanup = () => { K.dead = true; if (K.fxRaf) cancelAnimationFrame(K.fxRaf); kmStop(); };
   kaBlindScreen(K);
 }
 function kaPickBoss(K) {
@@ -5880,9 +5941,10 @@ function kaPickBoss(K) {
 const kaMoneyHTML = K => `<span class="kamoney" id="kaMoney">$${K.money}</span>`;
 
 /* ---------- blind select ---------- */
+const kaMood = K => kmMood(K.phase === "shop" || K.phase === "summary" || K.phase === "won" ? "shop" : K.blind === 2 ? "boss" : "normal");
 function kaBlindScreen(K) {
-  K.phase = "blind";
-  const rows = [0, 1, 2].map(b => { const t = b <= 2 ? (K.ante <= 3 ? KA_TARGETS[K.ante - 1][b] : Math.round(KA_TARGETS[2][b] * Math.pow(1.9, K.ante - 3) / 50) * 50) : 0;
+  K.phase = "blind"; kaMood(K);
+  const rows = [0, 1, 2].map(b => { const t = b <= 2 ? (K.ante <= 3 ? kaTT()[K.ante - 1][b] : Math.round(kaTT()[2][b] * Math.pow(1.9, K.ante - 3) / 50) * 50) : 0;
     return `<div class="kabl b${b} ${b === K.blind ? "cur" : b < K.blind ? "done" : ""}"><div class="kablic">${b === 2 ? KA_BOSSES[K.boss].ic : b ? "◆" : "●"}</div>
       <div class="kabltx"><b>${b === 2 ? esc(KA_BOSSES[K.boss].n) : KA_BLINDS[b]}</b><small>${b === 2 ? esc(KA_BOSSES[K.boss].d) : "No special rule"}</small></div>
       <div class="kablt"><span>${t}</span><small>$${kaReward(b)}</small></div></div>`; }).join("");
@@ -5943,7 +6005,7 @@ function kaRefresh(K) { if (K.phase === "shop") kaShop(K, true); else if (K.phas
 
 /* ---------- the table ---------- */
 function kaBeginBlind(K) {
-  K.phase = "play"; K.score = 0; K.hands = 4; K.discards = 3; K.sel = []; K.hand = []; K.hint = null;
+  K.phase = "play"; kaMood(K); K.score = 0; K.hands = 4; K.discards = 3; K.sel = []; K.hand = []; K.hint = null;
   K.pile = kaShuffle(K.deck, K.rng);
   if (K.blind === 2 && K.boss === "kata") K.pile = K.pile.map(t => K.rng() < 0.5 && kaIsHira(t.ch) ? Object.assign({}, t, { ch: kaFlip(t.ch), tmp: 1 }) : t);   // half the tiles arrive in katakana; hiragana ones are debuffed
   kaRenderTable(K, true);
@@ -5951,7 +6013,7 @@ function kaBeginBlind(K) {
 }
 function kaDraw(K, first) {
   const fresh = [];
-  while (K.hand.length < 8 && K.pile.length) { const t = K.pile.shift(); K.hand.push(t); fresh.push(t.id); }
+  while (K.hand.length < kaHandSize(K) && K.pile.length) { const t = K.pile.shift(); K.hand.push(t); fresh.push(t.id); }
   kaRenderHand(K, new Set(fresh));
   fresh.forEach((_, i) => setTimeout(() => !K.dead && kaSfx.deal(i), kaT(60 * i)));
 }
@@ -5979,12 +6041,13 @@ function kaRenderTable(K, first) {
 }
 function kaTileHTML(K, t, i, fresh) {
   const k = K.sel.indexOf(t.id), boss = K.blind === 2 ? K.boss : null, off = boss === "kata" && kaIsHira(t.ch), v = (K.chipT[kaNorm(t.ch)] || 4) + (kaMark(t.ch) ? 1 : 0);
-  const rot = ((i % 4) - 1.5) * 2.2;
+  const rot = ((i % 6) - 2.5) * 1.6;
   return `<button class="katile ${kaIsKata(t.ch) ? "kk" : ""} ${k >= 0 ? "on" : ""} ${off ? "off" : ""} ${fresh && fresh.has(t.id) ? "deal" : ""}" data-t="${t.id}" style="--i:${i};--r:${rot}deg" aria-label="${esc(t.ch)}${k >= 0 ? `, selected ${k + 1}` : ""}" aria-pressed="${k >= 0}">
     <span class="kach">${esc(t.ch)}</span><small class="kacv">${off ? "0" : "+" + v}</small>${k >= 0 ? `<i class="kaord">${k + 1}</i>` : ""}</button>`;
 }
 function kaRenderHand(K, fresh) {
   const h = $("#kaHand"); if (!h) return;
+  h.style.setProperty("--cols", K.hand.length > 12 ? 7 : 6); h.classList.toggle("kah7", K.hand.length > 12);
   h.innerHTML = K.hand.map((t, i) => kaTileHTML(K, t, i, fresh)).join("");
   h.onclick = e => { const b = e.target.closest(".katile"); if (!b || K.busy) return; kaToggle(K, +b.dataset.t); };
   kaPreview(K); kaHud(K);
@@ -6001,10 +6064,10 @@ const kaSelTiles = K => K.sel.map(id => K.hand.find(t => t.id === id)).filter(Bo
 /* what the selection spells: { key, ids, id, state: empty|short|none|locked|ok } */
 function kaLookup(K, tiles = kaSelTiles(K)) {
   if (!tiles.length) return { state: "empty" };
-  const key = kaNorm(tiles.map(t => t.ch).join("")), ids = K.dict.map.get(key);
+  const key = kaNorm(tiles.map(t => t.ch).join("")), ids = K.lib.map.get(key);
   if (!ids) return { key, state: tiles.length < 2 ? "short" : "none" };
   const id = kaPickId(K, ids);
-  return id == null ? { key, ids, state: "locked" } : { key, ids, id, state: "ok" };
+  return id == null ? { key, state: "none" } : { key, ids, id, state: "ok" };
 }
 function kaPreview(K) {
   const tiles = kaSelTiles(K), r = kaLookup(K, tiles), wEl = $("#kaWord"); if (!wEl) return;
@@ -6014,12 +6077,11 @@ function kaPreview(K) {
   const spelled = tiles.map(t => t.ch).join("");
   if (r.state === "ok") {
     const w = WORDS[r.id], sc = kaScore(K, r.id, tiles, { preview: true }), mask = K.blind === 2 && K.boss === "mask";
-    wEl.innerHTML = `<span class="kaok">✓</span> <b class="jp">${esc(spelled)}</b>${!mask && w.jp !== spelled && w.hasKanji ? ` <span class="jp kajp">${esc(w.jp)}</span>` : ""} <span class="kacat">${esc(KA_CATS[sc.cat].n)}${K.lv[sc.cat] ? " lv." + (K.lv[sc.cat] + 1) : ""}</span>${!S.cards[r.id] ? ` <span class="kanew">NEW</span>` : ""}${sc.debuff ? ` <span class="kadeb">✗ boss rule</span>` : ""}`;
+    wEl.innerHTML = `<span class="kaok">✓</span> <b class="jp">${esc(spelled)}</b>${!mask && w.jp !== spelled && w.hasKanji ? ` <span class="jp kajp">${esc(w.jp)}</span>` : ""} <span class="kacat">${esc(KA_CATS[sc.cat].n)}${K.lv[sc.cat] ? " lv." + (K.lv[sc.cat] + 1) : ""}</span>${sc.disc ? ` <span class="kadisco">✨ Discovery</span>${!canIntro(r.id) ? ` <span class="kanote">not added: daily limit</span>` : ""}` : ""}${w.lvl !== K.l ? ` <span class="kalvl">${esc(LNAME(w.lvl))}</span>` : ""}${sc.debuff ? ` <span class="kadeb">✗ boss rule</span>` : ""}`;
     $("#kaChips").textContent = sc.chips; $("#kaMult").textContent = kaFmt(sc.mult);
   } else {
     wEl.innerHTML = r.state === "empty" ? `<span class="kahelp">Tap kana in order to spell a word</span>`
-      : r.state === "locked" ? `<b class="jp">${esc(spelled)}</b> <span class="kalock">🔒 not learned yet — today's new-word limit is reached</span>`
-      : `<b class="jp">${esc(spelled)}</b> <span class="kahelp">${r.state === "short" ? "keep going…" : "not a word in your deck yet"}</span>`;
+      : `<b class="jp">${esc(spelled)}</b> <span class="kahelp">${r.state === "short" ? "keep going…" : "not in the library"}</span>`;
     $("#kaChips").textContent = 0; $("#kaMult").textContent = 0;
   }
 }
@@ -6033,7 +6095,9 @@ function kaHud(K) {
 function kaHint(K) {
   if (K.busy || K.money < 1) return;
   K.money -= 1; kaSfx.coin();
-  const list = kaPossible(K).slice(0, 6); K.hint = list;
+  const all = kaPossible(K), top = all.slice(0, 2), seen = new Set(top.map(p => p.key));
+  const common = all.filter(p => !seen.has(p.key)).sort((a, b) => a.rank - b.rank || b.score - a.score).slice(0, 4);
+  const list = top.concat(common); K.hint = list;
   $("#kaHints").innerHTML = list.length ? `<span class="kasub small">Possible:</span> ${list.map((p, i) => `<button class="kahintw jp" data-h="${i}">${esc(p.seq.map(j => K.hand[j].ch).join(""))} <small>${p.score}</small></button>`).join("")}`
     : `<span class="kasub small">No words in this hand — try a discard.</span>`;
   $("#kaHints").onclick = e => { const b = e.target.closest("[data-h]"); if (!b || K.busy) return; K.sel = list[+b.dataset.h].seq.map(j => K.hand[j].id); kaRenderHand(K); };
@@ -6062,15 +6126,16 @@ async function kaPlay(K) {
   kaSfx.play(); await kaWait(380 + tiles.length * 50); if (K.dead) return;
   // meaning check
   const ok = await kaMC(K, id); if (K.dead) return;
-  kaGradeWord(K, id, ok);
+  const disc = kaIsDisc(K, id), added = kaGradeWord(K, id, ok);
+  if (disc) { K.found.add(id); K.stats.disc++; if (!added) { K.stats.notAdded++; kaFloat($("#kaWord"), "not added: daily limit", "n"); } }
   K.streak = ok ? K.streak + 1 : 0;
-  const sc0 = kaScore(K, id, tiles, { preview: true }); if (sc0.animal) K.tanuki++;
-  const sc = kaScore(K, id, tiles, { wrong: !ok });
+  const sc0 = kaScore(K, id, tiles, { preview: true, disc }); if (sc0.animal) K.tanuki++;
+  const sc = kaScore(K, id, tiles, { wrong: !ok, disc });
   K.lastScore = sc;
   await kaAnimateScore(K, sc); if (K.dead) return;
   const money = sc.steps.filter(s => s.money).reduce((a, s) => a + s.money, 0); if (money) { K.money += money; kaSfx.coin(); }
   K.score += sc.total; K.total += sc.total;
-  K.stats.words.push({ id, ok, score: sc.total, kana: tiles.map(t => t.ch).join("") });
+  K.stats.words.push({ id, ok, disc, score: sc.total, kana: tiles.map(t => t.ch).join("") });
   if (!K.stats.best || sc.total > K.stats.best.score) K.stats.best = { id, score: sc.total, kana: tiles.map(t => t.ch).join(""), chips: sc.chips, mult: sc.mult };
   await kaTickScore(K); if (K.dead) return;
   K.hand = K.hand.filter(t => !ids.has(t.id)); K.sel = [];
@@ -6081,13 +6146,16 @@ async function kaPlay(K) {
   if (K.hands <= 0) return kaLose(K);
   kaDraw(K);
 }
+/* returns false when an unseen word was NOT added (daily new-word limit reached) */
 function kaGradeWord(K, id, ok) {
+  if (!S.cards[id] && !canIntro(id)) return false;
   const c = S.cards[id], wasNew = !c, inReview = !!(c && c.f && c.f.st === 2), first = !K.gradedIds.has(id);
   K.gradedIds.add(id);
   if (ok) { grade(id, true, first ? { quiet: true } : { game: true, quiet: true }); if (first) K.stats.reviews++; }
   else if (inReview && first) { grade(id, false, { quiet: true }); K.stats.reviews++; K.stats.again++; }
   else grade(id, false, { game: true, quiet: true });
   if (wasNew) K.stats.newWords++;
+  return true;
 }
 function kaMC(K, id) {
   return new Promise(res => {
@@ -6123,6 +6191,7 @@ async function kaAnimateScore(K, sc) {
   for (const s of sc.steps) {
     if (K.dead) return;
     if (s.k === "base") { chips = s.chips; mult = s.mult; show(); kaBump(cE); kaBump(mE); kaSfx.chip(0); await kaWait(260); }
+    else if (s.k === "disc") { chips += s.chips; mult += s.mult; show(); kaBump(cE); kaBump(mE); const pn = $("#kaPanel"); if (pn) { pn.classList.remove("disco"); void pn.offsetWidth; pn.classList.add("disco"); } kaFloat($("#kaStage") || mE, `✨ Discovery! +${s.chips} Chips +${s.mult} Mult`, "g"); kaBurst(K, $("#kaStage"), 22, true); kaSfx.disc(); await kaWait(560); }
     else if (s.k === "kanji") { mult += s.mult; show(); kaBump(mE); kaFloat(mE, "+1 Mult 漢", "m"); kaSfx.mult(); await kaWait(260); }
     else if (s.k === "tile") { const t = stage && stage.querySelector(`[data-i="${s.i}"]`); if (t) { t.classList.add("hit"); } chips += s.chips; show(); kaBump(cE); kaFloat(t, s.off ? "debuffed" : "+" + s.chips, s.off ? "d" : "c"); kaSfx.chip(++n); await kaWait(210); }
     else if (s.k === "joker") {
@@ -6152,11 +6221,11 @@ async function kaTickScore(K) {
 }
 function kaShake(K, lv) { if (K.rm) return; const ka = $("#ka"); if (!ka) return; ka.classList.remove("shake1", "shake2"); void ka.offsetWidth; ka.classList.add("shake" + lv); }
 /* particles: one small canvas, runs only while sparks are alive */
-function kaBurst(K, el, n) {
+function kaBurst(K, el, n, gold) {
   if (K.rm || K.fast || !el) return; const cv = $("#kaFx"), ka = $("#ka"); if (!cv || !ka) return;
   const kr = ka.getBoundingClientRect(), r = el.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
   if (cv.width !== Math.round(kr.width * dpr)) { cv.width = Math.round(kr.width * dpr); cv.height = Math.round(kr.height * dpr); }
-  const x0 = r.left - kr.left + r.width / 2, y0 = r.top - kr.top + r.height / 2, cols = ["#ffd166", "#ff6b6b", "#4cc9f0", "#f8f4e8", "#ff9f1c"];
+  const x0 = r.left - kr.left + r.width / 2, y0 = r.top - kr.top + r.height / 2, cols = gold ? ["#ffe08a", "#fff6d5", "#ffd166", "#f5b942"] : ["#ffd166", "#ff6b6b", "#4cc9f0", "#f8f4e8", "#ff9f1c"];
   K.sparks = (K.sparks || []).concat(Array.from({ length: n }, () => { const a = Math.random() * Math.PI * 2, v = 80 + Math.random() * 260; return { x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, life: 0.6 + Math.random() * 0.6, t: 0, c: cols[Math.floor(Math.random() * cols.length)], s: 2 + Math.random() * 3 }; }));
   if (K.fxRaf) return;
   const ctx = cv.getContext("2d"); let last = performance.now();
@@ -6194,12 +6263,17 @@ function kaShopRoll(K) {
   const own = new Set(K.jokers.map(j => j.id)), js = kaShuffle(Object.keys(KA_JOKERS).filter(j => !own.has(j)), K.rng).slice(0, 2);
   const cons = Array.from({ length: 2 }, () => K.rng() < 0.5 ? { t: "tarot", id: Object.keys(KA_TAROTS)[Math.floor(K.rng() * 4)] } : { t: "planet", id: Object.keys(KA_CATS)[Math.floor(K.rng() * 6)] });
   K.offers = js.map(id => ({ k: "joker", id, cost: KA_JOKERS[id].c })).concat(cons.map(c => ({ k: "con", c, cost: 3 })));
+  if ((K.handPlus || 0) < 2 && kaHandSize(K) < KA_HAND_MAX) K.offers.push({ k: "voucher", id: "hand", cost: KA_VOUCHER.c });
 }
+const kaOfArt = o => o.k === "joker" ? KA_ART[o.id]() : o.k === "voucher" ? kaVoucherArt() : kaConArt(o.c);
+const kaOfName = o => o.k === "joker" ? KA_JOKERS[o.id].n : o.k === "voucher" ? KA_VOUCHER.n : kaConName(o.c);
+const kaOfDesc = o => o.k === "joker" ? KA_JOKERS[o.id].d : o.k === "voucher" ? KA_VOUCHER.d : kaConDesc(o.c);
+const kaOfBlocked = (K, o) => o.k === "joker" ? K.jokers.length >= 5 : o.k === "voucher" ? kaHandSize(K) >= KA_HAND_MAX : K.cons.length >= 2;
 function kaShop(K, keep) {
-  K.phase = "shop"; if (!keep) { K.reroll = 5; kaShopRoll(K); }
-  const offer = (o, i) => o.sold ? `<div class="kaoffer sold"><span>Sold</span></div>` : `<div class="kaoffer"><button class="kaj ${o.k === "con" ? "kacon" : ""}" data-o="${i}" aria-label="${esc(o.k === "joker" ? KA_JOKERS[o.id].n : kaConName(o.c))}">${o.k === "joker" ? KA_ART[o.id]() : kaConArt(o.c)}</button>
-      <b class="kaon">${esc(o.k === "joker" ? KA_JOKERS[o.id].n : kaConName(o.c))}</b><small class="kaod">${esc(o.k === "joker" ? KA_JOKERS[o.id].d : kaConDesc(o.c))}</small>
-      <button class="btn small kabuy" data-b="${i}" ${K.money < o.cost || (o.k === "joker" ? K.jokers.length >= 5 : K.cons.length >= 2) ? "disabled" : ""}>Buy $${o.cost}</button></div>`;
+  K.phase = "shop"; kaMood(K); if (!keep) { K.reroll = 5; kaShopRoll(K); }
+  const offer = (o, i) => o.sold ? `<div class="kaoffer sold"><span>Sold</span></div>` : `<div class="kaoffer ${o.k === "voucher" ? "kavch" : ""}"><button class="kaj ${o.k !== "joker" ? "kacon" : ""}" data-o="${i}" aria-label="${esc(kaOfName(o))}">${kaOfArt(o)}</button>
+      <b class="kaon">${esc(kaOfName(o))}</b><small class="kaod">${esc(kaOfDesc(o))}</small>
+      <button class="btn small kabuy" data-b="${i}" ${K.money < o.cost || kaOfBlocked(K, o) ? "disabled" : ""}>Buy $${o.cost}</button></div>`;
   K.host.innerHTML = `<div class="ka kashop" id="ka"><canvas class="kafx" id="kaFx" aria-hidden="true"></canvas>
     <div class="kaante">🏮 Shop ${kaMoneyHTML(K)}</div>
     <div class="kanext">Next: <b>${K.blind === 2 ? `${KA_BOSSES[K.boss].ic} ${esc(KA_BOSSES[K.boss].n)}` : KA_BLINDS[K.blind]}</b> · ante ${K.ante} · target ${kaTarget(K)}${K.blind === 2 ? `<br><small>${esc(KA_BOSSES[K.boss].d)}</small>` : ""}</div>
@@ -6208,13 +6282,14 @@ function kaShop(K, keep) {
     <div class="kabtns"><button class="btn kadisc" id="kaReroll" ${K.money < K.reroll ? "disabled" : ""}>Reroll $${K.reroll}</button><button class="btn kaplay" id="kaNext">Next blind ▶</button></div></div>`;
   kaBindOwned(K);
   K.host.querySelectorAll("[data-b]").forEach(b => b.onclick = () => kaBuy(K, +b.dataset.b));
-  K.host.querySelectorAll("[data-o]").forEach(b => b.onclick = () => { const o = K.offers[+b.dataset.o]; kaSheet(`<div class="kaj kajbig">${o.k === "joker" ? KA_ART[o.id]() : kaConArt(o.c)}</div><h3>${esc(o.k === "joker" ? KA_JOKERS[o.id].n : kaConName(o.c))}</h3><p>${esc(o.k === "joker" ? KA_JOKERS[o.id].d : kaConDesc(o.c))}</p><div class="btnrow"><button class="btn ghost" data-close>Close</button></div>`); });
+  K.host.querySelectorAll("[data-o]").forEach(b => b.onclick = () => { const o = K.offers[+b.dataset.o]; kaSheet(`<div class="kaj kajbig">${kaOfArt(o)}</div><h3>${esc(kaOfName(o))}</h3><p>${esc(kaOfDesc(o))}</p><div class="btnrow"><button class="btn ghost" data-close>Close</button></div>`); });
   $("#kaReroll").onclick = () => { if (K.money < K.reroll) return; K.money -= K.reroll; K.reroll++; kaShopRoll(K); kaSfx.deal(0); kaShop(K, true); };
   $("#kaNext").onclick = () => { kaSfx.click(); kaBlindScreen(K); };
 }
 function kaBuy(K, i) {
   const o = K.offers[i]; if (!o || o.sold || K.money < o.cost) return false;
-  if (o.k === "joker") { if (K.jokers.length >= 5) return false; K.jokers.push({ id: o.id }); } else { if (K.cons.length >= 2) return false; K.cons.push(o.c); }
+  if (kaOfBlocked(K, o)) return false;
+  if (o.k === "joker") K.jokers.push({ id: o.id }); else if (o.k === "voucher") K.handPlus = (K.handPlus || 0) + 1; else K.cons.push(o.c);
   K.money -= o.cost; o.sold = true; kaSfx.buy(); kaShop(K, true);
   const j = K.host.querySelector(`#kaJokers .kaj:last-of-type, #kaCons .kaj:last-of-type`); if (j) j.classList.add("wig");
   return true;
@@ -6223,7 +6298,7 @@ function kaBuy(K, i) {
 /* ---------- end of run ---------- */
 function kaLose(K) { K.phase = "over"; kaSfx.lose(); kaShake(K, 2); setTimeout(() => !K.dead && kaSummary(K, false), kaT(700)); }
 function kaVictory(K) {
-  K.phase = "won";
+  K.phase = "won"; kaMood(K);
   K.host.innerHTML = `<div class="ka kawin" id="ka"><canvas class="kafx" id="kaFx" aria-hidden="true"></canvas><div class="kalogo"><span>勝</span><span>利</span></div><h2 class="katitle">You beat Ante 3!</h2>
     <p class="kasub">Total score <b>${K.total}</b>. Keep the run going in endless mode, or bank it now.</p>
     <div class="btnrow"><button class="btn kadisc" id="kaEndless">Endless mode ▶</button><button class="btn kaplay" id="kaFinish">Finish run</button></div></div>`;
@@ -6232,8 +6307,8 @@ function kaVictory(K) {
   $("#kaFinish").onclick = () => kaSummary(K, true);
 }
 function kaSummary(K, won) {
-  if (K.summarized) return; K.summarized = true; K.phase = "summary";
-  studyScreen = false; document.body.classList.remove("studying");
+  if (K.summarized) return; K.summarized = true; K.phase = "summary"; kaMood(K);
+  studyScreen = false; document.body.classList.remove("studying"); gameEnded();
   const best = gSetBest(K.l, "kanaatro", K.total), xp = Math.min(250, K.stats.words.length * 4 + K.stats.blindsWon * 15 + (won ? 40 : 0));
   if (xp) addXP(xp);
   const st = K.stats, b = st.best;
@@ -6242,13 +6317,211 @@ function kaSummary(K, won) {
     <div class="kacashsc"><small>Total score</small><b id="kaFinal">${K.total}</b><small>${best ? "🏆 new high score" : `best ${gBest(K.l, "kanaatro")}`}</small></div>
     <div class="kasumgrid"><div><b>${st.words.length}</b><small>words played</small></div><div><b>${st.reviews}</b><small>reviews logged</small></div><div><b>${st.blindsWon}</b><small>blinds beaten</small></div><div><b>+${xp}</b><small>XP</small></div></div>
     ${b ? `<div class="kabest"><small>Best hand</small><b class="jp">${esc(b.kana)}</b> <span class="jp">${esc(WORDS[b.id].jp)}</span> · ${esc(shortEn(WORDS[b.id]))}<br><span class="kachips sm">${b.chips}</span> × <span class="kamult sm">${kaFmt(b.mult)}</span> = <b>${b.score}</b></div>` : ""}
-    <div class="kawords">${st.words.map(x => `<button class="kaw ${x.ok ? "" : "bad"}" data-wid="${x.id}"><span class="jp">${esc(WORDS[x.id].jp)}</span><small>${x.ok ? "✓" : "✗"} ${x.score}</small></button>`).join("") || `<span class="kasub">No words played.</span>`}</div>
-    <p class="kasub small">${st.newWords ? `${st.newWords} new word${st.newWords > 1 ? "s" : ""} introduced · ` : ""}${st.again ? `${st.again} logged as Again · ` : ""}study time counted</p>
+    <div class="kawords">${st.words.map(x => `<button class="kaw ${x.ok ? "" : "bad"}" data-wid="${x.id}"><span class="jp">${esc(WORDS[x.id].jp)}</span><small>${x.disc ? "✨" : ""}${x.ok ? "✓" : "✗"} ${x.score}</small></button>`).join("") || `<span class="kasub">No words played.</span>`}</div>
+    <p class="kasub small">${st.disc ? `✨ ${st.disc} discover${st.disc > 1 ? "ies" : "y"} · ` : ""}${st.newWords ? `${st.newWords} new word${st.newWords > 1 ? "s" : ""} introduced · ` : ""}${st.notAdded ? `${st.notAdded} not added (daily limit) · ` : ""}${st.again ? `${st.again} logged as Again · ` : ""}study time counted</p>
     <div class="btnrow"><button class="btn kadisc" id="kaAgain">Play again</button><button class="btn kaplay" id="kaDone">Done</button></div></div>`;
   K.host.querySelectorAll("[data-wid]").forEach(x => x.onclick = () => wordModal(WORDS[+x.dataset.wid]));
   $("#kaAgain").onclick = () => go(K.again); $("#kaDone").onclick = () => go(K.back);
   if (won || best) { kaSfx.win(); setTimeout(() => kaBurst(K, $("#kaFinal"), 70), 60); }
   updateHeader();
+}
+
+/* ================= Kanaatro music: an original, generative lounge soundtrack (Web Audio, no files) =================
+   Woozy, laid-back minor-key lounge with Japanese colour: swung walking bass, felt electric-piano comping, brushed drums,
+   a detuned two-saw lead with delayed vibrato + tape drift, koto-like plucks on pentatonic / "in"-scale (miyako-bushi) runs.
+   Everything is composed on the fly from chord progressions + motif rules, so it never loops audibly.
+   Variants share one sequencer and cross-fade by ramping group gains + the master low-pass (tempo changes on the bar line):
+   normal (blinds), boss (faster, filter open, tritone drone, busier drums), shop (slow, low-passed, sparse).
+   CPU: a 100 ms look-ahead scheduler creates a handful of short-lived nodes per beat; nothing runs while muted/hidden. */
+const KM = { timer: 0, want: false, variant: "normal", pend: null, bus: null, ctx: null, step: 0, next: 0, bar: null, sec: [], secN: 0, count: 0, active: 0, prevLead: 0, gain: -1, bars: 0, lastNote: 0 };
+const KM_VAR = {
+  normal: { bpm: 82, lp: 2600, drum: 1, lead: .85, koto: .8, comp: 1, bass: 1, drone: 0 },
+  boss: { bpm: 90, lp: 5200, drum: 1.25, lead: 1, koto: .55, comp: .75, bass: 1.15, drone: .9 },
+  shop: { bpm: 70, lp: 1100, drum: .45, lead: .45, koto: 1, comp: 1.05, bass: .8, drone: 0 }
+};
+const KM_VOL = { off: 0, soft: .2, normal: .38 };
+const kmVolKey = () => S.musicVol || "soft";
+const kmF = m => 440 * Math.pow(2, (m - 69) / 12);
+/* chords: [root pitch class (D=2), intervals]; progressions are 4 bars (one chord per bar) */
+const KM_CH = { i: [2, [0, 3, 7, 10, 14]], VI: [10, [0, 4, 7, 11, 14]], iv: [7, [0, 3, 7, 10, 14]], V: [9, [0, 4, 7, 10, 13]], III: [5, [0, 4, 7, 11, 14]],
+  ii: [4, [0, 3, 6, 10]], bII: [3, [0, 4, 7, 11, 18]], VII: [0, [0, 4, 7, 10, 14]], v: [9, [0, 3, 7, 10, 14]] };
+const KM_PROG = { A: ["i", "VI", "iv", "V"], B: ["III", "ii", "V", "i"], C: ["i", "bII", "VII", "V"], D: ["iv", "VII", "III", "V"], E: ["i", "v", "bII", "i"] };
+const KM_PENTA = [2, 5, 7, 9, 0], KM_IN = [2, 3, 7, 9, 10];
+const KM_RHY = [[[0, 3], [3, 1], [4, 2], [6, 2]], [[1, 1], [2, 1], [3, 3], [6, 1], [7, 1]], [[0, 2], [2, 2], [4, 4]], [[0, 1], [1, 1], [2, 1], [3, 1], [4, 4]], [[2, 2], [5, 3]], [[0, 5], [6, 1], [7, 1]]];
+const kmPick = a => a[Math.floor(Math.random() * a.length)];
+const kmRoot = pc => 36 + ((pc - 36) % 12 + 12) % 12;   // bass root in C2..B2
+/* scale notes (midi) for a chord in the lead range */
+function kmScale(ch, lo = 60, hi = 84) {
+  const [pc, iv] = KM_CH[ch], pcs = new Set(ch === "bII" || ch === "E" ? KM_IN : ch === "V" ? [9, 1, 4, 7, 10, 2] : KM_PENTA);
+  iv.forEach(x => pcs.add((pc + x) % 12));
+  const out = []; for (let m = lo; m <= hi; m++) if (pcs.has(m % 12)) out.push(m); return out;
+}
+const kmTones = (ch, lo = 60, hi = 84) => { const [pc, iv] = KM_CH[ch], s = new Set(iv.slice(0, 4).map(x => (pc + x) % 12)); const o = []; for (let m = lo; m <= hi; m++) if (s.has(m % 12)) o.push(m); return o; };
+const kmNear = (arr, m) => arr.reduce((b, x) => Math.abs(x - m) < Math.abs(b - m) ? x : b, arr[0]);
+/* a 4-bar section: progression + melody (motif, varied repeat, new idea, cadence) or koto runs */
+function kmSection(v) {
+  const keys = v === "boss" ? ["A", "C", "E", "C", "A"] : v === "shop" ? ["B", "D", "B", "A"] : ["A", "A", "B", "C", "D", "A", "E"];
+  const pk = KM.secN < 2 ? "A" : kmPick(keys), prog = KM_PROG[pk], role = v === "shop" ? (Math.random() < .6 ? "koto" : "rest") : (KM.secN % 3 === 2 ? "koto" : "lead");
+  KM.secN++;
+  const bars = prog.map(ch => ({ ch, mel: [], koto: [] }));
+  if (role === "lead") {
+    let cur = 69 + (v === "boss" ? 5 : 0); const r0 = kmPick(KM_RHY.slice(0, 5)), r2 = kmPick(KM_RHY);
+    const gen = (bi, rhy, shift) => { const sc = kmScale(prog[bi]), tn = kmTones(prog[bi]); rhy.forEach(([pos, len]) => {
+      let i = sc.indexOf(kmNear(sc, cur)) + shift + kmPick([-2, -1, -1, 0, 1, 1, 2]); i = Math.max(0, Math.min(sc.length - 1, i)); cur = sc[i];
+      if (pos === 0 || pos === 4) cur = kmNear(tn, cur); bars[bi].mel.push([pos, len, cur]); }); };
+    gen(0, r0, 0); gen(1, r0, kmPick([-1, 1])); gen(2, r2, 0);
+    const tn = kmTones(prog[3]); bars[3].mel.push([0, 5, kmNear(tn, cur)]);
+  } else if (role === "koto") {
+    bars.forEach((b, bi) => { const sc = kmScale(b.ch, 62, 88), start = Math.floor(Math.random() * 4) * 2, dir = Math.random() < .5 ? -1 : 1;
+      let i = Math.floor(sc.length / 2) + Math.floor(Math.random() * 4); const n = bi === 3 ? 2 : 3 + Math.floor(Math.random() * 3);
+      for (let k = 0; k < n; k++) { b.koto.push([start + k * .5, sc[Math.max(0, Math.min(sc.length - 1, i))], k === n - 1]); i += dir; } });
+  }
+  return bars;
+}
+function kmBus(ctx) {
+  if (KM.bus && KM.ctx === ctx) return KM.bus;
+  const g = n => { const x = ctx.createGain(); x.gain.value = n; return x; };
+  const mix = g(1), lp = ctx.createBiquadFilter(), master = g(0), rv = ctx.createConvolver(), send = g(.22), comp = ctx.createDynamicsCompressor();
+  lp.type = "lowpass"; lp.frequency.value = KM_VAR[KM.variant].lp; lp.Q.value = .7;
+  comp.threshold.value = -14; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .25;
+  const len = Math.floor(ctx.sampleRate * 1.1), ir = ctx.createBuffer(1, len, ctx.sampleRate), d = ir.getChannelData(0); let lv = 0;
+  for (let i = 0; i < len; i++) { lv += ((Math.random() * 2 - 1) - lv) * .25; d[i] = lv * Math.pow(1 - i / len, 3); }
+  rv.buffer = ir;
+  mix.connect(lp); lp.connect(comp); lp.connect(send); send.connect(rv); rv.connect(comp); comp.connect(master); master.connect(ctx.destination);
+  const nb = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const groups = {}; for (const k of ["lead", "koto", "comp", "bass", "drum", "drone"]) { groups[k] = g(KM_VAR[KM.variant][k]); groups[k].connect(mix); }
+  KM.ctx = ctx; KM.bus = { mix, lp, master, groups, noise: nb, rv };
+  return KM.bus;
+}
+/* bookkeeping so the debug hook can show live node counts */
+const kmSrc = (n, t, end) => { KM.count++; KM.active++; n.onended = () => { KM.active--; try { n.disconnect(); } catch (e) {} }; n.start(t); n.stop(end); return n; };
+const kmWob = t => 9 * Math.sin(t * 2 * Math.PI * .37) + 4 * Math.sin(t * 2 * Math.PI * .11);   // tape drift in cents
+function kmEnv(ctx, dest, t, a, peak, d, sus, rel, end) {
+  const e = ctx.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(peak, t + a);
+  e.gain.setTargetAtTime(peak * sus, t + a, d); e.gain.setTargetAtTime(0.0001, end, rel); e.connect(dest); return e;
+}
+function kmOsc(ctx, type, f, t, end, dest, det = 0) {
+  const o = ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t);
+  o.detune.setValueAtTime(det + kmWob(t), t); o.detune.linearRampToValueAtTime(det + kmWob(end), end);
+  o.connect(dest); return kmSrc(o, t, end + .6);
+}
+function kmLead(ctx, B, m, t, dur, vol) {
+  const end = t + dur, f = kmF(m), e = kmEnv(ctx, B.groups.lead, t, .05, vol, .4, .7, .12, end);
+  const flt = ctx.createBiquadFilter(); flt.type = "lowpass"; flt.frequency.setValueAtTime(900, t); flt.frequency.linearRampToValueAtTime(1900, t + .12); flt.Q.value = 3; flt.connect(e);
+  const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.1; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(13, t + Math.min(.35, dur)); lfo.connect(lg);
+  for (const det of [-8, 7]) { const o = kmOsc(ctx, "sawtooth", f, t, end, flt, det); lg.connect(o.detune); if (KM.prevLead && Math.abs(KM.prevLead - f) / f < .4) { o.frequency.setValueAtTime(KM.prevLead, t); o.frequency.exponentialRampToValueAtTime(f, t + .06); } }
+  kmSrc(lfo, t, end + .6); KM.prevLead = f;
+}
+function kmKoto(ctx, B, m, t, vol, bend) {
+  const f = kmF(m), e = kmEnv(ctx, B.groups.koto, t, .004, vol, .18, .25, .25, t + .5);
+  const o1 = kmOsc(ctx, "triangle", f, t, t + .9, e), o2 = kmOsc(ctx, "sine", f * 2, t, t + .4, e, 3);
+  if (bend) { o1.frequency.setValueAtTime(f * .97, t); o1.frequency.exponentialRampToValueAtTime(f, t + .09); }   // oshide-style scoop
+}
+function kmBass(ctx, B, m, t, dur, vol) {
+  const end = t + dur * .92, e = kmEnv(ctx, B.groups.bass, t, .012, vol, .25, .45, .06, end);
+  kmOsc(ctx, "triangle", kmF(m), t, end, e); kmOsc(ctx, "sine", kmF(m), t, end, e, 5);
+}
+function kmComp(ctx, B, ch, t, dur, vol, pad) {
+  const [pc, iv] = KM_CH[ch], root = 50 + ((pc - 50) % 12 + 12) % 12, notes = [iv[1], iv[3] ?? iv[2], iv[4] ?? iv[2] + 12].map(x => root + x);
+  const e = kmEnv(ctx, B.groups.comp, t, pad ? .35 : .01, vol, pad ? 1.2 : .3, pad ? .8 : .35, pad ? .5 : .15, t + dur);
+  notes.forEach((m, i) => { kmOsc(ctx, pad ? "triangle" : "sine", kmF(m), t, t + dur, e, i * 3 - 3); if (!pad) kmOsc(ctx, "sine", kmF(m) * 2, t, t + dur * .5, e); });
+}
+function kmNoise(ctx, B, t, type, f, q, vol, dec) {
+  const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), e = ctx.createGain(); s.buffer = B.noise; s.playbackRate.value = .9 + Math.random() * .2;
+  fl.type = type; fl.frequency.value = f; fl.Q.value = q; e.gain.setValueAtTime(vol, t); e.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  s.connect(fl); fl.connect(e); e.connect(B.groups.drum); kmSrc(s, t + Math.random() * .004, t + dec + .02);
+}
+function kmKick(ctx, B, t, vol, f0 = 105, f1 = 44) {
+  const e = ctx.createGain(); e.gain.setValueAtTime(vol, t); e.gain.exponentialRampToValueAtTime(0.0001, t + .32); e.connect(B.groups.drum);
+  const o = ctx.createOscillator(); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + .12); o.connect(e); kmSrc(o, t, t + .34);
+}
+function kmDrone(ctx, B, ch, t, dur) {
+  const r = kmRoot(KM_CH[ch][0]) - 12, e = kmEnv(ctx, B.groups.drone, t, .6, .05, 1, 1, .4, t + dur - .2);
+  const trem = ctx.createOscillator(), tg = ctx.createGain(); trem.frequency.value = 82 / 60 * 2; tg.gain.value = .02; trem.connect(tg); tg.connect(e.gain); kmSrc(trem, t, t + dur + .8);
+  kmOsc(ctx, "sawtooth", kmF(r), t, t + dur, e, -6); kmOsc(ctx, "sawtooth", kmF(r + 6), t, t + dur, e, 6);
+}
+/* one swung 8th step */
+function kmStep(ctx, B, s, t, beat) {
+  const pos = s % 8, v = KM.variant, P = KM_VAR[v];
+  if (pos === 0) {
+    if (!KM.sec.length) KM.sec = kmSection(v);
+    KM.bar = KM.sec.shift(); KM.bars++;
+    if (v === "boss") kmDrone(ctx, B, KM.bar.ch, t, beat * 4);
+    if (v === "shop") kmComp(ctx, B, KM.bar.ch, t, beat * 3.8, .05, true);
+  }
+  const bar = KM.bar, ch = bar.ch, [pc, iv] = KM_CH[ch], root = kmRoot(pc), nextCh = (KM.sec[0] || bar).ch, nroot = kmRoot(KM_CH[nextCh][0]);
+  const ev = s % 2 === 0, len8 = ev ? beat * .62 : beat * .38;
+  // bass: walking quarters (shop: half notes; boss: pushing 8ths on beat 4)
+  if (ev) { const q = pos / 2; let m = null;
+    if (v === "shop") { if (q === 0 || q === 2) m = q ? root + 7 : root; }
+    else m = q === 0 ? root : q === 1 ? root + (Math.random() < .5 ? iv[1] : 7) : q === 2 ? (Math.random() < .5 ? root + 7 : root + 12) : nroot + (Math.random() < .5 ? 1 : -1);
+    if (m != null) kmBass(ctx, B, m, t, v === "shop" ? beat * 2 : beat, .3);
+  } else if (v === "boss" && pos === 7) kmBass(ctx, B, nroot - 1, t, beat * .38, .22);
+  // comping: felt EP on the "and" of 2 and on 4 (with a little randomness)
+  if (v !== "shop" && (pos === 3 || (pos === 6 && Math.random() < .7) || (pos === 0 && Math.random() < .25))) kmComp(ctx, B, ch, t, beat * (pos === 3 ? .9 : .6), .045, false);
+  // drums
+  if (pos === 0 || pos === 4 || (v === "boss" && pos === 7 && Math.random() < .5)) kmKick(ctx, B, t, v === "shop" ? 0 : .5);
+  if (pos === 2 || pos === 6) kmNoise(ctx, B, t, "bandpass", v === "boss" ? 2600 : 1700, v === "boss" ? 1.6 : .7, v === "boss" ? .28 : .17, v === "boss" ? .1 : .16);
+  else if (Math.random() < .12) kmNoise(ctx, B, t, "bandpass", 1500, .7, .05, .08);   // ghost brush
+  kmNoise(ctx, B, t, "highpass", 7200, .5, ev ? .07 : .045, .045);
+  if (v === "boss") kmNoise(ctx, B, t + len8 / 2, "highpass", 8000, .5, .03, .03);
+  if (v === "boss" && pos >= 6 && !KM.sec.length && KM.bars % 4 === 0) kmKick(ctx, B, t + len8 / 2, .25, 190, 120);   // tom fill into the next section
+  // lead + koto events that start in this step
+  for (const [p, l, m] of bar.mel) if (Math.floor(p) === pos) kmLead(ctx, B, m, t, l * beat * .5 * .95, .05);
+  for (const [p, m, last] of bar.koto) if (Math.floor(p) === pos) kmKoto(ctx, B, m, t + (p % 1) * len8, last ? .1 : .08, last);
+  KM.lastNote = t;
+  return len8;
+}
+function kmTick() {
+  if (sfxOff) return;
+  const ctx = KM.ctx; if (!ctx) return;
+  const B = kmBus(ctx), on = KM.want && S.sound && !(S.kaMusicMute) && kmVolKey() !== "off" && document.visibilityState !== "hidden";
+  const g = on ? KM_VOL[kmVolKey()] : 0, now = ctx.currentTime;
+  if (g !== KM.gain) { B.master.gain.cancelScheduledValues(now); B.master.gain.setValueAtTime(B.master.gain.value, now); B.master.gain.setTargetAtTime(g, now, g ? .35 : .25); KM.gain = g; KM.offAt = g ? 0 : Date.now(); }
+  if (on && ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+  if (!on) { KM.next = 0; if (!KM.want && Date.now() - KM.offAt > 1500) { clearInterval(KM.timer); KM.timer = 0; } return; }
+  if (KM.next < now) { KM.next = now + .08; KM.step = Math.ceil(KM.step / 8) * 8; }   // (re)start on a bar line
+  while (KM.next < now + .3) {
+    if (KM.step % 8 === 0 && KM.pend) { KM.variant = KM.pend; KM.pend = null; KM.sec = []; }
+    const beat = 60 / KM_VAR[KM.variant].bpm;
+    KM.next += kmStep(ctx, B, KM.step, KM.next, beat); KM.step++;
+  }
+}
+/* public API (call kmPlay from a tap so iOS lets audio start) */
+function kmMood(v) {
+  if (!KM_VAR[v]) return; const ctx = KM.ctx;
+  if (ctx && KM.bus) { const P = KM_VAR[v], now = ctx.currentTime; KM.bus.lp.frequency.setTargetAtTime(P.lp, now, .8); for (const k in KM.bus.groups) KM.bus.groups[k].gain.setTargetAtTime(P[k], now, .7); }
+  if (v !== KM.variant || KM.pend) KM.pend = v === KM.variant ? null : v;
+  KM.mood = v;
+}
+function kmPlay(v = "normal") {
+  if (sfxOff) return; let ctx; try { ctx = sfxCtx(); } catch (e) { return; }
+  kmBus(ctx); KM.want = true;
+  if (!KM.timer) { KM.variant = v; KM.pend = null; KM.sec = []; KM.secN = 0; KM.step = 0; KM.next = 0; KM.gain = -1; KM.timer = setInterval(kmTick, 100); }
+  kmMood(v); kmTick();
+}
+function kmStop() { KM.want = false; kmTick(); }
+const kmDebug = () => ({ running: !!KM.timer, want: KM.want, variant: KM.variant, pending: KM.pend, mood: KM.mood || null, bpm: KM_VAR[KM.variant].bpm, gainTarget: KM.gain,
+  master: KM.bus ? KM.bus.master.gain.value : 0, lp: KM.bus ? KM.bus.lp.frequency.value : 0, groups: KM.bus ? Object.fromEntries(Object.entries(KM.bus.groups).map(([k, g]) => [k, +g.gain.value.toFixed(3)])) : {},
+  scheduled: KM.count, active: KM.active, bars: KM.bars, ctx: KM.ctx ? KM.ctx.state : "none", t: KM.ctx ? KM.ctx.currentTime : 0 });
+document.addEventListener("visibilitychange", () => { if (KM.timer) kmTick(); });
+/* diagnostics/tests: render N seconds of a variant offline → peak / RMS (does not touch the live player) */
+async function kmRender(v = "normal", secs = 12, wav = false) {
+  const Off = window.OfflineAudioContext || window.webkitOfflineAudioContext, sr = 44100, ctx = new Off(2, sr * secs, sr);
+  const save = { bus: KM.bus, ctx: KM.ctx, variant: KM.variant, sec: KM.sec, secN: KM.secN, bar: KM.bar, bars: KM.bars, prevLead: KM.prevLead, count: KM.count, active: KM.active };
+  KM.bus = null; KM.variant = v; KM.sec = []; KM.secN = 0; const B = kmBus(ctx); B.master.gain.value = KM_VOL.normal;
+  let t = .05, s = 0; const beat = 60 / KM_VAR[v].bpm; while (t < secs - 1) { t += kmStep(ctx, B, s++, t, beat); }
+  const notes = KM.count - save.count; Object.assign(KM, save);
+  const buf = await ctx.startRendering(); let peak = 0, sum = 0, n = 0;
+  for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < d.length; i++) { const x = Math.abs(d[i]); if (x > peak) peak = x; sum += x * x; n++; } }
+  let b64 = null;
+  if (wav) {   // 16-bit stereo WAV as base64 (for listening to a sample outside the app)
+    const L = buf.getChannelData(0), Rr = buf.getChannelData(1), N = L.length, ab = new ArrayBuffer(44 + N * 4), dv = new DataView(ab), w = (o, str) => [...str].forEach((c, i) => dv.setUint8(o + i, c.charCodeAt(0)));
+    w(0, "RIFF"); dv.setUint32(4, 36 + N * 4, true); w(8, "WAVEfmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 2, true); dv.setUint32(24, sr, true); dv.setUint32(28, sr * 4, true); dv.setUint16(32, 4, true); dv.setUint16(34, 16, true); w(36, "data"); dv.setUint32(40, N * 4, true);
+    for (let i = 0; i < N; i++) { dv.setInt16(44 + i * 4, Math.max(-1, Math.min(1, L[i])) * 32767, true); dv.setInt16(46 + i * 4, Math.max(-1, Math.min(1, Rr[i])) * 32767, true); }
+    let bin = ""; const u = new Uint8Array(ab); for (let i = 0; i < u.length; i += 8192) bin += String.fromCharCode.apply(null, u.subarray(i, i + 8192)); b64 = btoa(bin);
+  }
+  return { peak: +peak.toFixed(3), rms: +Math.sqrt(sum / n).toFixed(4), notes, bars: Math.floor(s / 8), wav: b64 };
 }
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
@@ -6275,7 +6548,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "01f03c66ff46";
+const BUILD = "25d0a4209a80";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -6325,7 +6598,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { kanaatroGame, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { WORDS, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
