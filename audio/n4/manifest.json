@@ -1,6 +1,6 @@
 {
 "engine": "edge-tts 7.2.8 (Microsoft Edge online neural TTS)",
-"voice": "ja-JP-NanamiNeural",
+"voice": "ja-JP-KeitaNeural",
 "format": "MP3 mono 24 kHz ~40 kbps (Tatoeba human recordings kept as original MP3)",
 "paths": "relative to audio/",
 "level": "n4",
@@ -9707,5 +9707,5 @@
 }
 },
 "ownFiles": 1901,
-"ownBytes": 17682023
+"ownBytes": 15386423
 }
