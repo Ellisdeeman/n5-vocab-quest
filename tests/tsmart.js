@@ -23,12 +23,12 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
   if(o.grFull){const d=new Date(),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');S.newLogG={[k]:['wa','ga']};}
   localStorage.setItem('n5VocabQuest.v1',JSON.stringify(S));};
  const info=ev=>ev(()=>{const b=document.querySelector('#smartStart'),l=document.querySelector('#smartLine'),box=document.querySelector('#smartBox');const r=b.getBoundingClientRect();
-   return {plan:box.dataset.plan,btn:b.textContent.trim(),line:l.textContent.trim(),h:r.height,w:r.width,top:r.top,first:box.compareDocumentPosition(document.querySelector('#flHome'))&4,daily:!!document.querySelector('#dailyBtn'),fl:!!document.querySelector('#flHome'),sw:document.documentElement.scrollWidth,iw:innerWidth};});
+   const hq=document.querySelector('#homeQuick'); return {plan:box.dataset.plan,btn:b.textContent.trim(),line:l.textContent.trim(),h:r.height,w:r.width,top:r.top,hq:!!hq,hqAbove:!hq||(hq.compareDocumentPosition(box)&4),first:box.compareDocumentPosition(document.querySelector('#flHome'))&4,daily:!!document.querySelector('#dailyBtn'),fl:!!document.querySelector('#flHome'),sw:document.documentElement.scrollWidth,iw:innerWidth};});
  // ---- 1. due reviews (words + kanji + kana) ----
  let T=await open(seed,{words:6,due:true,kana:true,kanji:true});let I=await info(T.ev);
  ok('due: plan = reviews, button names the count',I.plan==='due'&&/Review 8 due/.test(I.btn),JSON.stringify(I));
  ok('due: line explains the mix and time',/6 words/.test(I.line)&&/1 kanji/.test(I.line)&&/1 kana/.test(I.line)&&/min/.test(I.line),I.line);
- ok('big button (≥54px, full width) at the top of Home, above the existing cards',I.h>=54&&I.w>=300&&I.top<200&&I.first&&I.daily&&I.fl,JSON.stringify(I));
+ ok('big button (≥54px, full width) below Home glance card, above the existing cards',I.h>=54&&I.w>=300&&I.hq&&I.hqAbove&&I.first&&I.daily&&I.fl,JSON.stringify(I));
  ok('fits 375px',I.sw<=I.iw);
  await T.p.screenshot({path:'/workspace/n5-game/shot-smartstart-due.png'});
  await T.p.tap('#smartStart');
