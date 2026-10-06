@@ -20,6 +20,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
   if(o.kana){localStorage.setItem('n5VocabQuest.kana.v1',JSON.stringify({cards:{'あ':{box:2,due:now-1000,ok:2,bad:0,f:{st:2,sp:null,s:3,d:5,lr:now-4*D,due:now-1000}}}}));}
   if(o.kanji){localStorage.setItem('jlptVocabQuest.kanji.v1',JSON.stringify({cards:{'一':{box:2,due:now-1000,ok:2,bad:0,l:'n5',f:{st:2,sp:null,s:3,d:5,lr:now-4*D,due:now-1000}}}}));}
   if(o.goal!=null){const d=new Date(),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');localStorage.setItem('jlptVocabQuest.time.v1',JSON.stringify({goalMin:5,goalItems:0,goalNew:0,days:{[k]:{sec:o.goal*60,items:0,newW:0}}}));}
+  if(o.grFull){const d=new Date(),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');S.newLogG={[k]:['wa','ga']};}
   localStorage.setItem('n5VocabQuest.v1',JSON.stringify(S));};
  const info=ev=>ev(()=>{const b=document.querySelector('#smartStart'),l=document.querySelector('#smartLine'),box=document.querySelector('#smartBox');const r=b.getBoundingClientRect();
    return {plan:box.dataset.plan,btn:b.textContent.trim(),line:l.textContent.trim(),h:r.height,w:r.width,top:r.top,first:box.compareDocumentPosition(document.querySelector('#flHome'))&4,daily:!!document.querySelector('#dailyBtn'),fl:!!document.querySelector('#flHome'),sw:document.documentElement.scrollWidth,iw:innerWidth};});
@@ -43,6 +44,10 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  await T.ev(()=>{const D=__N5.S().dailies.path;D.pos=1;__N5.go(__N5.home);});await T.W(400);
  I=await info(T.ev);ok('part-way: "Continue today\'s lesson"',I.plan==='new'&&/Continue today's lesson/.test(I.btn),JSON.stringify(I));
  await T.ev(()=>{const st=JSON.parse(localStorage.getItem('jlptVocabQuest.kanji.v1')||'{"cards":{}}').cards;for(const c in st)if(st[c].due<=Date.now())window.kjGradeT(c,true,{rating:4,quiet:true});const D=__N5.S().dailies.path;D.done=true;__N5.go(__N5.home);});await T.W(400);
+ I=await info(T.ev);ok('path done → new grammar comes next (after new words)',I.plan==='grammar'&&/Grammar: /.test(I.btn)&&/New grammar point 1 of/.test(I.line)&&/2 of 2 new grammar left today/.test(I.line),JSON.stringify(I));
+ await T.p.screenshot({path:'/workspace/n5-game/shot-grammar-smartstart.png'});
+ await T.p.tap('#smartStart');ok('tap → first grammar lesson',await T.until(()=>!!document.querySelector('#grLesson[data-g="wa"]')));
+ await T.ev(()=>{const S=__N5.S();S.newLogG={[__N5.todayStr()]:['wa','ga']};__N5.go(__N5.home);});await T.W(400);
  I=await info(T.ev);ok('path done + goal not met → plan = practice',I.plan==='practice'&&/Practice/.test(I.btn)&&/goal/.test(I.line),JSON.stringify(I));
  await T.p.screenshot({path:'/workspace/n5-game/shot-smartstart-practice.png'});
  await T.p.tap('#smartStart');
@@ -54,7 +59,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  I=await info(T.ev);ok('daily limits reached → does not offer new words',I.plan!=='new'||!/new word/.test(I.line),JSON.stringify(I));
  await T.ctx.close();
  // ---- 4. goal met → Kanaatro ----
- T=await open(seed,{words:6,due:false,goal:6},'dark');
+ T=await open(seed,{words:6,due:false,goal:6,grFull:true},'dark');
  await T.ev(()=>{const S=__N5.S();__N5.go(__N5.home);const D=S.dailies.path;D.done=true;__N5.go(__N5.home);});await T.W(400);
  I=await info(T.ev);ok('goal met → suggests a game of Kanaatro',I.plan==='game'&&/Kanaatro/.test(I.btn)&&/goal met/i.test(I.line),JSON.stringify(I));
  await T.p.screenshot({path:'/workspace/n5-game/shot-smartstart-game-dark.png'});

@@ -38,6 +38,17 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await tap('#qhost .choice');await check('quiz answered');
   await tap('#backBtn');if(await p.$('body.studying'))await tap('#backBtn');
   await tap('.tabbar [data-tab="review"]');await p.waitForSelector('[data-review="all"]');await check('review');
+  // grammar (batch 2): hub, lesson, each drill type before/after answering, finish card
+  await p.evaluate(()=>__N5.go(__N5.grammarHome));await p.waitForSelector('.grrow');await check('grammar hub');
+  await p.evaluate(()=>__N5.go(()=>__N5.grLesson('wa')));await p.waitForSelector('#grLesson');await check('grammar lesson');
+  await p.evaluate(()=>__N5.go(()=>__N5.grSession(['tekudasai'],'learn','Grammar',__N5.grammarHome)));await p.waitForSelector('#typein');await check('grammar conjugation');
+  for(let i=0;i<3;i++){await tap('#giveBtn');if(!i)await check('grammar conjugation answered');await tap('#nextBtn');}
+  await p.waitForSelector('#qhost .grcard[data-k="p"]');await check('grammar particle');
+  await tap('#qhost .choice');await check('grammar particle answered');await tap('#nextBtn');
+  await p.waitForSelector('#grPool');await check('grammar order');
+  await tap('#grPool .grtile');await tap('#giveBtn');await check('grammar order answered');
+  await tap('#nextBtn');await p.waitForSelector('#grFinish');await check('grammar finish');
+  await p.evaluate(()=>__N5.go(__N5.dueView));await p.waitForSelector('[data-review="all"]');
   await tap('.tabbar [data-tab="levels"]');await check('levels');
   await p.evaluate(()=>__N5.openLevel('n5'));await p.waitForTimeout(1200);await check('level N5');
   await tap('#kjOpen');await p.waitForSelector('.kjtile');await check('kanji page');

@@ -989,6 +989,44 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .foptfew{font-size:.86rem;font-weight:600;color:var(--label);background:var(--fill);border-radius:10px;padding:8px 10px;margin:4px 0 8px}
 .foptprog{height:8px;border-radius:8px;background:var(--fill2);overflow:hidden;margin:10px 0 4px}.foptprog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 .foptres{font-size:.88rem;line-height:1.45;background:var(--fill);border-radius:12px;padding:10px 12px;margin:10px 0 4px;color:var(--label)}
+/* ---------- Grammar (app20) ---------- */
+.grtile-home .ic{--c:var(--indigo);font-family:"Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",sans-serif;font-weight:700}
+.grcat{padding-left:0;padding-right:0;padding-bottom:4px;overflow:hidden}.grcat h2{padding:0 16px}
+.grrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:58px;padding:9px 14px;border-top:.5px solid var(--sep);color:var(--label);background:none}
+.grrow:active{background:var(--fill)}
+.grrow .grow{display:flex;flex-direction:column;min-width:0;flex:1}.grrow b{font-weight:600;font-size:.97rem}.grrow small{color:var(--label2);font-size:.82rem;overflow-wrap:anywhere}
+.grn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--fill);color:var(--label2);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.grst{flex:none;font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--fill);color:var(--label2)}
+.grst.st-due{background:var(--badT);color:var(--label)}.grst.st-learning{background:var(--accentT);color:var(--label)}.grst.st-known{background:var(--goodT);color:var(--label)}
+.grcredit{font-size:.8rem;text-align:center;margin:6px 8px 20px}
+.grlesson p{line-height:1.6;margin:.6em 0}.grlesson h3{margin:16px 0 6px;font-size:1rem}
+.grtitle{margin:4px 0 8px;font-size:1.3rem}
+.grpat{display:inline-block;background:var(--accentT);color:var(--label);border-radius:10px;padding:6px 12px;font-weight:600;font-size:1.05rem;margin-bottom:4px;overflow-wrap:anywhere}
+.grex{list-style:none;padding:0;margin:0}.grex li{padding:10px 0;border-top:.5px solid var(--sep)}
+.grjp{font-size:1.25rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.grkana{color:var(--label2);font-size:.92rem;margin:2px 0}
+.grsay{color:var(--accent);min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:1.05rem;vertical-align:middle;background:none}
+.grsay:active{background:var(--fill)}
+.grgo{text-align:center;margin:14px 0 6px}.grgo .btn{width:100%;max-width:420px}.grgo p{font-size:.86rem;margin:8px 4px}
+.grnav{justify-content:space-between;flex-wrap:wrap}
+.grcard .grq{font-size:clamp(1.3rem,5.6vw,1.75rem);line-height:1.5;margin:14px 0 6px;overflow-wrap:anywhere}.grcard .grq.en{font-size:1.15rem;font-weight:600}
+.grhint{font-size:.92rem;margin:2px 0 4px}.grform{font-size:1.02rem;color:var(--label2)}.grform b{color:var(--label)}
+.gblank{display:inline-block;min-width:2.4em;border-bottom:2.5px solid var(--accent);color:var(--accent);margin:0 3px;font-weight:700}
+.gblank.filled{color:var(--label);border-color:var(--good);background:var(--goodT);border-radius:6px 6px 0 0;padding:0 4px}
+.grcard .choice.jp{font-size:1.2rem}
+.choices.grlong{grid-template-columns:1fr}.choices.grlong .choice{text-align:left;padding-left:30px;font-size:1.05rem;overflow-wrap:anywhere}
+.granswer{min-height:58px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;border:2px dashed var(--sep);border-radius:14px;padding:8px;margin:12px 0 10px}
+.granswer.ok{border-style:solid;border-color:var(--good);background:var(--goodT)}.granswer.bad{border-style:solid;border-color:var(--bad);background:var(--badT)}
+.grph{font-size:.9rem}
+.grtiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:6px}
+.grtile{min-height:46px;padding:8px 14px;border-radius:12px;background:var(--card2);color:var(--label);font-size:1.15rem;border:1.5px solid var(--sep);transition:transform .12s}
+.grtile:active{transform:scale(.96)}.grtile.on{background:var(--accentT);border-color:var(--accent)}
+.grtile[disabled]:not(.on){opacity:.28}
+.grok,.grbad{color:var(--label)}
+.grsent{font-size:1.15rem;margin:6px 0 2px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+.gren{font-size:.92rem;margin-bottom:6px}.grlink{margin-top:4px}
+.grres{list-style:none;padding:0;margin:8px 0;text-align:left}.grres li{display:flex;align-items:center;gap:8px;padding:8px 2px;border-top:.5px solid var(--sep)}
+.grres .grow{flex:1;min-width:0}
+#grModal .box{max-height:86vh;overflow:auto;text-align:left}
 </style>
 </head>
 <body>
@@ -1696,8 +1734,8 @@ function srsAnswer(c, id, correct, ctx = {}, allowListen = false) {
   else r = ctx.rating || autoRating(correct, id);   // flashcards: self-graded rating
   if (r) {
     const prev = c[tr];
-    if (typeof flogAdd === "function") flogAdd(allowListen ? "w" + id + (tr === "L" ? "L" : "") : (c.l ? "j" : "k") + id, r, prev, now);   // per-review log for the optimizer
-    if (prev && prev.st === 2) revLogAdd(allowListen ? lvlOf(+id) : c.l ? "kj" + c.l : "kana", allowListen ? (tr === "L" ? "l" : "r") : c.l ? "j" : "k", r > 1);
+    if (typeof flogAdd === "function") flogAdd(allowListen ? "w" + id + (tr === "L" ? "L" : "") : c.g ? "g" + id : (c.l ? "j" : "k") + id, r, prev, now);   // per-review log for the optimizer
+    if (prev && prev.st === 2) revLogAdd(allowListen ? lvlOf(+id) : c.g ? "gram" : c.l ? "kj" + c.l : "kana", allowListen ? (tr === "L" ? "l" : "r") : c.g ? "g" : c.l ? "j" : "k", r > 1);
     if (r === 1 && tr === "f") { if (prev && prev.st === 2) c.lapses = (+c.lapses || 0) + 1; delete c.lb; }
     c[tr] = ctx.fnext && ctx.fnext[r] ? Object.assign({}, ctx.fnext[r]) : fsrsNext(prev, r, now, fCfg());   // flashcards pass the exact previewed result
     const other = tr === "f" ? c.L : c.f;   // one review per word per day: a second track that is also due waits until tomorrow
@@ -1761,7 +1799,7 @@ function schedShow(c, ctx, kind, id) {
 function nextReviewListHTML(list = SESSION_GRADED) {
   if (!list.length) return "";
   const rows = list.slice(-60).reverse().map(x => {
-    const lab = x.k === "w" ? (WORDS[x.id] ? WORDS[x.id].jp : "#" + x.id) : x.id;
+    const lab = x.k === "w" ? (WORDS[x.id] ? WORDS[x.id].jp : "#" + x.id) : x.k === "g" && typeof GR !== "undefined" && GR[x.id] ? "文 " + GR[x.id].t : x.id;
     return `<li ${x.k === "w" ? `data-wid="${x.id}"` : ""}><span class="jp">${esc(lab)}</span>${x.tr === "L" ? ` <small class="muted">🎧</small>` : ""}<span class="grow"></span><span class="rtag r${x.r}">${RATE_NAMES[x.r]}</span><span class="nrwhen">${backIn(x.due).replace("Back ", "")}</span></li>`; }).join("");
   return `<details class="nextrev" open><summary>Next reviews (${list.length})</summary><ul>${rows}</ul></details>`;
 }
@@ -2459,8 +2497,10 @@ function home() {
   ${goalPanelHTML()}
   <div class="sechead">Study</div>
   <div class="grid">
-    ${(() => { const td = totalDue(), nx = [dueScan().next, kanaDueScan().next, kjDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0];
-      return `<button class="mode duecard" data-m="due"><div class="ic">⏰</div><h3>Due Reviews ${td ? `<span class="badge">${td}</span>` : ""}</h3><p>${td ? `${td} due across levels, kanji, leeches & kana` : `Nothing due${nx != null ? ` · next ${fmtIn(nx)}` : ""}`}</p></button>`; })()}
+    ${(() => { const td = totalDue(), nx = [dueScan().next, kanaDueScan().next, kjDueScan().next, grDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0];
+      return `<button class="mode duecard" data-m="due"><div class="ic">⏰</div><h3>Due Reviews ${td ? `<span class="badge">${td}</span>` : ""}</h3><p>${td ? `${td} due across levels, kanji, kana & grammar` : `Nothing due${nx != null ? ` · next ${fmtIn(nx)}` : ""}`}</p></button>`; })()}
+    ${(() => { const gd = grDueScan().ids.length, gl = grLearned();
+      return `<button class="mode grtile-home" data-m="grammar"><div class="ic">文</div><h3>Grammar ${gd ? `<span class="badge">${gd}</span>` : ""}</h3><p>${gl ? `${gl}/${GR_DATA.length} N5 points` : `${GR_DATA.length} N5 points`} · lessons & drills</p></button>`; })()}
     <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
     <button class="mode" data-m="reverse"><div class="ic">🔄</div><h3>Reverse</h3><p>English → Japanese</p></button>
     <button class="mode" data-m="reading"><div class="ic">📖</div><h3>Reading Quiz</h3><p>Kanji → kana (${KANJI_IDS.length} words)</p></button>
@@ -2500,7 +2540,7 @@ function home() {
   bindAudioLesson();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome };
     go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
@@ -2838,6 +2878,7 @@ function settings(page = false) {
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
     ${limitRowHTML("newLim", "🚦 Daily new words limit", "Most unseen words introduced per day (all levels, every mode & game). After that: reviews only until midnight. Kana don't count; Pimsleur \"Mark lesson done\" doesn't count.", S.newLimit, NEW_PRESETS, 15)}
     ${limitRowHTML("kjLim", "🚦 Daily new kanji limit", "Kanji have their own daily limit (separate from words)", S.kjLimit, KJ_PRESETS, 10)}
+    ${limitRowHTML("grLim", "🚦 Daily new grammar limit", "New N5 grammar points per day — grammar has its own review track", S.grLimit, GR_PRESETS, 2)}
     ${backupSettingsHTML()}
     <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small danger" id="resetBtn">Reset</button></div>
     <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small danger" id="resetKana">Reset</button></div>
@@ -2852,6 +2893,7 @@ function settings(page = false) {
   };
   bindLimitRow(md, "newLim", "newLimit", 15, () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; save(); });
   bindLimitRow(md, "kjLim", "kjLimit", 10, () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; save(); });
+  bindLimitRow(md, "grLim", "grLimit", 2);
   md.querySelector("#resetBtn").onclick = () => {
     if (confirm("Really reset ALL progress (including notes)? This cannot be undone.")) { const keep = { sound: S.sound, romaji: S.romaji, speech: S.speech, autoSpeak: S.autoSpeak, newPerDay: S.newPerDay, autoAdvance: S.autoAdvance, levels: S.levels, newLimit: S.newLimit, kjLimit: S.kjLimit }; S = Object.assign(defaultState(), keep); save(); md.remove(); toast("Progress reset"); go(home); }
   };
@@ -3509,7 +3551,8 @@ function kanaDueScan(s) {
   ids.sort((a, b) => kcard(a).box - kcard(b).box || kcard(a).due - kcard(b).due);
   return { ids, next: next === Infinity ? null : next - now };
 }
-const totalDue = () => dueScan().ids.length + kanaDueScan().ids.length + kjDueScan().ids.length;
+const grDueN = () => typeof grDueScan === "function" ? grDueScan().ids.length : 0;   // grammar track (app20)
+const totalDue = () => dueScan().ids.length + kanaDueScan().ids.length + kjDueScan().ids.length + grDueN();
 function updateDueBadge() { const b = $("#dueBadge"); if (!b) return; const n = totalDue(); b.textContent = n > 999 ? "999+" : n || ""; b.style.display = n ? "" : "none"; }
 setInterval(updateDueBadge, 30e3);
 const batchOf = n => S.dueBatch === "all" || !S.dueBatch ? n : Math.min(n, +S.dueBatch);
@@ -3536,6 +3579,7 @@ function dueSections() {
   secs.leech = { icon: "🧛", name: "Leeches", r: dueScan(isLeech), kind: "v" };
   secs["kana:h"] = { icon: "あ", name: "Hiragana", r: kanaDueScan("h"), kind: "k" };
   secs["kana:k"] = { icon: "ア", name: "Katakana", r: kanaDueScan("k"), kind: "k" };
+  secs.grammar = { icon: "文", name: "Grammar", r: grDueScan(), kind: "g" };
   return secs;
 }
 let dueOpen = {};
@@ -3550,12 +3594,12 @@ async function dueView() {
   cleanup = () => clearInterval(t);
 }
 function renderDue() {
-  const secs = dueSections(), vAll = dueScan(), kAll = kanaDueScan(), jAll = kjDueScan(), total = vAll.ids.length + kAll.ids.length + jAll.ids.length;
-  const nextAll = [vAll.next, kAll.next, jAll.next].filter(x => x != null).sort((a, b) => a - b)[0];
+  const secs = dueSections(), vAll = dueScan(), kAll = kanaDueScan(), jAll = kjDueScan(), gAll = secs.grammar.r, total = vAll.ids.length + kAll.ids.length + jAll.ids.length + gAll.ids.length;
+  const nextAll = [vAll.next, kAll.next, jAll.next, gAll.next].filter(x => x != null).sort((a, b) => a - b)[0];
   const y = scrollY;
   view.innerHTML = `<div class="largetitle">Review</div><p class="subtitle"><span id="dueTotal">${total} due</span> · only items that are due — no new words</p>` + `
     <div class="hero ${total ? "" : "done"}"><div class="ic">${total ? "⏰" : "✅"}</div><div><h2>${total ? `${total} reviews due` : "All caught up!"}</h2>
-      <p>${total ? `${vAll.ids.length} words · ${jAll.ids.length} kanji · ${kAll.ids.length} kana — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
+      <p>${total ? `${vAll.ids.length} words · ${jAll.ids.length} kanji · ${kAll.ids.length} kana${gAll.ids.length || grLearned() ? ` · ${gAll.ids.length} grammar` : ""} — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
       <div class="seg dueseg" id="dueBatch">${["20", "50", "all"].map(b => `<button class="${(S.dueBatch || "all") === b ? "on" : ""}" data-b="${b}">${b === "all" ? "All" : "Batch " + b}</button>`).join("")}</div></div>
       <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button>${total ? `<button class="btn ghost small flopt" id="dueFlash">🃏 Due as flashcards</button>` : ""}</div>
     <div class="panel duepanel"><h2>Levels</h2>
@@ -3567,6 +3611,7 @@ function renderDue() {
             ${(dueSets.length ? dueSets : []).map(([k, s]) => dueRow(k, s.icon, s.name, s.r)).join("") || `<p class="muted" style="font-size:.85rem">No set in ${LNAME(l)} has due words right now.</p>`}</details>` : ""); }).join("")}
     </div>
     ${secs.pm.r.ids.length || secs.pm.r.next != null ? `<div class="panel duepanel"><h2>Pimsleur</h2>${dueRow("pm", "📼", "Pimsleur set", secs.pm.r, "words not in the JLPT lists")}</div>` : ""}
+    ${grLearned() || gAll.ids.length ? `<div class="panel duepanel"><h2>Grammar</h2>${dueRow("grammar", "文", "Grammar · N5", gAll, `${grLearned()} of ${GR_DATA.length} points learned`)}</div>` : ""}
     <div class="panel duepanel"><h2>Leeches</h2>${dueRow("leech", "🧛", "Leeches", secs.leech.r, "words you keep missing")}</div>
 `;
   scrollTo(0, y);
@@ -3591,7 +3636,7 @@ function aheadScan(key, n = 20) {
 /* nothing due: say so clearly and offer Review ahead / Practice anyway (never a silent no-op) */
 function nothingDueSheet(key, back) {
   const secs = dueSections(), s = key === "all" ? null : secs[key];
-  const nx = key === "all" ? [dueScan().next, kanaDueScan().next, kjDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0] : s && s.r.next;
+  const nx = key === "all" ? [dueScan().next, kanaDueScan().next, kjDueScan().next, grDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0] : s && s.r.next;
   const ah = aheadScan(key), nAhead = (ah.v || []).length + (ah.j || []).length + (ah.k || []).length;
   const name = key === "all" ? "anything" : s ? s.name : key;
   const lvl = /^n\d$/.test(key) ? key : key.startsWith("kanji:") ? key.slice(6) : null;
@@ -3608,6 +3653,7 @@ function nothingDueSheet(key, back) {
   if (ahead) ahead.onclick = () => { md.remove(); runItems((ah.v || []).filter(id => WORDS[id]).map(id => ({ id, mode: "mixed" })).concat((ah.j || []).filter(c => KJ[c]).map(c => ({ j: 1, id: c }))), ah.k || [], "⏰ Review ahead", back); };
   md.querySelector("#ndPractice").onclick = () => { md.remove();
     if (key.startsWith("kana")) return go(() => kanaSession("k2r"));
+    if (key === "grammar") return go(grammarHome);
     if (key.startsWith("kanji:")) { const l = key.slice(6); return go(kanjiPageFn(l)); }
     const pool = lvl && LV[lvl].loaded ? LV[lvl].ids : unlockedIds();
     go(() => quiz("mixed", pool, `🎲 Practice${lvl ? " · " + LNAME(lvl) : ""}`, back)); };
@@ -3624,16 +3670,19 @@ async function startDueReview(key, back = dueView) {
   const secs = dueSections();
   if (key === "all") {
     if (!totalDue()) return nothingDueSheet("all", back);
-    const v = dueScan().ids.filter(id => WORDS[id]).concat(kjDueScan().ids.filter(c => KJ[c]).map(c => ({ j: 1, id: c }))), k = kanaDueScan().ids;
-    if (!v.length && !k.length) { toast("Couldn't load the due items — offline? Try again when connected"); return; }
-    const kanaPart = () => k.length ? go(() => kanaDueSession(k, "⏰ Kana due reviews", back)) : go(back);
-    if (v.length) go(() => dueSession(v, "⏰ Everything due", back, k.length ? () => { toast(`Words done — now ${batchOf(k.length)} kana`); kanaPart(); } : null));
+    const v = dueScan().ids.filter(id => WORDS[id]).concat(kjDueScan().ids.filter(c => KJ[c]).map(c => ({ j: 1, id: c }))), k = kanaDueScan().ids, g = grDueScan().ids;
+    if (!v.length && !k.length && !g.length) { toast("Couldn't load the due items — offline? Try again when connected"); return; }
+    // words + kanji → kana → grammar (each part only if something is due)
+    const gramPart = () => g.length ? go(() => grSession(g, "review", "⏰ Grammar due reviews", back)) : go(back);
+    const kanaPart = () => k.length ? go(() => kanaDueSession(k, "⏰ Kana due reviews", back, g.length ? () => { toast(`Kana done — now ${batchOf(g.length)} grammar`); gramPart(); } : null)) : gramPart();
+    if (v.length) go(() => dueSession(v, "⏰ Everything due", back, k.length || g.length ? () => { toast(k.length ? `Words done — now ${batchOf(k.length)} kana` : `Words done — now ${batchOf(g.length)} grammar`); kanaPart(); } : null));
     else kanaPart();
     return;
   }
   const s = secs[key]; if (!s || !s.r.ids.length) return nothingDueSheet(key, back);
   const title = `⏰ ${s.lvl ? LNAME(s.lvl) + " · " : ""}${s.name} · due`;
   if (s.kind === "j") { const run = () => go(() => dueSession(s.r.ids.filter(c => KJ[c]).map(c => ({ j: 1, id: c })), title, back)); if (KJL[s.kl].loaded) run(); else loadKanji(s.kl).then(ok => ok ? run() : toast("Couldn't load kanji — offline?")); return; }
+  if (s.kind === "g") return go(() => grSession(s.r.ids, "review", "⏰ Grammar · due", back));
   if (s.kind === "k") go(() => kanaDueSession(s.r.ids, title, back));
   else { const ids = s.r.ids.filter(id => WORDS[id]);
     if (!ids.length) { toast(`Couldn't load ${s.lvl ? LNAME(s.lvl) : "these"} words — offline? Try again when connected`); return; }
@@ -3657,7 +3706,7 @@ function dueSession(ids, title, back, then) {
     onFinish: () => { addXP(Math.min(40, first * 2)); if (then) return then(D); dueFinishCard(D.correct, D.items.length, back, ` · ${first} due items reviewed`); }
   });
 }
-function kanaDueSession(ids, title, back) {
+function kanaDueSession(ids, title, back, then) {
   studyScreen = true;
   const items = ids.slice(0, batchOf(ids.length)).map(id => ({ id })), first = items.length, retried = new Set();
   let pos = 0, right = 0, answered = false, q = null, adv = null;
@@ -3667,7 +3716,7 @@ function kanaDueSession(ids, title, back) {
   const progress = () => { $("#sprog").style.width = (pos / items.length * 100) + "%"; $("#score").textContent = `${pos}/${items.length}`; };
   const next = () => {
     clearTimeout(adv); answered = false; progress();
-    if (pos >= items.length) { q = null; addXP(Math.min(30, first)); return dueFinishCard(right, items.length, back, ` · ${first} due kana reviewed`); }
+    if (pos >= items.length) { q = null; addXP(Math.min(30, first)); if (then) return then(); return dueFinishCard(right, items.length, back, ` · ${first} due kana reviewed`); }
     const it = KITEMS[items[pos].id], modes = ["k2r", "r2k"];
     if (canAudio()) modes.push("listen");
     if (kcard(it.id).box >= 1) modes.push("type", "type");
@@ -4607,7 +4656,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -6790,10 +6839,10 @@ function bindFopt(root) {
    (within the daily new-word / new-kanji limits)  3) [grammar / reading come in later releases]
    4) daily goal not met yet → practice of seen words  5) goal met → suggest a game of Kanaatro. */
 function smartPlan(D) {
-  const vd = dueScan().ids.length, jd = kjDueScan().ids.length, kd = kanaDueScan().ids.length, td = vd + jd + kd;
+  const vd = dueScan().ids.length, jd = kjDueScan().ids.length, kd = kanaDueScan().ids.length, gd = grDueScan().ids.length, td = vd + jd + kd + gd;
   const inLesson = D && !D.done && D.pos > 0 && D.items.length > D.pos;   // a started lesson already holds its reviews; finish it first
   if (td > 0 && !inLesson) {
-    const parts = [vd && `${vd} word${vd === 1 ? "" : "s"}`, jd && `${jd} kanji`, kd && `${kd} kana`].filter(Boolean);
+    const parts = [vd && `${vd} word${vd === 1 ? "" : "s"}`, jd && `${jd} kanji`, kd && `${kd} kana`, gd && `${gd} grammar`].filter(Boolean);
     const mins = Math.max(1, Math.round(td * 8 / 60));
     return { k: "due", label: `Review ${td} due`, line: `${parts.join(" · ")} — about ${mins} min, all tracks mixed`, run: () => startDueReview("all", home) };
   }
@@ -6804,6 +6853,11 @@ function smartPlan(D) {
       line: `${rest.length} step${rest.length === 1 ? "" : "s"}${nw ? ` · ${nw} new word${nw === 1 ? "" : "s"}` : ""}${nk ? ` · ${nk} new kanji` : ""} · ${lim}`,
       run: () => go(() => dailySession(home, "path")) };
   }
+  const gn = grWanted() && grNextNew();   // new grammar comes after today's new words, before free practice
+  if (gn && newLeftG() > 0) {
+    const lim = grLimitV() === Infinity ? "no daily limit" : `${newLeftG()} of ${grLimitV()} new grammar left today`;
+    return { k: "grammar", label: `Grammar: ${gn.t.split(" — ")[0]}`, line: `New grammar point ${gn.n} of ${GR_DATA.length} — a short lesson + drills · ${lim}`, run: () => go(() => grLesson(gn.id, home)) };
+  }
   if (!goalMet()) {
     const g = goalParts()[0];
     return { k: "practice", label: "Practice", line: `Nothing due and today's new items are done · goal ${g.have}/${g.need} ${g.label} — a mixed quiz of words you've seen`, run: () => go(dueOrPractice) };
@@ -6811,7 +6865,7 @@ function smartPlan(D) {
   const cur = pathState().cur, l = gamesFor(cur).includes("kanaatro") ? cur : (activeLevels().find(x => x !== "kana") || "n5");
   return { k: "game", label: "Play Kanaatro", line: `Daily goal met 🎉 — nothing due. Relax with a round of Kanaatro (${LNAME(l)})`, run: () => gOpen(l, "kanaatro", home) };
 }
-const SMART_IC = { due: "⏰", new: "🌱", practice: "🎯", game: "🃏" };
+const SMART_IC = { due: "⏰", new: "🌱", grammar: "文", practice: "🎯", game: "🃏" };
 function smartHTML(D) {
   if (!D) return `<div class="smartbox" id="smartBox"><button class="btn smartbtn" id="smartStart" disabled><span class="smic" aria-hidden="true">▶</span><span>Start</span></button><p class="smartline" id="smartLine">Getting today's plan ready…</p></div>`;
   const p = smartPlan(D);
@@ -6821,6 +6875,692 @@ function smartHTML(D) {
 function bindSmart(D) {
   const b = $("#smartStart"); if (!b || !D) return;
   b.onclick = () => { sfx.click(); const p = smartPlan(D); p.run(); };
+}
+/* ================= N5 grammar content (original; written for this app) =================
+   Each point: id, cat, t (title), p (pattern), l (lesson paragraphs, light HTML), ex ([japanese, kana reading, English]),
+   d (drills): {k:"p"} fill the blank ＿ by choosing (s, a, o, en) · {k:"m"} multiple choice (q, a, o, en?)
+   · {k:"c"} type a form (q = base, f = target form, a = accepted answers in kana, en) · {k:"o"} put tiles in order (t = correct
+   order, alt = other natural orders, en). Drill sentences are written in kana with spaces between phrases (beginner style).
+   Examples use only N5 vocabulary. */
+const GR_DATA = [
+/* ---------- Particles ---------- */
+{ id: "wa", cat: "Particles", t: "は — the topic", p: "X は Y です",
+  l: ["は marks the <b>topic</b> — what the sentence is about, like “As for X, …”. It is written は but pronounced <b>wa</b>.",
+      "The basic sentence is <b>X は Y です</b> = “X is Y.” When the topic is obvious from context, Japanese simply leaves it out."],
+  ex: [["私は学生です。", "わたしは がくせいです。", "I am a student."], ["田中さんは先生です。", "たなかさんは せんせいです。", "Mr./Ms. Tanaka is a teacher."], ["今日は日曜日です。", "きょうは にちようびです。", "Today is Sunday."]],
+  d: [{ k: "p", s: "わたし ＿ がくせいです。", a: "は", o: ["は", "を", "に", "で"], en: "I am a student." },
+      { k: "p", s: "きょう ＿ もくようびです。", a: "は", o: ["は", "を", "へ", "で"], en: "Today is Thursday." },
+      { k: "p", s: "これ ＿ わたしの ほんです。", a: "は", o: ["は", "を", "に", "へ"], en: "This is my book." },
+      { k: "m", q: "How is the particle は pronounced?", a: "wa", o: ["wa", "ha", "o", "e"] },
+      { k: "o", t: ["たなかさんは", "わたしの", "ともだちです"], en: "Tanaka-san is my friend." }] },
+{ id: "ga", cat: "Particles", t: "が — the subject", p: "X が ～",
+  l: ["が marks the <b>subject</b> — the one that does something or exists. It is used for new information and always after question words: <b>だれが</b> きましたか。 (Who came?)",
+      "Several N5 words take が for the thing liked, wanted or known: <b>すき・きらい・じょうず・へた・わかる・ほしい・ある</b> — ねこ<b>が</b> すきです (I like cats).",
+      "Rough feel: は points to a topic you are talking about; が picks out <i>which one</i> does or is something."],
+  ex: [["猫が好きです。", "ねこが すきです。", "I like cats."], ["誰が来ましたか。", "だれが きましたか。", "Who came?"], ["日本語が分かります。", "にほんごが わかります。", "I understand Japanese."]],
+  d: [{ k: "p", s: "わたしは いぬ ＿ すきです。", a: "が", o: ["が", "を", "で", "へ"], en: "I like dogs." },
+      { k: "p", s: "だれ ＿ きましたか。", a: "が", o: ["が", "を", "で", "へ"], en: "Who came?" },
+      { k: "p", s: "あには えいご ＿ じょうずです。", a: "が", o: ["が", "を", "に", "で"], en: "My older brother is good at English." },
+      { k: "p", s: "にほんご ＿ わかりますか。", a: "が", o: ["が", "を", "で", "へ"], en: "Do you understand Japanese?" }] },
+{ id: "wo", cat: "Particles", t: "を — the object", p: "Noun を Verb",
+  l: ["を marks the <b>direct object</b> — the thing the action is done to: パン<b>を</b> たべます (I eat bread). It is pronounced <b>o</b>.",
+      "With movement verbs, を marks the place you move <i>through</i> or leave: こうえん<b>を</b> さんぽします (walk in the park), うち<b>を</b> でます (leave home)."],
+  ex: [["パンを食べます。", "パンを たべます。", "I eat bread."], ["毎朝、新聞を読みます。", "まいあさ、しんぶんを よみます。", "I read the newspaper every morning."], ["七時に家を出ます。", "しちじに うちを でます。", "I leave home at seven."]],
+  d: [{ k: "p", s: "まいばん テレビ ＿ みます。", a: "を", o: ["を", "に", "へ", "が"], en: "I watch TV every evening." },
+      { k: "p", s: "コーヒー ＿ のみませんか。", a: "を", o: ["を", "で", "へ", "に"], en: "Would you like to drink some coffee?" },
+      { k: "p", s: "ともだちに てがみ ＿ かきました。", a: "を", o: ["を", "が", "へ", "で"], en: "I wrote a letter to my friend." },
+      { k: "o", t: ["まいあさ", "しんぶんを", "よみます"], alt: [["しんぶんを", "まいあさ", "よみます"]], en: "I read the newspaper every morning." }] },
+{ id: "ni", cat: "Particles", t: "に — time, destination, location, person", p: "Time に / Place に / Person に",
+  l: ["に points at a <b>target</b>. Four N5 uses:",
+      "• <b>A specific time</b>: しちじ<b>に</b> おきます. Used with clock times, dates and days of the week — but not with きょう, あした, まいにち.<br>• <b>Destination</b>: がっこう<b>に</b> いきます.<br>• <b>Where something is</b> (with ある／いる): へや<b>に</b> ねこが います.<br>• <b>The person</b> you meet, give to or phone: ともだち<b>に</b> あいます."],
+  ex: [["六時に起きます。", "ろくじに おきます。", "I get up at six."], ["来年、日本に行きます。", "らいねん、にほんに いきます。", "I'm going to Japan next year."], ["机の上に本があります。", "つくえの うえに ほんが あります。", "There is a book on the desk."]],
+  d: [{ k: "p", s: "まいあさ しちじ ＿ おきます。", a: "に", o: ["に", "で", "を", "と"], en: "I get up at seven every morning." },
+      { k: "p", s: "こうえんの まえ ＿ ぎんこうが あります。", a: "に", o: ["に", "で", "を", "へ"], en: "There's a bank in front of the park." },
+      { k: "p", s: "きのう ともだち ＿ あいました。", a: "に", o: ["に", "を", "で", "が"], en: "I met a friend yesterday." },
+      { k: "p", s: "らいしゅう おおさか ＿ いきます。", a: "に", o: ["に", "で", "を", "が"], en: "I'm going to Osaka next week." }] },
+{ id: "de", cat: "Particles", t: "で — place of action, means", p: "Place で Verb / Tool で Verb",
+  l: ["で marks <b>where an action happens</b>: としょかん<b>で</b> べんきょうします (I study at the library).",
+      "It also marks <b>how / with what</b>: バス<b>で</b> いきます (by bus), はし<b>で</b> たべます (with chopsticks), にほんご<b>で</b> はなします (in Japanese).",
+      "Compare: へや<b>に</b> います (being somewhere → に) but へや<b>で</b> べんきょうします (doing something somewhere → で)."],
+  ex: [["図書館で勉強します。", "としょかんで べんきょうします。", "I study at the library."], ["バスで学校へ行きます。", "バスで がっこうへ いきます。", "I go to school by bus."], ["日本語で話しましょう。", "にほんごで はなしましょう。", "Let's talk in Japanese."]],
+  d: [{ k: "p", s: "レストラン ＿ ばんごはんを たべました。", a: "で", o: ["で", "に", "を", "が"], en: "I ate dinner at a restaurant." },
+      { k: "p", s: "でんしゃ ＿ かいしゃに いきます。", a: "で", o: ["で", "を", "に", "が"], en: "I go to the office by train." },
+      { k: "p", s: "えんぴつ ＿ なまえを かいて ください。", a: "で", o: ["で", "に", "を", "が"], en: "Please write your name in pencil." },
+      { k: "p", s: "こうえん ＿ こどもが あそんで います。", a: "で", o: ["で", "に", "を", "へ"], en: "Children are playing in the park." }] },
+{ id: "he", cat: "Particles", t: "へ — direction", p: "Place へ いく／くる／かえる",
+  l: ["へ marks the <b>direction</b> of movement and is pronounced <b>e</b>. It goes with いく, くる and かえる.",
+      "For destinations へ and に are usually interchangeable: がっこう<b>へ</b>／がっこう<b>に</b> いきます. But only に is used for times and for where something is."],
+  ex: [["明日、京都へ行きます。", "あした、きょうとへ いきます。", "I'll go to Kyoto tomorrow."], ["何時に家へ帰りますか。", "なんじに うちへ かえりますか。", "What time do you go home?"]],
+  d: [{ k: "p", s: "らいげつ アメリカ ＿ いきます。", a: "へ", o: ["へ", "を", "で", "が"], en: "I'm going to America next month." },
+      { k: "p", s: "なんじに うち ＿ かえりますか。", a: "へ", o: ["へ", "で", "を", "が"], en: "What time will you go home?" },
+      { k: "m", q: "How is the particle へ pronounced?", a: "e", o: ["e", "he", "ni", "wa"] },
+      { k: "p", s: "しちじ ＿ うちを でます。", a: "に", o: ["に", "へ", "を", "が"], en: "I leave home at seven. (time → に, never へ)" }] },
+{ id: "to", cat: "Particles", t: "と — and / with", p: "A と B · Person と",
+  l: ["と has two jobs:",
+      "• <b>“and”</b> between nouns, naming <i>all</i> the items: パン<b>と</b> たまご (bread and eggs).<br>• <b>“with”</b> a person: ともだち<b>と</b> えいがを みます. Add いっしょに for “together”: かぞく<b>と</b> いっしょに.",
+      "と joins nouns only — it never joins verbs or whole sentences."],
+  ex: [["パンと卵を食べました。", "パンと たまごを たべました。", "I ate bread and eggs."], ["友達と映画を見ます。", "ともだちと えいがを みます。", "I'll watch a movie with a friend."], ["家族と一緒に住んでいます。", "かぞくと いっしょに すんで います。", "I live with my family."]],
+  d: [{ k: "p", s: "ペン ＿ ノートを かいました。", a: "と", o: ["と", "を", "が", "へ"], en: "I bought a pen and a notebook." },
+      { k: "p", s: "にちようびに ともだち ＿ えいがを みました。", a: "と", o: ["と", "を", "で", "へ"], en: "I watched a movie with a friend on Sunday." },
+      { k: "o", t: ["かぞくと", "いっしょに", "ごはんを", "たべます"], alt: [["ごはんを", "かぞくと", "いっしょに", "たべます"]], en: "I eat with my family." }] },
+{ id: "mo", cat: "Particles", t: "も — also, too", p: "X も ～",
+  l: ["も means <b>“too / also”</b>. It <b>replaces</b> は, が and を — never write はも or をも: わたし<b>も</b> がくせいです (I'm a student too).",
+      "With other particles, も is added after them: ここ<b>にも</b> (here too), ともだち<b>とも</b> (with a friend too).",
+      "<b>A も B も</b> = “both A and B”; with a negative verb, “neither … nor …” / “not … either”: わたし<b>も</b> いきません (I'm not going either)."],
+  ex: [["私も学生です。", "わたしも がくせいです。", "I'm a student too."], ["肉も魚も好きです。", "にくも さかなも すきです。", "I like both meat and fish."], ["弟もテレビを見ません。", "おとうとも テレビを みません。", "My younger brother doesn't watch TV either."]],
+  d: [{ k: "p", s: "たなかさんは がくせいです。わたし ＿ がくせいです。", a: "も", o: ["も", "を", "に", "で"], en: "Tanaka-san is a student. I'm a student too." },
+      { k: "p", s: "にくも さかな ＿ たべます。", a: "も", o: ["も", "で", "へ", "に"], en: "I eat both meat and fish." },
+      { k: "m", q: "“I drink coffee too.”", a: "コーヒーも のみます。", o: ["コーヒーも のみます。", "コーヒーをも のみます。", "コーヒーもを のみます。", "コーヒーにも のみます。"] }] },
+{ id: "no", cat: "Particles", t: "の — of, ’s", p: "A の B",
+  l: ["の links two nouns: <b>A の B</b> = “A's B” or “B of / for / about A”. The main noun is the <b>second</b> one: わたし<b>の</b> ほん (my book), にほんご<b>の</b> せんせい (a Japanese teacher), つくえ<b>の</b> うえ (the top of the desk).",
+      "If the second noun is clear, it can be dropped: これは わたし<b>の</b>です (This is mine)."],
+  ex: [["これは私の傘です。", "これは わたしの かさです。", "This is my umbrella."], ["日本語の先生はとても面白いです。", "にほんごの せんせいは とても おもしろいです。", "The Japanese teacher is really interesting."], ["その本は友達のです。", "その ほんは ともだちのです。", "That book is my friend's."]],
+  d: [{ k: "p", s: "これは わたし ＿ かばんです。", a: "の", o: ["の", "と", "を", "で"], en: "This is my bag." },
+      { k: "p", s: "にほんご ＿ ほんを かいました。", a: "の", o: ["の", "を", "が", "へ"], en: "I bought a Japanese book." },
+      { k: "p", s: "ねこは つくえ ＿ したに います。", a: "の", o: ["の", "に", "で", "を"], en: "The cat is under the desk." },
+      { k: "o", t: ["それは", "ともだちの", "かさです"], en: "That is my friend's umbrella." }] },
+{ id: "ka", cat: "Particles", t: "か — questions, “or”", p: "～か。 / A か B",
+  l: ["Put か at the end of a sentence to make a <b>question</b> — the word order does not change: がくせいです → がくせいです<b>か</b>. A written question usually ends with か。 rather than a question mark.",
+      "Between nouns, か means <b>“or”</b>: コーヒー<b>か</b> こうちゃ.",
+      "Short answers: はい、そうです／いいえ、ちがいます (to “Is it X?”) and はい、たべます／いいえ、たべません (to verb questions)."],
+  ex: [["あなたは学生ですか。", "あなたは がくせいですか。", "Are you a student?"], ["これは何ですか。", "これは なんですか。", "What is this?"], ["コーヒーか紅茶を飲みます。", "コーヒーか こうちゃを のみます。", "I'll drink coffee or black tea."]],
+  d: [{ k: "p", s: "これは なんです ＿。", a: "か", o: ["か", "よ", "ね", "の"], en: "What is this?" },
+      { k: "p", s: "あしたは バス ＿ でんしゃで いきます。", a: "か", o: ["か", "を", "が", "は"], en: "Tomorrow I'll go by bus or train." },
+      { k: "m", q: "あなたは せんせいですか。 — “No, I'm not.”", a: "いいえ、ちがいます。", o: ["いいえ、ちがいます。", "はい、そうです。", "いいえ、そうです。", "はい、ちがいます。"] }] },
+{ id: "yone", cat: "Particles", t: "よ・ね — sentence endings", p: "～よ。 / ～ね。",
+  l: ["These endings add feeling:",
+      "• <b>よ</b> tells the listener something new or stresses it — “…, you know!”: この みせ、やすいです<b>よ</b>.<br>• <b>ね</b> looks for or shows agreement — “…, isn't it? / right?”: きょうは さむいです<b>ね</b>.<br>• <b>よね</b> = “…, right?” when you are fairly sure."],
+  ex: [["今日は暑いですね。", "きょうは あついですね。", "It's hot today, isn't it?"], ["あの店は安いですよ。", "あの みせは やすいですよ。", "That shop is cheap, you know."], ["明日はテストですよね。", "あしたは テストですよね。", "Tomorrow's the test, right?"]],
+  d: [{ k: "p", s: "A：きょうは いい てんきです ＿。　B：ええ、そうですね。", a: "ね", o: ["ね", "よ", "か", "を"], en: "A: Nice weather today, isn't it? B: Yes, it is." },
+      { k: "p", s: "（telling a friend the news）あした テストが あります ＿。", a: "よ", o: ["よ", "ね", "か", "を"], en: "There's a test tomorrow, you know!" },
+      { k: "m", q: "You want your friend to agree that the movie was fun. Which fits?", a: "たのしかったですね。", o: ["たのしかったですね。", "たのしかったですよ。", "たのしかったですか。"] }] },
+{ id: "ya", cat: "Particles", t: "や — and (among others)", p: "A や B（など）",
+  l: ["や lists <b>examples</b>: “A, B and so on”. Unlike と, the list is not complete. It is often closed with など (etc.): ほん<b>や</b> ペン<b>など</b>."],
+  ex: [["机の上に本やペンがあります。", "つくえの うえに ほんや ペンが あります。", "There are books, pens and so on on the desk."], ["パンや卵などを買いました。", "パンや たまごなどを かいました。", "I bought bread, eggs and other things."]],
+  d: [{ k: "p", s: "かばんの なかに ほん ＿ ノートなどが あります。", a: "や", o: ["や", "を", "で", "に"], en: "In the bag there are books, notebooks and so on." },
+      { k: "m", q: "Which says the list is complete (only these two things)?", a: "パンと たまご", o: ["パンと たまご", "パンや たまご"] }] },
+{ id: "kara", cat: "Particles", t: "から・まで — from, until", p: "A から B まで",
+  l: ["<b>から</b> = “from” (starting point) and <b>まで</b> = “until / as far as” (end point). Both work for time and place: くじ<b>から</b> ごじ<b>まで</b>, うち<b>から</b> えき<b>まで</b>.",
+      "They can end a sentence with です: ぎんこうは さんじ<b>まで</b>です (The bank is open until three)."],
+  ex: [["仕事は九時から五時までです。", "しごとは くじから ごじまでです。", "I work from nine to five."], ["家から駅まで歩きます。", "うちから えきまで あるきます。", "I walk from home to the station."]],
+  d: [{ k: "p", s: "ぎんこうは くじ ＿ さんじまでです。", a: "から", o: ["から", "まで", "に", "で"], en: "The bank is open from nine to three." },
+      { k: "p", s: "えきから がっこう ＿ あるきます。", a: "まで", o: ["まで", "から", "が", "は"], en: "I walk from the station to school." },
+      { k: "o", t: ["うちから", "えきまで", "じてんしゃで", "いきます"], alt: [["じてんしゃで", "うちから", "えきまで", "いきます"]], en: "I go from home to the station by bicycle." }] },
+/* ---------- Nouns & です ---------- */
+{ id: "desu", cat: "Nouns & です", t: "です・ではありません", p: "N です / N ではありません",
+  l: ["<b>です</b> is the polite “is / am / are” after a noun: がくせい<b>です</b>.",
+      "Negative: <b>ではありません</b>. In everyday speech you will also hear <b>じゃありません</b> and <b>じゃないです</b> — all mean “is not”."],
+  ex: [["私は日本人ではありません。", "わたしは にほんじんでは ありません。", "I am not Japanese."], ["今日は休みです。", "きょうは やすみです。", "Today is a day off."], ["あれは銀行じゃありません。", "あれは ぎんこうじゃ ありません。", "That over there is not a bank."]],
+  d: [{ k: "c", q: "がくせいです", f: "negative (polite)", a: ["がくせいではありません", "がくせいじゃありません", "がくせいじゃないです", "がくせいではないです"], en: "is not a student" },
+      { k: "c", q: "やすみです", f: "negative (polite)", a: ["やすみではありません", "やすみじゃありません", "やすみじゃないです", "やすみではないです"], en: "is not a day off" },
+      { k: "m", q: "“That over there is not a hospital.”", a: "あれは びょういんでは ありません。", o: ["あれは びょういんでは ありません。", "あれは びょういんです。", "あれは びょういんでした。", "あれは びょういんでは ありました。"] }] },
+{ id: "deshita", cat: "Nouns & です", t: "でした — was / was not", p: "N でした / N ではありませんでした",
+  l: ["The past of です is <b>でした</b> (“was”). The past negative is <b>ではありませんでした</b> (or じゃありませんでした) — “was not”."],
+  ex: [["昨日は雨でした。", "きのうは あめでした。", "It was rainy yesterday."], ["先週は休みじゃありませんでした。", "せんしゅうは やすみじゃ ありませんでした。", "Last week was not a holiday."]],
+  d: [{ k: "c", q: "あめです", f: "past (polite)", a: ["あめでした"], en: "was rain(y)" },
+      { k: "c", q: "やすみです", f: "past negative (polite)", a: ["やすみではありませんでした", "やすみじゃありませんでした", "やすみじゃなかったです", "やすみではなかったです"], en: "was not a day off" },
+      { k: "p", s: "きのうは にちようび ＿。", a: "でした", o: ["でした", "です", "ではありません", "でしょう"], en: "Yesterday was Sunday." }] },
+{ id: "da", cat: "Nouns & です", t: "だ — plain “is”", p: "N だ / じゃない / だった / じゃなかった",
+  l: ["<b>だ</b> is the plain (casual) form of です, used with friends and family and inside longer plain sentences.",
+      "Forms: <b>だ</b> (is), <b>じゃない</b> (isn't), <b>だった</b> (was), <b>じゃなかった</b> (wasn't). In casual questions だ is dropped: がくせい？"],
+  ex: [["今日は休みだ。", "きょうは やすみだ。", "Today's a day off."], ["あの人は先生じゃない。", "あの ひとは せんせいじゃ ない。", "That person isn't a teacher."], ["昨日は雨だった。", "きのうは あめだった。", "It was rainy yesterday."]],
+  d: [{ k: "c", q: "がくせいです", f: "plain (casual)", a: ["がくせいだ"], en: "is a student" },
+      { k: "c", q: "あめでした", f: "plain past", a: ["あめだった"], en: "was rain(y)" },
+      { k: "c", q: "せんせいではありません", f: "plain negative", a: ["せんせいじゃない", "せんせいではない"], en: "is not a teacher" }] },
+/* ---------- Polite verbs ---------- */
+{ id: "masu", cat: "Polite verbs", t: "～ます — polite verbs", p: "V-ます",
+  l: ["Polite verbs end in <b>ます</b>. The same form covers habits and the future: まいにち コーヒーを のみ<b>ます</b> (I drink coffee every day), あした いき<b>ます</b> (I'll go tomorrow).",
+      "The verb comes at the <b>end</b> of a Japanese sentence; time words usually come near the start."],
+  ex: [["毎日日本語を勉強します。", "まいにち にほんごを べんきょうします。", "I study Japanese every day."], ["明日、友達が来ます。", "あした、ともだちが きます。", "My friend is coming tomorrow."], ["夜十一時に寝ます。", "よる じゅういちじに ねます。", "I go to bed at eleven at night."]],
+  d: [{ k: "c", q: "たべる", f: "polite (ます)", a: ["たべます"], en: "eat" },
+      { k: "c", q: "いく", f: "polite (ます)", a: ["いきます"], en: "go" },
+      { k: "c", q: "する", f: "polite (ます)", a: ["します"], en: "do" },
+      { k: "o", t: ["わたしは", "まいにち", "コーヒーを", "のみます"], alt: [["まいにち", "わたしは", "コーヒーを", "のみます"], ["わたしは", "コーヒーを", "まいにち", "のみます"]], en: "I drink coffee every day." }] },
+{ id: "masen", cat: "Polite verbs", t: "～ません — don't / won't", p: "V-ません",
+  l: ["For the polite negative, change ます to <b>ません</b>: のみます → のみ<b>ません</b> (don't / won't drink).",
+      "Handy with frequency words: <b>あまり</b> ～ません (not much), <b>ぜんぜん</b> ～ません (not at all)."],
+  ex: [["私はお酒を飲みません。", "わたしは おさけを のみません。", "I don't drink alcohol."], ["あまりテレビを見ません。", "あまり テレビを みません。", "I don't watch TV much."]],
+  d: [{ k: "c", q: "のみます", f: "negative (polite)", a: ["のみません"], en: "don't drink" },
+      { k: "c", q: "きます (come)", f: "negative (polite)", a: ["きません"], en: "don't come" },
+      { k: "c", q: "わかります", f: "negative (polite)", a: ["わかりません"], en: "don't understand" },
+      { k: "m", q: "“I don't eat meat much.”", a: "にくは あまり たべません。", o: ["にくは あまり たべません。", "にくは あまり たべます。", "にくは とても たべません。"] }] },
+{ id: "mashita", cat: "Polite verbs", t: "～ました・～ませんでした — past", p: "V-ました / V-ませんでした",
+  l: ["Polite past: <b>ました</b> (did). Polite past negative: <b>ませんでした</b> (didn't): きのう えいがを み<b>ました</b>／み<b>ませんでした</b>."],
+  ex: [["昨日、映画を見ました。", "きのう、えいがを みました。", "I watched a movie yesterday."], ["今朝は朝ご飯を食べませんでした。", "けさは あさごはんを たべませんでした。", "I didn't eat breakfast this morning."]],
+  d: [{ k: "c", q: "かいます", f: "past (polite)", a: ["かいました"], en: "bought" },
+      { k: "c", q: "いきます", f: "past negative (polite)", a: ["いきませんでした"], en: "didn't go" },
+      { k: "c", q: "べんきょうします", f: "past (polite)", a: ["べんきょうしました"], en: "studied" },
+      { k: "o", t: ["きのう", "デパートで", "くつを", "かいました"], alt: [["デパートで", "きのう", "くつを", "かいました"]], en: "I bought shoes at the department store yesterday." }] },
+{ id: "mashou", cat: "Polite verbs", t: "～ませんか・～ましょう・～ましょうか", p: "V-ませんか / V-ましょう / V-ましょうか",
+  l: ["<b>～ませんか</b> invites politely — “Won't you…? / Would you like to…?”: いっしょに えいがを み<b>ませんか</b>.",
+      "<b>～ましょう</b> = “Let's…”, and it is the natural reply to an invitation: ええ、み<b>ましょう</b>.",
+      "<b>～ましょうか</b> = “Shall I / shall we…?” — offering help or suggesting: まどを あけ<b>ましょうか</b>."],
+  ex: [["一緒に昼ご飯を食べませんか。", "いっしょに ひるごはんを たべませんか。", "Would you like to have lunch together?"], ["ええ、食べましょう。", "ええ、たべましょう。", "Sure, let's eat."], ["窓を開けましょうか。", "まどを あけましょうか。", "Shall I open the window?"]],
+  d: [{ k: "c", q: "のみます", f: "let's (ましょう)", a: ["のみましょう"], en: "let's drink" },
+      { k: "c", q: "いきます", f: "invitation (ませんか)", a: ["いきませんか"], en: "won't you go?" },
+      { k: "m", q: "Offer help: “Shall I carry your bag?”", a: "かばんを もちましょうか。", o: ["かばんを もちましょうか。", "かばんを もちませんか。", "かばんを もちました。"] }] },
+/* ---------- Plain verb forms ---------- */
+{ id: "dict", cat: "Plain verb forms", t: "Verb groups & dictionary form", p: "V (dictionary form)",
+  l: ["The <b>dictionary form</b> is the plain present: たべる, のむ, する. Verbs fall into three groups:",
+      "• <b>Group 1 (u-verbs)</b>: most verbs — every ending except -iru / -eru (かう, かく, およぐ, はなす, まつ, あそぶ, よむ), plus a few -iru / -eru exceptions. ます-form: -u → -i + ます: かく → か<b>き</b>ます.<br>• <b>Group 2 (ru-verbs)</b>: end in -iru / -eru; drop る: たべる → たべます, みる → みます. Exceptions that look like Group 2 but are Group 1: かえる (go home), はいる, はしる, しる — かえる → かえります.<br>• <b>Group 3 (irregular)</b>: する → します, くる → きます."],
+  ex: [["毎日、本を読む。", "まいにち、ほんを よむ。", "I read books every day. (casual)"], ["明日、学校に行く。", "あした、がっこうに いく。", "I'm going to school tomorrow. (casual)"]],
+  d: [{ k: "c", q: "よみます", f: "dictionary form", a: ["よむ"], en: "read" },
+      { k: "c", q: "おきます", f: "dictionary form", a: ["おきる"], en: "get up" },
+      { k: "c", q: "かえります (go home)", f: "dictionary form", a: ["かえる"], en: "go home" },
+      { k: "c", q: "きます (come)", f: "dictionary form", a: ["くる"], en: "come" },
+      { k: "c", q: "べんきょうします", f: "dictionary form", a: ["べんきょうする"], en: "study" },
+      { k: "m", q: "Which verb is Group 2 (a ru-verb)?", a: "たべる", o: ["たべる", "かえる", "はいる", "のむ"] }] },
+{ id: "nai", cat: "Plain verb forms", t: "～ない — plain negative", p: "V-ない",
+  l: ["Plain negative (<b>ない-form</b>):",
+      "• Group 1: -u → <b>-a + ない</b>: かく → か<b>か</b>ない, のむ → の<b>ま</b>ない. Verbs ending in う use わ: かう → か<b>わ</b>ない.<br>• Group 2: drop る + ない: たべる → たべない.<br>• Irregular: する → <b>しない</b>, くる → <b>こない</b>. Special: ある → <b>ない</b>."],
+  ex: [["今日は学校に行かない。", "きょうは がっこうに いかない。", "I'm not going to school today."], ["肉を食べない。", "にくを たべない。", "I don't eat meat."]],
+  d: [{ k: "c", q: "のむ", f: "ない-form", a: ["のまない"], en: "not drink" },
+      { k: "c", q: "かう", f: "ない-form", a: ["かわない"], en: "not buy" },
+      { k: "c", q: "みる", f: "ない-form", a: ["みない"], en: "not see" },
+      { k: "c", q: "くる", f: "ない-form", a: ["こない"], en: "not come" },
+      { k: "c", q: "ある", f: "ない-form", a: ["ない"], en: "there isn't" },
+      { k: "c", q: "はなす", f: "ない-form", a: ["はなさない"], en: "not speak" }] },
+{ id: "te", cat: "Plain verb forms", t: "The て-form", p: "V-て",
+  l: ["The <b>て-form</b> links actions and builds many patterns. Group 2: drop る + て (たべ<b>て</b>). Irregular: する → <b>して</b>, くる → <b>きて</b>. Group 1 depends on the last kana:",
+      "• う・つ・る → <b>って</b>: かう → かって, まつ → まって, かえる → かえって<br>• む・ぶ・ぬ → <b>んで</b>: のむ → のんで, あそぶ → あそんで<br>• く → <b>いて</b> (かく → かいて); ぐ → <b>いで</b> (およぐ → およいで)<br>• す → <b>して</b>: はなす → はなして<br>• Exception: いく → <b>いって</b>",
+      "Joining actions in order: あさ おきて、かおを あらって、がっこうへ いきます。"],
+  ex: [["朝起きて、顔を洗います。", "あさ おきて、かおを あらいます。", "I get up in the morning and wash my face."], ["デパートへ行って、靴を買いました。", "デパートへ いって、くつを かいました。", "I went to the department store and bought shoes."]],
+  d: [{ k: "c", q: "かう", f: "て-form", a: ["かって"], en: "buy" },
+      { k: "c", q: "のむ", f: "て-form", a: ["のんで"], en: "drink" },
+      { k: "c", q: "かく", f: "て-form", a: ["かいて"], en: "write" },
+      { k: "c", q: "いく", f: "て-form", a: ["いって"], en: "go" },
+      { k: "c", q: "はなす", f: "て-form", a: ["はなして"], en: "speak" },
+      { k: "c", q: "およぐ", f: "て-form", a: ["およいで"], en: "swim" },
+      { k: "c", q: "くる", f: "て-form", a: ["きて"], en: "come" },
+      { k: "o", t: ["うちへ", "かえって", "しゅくだいを", "しました"], en: "I went home and did my homework." }] },
+{ id: "ta", cat: "Plain verb forms", t: "～た — plain past", p: "V-た / V-なかった",
+  l: ["The plain past (<b>た-form</b>) is made exactly like the て-form, with た／だ instead of て／で: たべて → たべ<b>た</b>, のんで → のん<b>だ</b>, いって → いっ<b>た</b>.",
+      "Plain past negative: ない → <b>なかった</b>: たべなかった (didn't eat)."],
+  ex: [["昨日、新しい靴を買った。", "きのう、あたらしい くつを かった。", "I bought new shoes yesterday."], ["今朝、新聞を読まなかった。", "けさ、しんぶんを よまなかった。", "I didn't read the newspaper this morning."]],
+  d: [{ k: "c", q: "たべる", f: "た-form (plain past)", a: ["たべた"], en: "ate" },
+      { k: "c", q: "のむ", f: "た-form (plain past)", a: ["のんだ"], en: "drank" },
+      { k: "c", q: "いく", f: "た-form (plain past)", a: ["いった"], en: "went" },
+      { k: "c", q: "かく", f: "た-form (plain past)", a: ["かいた"], en: "wrote" },
+      { k: "c", q: "みる", f: "plain past negative", a: ["みなかった"], en: "didn't see" },
+      { k: "c", q: "する", f: "た-form (plain past)", a: ["した"], en: "did" }] },
+/* ---------- Using the て-form ---------- */
+{ id: "tekudasai", cat: "Using the て-form", t: "～てください — please do", p: "V-て ください / N を ください",
+  l: ["<b>て-form + ください</b> makes a polite request — “Please (do)…”: ここに なまえを かい<b>て ください</b>.",
+      "For things, use <b>Noun を ください</b>: みずを ください (Water, please)."],
+  ex: [["ちょっと待ってください。", "ちょっと まって ください。", "Please wait a moment."], ["このペンを使ってください。", "この ペンを つかって ください。", "Please use this pen."], ["水をください。", "みずを ください。", "Water, please."]],
+  d: [{ k: "c", q: "まつ", f: "please… (てください)", a: ["まってください"], en: "please wait" },
+      { k: "c", q: "みる", f: "please… (てください)", a: ["みてください"], en: "please look" },
+      { k: "c", q: "すわる", f: "please… (てください)", a: ["すわってください"], en: "please sit" },
+      { k: "p", s: "その ノート ＿ ください。", a: "を", o: ["を", "が", "で", "に"], en: "That notebook, please." },
+      { k: "o", t: ["ここに", "なまえを", "かいて", "ください"], alt: [["なまえを", "ここに", "かいて", "ください"]], en: "Please write your name here." }] },
+{ id: "naide", cat: "Using the て-form", t: "～ないでください — please don't", p: "V-ないで ください",
+  l: ["<b>ない-form + で ください</b> = “Please don't…”: ここで しゃしんを とら<b>ないで ください</b>."],
+  ex: [["ここで写真を撮らないでください。", "ここで しゃしんを とらないで ください。", "Please don't take photos here."], ["窓を開けないでください。", "まどを あけないで ください。", "Please don't open the window."]],
+  d: [{ k: "c", q: "たべる", f: "please don't (ないでください)", a: ["たべないでください"], en: "please don't eat" },
+      { k: "c", q: "いく", f: "please don't (ないでください)", a: ["いかないでください"], en: "please don't go" },
+      { k: "c", q: "わすれる", f: "please don't (ないでください)", a: ["わすれないでください"], en: "please don't forget" },
+      { k: "m", q: "“Please don't run here.”", a: "ここで はしらないで ください。", o: ["ここで はしらないで ください。", "ここで はしって ください。", "ここで はしらなくて ください。"] }] },
+{ id: "teiru", cat: "Using the て-form", t: "～ています — doing / state", p: "V-て います",
+  l: ["<b>て-form + います</b> describes:",
+      "• An action <b>in progress</b>: いま テレビを み<b>て います</b> (I'm watching TV now).<br>• A <b>regular activity</b> or job: ぎんこうで はたらい<b>て います</b> (I work at a bank).<br>• A <b>resulting state</b> with verbs like すむ, しる, もつ, けっこんする: とうきょうに すん<b>で います</b> (I live in Tokyo).",
+      "In casual speech the い often drops: みてる."],
+  ex: [["今、雨が降っています。", "いま、あめが ふって います。", "It's raining now."], ["姉は銀行で働いています。", "あねは ぎんこうで はたらいて います。", "My older sister works at a bank."], ["東京に住んでいます。", "とうきょうに すんで います。", "I live in Tokyo."]],
+  d: [{ k: "c", q: "よむ", f: "is …ing (ています)", a: ["よんでいます"], en: "is reading" },
+      { k: "c", q: "まつ", f: "is …ing (ています)", a: ["まっています"], en: "is waiting" },
+      { k: "c", q: "はたらく", f: "is …ing (ています)", a: ["はたらいています"], en: "is working" },
+      { k: "m", q: "“I live in Osaka.” Which is natural?", a: "おおさかに すんで います。", o: ["おおさかに すんで います。", "おおさかに すみます。", "おおさかで すんで います。"] }] },
+{ id: "temoii", cat: "Using the て-form", t: "～てもいいです — may", p: "V-ても いいです（か）",
+  l: ["<b>て-form + も いいです</b> = “It's OK to… / You may…”. As a question it asks permission: しゃしんを とっ<b>ても いいですか</b> (May I take a photo?).",
+      "Answers: ええ、いいですよ (Sure) or すみません、ちょっと… (a polite no)."],
+  ex: [["ここに座ってもいいですか。", "ここに すわっても いいですか。", "May I sit here?"], ["鉛筆で書いてもいいです。", "えんぴつで かいても いいです。", "You may write in pencil."]],
+  d: [{ k: "c", q: "はいる", f: "may I…? (てもいいですか)", a: ["はいってもいいですか"], en: "may I come in?" },
+      { k: "c", q: "つかう", f: "may I…? (てもいいですか)", a: ["つかってもいいですか"], en: "may I use (it)?" },
+      { k: "o", t: ["この", "ペンを", "つかっても", "いいですか"], en: "May I use this pen?" }] },
+{ id: "tewa", cat: "Using the て-form", t: "～てはいけません — must not", p: "V-ては いけません",
+  l: ["<b>て-form + は いけません</b> = “You must not…” — a firm rule: ここで およい<b>では いけません</b>. (て／で becomes ては／では.)",
+      "It sounds strict; to ask someone politely not to do something, use ～ないで ください."],
+  ex: [["ここで泳いではいけません。", "ここで およいでは いけません。", "You must not swim here."], ["図書館で食べてはいけません。", "としょかんで たべては いけません。", "You must not eat in the library."]],
+  d: [{ k: "c", q: "のむ", f: "must not (てはいけません)", a: ["のんではいけません"], en: "must not drink" },
+      { k: "c", q: "はいる", f: "must not (てはいけません)", a: ["はいってはいけません"], en: "must not enter" },
+      { k: "m", q: "A rule: “You must not smoke here.”", a: "ここで たばこを すっては いけません。", o: ["ここで たばこを すっては いけません。", "ここで たばこを すっても いいです。", "ここで たばこを すって ください。"] }] },
+{ id: "tekara", cat: "Using the て-form", t: "～てから — after doing", p: "V-て から、～",
+  l: ["<b>て-form + から</b> = “after doing A, (then) B” — it stresses that A comes first: てを あらって<b>から</b>、ごはんを たべます.",
+      "The tense goes at the very end: しゅくだいを して から、テレビを み<b>ました</b>."],
+  ex: [["手を洗ってから、ご飯を食べます。", "てを あらって から、ごはんを たべます。", "I wash my hands before eating. (After washing my hands, I eat.)"], ["宿題をしてから、テレビを見ました。", "しゅくだいを して から、テレビを みました。", "After doing my homework, I watched TV."]],
+  d: [{ k: "c", q: "かえる (go home)", f: "after …ing (てから)", a: ["かえってから"], en: "after going home" },
+      { k: "m", q: "“I'll go after drinking my tea.”", a: "おちゃを のんで から、いきます。", o: ["おちゃを のんで から、いきます。", "いって から、おちゃを のみます。", "おちゃを のまないで、いきます。"] },
+      { k: "o", t: ["しゅくだいを", "して", "から", "あそびます"], en: "I'll play after doing my homework." }] },
+/* ---------- Wants & timing ---------- */
+{ id: "maeato", cat: "Wants & timing", t: "～まえに・～たあとで — before, after", p: "V-dict まえに / V-た あとで",
+  l: ["<b>Dictionary form + まえに</b> = “before doing”: ねる <b>まえに</b> ほんを よみます. The verb stays in dictionary form even for past events.",
+      "<b>た-form + あとで</b> = “after doing”: ごはんを たべた <b>あとで</b> さんぽします.",
+      "With nouns: <b>Noun の まえに／あとで</b>: しごと<b>の あとで</b> (after work)."],
+  ex: [["寝る前に本を読みます。", "ねる まえに ほんを よみます。", "I read before going to bed."], ["仕事の後で、友達に会いました。", "しごとの あとで、ともだちに あいました。", "After work I met a friend."], ["ご飯を食べた後で、散歩します。", "ごはんを たべた あとで、さんぽします。", "After eating I take a walk."]],
+  d: [{ k: "p", s: "うちを でる ＿、まどを しめます。", a: "まえに", o: ["まえに", "あとで"], en: "Before leaving home, I close the windows." },
+      { k: "c", q: "たべる", f: "after …ing (たあとで)", a: ["たべたあとで"], en: "after eating" },
+      { k: "c", q: "ねる", f: "before …ing (まえに)", a: ["ねるまえに"], en: "before sleeping" },
+      { k: "m", q: "Which is correct?", a: "ねる まえに、シャワーを あびます。", o: ["ねる まえに、シャワーを あびます。", "ねた まえに、シャワーを あびます。", "ねて まえに、シャワーを あびます。"] }] },
+{ id: "tai", cat: "Wants & timing", t: "～たい — want to", p: "V-stem たい（です）",
+  l: ["<b>ます-stem + たい</b> = “want to (do)”: たべ<b>たい</b>, いき<b>たい</b>. It changes like an い-adjective: たく<b>ない</b> (don't want to), た<b>かった</b> (wanted to). Add です to be polite.",
+      "The object can take が or を: みずが／みずを のみたいです. Use たい for <b>your own</b> wishes — asking someone else directly with たい can sound blunt."],
+  ex: [["日本へ行きたいです。", "にほんへ いきたいです。", "I want to go to Japan."], ["今日は何もしたくないです。", "きょうは なにも したくないです。", "I don't want to do anything today."], ["冷たい水が飲みたいです。", "つめたい みずが のみたいです。", "I want to drink cold water."]],
+  d: [{ k: "c", q: "のむ", f: "want to (たいです)", a: ["のみたいです"], en: "want to drink" },
+      { k: "c", q: "いく", f: "want to (たいです)", a: ["いきたいです"], en: "want to go" },
+      { k: "c", q: "みる", f: "don't want to (たくないです)", a: ["みたくないです", "みたくありません"], en: "don't want to see" },
+      { k: "c", q: "かう", f: "wanted to (たかったです)", a: ["かいたかったです"], en: "wanted to buy" },
+      { k: "o", t: ["なつやすみに", "うみへ", "いきたいです"], alt: [["うみへ", "なつやすみに", "いきたいです"]], en: "I want to go to the sea in the summer holidays." }] },
+{ id: "hoshii", cat: "Wants & timing", t: "～がほしい — want (a thing)", p: "N が ほしいです",
+  l: ["<b>Noun が ほしいです</b> = “I want (a thing)”. ほしい is an い-adjective: ほしく<b>ない</b>です (don't want), ほし<b>かった</b>です (wanted). Like たい, it is for your own wants.",
+      "Compare: くるま<b>が ほしい</b>です (I want a car) — くるまを かい<b>たい</b>です (I want to buy a car)."],
+  ex: [["新しいかばんが欲しいです。", "あたらしい かばんが ほしいです。", "I want a new bag."], ["子供の時、犬が欲しかったです。", "こどもの とき、いぬが ほしかったです。", "When I was a child I wanted a dog."]],
+  d: [{ k: "p", s: "あたらしい くるま ＿ ほしいです。", a: "が", o: ["が", "で", "に", "へ"], en: "I want a new car." },
+      { k: "m", q: "“I want to buy a camera.”", a: "カメラを かいたいです。", o: ["カメラを かいたいです。", "カメラが かいほしいです。", "カメラを ほしいたいです。"] },
+      { k: "c", q: "ほしいです", f: "negative (polite)", a: ["ほしくないです", "ほしくありません"], en: "don't want" }] },
+{ id: "niiku", cat: "Wants & timing", t: "～にいく — go to do", p: "V-stem に いく／くる／かえる",
+  l: ["<b>ます-stem + に + いく／くる／かえる</b> = “go (come / go home) <b>to do</b>”: えいがを み<b>に いきます</b>.",
+      "With する-nouns you can use the noun itself: かいもの<b>に</b> いきます (go shopping), さんぽ<b>に</b> いきます (go for a walk)."],
+  ex: [["デパートへ服を買いに行きます。", "デパートへ ふくを かいに いきます。", "I'm going to the department store to buy clothes."], ["友達が遊びに来ました。", "ともだちが あそびに きました。", "A friend came over to hang out."], ["昼ご飯を食べに帰ります。", "ひるごはんを たべに かえります。", "I'm going home to eat lunch."]],
+  d: [{ k: "c", q: "みる", f: "go to … (に いきます)", a: ["みにいきます"], en: "go to see" },
+      { k: "c", q: "あそぶ", f: "come to … (に きます)", a: ["あそびにきます"], en: "come to play" },
+      { k: "p", s: "ともだちに あい ＿ いきます。", a: "に", o: ["に", "で", "を", "へ"], en: "I'm going to meet a friend." },
+      { k: "o", t: ["こうえんへ", "さんぽに", "いきます"], alt: [["さんぽに", "こうえんへ", "いきます"]], en: "I'm going to the park for a walk." }] },
+{ id: "moumada", cat: "Wants & timing", t: "もう・まだ — already, not yet", p: "もう V-ました / まだ V-ていません",
+  l: ["<b>もう ～ました</b> = “already did”: もう ひるごはんを たべました.",
+      "<b>まだ ～て いません</b> = “haven't … yet”: まだ たべて いません. (Not まだ たべませんでした.)",
+      "Short answers: もう たべましたか。— はい、もう たべました／いいえ、<b>まだです</b>."],
+  ex: [["もう宿題をしましたか。", "もう しゅくだいを しましたか。", "Have you done your homework already?"], ["いいえ、まだしていません。", "いいえ、まだ して いません。", "No, I haven't done it yet."]],
+  d: [{ k: "m", q: "もう ばんごはんを たべましたか。 — “No, not yet.”", a: "いいえ、まだです。", o: ["いいえ、まだです。", "いいえ、もうです。", "いいえ、まだ たべませんでした。"] },
+      { k: "c", q: "かく", f: "haven't … yet (まだ ～ていません)", a: ["まだかいていません"], en: "haven't written yet" },
+      { k: "p", s: "＿ しゅくだいを しましたか。", a: "もう", o: ["もう", "まだ", "よく", "とても"], en: "Have you already done your homework?" }] },
+/* ---------- Adjectives ---------- */
+{ id: "iadj", cat: "Adjectives", t: "い-adjectives", p: "～いです / ～くないです",
+  l: ["<b>い-adjectives</b> end in い: たかい, おおきい, さむい. Polite: add です — たかい<b>です</b>.",
+      "Negative: change the final い to <b>くない</b>(です): たか<b>くない</b>です. (～くありません is also correct.)",
+      "Watch out: <b>いい</b> (good) uses the old stem よ: <b>よくない</b> (not good)."],
+  ex: [["この時計は高いです。", "この とけいは たかいです。", "This watch is expensive."], ["今日はあまり寒くないです。", "きょうは あまり さむくないです。", "It isn't very cold today."], ["天気はよくないです。", "てんきは よくないです。", "The weather isn't good."]],
+  d: [{ k: "c", q: "たかい", f: "negative (くないです)", a: ["たかくないです", "たかくありません"], en: "not expensive" },
+      { k: "c", q: "いい", f: "negative (くないです)", a: ["よくないです", "よくありません"], en: "not good" },
+      { k: "c", q: "おもしろい", f: "negative (くないです)", a: ["おもしろくないです", "おもしろくありません"], en: "not interesting" },
+      { k: "m", q: "“This bag is not heavy.”", a: "この かばんは おもくないです。", o: ["この かばんは おもくないです。", "この かばんは おもいじゃないです。", "この かばんは おもいないです。"] }] },
+{ id: "iadjpast", cat: "Adjectives", t: "い-adjectives in the past", p: "～かったです / ～くなかったです",
+  l: ["Past: final い → <b>かった</b>(です): たのし<b>かった</b>です (it was fun). Past negative: <b>くなかった</b>(です).",
+      "A very common mistake is ～いでした — never say たのしいでした. And again: いい → <b>よかった</b>, <b>よくなかった</b>."],
+  ex: [["旅行はとても楽しかったです。", "りょこうは とても たのしかったです。", "The trip was a lot of fun."], ["昨日は暑くなかったです。", "きのうは あつくなかったです。", "It wasn't hot yesterday."]],
+  d: [{ k: "c", q: "たのしい", f: "past (かったです)", a: ["たのしかったです"], en: "was fun" },
+      { k: "c", q: "いい", f: "past (かったです)", a: ["よかったです"], en: "was good" },
+      { k: "c", q: "さむい", f: "past negative (くなかったです)", a: ["さむくなかったです", "さむくありませんでした"], en: "wasn't cold" },
+      { k: "m", q: "“The test was difficult.”", a: "テストは むずかしかったです。", o: ["テストは むずかしかったです。", "テストは むずかしいでした。", "テストは むずかしいだったです。"] }] },
+{ id: "naadj", cat: "Adjectives", t: "な-adjectives", p: "～です / ～じゃないです / ～でした",
+  l: ["<b>な-adjectives</b> (しずか, げんき, ゆうめい, すき, べんり) behave like nouns: しずか<b>です</b>, しずか<b>では ありません</b>／<b>じゃないです</b>, しずか<b>でした</b>, しずか<b>じゃなかったです</b>.",
+      "Traps: <b>きれい</b> and <b>きらい</b> end in い but are な-adjectives — きれい<b>じゃない</b>, not きれくない."],
+  ex: [["この町は静かです。", "この まちは しずかです。", "This town is quiet."], ["部屋はきれいじゃありません。", "へやは きれいじゃ ありません。", "The room isn't clean."], ["昨日は暇でした。", "きのうは ひまでした。", "I was free yesterday."]],
+  d: [{ k: "c", q: "しずかです", f: "negative (polite)", a: ["しずかではありません", "しずかじゃありません", "しずかじゃないです", "しずかではないです"], en: "not quiet" },
+      { k: "c", q: "きれいです", f: "negative (polite)", a: ["きれいではありません", "きれいじゃありません", "きれいじゃないです", "きれいではないです"], en: "not pretty/clean" },
+      { k: "c", q: "ひまです", f: "past (polite)", a: ["ひまでした"], en: "was free" },
+      { k: "m", q: "Which word is a な-adjective?", a: "きれい", o: ["きれい", "あかい", "おおきい", "ふるい"] }] },
+{ id: "adjnoun", cat: "Adjectives", t: "Adjective + noun", p: "～い N / ～な N",
+  l: ["Before a noun, an い-adjective stays as it is: <b>たかい</b> くるま. A な-adjective adds <b>な</b>: <b>しずかな</b> へや.",
+      "Some describing words are nouns and take <b>の</b>: びょうき<b>の</b> ひと.",
+      "Two い-adjectives are joined with <b>くて</b>: やす<b>くて</b> おいしい (cheap and tasty); a な-adjective with <b>で</b>: しずか<b>で</b> きれい."],
+  ex: [["静かな部屋で勉強します。", "しずかな へやで べんきょうします。", "I study in a quiet room."], ["あの赤い車は父のです。", "あの あかい くるまは ちちのです。", "That red car is my father's."], ["この店は安くておいしいです。", "この みせは やすくて おいしいです。", "This place is cheap and tasty."]],
+  d: [{ k: "p", s: "ゆうめい ＿ ひとに あいました。", a: "な", o: ["な", "の", "い", "に"], en: "I met a famous person." },
+      { k: "m", q: "“a big house”", a: "おおきい いえ", o: ["おおきい いえ", "おおきいな いえ", "おおきいの いえ", "おおきく いえ"] },
+      { k: "m", q: "“a quiet park”", a: "しずかな こうえん", o: ["しずかな こうえん", "しずか こうえん", "しずかの こうえん", "しずかい こうえん"] },
+      { k: "c", q: "やすい", f: "and… (くて)", a: ["やすくて"], en: "cheap and…" }] },
+{ id: "naru", cat: "Adjectives", t: "～なります — become", p: "～く なります / ～に なります",
+  l: ["<b>なる</b> = “to become”. い-adjective: い → <b>く</b> なります: さむ<b>く なりました</b> (it got cold).",
+      "な-adjective or noun: <b>に</b> なります: げんき<b>に なりました</b> (got better), いしゃ<b>に なりたい</b> (want to become a doctor)."],
+  ex: [["暖かくなりましたね。", "あたたかく なりましたね。", "It's got warmer, hasn't it?"], ["先生になりたいです。", "せんせいに なりたいです。", "I want to become a teacher."], ["部屋がきれいになりました。", "へやが きれいに なりました。", "The room got clean."]],
+  d: [{ k: "c", q: "さむい", f: "became (なりました)", a: ["さむくなりました"], en: "got cold" },
+      { k: "c", q: "げんき", f: "became (なりました)", a: ["げんきになりました"], en: "got well" },
+      { k: "p", s: "もう じゅうじです。おそ ＿ なりました。", a: "く", o: ["く", "に", "な", "い"], en: "It's already ten. It's got late." }] },
+/* ---------- Existence & location ---------- */
+{ id: "aru", cat: "Existence & location", t: "あります・います — there is", p: "N が あります / います",
+  l: ["Both mean “there is / to have”. Use <b>います</b> for living things that move (people, animals) and <b>あります</b> for everything else (things, plants, events).",
+      "Negative: ありません／いません. Having: わたしは あにが <b>います</b> (I have an older brother); じかんが <b>ありません</b> (I have no time)."],
+  ex: [["公園に犬がいます。", "こうえんに いぬが います。", "There's a dog in the park."], ["机の上に辞書があります。", "つくえの うえに じしょが あります。", "There's a dictionary on the desk."], ["私は兄弟がいません。", "わたしは きょうだいが いません。", "I don't have any brothers or sisters."]],
+  d: [{ k: "p", s: "にわに ねこが ＿。", a: "います", o: ["います", "あります"], en: "There's a cat in the garden." },
+      { k: "p", s: "えきの まえに ぎんこうが ＿。", a: "あります", o: ["あります", "います"], en: "There's a bank in front of the station." },
+      { k: "p", s: "きょうしつに せんせいが ＿。", a: "います", o: ["います", "あります"], en: "The teacher is in the classroom." },
+      { k: "p", s: "あした テストが ＿。", a: "あります", o: ["あります", "います"], en: "There's a test tomorrow." }] },
+{ id: "loc", cat: "Existence & location", t: "Where things are", p: "Place に N が あります / N は Place に あります",
+  l: ["Two orders, two feelings:<br>• <b>Place に X が あります</b> — introduces something new: “On the desk there is a pen.”<br>• <b>X は Place に あります</b> — says where a known thing is: “The pen is on the desk.” (Short version: ペンは つくえの うえ<b>です</b>.)",
+      "Position words follow <b>Noun の</b>: <b>うえ</b> (on, above), <b>した</b> (under), <b>なか</b> (in), <b>そと</b> (outside), <b>まえ</b> (in front), <b>うしろ</b> (behind), <b>となり</b> (next to), <b>よこ</b> (beside), <b>ちかく</b> (near), <b>あいだ</b> (between)."],
+  ex: [["かばんは椅子の下にあります。", "かばんは いすの したに あります。", "The bag is under the chair."], ["銀行は郵便局の隣です。", "ぎんこうは ゆうびんきょくの となりです。", "The bank is next to the post office."], ["箱の中に何がありますか。", "はこの なかに なにが ありますか。", "What's in the box?"]],
+  d: [{ k: "m", q: "“The cat is under the table.”", a: "ねこは テーブルの したに います。", o: ["ねこは テーブルの したに います。", "ねこは テーブルの うえに います。", "ねこは テーブルの したに あります。", "ねこは テーブルの したを います。"] },
+      { k: "m", q: "となり means…", a: "next to", o: ["next to", "behind", "inside", "under"] },
+      { k: "o", t: ["つくえの", "うえに", "ほんが", "あります"], en: "There is a book on the desk." },
+      { k: "o", t: ["ゆうびんきょくは", "えきの", "まえに", "あります"], en: "The post office is in front of the station." }] },
+/* ---------- こそあど ---------- */
+{ id: "kore", cat: "こそあど words", t: "これ・それ・あれ・どれ", p: "これ／それ／あれ は N です",
+  l: ["Pointing words stand alone as nouns: <b>これ</b> (this — near me), <b>それ</b> (that — near you), <b>あれ</b> (that over there — far from both of us), <b>どれ</b> (which one? — out of three or more).",
+      "どれ is a question word, so it takes が, not は: どれ<b>が</b> あなたの かさですか。"],
+  ex: [["これは何ですか。", "これは なんですか。", "What is this?"], ["それは私の辞書です。", "それは わたしの じしょです。", "That (by you) is my dictionary."], ["どれがあなたの傘ですか。", "どれが あなたの かさですか。", "Which one is your umbrella?"]],
+  d: [{ k: "m", q: "Pointing at something far from both of you: “What is that over there?”", a: "あれは なんですか。", o: ["あれは なんですか。", "これは なんですか。", "それは なんですか。"] },
+      { k: "p", s: "＿ が あなたの かばんですか。", a: "どれ", o: ["どれ", "あれ", "これ", "それ"], en: "Which one is your bag?" },
+      { k: "m", q: "You're holding a pen: “This is a pen.”", a: "これは ペンです。", o: ["これは ペンです。", "それは ペンです。", "あれは ペンです。"] }] },
+{ id: "kono", cat: "こそあど words", t: "この・その・あの・どの", p: "この／その／あの／どの + N",
+  l: ["<b>この, その, あの, どの</b> must be followed by a noun: <b>この</b> ほん (this book), <b>あの</b> ひと (that person), <b>どの</b> かさ (which umbrella?).",
+      "Compare: これは たかいです — <b>この とけい</b>は たかいです. You cannot say この alone or これ ほん."],
+  ex: [["この本は面白いです。", "この ほんは おもしろいです。", "This book is interesting."], ["あの人は誰ですか。", "あの ひとは だれですか。", "Who is that person?"], ["どの傘があなたのですか。", "どの かさが あなたのですか。", "Which umbrella is yours?"]],
+  d: [{ k: "p", s: "＿ ほんは いくらですか。", a: "この", o: ["この", "これ", "ここ", "こちら"], en: "How much is this book?" },
+      { k: "p", s: "＿ ひとは だれですか。", a: "あの", o: ["あの", "あれ", "あそこ", "あちら"], en: "Who is that person over there?" },
+      { k: "p", s: "＿ は いくらですか。", a: "これ", o: ["これ", "この", "ここの", "こう"], en: "How much is this?" }] },
+{ id: "koko", cat: "こそあど words", t: "ここ・そこ・あそこ・どこ", p: "ここ／そこ／あそこ／どこ",
+  l: ["Places: <b>ここ</b> (here), <b>そこ</b> (there, near you), <b>あそこ</b> (over there), <b>どこ</b> (where?). Note: あ<b>そ</b>こ, not あこ.",
+      "The polite versions are <b>こちら, そちら, あちら, どちら</b> (also meaning “this way / this person”): トイレは あちらです."],
+  ex: [["トイレはどこですか。", "トイレは どこですか。", "Where is the toilet?"], ["駅はあそこです。", "えきは あそこです。", "The station is over there."], ["こちらは田中さんです。", "こちらは たなかさんです。", "This is Mr./Ms. Tanaka."]],
+  d: [{ k: "p", s: "トイレは ＿ ですか。", a: "どこ", o: ["どこ", "いつ", "どの", "だれ"], en: "Where is the toilet?" },
+      { k: "m", q: "Introducing a person politely: “This is Ms. Yamada.”", a: "こちらは やまださんです。", o: ["こちらは やまださんです。", "これは やまださんです。", "ここは やまださんです。"] },
+      { k: "m", q: "“over there” is…", a: "あそこ", o: ["あそこ", "あこ", "あれこ", "あちこ"] }] },
+/* ---------- Questions & numbers ---------- */
+{ id: "qwords", cat: "Questions & numbers", t: "Question words", p: "なに・だれ・いつ・どこ・どう…",
+  l: ["Question words stay where the answer would go; add か at the end: <b>なに</b>を たべますか.",
+      "<b>なに／なん</b> what (なん before です and counters: なんですか, なんじ, なんにん) · <b>だれ</b> who (polite: どなた) · <b>いつ</b> when · <b>どこ</b> where · <b>どう</b> how (polite: いかが) · <b>いくら</b> how much · <b>いくつ</b> how many / how old · <b>どうして</b> why · <b>どんな</b> what kind of.",
+      "いつ is never followed by に: <b>いつ</b> いきますか."],
+  ex: [["誕生日はいつですか。", "たんじょうびは いつですか。", "When is your birthday?"], ["この傘はいくらですか。", "この かさは いくらですか。", "How much is this umbrella?"], ["どうして来ませんでしたか。", "どうして きませんでしたか。", "Why didn't you come?"]],
+  d: [{ k: "p", s: "これは ＿ ですか。　— えんぴつです。", a: "なん", o: ["なん", "だれ", "いつ", "どこ"], en: "What is this? — A pencil." },
+      { k: "p", s: "＿ が きましたか。　— やまださんです。", a: "だれ", o: ["だれ", "なに", "どこ", "いつ"], en: "Who came? — Yamada-san." },
+      { k: "p", s: "この シャツは ＿ ですか。　— ごひゃくえんです。", a: "いくら", o: ["いくら", "いくつ", "どう", "どこ"], en: "How much is this shirt? — 500 yen." },
+      { k: "p", s: "＿ がっこうを やすみましたか。　— かぜを ひきましたから。", a: "どうして", o: ["どうして", "どこ", "だれ", "いくら"], en: "Why were you absent from school? — Because I caught a cold." },
+      { k: "p", s: "なつやすみは ＿ からですか。　— しちがつ にじゅうにちからです。", a: "いつ", o: ["いつ", "どう", "なに", "だれ"], en: "When does summer vacation start? — From July 20." }] },
+{ id: "qmo", cat: "Questions & numbers", t: "なにも・だれも / なにか・だれか", p: "Q-word + も (neg.) / Q-word + か",
+  l: ["<b>Question word + も + negative</b> = “nothing / nobody / nowhere”: <b>なにも</b> たべません, <b>だれも</b> いません. With a particle, it sits between: <b>どこへも</b> いきません, だれ<b>とも</b> はなしません.",
+      "<b>Question word + か</b> = “something / someone / somewhere”: <b>なにか</b> のみますか (Will you drink something?), <b>だれか</b> きました (Someone came)."],
+  ex: [["朝から何も食べていません。", "あさから なにも たべて いません。", "I haven't eaten anything since morning."], ["教室に誰もいません。", "きょうしつに だれも いません。", "There's no one in the classroom."], ["何か飲みませんか。", "なにか のみませんか。", "Would you like something to drink?"]],
+  d: [{ k: "p", s: "きのうは ＿ たべませんでした。", a: "なにも", o: ["なにも", "なにか", "なにを", "なんでも"], en: "I didn't eat anything yesterday." },
+      { k: "p", s: "へやに ＿ いますか。　— はい、たなかさんが います。", a: "だれか", o: ["だれか", "だれも", "だれが", "だれを"], en: "Is anyone in the room? — Yes, Tanaka-san is." },
+      { k: "p", s: "にちようびは どこ ＿ いきませんでした。", a: "へも", o: ["へも", "もへ", "をも", "にを"], en: "I didn't go anywhere on Sunday." }] },
+{ id: "counters", cat: "Questions & numbers", t: "Counting things & people", p: "N を Number+counter Verb",
+  l: ["Numbers usually go <b>right before the verb</b>, with no particle: りんごを <b>みっつ</b> かいました.",
+      "General things: ひとつ, ふたつ, みっつ, よっつ, いつつ, むっつ, ななつ, やっつ, ここのつ, とお (how many: いくつ).<br>People: <b>ひとり, ふたり</b>, さんにん, よにん… (なんにん). Flat things: ～<b>まい</b>. Long things: ～<b>ほん</b> (いっぽん, にほん, さんぼん). Books: ～さつ. Small animals: ～ひき. Machines and cars: ～だい."],
+  ex: [["パンを三つ買いました。", "パンを みっつ かいました。", "I bought three bread rolls."], ["家族は四人です。", "かぞくは よにんです。", "There are four of us in my family."], ["切手を二枚ください。", "きってを にまい ください。", "Two stamps, please."]],
+  d: [{ k: "p", s: "きょうしつに がくせいが ＿ います。", a: "ふたり", o: ["ふたり", "ふたつ", "にまい", "にほん"], en: "There are two students in the classroom." },
+      { k: "p", s: "かみを ＿ ください。", a: "さんまい", o: ["さんまい", "さんぼん", "さんにん", "さんさつ"], en: "Three sheets of paper, please." },
+      { k: "p", s: "えんぴつが ＿ あります。", a: "ごほん", o: ["ごほん", "ごまい", "ごにん", "ごさつ"], en: "There are five pencils." },
+      { k: "m", q: "How do you say “one person”?", a: "ひとり", o: ["ひとり", "いちにん", "ひとつ", "いちり"] },
+      { k: "o", t: ["たまごを", "みっつ", "かいました"], en: "I bought three eggs." }] },
+{ id: "time", cat: "Questions & numbers", t: "Telling the time", p: "～じ ～ふん／ぷん",
+  l: ["Hours: number + <b>じ</b>. Learn three: <b>よじ</b> (4:00), <b>しちじ</b> (7:00), <b>くじ</b> (9:00). Half past: <b>はん</b> (さんじはん = 3:30). <b>ごぜん</b> = a.m., <b>ごご</b> = p.m.",
+      "Minutes: ～<b>ふん</b> or ～<b>ぷん</b>: いっぷん, にふん, さんぷん, よんぷん, ごふん, ろっぷん, ななふん, はっぷん, きゅうふん, じゅっぷん. What time? <b>なんじ</b>. How many minutes? <b>なんぷん</b>."],
+  ex: [["今、何時ですか。", "いま、なんじですか。", "What time is it now?"], ["午後四時半です。", "ごご よじはんです。", "It's 4:30 p.m."], ["九時十分に会いましょう。", "くじ じゅっぷんに あいましょう。", "Let's meet at 9:10."]],
+  d: [{ k: "m", q: "4:00", a: "よじ", o: ["よじ", "よんじ", "しじ", "よっじ"] },
+      { k: "m", q: "9:30", a: "くじはん", o: ["くじはん", "きゅうじはん", "くじさんぷん", "きゅうじさんじゅう"] },
+      { k: "m", q: "7:10", a: "しちじ じゅっぷん", o: ["しちじ じゅっぷん", "しちじ とおふん", "しちにち じゅっぷん", "しちじ じゅっこ"] },
+      { k: "m", q: "ごご means…", a: "p.m.", o: ["p.m.", "a.m.", "half past", "minutes"] }] },
+/* ---------- Comparing & connecting ---------- */
+{ id: "hikaku", cat: "Comparing & connecting", t: "Comparing: より・どちら・いちばん", p: "A は B より ～ / A の ほうが ～",
+  l: ["<b>A は B より</b> ～ = “A is more ~ than B”: でんしゃは バス<b>より</b> はやいです.",
+      "Asking which of two: A と B と <b>どちらが</b> ～ですか。 Answer: A <b>の ほうが</b> ～です.",
+      "Best of a group: X の なかで <b>なにが／だれが／どこが いちばん</b> ～ですか。 — Y が <b>いちばん</b> ～です."],
+  ex: [["電車はバスより速いです。", "でんしゃは バスより はやいです。", "Trains are faster than buses."], ["肉と魚とどちらが好きですか。", "にくと さかなと どちらが すきですか。", "Which do you like better, meat or fish?"], ["魚のほうが好きです。", "さかなの ほうが すきです。", "I prefer fish."], ["飲み物の中でコーヒーが一番好きです。", "のみものの なかで コーヒーが いちばん すきです。", "Of all drinks, I like coffee best."]],
+  d: [{ k: "p", s: "ひこうきは でんしゃ ＿ はやいです。", a: "より", o: ["より", "ほう", "から", "まで"], en: "Planes are faster than trains." },
+      { k: "p", s: "コーヒーと こうちゃと ＿ が すきですか。", a: "どちら", o: ["どちら", "どれ", "なに", "どこ"], en: "Which do you prefer, coffee or tea?" },
+      { k: "p", s: "のみものの なかで こうちゃが ＿ すきです。", a: "いちばん", o: ["いちばん", "より", "ほう", "どちら"], en: "Of all drinks, I like black tea the most." },
+      { k: "o", t: ["わたしは", "いぬの", "ほうが", "すきです"], en: "I like dogs better." }] },
+{ id: "gakara", cat: "Comparing & connecting", t: "が (but)・から (because)", p: "S1 が、S2 / S1 から、S2",
+  l: ["At the end of a clause, <b>が</b> means <b>“but”</b>: この みせは やすいです<b>が</b>、おいしくないです. (でも at the start of the next sentence also means “but”.)",
+      "<b>から</b> after a clause means <b>“because / so”</b>; the reason comes <b>first</b>: さむいです<b>から</b>、まどを しめます. You can also answer どうして with ～から."],
+  ex: [["この店は安いですが、美味しくないです。", "この みせは やすいですが、おいしくないです。", "This place is cheap, but not tasty."], ["寒いですから、窓を閉めましょう。", "さむいですから、まどを しめましょう。", "It's cold, so let's close the window."]],
+  d: [{ k: "p", s: "にほんごは むずかしいです ＿、おもしろいです。", a: "が", o: ["が", "から", "と", "を"], en: "Japanese is difficult, but interesting." },
+      { k: "p", s: "あたまが いたいです ＿、きょうは はやく ねます。", a: "から", o: ["から", "が", "まで", "より"], en: "I have a headache, so I'll go to bed early today." },
+      { k: "m", q: "どうして ひるごはんを たべませんか。 — “Because I have no time.”", a: "じかんが ありませんから。", o: ["じかんが ありませんから。", "じかんが ありませんが。", "じかんが ありませんまで。"] }] },
+{ id: "deshou", cat: "Comparing & connecting", t: "でしょう — probably", p: "～でしょう",
+  l: ["<b>でしょう</b> = “probably / I suppose” (like the weather forecast): あしたは あめ<b>でしょう</b>. With a rising tone or ね it asks for agreement: “…, right?”",
+      "It goes after nouns, adjectives and plain verbs: さむい<b>でしょう</b>, しずか<b>でしょう</b>, くる<b>でしょう</b>. (Plain version: だろう.)"],
+  ex: [["明日は雨でしょう。", "あしたは あめでしょう。", "It will probably rain tomorrow."], ["山の上は寒いでしょう。", "やまの うえは さむいでしょう。", "It's probably cold at the top of the mountain."]],
+  d: [{ k: "p", s: "（weather forecast）あしたは はれ ＿。", a: "でしょう", o: ["でしょう", "でした", "ましょう", "ません"], en: "Tomorrow will probably be sunny." },
+      { k: "m", q: "“Yamada-san will probably come.”", a: "やまださんは くるでしょう。", o: ["やまださんは くるでしょう。", "やまださんは きましたでしょう。", "やまださんは くるましょう。"] }] }
+];
+/* ================= Grammar: N5 grammar points — lessons, drills and their own FSRS track =================
+   S.gcards = { id: card }  (same card shape as words: c.f = FSRS track, c.due, c.box; c.g = 1 marks the grammar track)
+   S.grLimit: new grammar points per day (default 2, or "off"); S.newLogG = {"YYYY-MM-DD": [ids]} (synced as a union).
+   Drills grade the whole point once: 0 mistakes → Good, 1 → Hard, 2+ → Again. Practice outside a due review never
+   changes the schedule. Content (GR_DATA) is original, written for this app. */
+const GR = {}; GR_DATA.forEach((p, i) => { p.n = i + 1; GR[p.id] = p; });
+const GR_CATS = [...new Set(GR_DATA.map(p => p.cat))];
+const GR_PRESETS = [1, 2, 3, 5];
+const GR_KIND = { p: "Particle choice", m: "Choose", c: "Conjugation", o: "Sentence order" };
+const grLimitV = () => limV(S.grLimit, 2);
+/* read-only accessors never add keys to S (restore / undo compare stores exactly); grGrade creates them on first use */
+const isMap = x => !!x && typeof x === "object" && !Array.isArray(x);
+const gcards = () => isMap(S.gcards) ? S.gcards : {};
+const newTodayG = () => isMap(S.newLogG) && Array.isArray(S.newLogG[todayStr()]) ? S.newLogG[todayStr()] : [];
+const newLeftG = () => Math.max(0, grLimitV() - newTodayG().length);
+const isNewG = id => !gcards()[id] && !newTodayG().includes(id);
+const canIntroG = id => !isNewG(id) || newLeftG() > 0;
+function markNewG(id) {
+  if (!isNewG(id)) return false;
+  const L = nlog("newLogG"), t = todayStr(); (L[t] = L[t] || []).push(id); nlPrune("newLogG"); return true;
+}
+function grDueScan() {
+  const now = Date.now(), G = gcards(), ids = []; let next = Infinity;
+  for (const id in G) { if (!GR[id]) continue; const d = G[id].due; if (d <= now) ids.push(id); else if (d < next) next = d; }
+  ids.sort((a, b) => G[a].due - G[b].due);
+  return { ids, next: next === Infinity ? null : next - now };
+}
+const grLearned = () => Object.keys(gcards()).filter(id => GR[id]).length;
+const grNextNew = () => GR_DATA.find(p => !gcards()[p.id]) || null;
+const grWanted = () => (S.levels || ["n5"]).includes("n5") || grLearned() > 0;   // grammar is N5 material
+function grStatus(id) {
+  const c = gcards()[id]; if (!c || !c.f) return "new";
+  if (c.due <= Date.now()) return "due";
+  return c.f.st === 2 && c.f.s >= 21 ? "known" : "learning";
+}
+const GR_ST = { new: "New", due: "Due", learning: "Learning", known: "Known" };
+/* one FSRS review for a grammar point (r = 1..4) */
+function grGrade(id, r) {
+  if (!isMap(S.gcards)) S.gcards = {};
+  const G = S.gcards, isNew = !G[id];
+  const c = G[id] || { g: 1, ok: 0, bad: 0 };
+  c.g = 1; markNewG(id);
+  srsAnswer(c, id, r > 1, { rating: r });
+  c.t = Date.now(); G[id] = c;
+  schedShow(c, { quiet: true }, "g", id);
+  trackItem(isNew); touchStreak(); save();
+  if (typeof updateDueBadge === "function") updateDueBadge();
+  return c;
+}
+const grAudio = (id, i, d) => `gr/${id}-${d ? "d" : ""}${i + 1}.mp3`;
+const grSayBtn = (text, path) => `<button class="mini grsay" data-say="${esc(text)}" ${path ? `data-sap="${esc(path)}"` : ""} aria-label="Play audio">🔈</button>`;
+/* the sentence a drill teaches (blank filled / tiles in order), used for feedback + audio */
+function grDrillSentence(d) {
+  if (d.k === "p") return d.s.replace("＿", d.a);
+  if (d.k === "o") return d.t.join(" ") + (/[。？]$/.test(d.t[d.t.length - 1]) ? "" : "。");
+  return "";
+}
+const grSpeakText = s => s.replace(/（[^）]*）/g, "").replace(/[AB]：/g, "").replace(/\s+/g, " ").trim();
+
+/* ---------- Hub ---------- */
+function grammarHome() {
+  const back = home, G = gcards(), due = grDueScan(), nx = grNextNew(), learned = grLearned(), left = newLeftG(), lim = grLimitV();
+  const limTxt = lim === Infinity ? "no daily limit" : `${left} of ${lim} new point${lim === 1 ? "" : "s"} left today`;
+  let hero;
+  if (due.ids.length) hero = `<div class="hero"><div class="ic">⏰</div><div><h2>${due.ids.length} grammar review${due.ids.length === 1 ? "" : "s"} due</h2><p>2–3 quick drills per point</p></div><button class="btn" id="grRev">Review ▶</button></div>`;
+  else if (nx) hero = `<div class="hero ${left ? "" : "done"}"><div class="ic">🌱</div><div><h2>Next: ${esc(nx.t)}</h2><p>Point ${nx.n} of ${GR_DATA.length} · ${limTxt}${left ? "" : " — come back tomorrow, or practise what you know"}</p></div><button class="btn ${left ? "" : "ghost"}" id="grNext">${left ? "Learn ▶" : "Read lesson"}</button></div>`;
+  else hero = `<div class="hero done"><div class="ic">🎉</div><div><h2>All ${GR_DATA.length} points learned</h2><p>${due.next != null ? `Next grammar review ${fmtIn(due.next)}` : ""}</p></div></div>`;
+  view.innerHTML = topbar("文 Grammar") + `<div class="largetitle">N5 Grammar</div>
+    <p class="subtitle" id="grSub">${learned} of ${GR_DATA.length} points learned · ${due.ids.length} due · ${limTxt}</p>${hero}
+    ${GR_CATS.map(cat => `<div class="panel grcat"><h2>${esc(cat)}</h2>${GR_DATA.filter(p => p.cat === cat).map(p => { const st = grStatus(p.id);
+      return `<button class="grrow" data-g="${p.id}"><span class="grn">${p.n}</span><span class="grow"><b>${esc(p.t)}</b><small class="jp">${esc(p.p)}</small></span><span class="grst st-${st}">${GR_ST[st]}</span></button>`; }).join("")}</div>`).join("")}
+    <p class="muted grcredit">Lessons, examples and drills are original, written for this app. Example audio: Microsoft neural TTS voice ja-JP-NanamiNeural via edge-tts. Each point gets its own memory schedule (the Grammar track in Review).</p>`;
+  bindBack(back);
+  const rv = $("#grRev"); if (rv) rv.onclick = () => { sfx.click(); go(() => grSession(grDueScan().ids, "review", "⏰ Grammar · due", grammarHome)); };
+  const nb = $("#grNext"); if (nb) nb.onclick = () => { sfx.click(); go(() => grLesson(nx.id, grammarHome)); };
+  view.querySelectorAll(".grrow").forEach(b => b.onclick = () => { sfx.click(); go(() => grLesson(b.dataset.g, grammarHome)); });
+}
+
+/* ---------- Lesson ---------- */
+function grLesson(id, back = grammarHome) {
+  const p = GR[id]; if (!p) return grammarHome();
+  const st = grStatus(id), c = gcards()[id];
+  const mode = st === "due" ? "review" : st === "new" && canIntroG(id) ? "learn" : "practice";
+  const label = mode === "review" ? "Review now ▶" : mode === "learn" ? "Start drills ▶" : "Practice drills ▶";
+  const note = mode === "learn" ? `${p.d.length} drills · then this point joins your Grammar reviews${grLimitV() === Infinity ? "" : ` (${newLeftG()} of ${grLimitV()} new left today)`}`
+    : st === "new" ? `Daily new-grammar limit reached (${grLimitV()}) — you can practise, but it won't be scheduled until tomorrow`
+    : mode === "review" ? "Due now — 2–3 drills, graded on the Grammar track" : `${GR_ST[st]} · ${trackText(c.f)} · practice won't change the schedule`;
+  const prev = GR_DATA[p.n - 2], nxt = GR_DATA[p.n];
+  view.innerHTML = topbar(`文 ${p.n}/${GR_DATA.length}`) + `<div class="panel grlesson" id="grLesson" data-g="${id}">
+    <div class="qtype">${esc(p.cat)}</div><h2 class="grtitle">${esc(p.t)}</h2><div class="grpat jp">${esc(p.p)}</div>
+    ${p.l.map(x => `<p>${x}</p>`).join("")}
+    <h3>Examples</h3><ul class="grex">${p.ex.map((e, i) => `<li><div class="grjp jp">${esc(e[0])} ${grSayBtn(/家/.test(e[0]) ? e[1] : e[0], grAudio(id, i))}</div><div class="grkana jp">${esc(e[1])}</div><div class="muted">${esc(e[2])}</div></li>`).join("")}</ul></div>
+    <div class="grgo"><button class="btn" id="grGo">${label}</button><p class="muted" id="grNote">${note}</p></div>
+    <div class="btnrow grnav">${prev ? `<button class="btn ghost small" id="grPrev">← ${esc(prev.t.split(" — ")[0])}</button>` : ""}${nxt ? `<button class="btn ghost small" id="grNextL">${esc(nxt.t.split(" — ")[0])} →</button>` : ""}</div>`;
+  bindBack(back);
+  $("#grGo").onclick = () => { sfx.click(); go(() => grSession([id], mode, `文 ${p.t}`, () => grLesson(id, back))); };
+  const pv = $("#grPrev"); if (pv) pv.onclick = () => go(() => grLesson(prev.id, back));
+  const nv = $("#grNextL"); if (nv) nv.onclick = () => go(() => grLesson(nxt.id, back));
+}
+
+/* ---------- Drill session ----------
+   mode "learn": every drill of a new point, graded (adds it to the track) · "review": 3 drills per due point, graded
+   · "practice": up to 4 drills, never graded */
+function grSession(ids, mode, title, back, then) {
+  ids = ids.filter(id => GR[id]);
+  if (!ids.length) { toast("Nothing to review"); return go(back || grammarHome); }
+  if (mode === "review") ids = ids.slice(0, batchOf(ids.length));
+  studyScreen = true;
+  const queue = [], left = {}, errs = {}, results = [];
+  for (const id of ids) {
+    const all = GR[id].d.map((d, i) => i);
+    const pick = mode === "learn" ? all : shuffle(all).slice(0, mode === "review" ? 3 : 4);
+    pick.forEach(i => queue.push({ id, i })); left[id] = pick.length; errs[id] = 0;
+  }
+  let pos = 0, right = 0, answered = false, q = null;
+  view.innerHTML = topbar(esc(title), `<span class="muted" id="score"></span>`) + `<div class="sprog"><div id="sprog" style="width:0"></div></div><div id="qhost"></div>
+    <p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> choose · <kbd>Enter</kbd> check / next</p>`;
+  bindBack(back || grammarHome);
+  const progress = () => { $("#sprog").style.width = (pos / queue.length * 100) + "%"; $("#score").textContent = `${pos}/${queue.length}`; };
+  const finishPoint = id => {
+    const e = errs[id], r = e === 0 ? 3 : e === 1 ? 2 : 1;
+    let graded = false;
+    if (mode === "review" || (mode === "learn" && canIntroG(id))) { grGrade(id, r); graded = true; }
+    results.push({ id, r, graded });
+  };
+  const next = () => {
+    answered = false; progress(); scrollTo(0, 0);
+    if (pos >= queue.length) { q = null; return finish(); }
+    const it = queue[pos];
+    q = grRenderDrill(it.id, it.i, (ok, el) => {
+      answered = true; pos++; if (ok) right++; else errs[it.id]++;
+      comboHit(ok, el, 6);
+      if (--left[it.id] === 0) finishPoint(it.id);
+      progress();
+      const fb = $("#fb"), nb = document.createElement("div"); nb.className = "btnrow"; nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb);
+      $("#nextBtn").onclick = next;
+    }, mode === "learn" ? pos + 1 + "/" + queue.length : "");
+  };
+  const finish = () => {
+    addXP(Math.min(40, queue.length * 2));
+    if (then) return then({ right, n: queue.length });
+    const anyGraded = results.some(x => x.graded);
+    $("#qhost").innerHTML = `<div class="card grfinish" id="grFinish"><div class="qtype">${mode === "practice" ? "Practice done" : "Grammar done!"}</div><div class="big">${right === queue.length ? "🌟" : "✅"}</div>
+      <p>${right}/${queue.length} drills correct</p>
+      <ul class="grres">${results.map(x => `<li><span class="grow">${esc(GR[x.id].t)}</span>${x.graded ? `<span class="rtag r${x.r}">${RATE_NAMES[x.r]}</span>` : `<span class="muted">not scheduled</span>`}</li>`).join("")}</ul>
+      ${anyGraded ? nextReviewListHTML() : `<p class="muted">Practice only — your Grammar schedule is unchanged.</p>`}
+      <div class="btnrow"><button class="btn" id="grDone">${back && back !== grammarHome && !String(back).includes("grLesson") ? "Done" : "Grammar"}</button><button class="btn ghost" id="grHome">Home</button></div></div>`;
+    sfx.level(); if (right === queue.length) confetti(100);
+    $("#grDone").onclick = () => go(back || grammarHome); $("#grHome").onclick = () => go(home);
+    $("#sprog").style.width = "100%";
+  };
+  const onKey = e => {
+    if (document.querySelector(".modal")) return;
+    if (!answered && q && e.key === "Enter" && q.submit) { e.preventDefault(); q.submit(); return; }
+    if (e.target.tagName === "INPUT" && !e.target.disabled) return;
+    if (!answered && q && q.choose && /^[1-4]$/.test(e.key)) q.choose(+e.key - 1);
+    else if (answered && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const b = $("#nextBtn"); if (b) b.click(); }
+  };
+  addEventListener("keydown", onKey);
+  cleanup = () => removeEventListener("keydown", onKey);
+  next();
+}
+/* render one drill into #qhost; onAnswer(ok, el) once. Returns { choose?, submit? } */
+function grRenderDrill(id, i, onAnswer, step = "") {
+  const p = GR[id], d = p.d[i], host = $("#qhost");
+  let done = false;
+  const head = `<div class="qtype">${GR_KIND[d.k]} · ${esc(p.t)}${step ? ` · ${step}` : ""}</div>`;
+  const sent = grDrillSentence(d);
+  const fbHTML = (ok, extra = "") => `<div class="${ok ? "grok" : "grbad"}">${ok ? "✅ Correct!" : "❌ Not quite"}</div>${extra}
+    ${sent ? `<div class="grsent jp">${esc(sent)} ${grSayBtn(grSpeakText(sent), grAudio(id, i, true))}</div>` : ""}${d.en ? `<div class="muted gren">${esc(d.en)}</div>` : ""}
+    <button class="btn ghost small grlink" data-lesson="${id}">📖 Lesson: ${esc(p.t)}</button>`;
+  const bindLink = () => { const b = host.querySelector(".grlink"); if (b) b.onclick = () => grLessonModal(id); };
+  if (d.k === "p" || d.k === "m") {
+    const opts = shuffle(d.o), long = opts.some(o => o.length > 8);
+    const qHTML = d.k === "p" ? `<div class="grq jp">${esc(d.s).replace("＿", `<span class="gblank" id="gblank">＿＿</span>`)}</div>${d.en ? `<div class="muted grhint">${esc(d.en)}</div>` : ""}`
+      : `<div class="grq ${/[ぁ-んァ-ン一-龯]/.test(d.q) ? "jp" : "en"}">${esc(d.q)}</div>`;
+    host.innerHTML = `<div class="card grcard" data-k="${d.k}">${head}${qHTML}
+      <div class="choices ${long ? "grlong" : ""}">${opts.map((o, j) => `<button class="choice ${/[ぁ-んァ-ン]/.test(o) ? "jp" : ""}" data-i="${j}"><span class="k">${j + 1}</span>${esc(o)}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div></div>`;
+    const btns = [...host.querySelectorAll(".choice")];
+    const choose = j => {
+      if (done || !btns[j]) return; done = true;
+      const ok = opts[j] === d.a;
+      btns.forEach((b, k) => { b.disabled = true; if (opts[k] === d.a) b.classList.add("right"); });
+      if (!ok) btns[j].classList.add("wrong");
+      const bl = host.querySelector("#gblank"); if (bl) { bl.textContent = d.a; bl.classList.add("filled"); }
+      host.querySelector("#fb").innerHTML = fbHTML(ok, ok || d.k === "p" ? "" : `<div class="jp">${esc(d.a)}</div>`); bindLink();
+      onAnswer(ok, btns[j]);
+    };
+    btns.forEach((b, j) => b.onclick = () => choose(j));
+    return { choose };
+  }
+  if (d.k === "c") {
+    host.innerHTML = `<div class="card grcard" data-k="c">${head}<div class="grq jp">${esc(d.q)}</div><div class="grform">→ <b>${esc(d.f)}</b></div>${d.en ? `<div class="muted grhint">“${esc(d.en)}”</div>` : ""}
+      <input class="typein" id="typein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="ja" placeholder="kana or romaji">
+      <div class="typehelp">Romaji converts as you type · <b>nn</b> for ん · Enter to check</div>
+      <div class="btnrow"><button class="btn" id="checkBtn">Check</button><button class="btn ghost" id="giveBtn">🤷 I don't know</button></div>
+      <div class="feedback" id="fb"></div></div>`;
+    const inp = host.querySelector("#typein"); attachIME(inp);
+    const acc = new Set(d.a.map(normAns));
+    const submit = (give = false) => {
+      if (done) return; const v = inp.value.trim(); if (!v && !give) { inp.focus(); return; }
+      done = true; inp.disabled = true; host.querySelector("#checkBtn").disabled = true; host.querySelector("#giveBtn").disabled = true;
+      const ok = !give && acc.has(normAns(romajiToKana(v, true)));
+      inp.classList.add(ok ? "ok" : "no");
+      host.querySelector("#fb").innerHTML = fbHTML(ok, `<div class="grsent jp">${esc(d.q)} → <b>${esc(d.a[0])}</b> ${grSayBtn(d.a[0])}</div>${!ok && v ? `<div class="muted">You wrote: <span class="jp">${esc(v)}</span></div>` : ""}${d.a.length > 1 ? `<div class="muted">Also OK: <span class="jp">${d.a.slice(1).map(esc).join("、")}</span></div>` : ""}`); bindLink();
+      onAnswer(ok, inp);
+    };
+    host.querySelector("#checkBtn").onclick = () => submit();
+    host.querySelector("#giveBtn").onclick = () => submit(true);
+    setTimeout(() => { if (!done && !matchMedia("(pointer:coarse)").matches) inp.focus(); }, 50);
+    return { submit: () => submit() };
+  }
+  /* sentence order: tap tiles to build the sentence; tap a placed tile to put it back */
+  const order = shuffle(d.t.map((t, k) => k));
+  if (d.t.length > 1 && order.every((k, j) => k === j)) order.push(order.shift());
+  const placed = [];
+  host.innerHTML = `<div class="card grcard" data-k="o">${head}<div class="muted grhint">${esc(d.en)}</div>
+    <div class="granswer jp" id="grAns" aria-label="Your sentence"></div><div class="grtiles jp" id="grPool"></div>
+    <div class="btnrow"><button class="btn" id="checkBtn" disabled>Check</button><button class="btn ghost" id="giveBtn">🤷 I don't know</button></div>
+    <div class="feedback" id="fb"></div></div>`;
+  const ans = host.querySelector("#grAns"), pool = host.querySelector("#grPool"), chk = host.querySelector("#checkBtn");
+  const draw = () => {
+    ans.innerHTML = placed.map((k, j) => `<button class="grtile on" data-j="${j}">${esc(d.t[k])}</button>`).join("") || `<span class="muted grph">Tap the pieces in order</span>`;
+    pool.innerHTML = order.map(k => `<button class="grtile" data-k="${k}" ${placed.includes(k) ? "disabled" : ""}>${esc(d.t[k])}</button>`).join("");
+    chk.disabled = placed.length !== d.t.length || done;
+  };
+  pool.onclick = e => { const b = e.target.closest(".grtile"); if (!b || done || b.disabled) return; sfx.click(); placed.push(+b.dataset.k); draw(); };
+  ans.onclick = e => { const b = e.target.closest(".grtile"); if (!b || done) return; placed.splice(+b.dataset.j, 1); draw(); };
+  const submit = (give = false) => {
+    if (done || (!give && placed.length !== d.t.length)) return; done = true;
+    const got = placed.map(k => d.t[k]).join("|"), ok = !give && [d.t].concat(d.alt || []).some(a => a.join("|") === got);
+    host.querySelector("#giveBtn").disabled = true; draw();
+    ans.classList.add(ok ? "ok" : "bad"); pool.querySelectorAll(".grtile").forEach(b => b.disabled = true);
+    host.querySelector("#fb").innerHTML = fbHTML(ok); bindLink();
+    onAnswer(ok, ans);
+  };
+  chk.onclick = () => submit(); host.querySelector("#giveBtn").onclick = () => submit(true);
+  draw();
+  return { submit: () => submit(), choose: j => { const b = pool.querySelectorAll(".grtile:not([disabled])")[j]; if (b) b.click(); } };
+}
+/* peek at the lesson mid-drill without leaving the session */
+function grLessonModal(id) {
+  const p = GR[id], md = document.createElement("div"); md.className = "modal"; md.id = "grModal";
+  md.innerHTML = `<div class="box grlesson" role="dialog" aria-label="${esc(p.t)}"><h2>${esc(p.t)}</h2><div class="grpat jp">${esc(p.p)}</div>${p.l.map(x => `<p>${x}</p>`).join("")}
+    <ul class="grex">${p.ex.map((e, i) => `<li><div class="grjp jp">${esc(e[0])} ${grSayBtn(/家/.test(e[0]) ? e[1] : e[0], grAudio(id, i))}</div><div class="grkana jp">${esc(e[1])}</div><div class="muted">${esc(e[2])}</div></li>`).join("")}</ul>
+    <div class="btnrow"><button class="btn" id="grModalClose">Close</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "grModalClose") md.remove(); };
 }
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
@@ -6836,6 +7576,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Kanji: meanings, readings, stroke counts & frequency from <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT, David Gouveia), derived from <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a> (EDRDG, CC BY-SA 4.0), with JLPT levels from Jonathan Waller's <a href="http://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">JLPT resources</a>. Stroke order & look-alike shapes from <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> © Ulrich Apel (CC BY-SA 3.0). The kanji data files (data/kanji-*.json) are shared under CC BY-SA.<br>
   Pimsleur words: <b>unofficial, compiled from learner notes; not affiliated with Pimsleur</b> — word lists only (word, reading, meaning, lesson), cross-checked from ${PIMS.meta.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a>`).join(", ")}; the ${PIMS.pm.length} words not in the JLPT lists use the same NanamiNeural TTS. Pimsleur is a trademark of its owner.<br>
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
+  Grammar: ${GR_DATA.length} N5 points — explanations, example sentences and drills are original, written for this app (no textbook text); example and drill audio use the same NanamiNeural TTS.<br>
   Scheduling: <a href="https://github.com/open-spaced-repetition/py-fsrs" target="_blank" rel="noopener">FSRS-5</a> (Free Spaced Repetition Scheduler, MIT, Open Spaced Repetition — default parameters), ported to plain JavaScript.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
@@ -6847,7 +7588,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "425867a10dc8";
+const BUILD = "104671fedc9a";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -6897,7 +7638,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { WORDS, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
