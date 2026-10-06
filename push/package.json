@@ -1,0 +1,7 @@
+{
+  "name": "n5vq-push",
+  "private": true,
+  "description": "JLPT Vocab Quest review reminders: scheduled GitHub Actions job that sends Web Push notifications",
+  "license": "MIT",
+  "dependencies": { "web-push": "3.6.7" }
+}

@@ -3,7 +3,7 @@
    - data/nX.json, data/kanji-nX.json and data/kanji-nX-s.json (stroke paths) ?v=<hash>: cache-first per version (old versions of the same file are dropped); offline falls back to any cached version
    - HTML/navigation: network-first with a 4 s timeout → cached copy (never hangs on a slow network, never pins a stale index.html) */
 const AUDIO_REV = 2;   // 2 = Keita/Nanami voice switch (2026-10-06)
-const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v25", DATA_CACHE = "n5vq-data-v1";
+const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v26", DATA_CACHE = "n5vq-data-v1";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k !== AUDIO_CACHE && k !== PAGE_CACHE && k !== DATA_CACHE) await caches.delete(k);
@@ -86,4 +86,27 @@ self.addEventListener("fetch", e => {
       }
     })());
   }
+});
+/* Review reminders (push/run.js on GitHub Actions). Payload { title, body, n, kind, tag, url }. Every push shows a
+   notification (iOS requires it); same tag + renotify so an hourly repeat alerts again (sound/vibration follow the
+   phone's settings for this app) instead of silently replacing the previous one. */
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }
+  const n = +d.n || 0;
+  const opts = { body: d.body || (n ? `${n} reviews due — keep your streak going` : "Time for a quick review"), icon: "icons/icon-192.png", badge: "icons/icon-192.png",
+    tag: d.tag || "n5vq-due", renotify: true, silent: false, timestamp: d.t || Date.now(), data: { url: d.url || "./?go=due" } };
+  e.waitUntil(Promise.all([
+    self.registration.showNotification(d.title || "JLPT Quest", opts),
+    n > 0 && self.navigator && self.navigator.setAppBadge ? self.navigator.setAppBadge(n).catch(() => {}) : null
+  ]));
+});
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || "./?go=due", self.registration.scope).href;
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const c of all) if (c.url.startsWith(self.registration.scope)) { c.postMessage({ go: "due" }); return c.focus(); }
+    return self.clients.openWindow(url);
+  })());
 });
