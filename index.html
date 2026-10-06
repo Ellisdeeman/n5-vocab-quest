@@ -1065,7 +1065,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .mkhist{padding:4px 0}.mkhrow{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:.5px solid var(--sep);padding:10px 14px;color:var(--label);font:inherit;text-align:left;cursor:pointer}.mkhrow:last-child{border-bottom:0}
 .mkhrow .grow{flex:1;display:flex;flex-direction:column;min-width:0}.mkhrow small{color:var(--label2);font-size:.78rem}.mktot{font-size:1.25rem;font-weight:800;font-variant-numeric:tabular-nums}.mkempty{text-align:center}
 .topbar.mktop{flex-wrap:nowrap}.mktop>b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem}
-.mktimer{font-variant-numeric:tabular-nums;font-weight:800;background:var(--fill);border-radius:10px;padding:4px 9px;min-width:3.6em;text-align:center}.mktimer.low{background:var(--red);color:#fff}.mkcount{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
+.mktimer{font-variant-numeric:tabular-nums;font-weight:800;background:var(--fill);border-radius:10px;padding:4px 9px;min-width:3.6em;text-align:center}.mktimer.low{background:var(--bad);color:#fff}.mkcount{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
 .mkq{text-align:left}.mkq .qtype{text-align:left}.mkins{font-size:.88rem;color:var(--label2);margin:4px 0 12px;line-height:1.5}
 .mkpass{background:var(--fill);border-radius:12px;padding:12px 14px;font-size:1rem;line-height:1.85;margin-bottom:12px;max-height:46vh;overflow:auto;white-space:normal}
 .mkbl{font-weight:700;color:var(--label2)}.mkbl.cur{color:var(--label);box-shadow:inset 0 0 0 2px var(--accent);border-radius:6px;padding:0 2px}
@@ -1080,12 +1080,30 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .mkgrid button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.mkgrid button.cur{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent)}
 .mkintro .big{font-size:3rem;margin:6px 0}
 .mkres{text-align:center}.mktotal{margin:6px 0 2px}.mktotal b{font-size:3.4rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}.mktotal span{font-size:1.2rem;color:var(--label2)}
-.mkverdict{display:inline-block;border-radius:999px;padding:6px 14px;font-weight:700;margin-bottom:14px;font-size:.9rem}.mkverdict.pass{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}.mkverdict.fail{background:color-mix(in srgb,var(--orange) 18%,transparent);color:var(--label)}
+.mkverdict{display:inline-block;border-radius:999px;padding:6px 14px;font-weight:700;margin-bottom:14px;font-size:.9rem}.mkverdict.pass{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}.mkverdict.fail{background:color-mix(in srgb,var(--orange) 18%,transparent);color:var(--label)}
 .mkscore{text-align:left;margin:10px 0}.mkrow{display:flex;justify-content:space-between;gap:10px;font-size:.92rem}.mkbarw{position:relative;height:12px;border-radius:6px;background:var(--fill);margin:6px 0 3px;overflow:visible}
-.mkbar{height:100%;border-radius:6px;background:var(--orange)}.mkbar.ok{background:var(--green)}.mkmin{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--label);opacity:.6}
+.mkbar{height:100%;border-radius:6px;background:var(--orange)}.mkbar.ok{background:var(--good)}.mkmin{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--label);opacity:.6}
 .mkparts{text-align:left;margin-top:12px}.mkparts li{display:flex;justify-content:space-between;gap:8px}.mkagain{font-size:.85rem;margin:12px 0}
-.mkmiss .mkm{border-top:.5px solid var(--sep);padding:12px 0}.mkmiss .mkm:first-of-type{border-top:0}.mkmq{font-size:1.02rem;line-height:1.7;margin:4px 0}.mkyour{color:var(--red);margin:2px 0;font-size:.9rem}.mkright{color:var(--green);margin:2px 0;font-size:.9rem;font-weight:600}
+.mkmiss .mkm{border-top:.5px solid var(--sep);padding:12px 0}.mkmiss .mkm:first-of-type{border-top:0}.mkmq{font-size:1.02rem;line-height:1.7;margin:4px 0}.mkyour{color:var(--bad);margin:2px 0;font-size:.9rem}.mkright{color:var(--good);margin:2px 0;font-size:.9rem;font-weight:600}
 .mkmiss details{margin:6px 0;font-size:.9rem}.mkmiss summary{cursor:pointer;color:var(--accent)}.mkpasstxt,.mkscript{line-height:1.8;background:var(--fill);border-radius:10px;padding:8px 10px}
+/* speaking practice */
+.spktile .ic{--c:var(--teal)}
+.spkcard{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.spkword{font-size:3rem;font-weight:700;line-height:1.2;margin:6px 0 2px;word-break:keep-all}
+.spkread{font-size:1.3rem;color:var(--label2)}.spkmean{font-size:.95rem;margin-bottom:6px}
+.spkmic{width:104px;height:104px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;margin:14px auto 4px;cursor:pointer;box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 35%,transparent);transition:transform .15s}
+.spkmic:active{transform:scale(.95)}.spkmic:disabled{opacity:.45;box-shadow:none}
+.spkmic.rec{background:var(--bad);color:#fff}
+.spkmic.on{animation:spkpulse 1.2s ease-in-out infinite}
+@keyframes spkpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}50%{box-shadow:0 0 0 18px color-mix(in srgb,var(--accent) 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){.spkmic.on{animation:none;outline:4px solid var(--accent);outline-offset:4px}}
+.spkstatus{min-height:1.3em;font-size:.92rem;color:var(--label2);margin:4px 0}.spkstatus.on{color:var(--label);font-weight:600}.spkstatus.bad{color:var(--label)}
+.spkfb{width:100%}.spkheard{margin:6px 0;font-size:1rem;color:var(--label2)}.spkheard .hit{color:var(--label);font-weight:700}
+.spkans{font-size:1.15rem;font-weight:600;margin:4px 0}.spknochg{font-size:.82rem;margin:2px 0}
+.spkcmp{display:flex;gap:10px;justify-content:center;margin:6px 0}.spkcmp .btn{flex:0 0 auto}.spkself{justify-content:center}
+.spkdenied{background:var(--fill);border-radius:12px;padding:12px 14px;margin:8px 0;text-align:left;font-size:.9rem}.spkdenied p{margin:6px 0}
+.spknone{text-align:center}.spkswitch{text-align:center;margin:4px 0}.spknote{font-size:.8rem;text-align:center;margin:8px 4px}
+.spkempty{text-align:center}#spkPerm .big,.spkempty .big{font-size:2.6rem}
 </style>
 </head>
 <body>
@@ -2704,6 +2722,7 @@ function levelPage(l) {
       <button class="mode" data-m="flash"><div class="ic">🃏</div><h3>Flashcards</h3><p>Flip & self-grade (FSRS)</p></button>
       <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${SETS.filter(setUnlocked).length} unlocked</p></button>
       <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing</p></button>
+      <button class="mode spktile" data-m="speak"><div class="ic">🎤</div><h3>Speaking</h3><p>Say the word out loud</p></button>
       ${l === "n5" ? `<button class="mode rdtile-home" data-m="reading-stories"><div class="ic">読</div><h3>Reading</h3><p>${RD_DATA.length} graded stories</p></button><button class="mode mktile-home" data-m="mock"><div class="ic">📝</div><h3>Mock JLPT N5</h3><p>Timed practice test</p></button>` : ""}
       <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
     </div>
@@ -2714,7 +2733,7 @@ function levelPage(l) {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { "reading-stories": readingHome, mock: mockHome, speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: async () => { const g = viewGen; if (S.flKanji !== false && KJL[l]) await loadKanji(l); if (g !== viewGen) return; flashcards(LV[l].ids.concat(flKanjiPool(l)), `🃏 Flashcards · ${LNAME(l)}`, me, { kjAble: !!KJL[l], rebuild: () => LV[l].ids.concat(flKanjiPool(l)) }); } };
+    const special = { speak: () => spkStart(ALL_IDS, `Speaking · ${LNAME(l)}`, me), "reading-stories": readingHome, mock: mockHome, speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: async () => { const g = viewGen; if (S.flKanji !== false && KJL[l]) await loadKanji(l); if (g !== viewGen) return; flashcards(LV[l].ids.concat(flKanjiPool(l)), `🃏 Flashcards · ${LNAME(l)}`, me, { kjAble: !!KJL[l], rebuild: () => LV[l].ids.concat(flKanjiPool(l)) }); } };
     go(() => special[m] ? special[m]() : quiz(m, ALL_IDS, undefined, me));
   });
   bindGameTiles(view, l, me);
@@ -3579,7 +3598,7 @@ function historyView(range = 7, asTab = false) {
       <div class="st"><small>🏆 Mastered</small><b>${Object.values(S.cards).filter(c => c.box >= MASTER_BOX).length}</b><small>words, all levels</small></div></div>
     ${allMapCardHTML()}${memStatsHTML()}
     ${goalPanelHTML()}
-    ${kanjiStatsHTML()}
+    ${kanjiStatsHTML()}${typeof spkStatsHTML === "function" ? spkStatsHTML() : ""}
     <div class="sechead" style="display:flex;align-items:center;justify-content:space-between;text-transform:none;font-size:1rem;color:var(--label);font-weight:700;margin:22px 2px 8px">Study time ${segH}</div>` : topbar("📊 Study history", segH)) + `
     <div class="panel"><div class="chart ${range === 30 ? "c30" : ""}" id="chart"><div class="goalline" style="bottom:${18 + TS.goalMin * 60 / max * 142}px" title="goal"><span>goal ${TS.goalMin}m</span></div>
       ${days.map((d, i) => `<div class="bar ${goalMet(d) ? "met" : ""}" title="${d}: ${fmtMin(vals[i])} · ${tget(d).items} items · ${tget(d).newW} new${tget(d).aud ? ` · 🎧 lesson ${tget(d).aud.map(a => a.n).join(", ")}` : ""}"><i style="height:${vals[i] / max * 100}%"></i><small>${range === 7 ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][new Date(d + "T12:00").getDay()] : (i % 5 === 4 || i === range - 1 ? d.slice(8) : "")}</small></div>`).join("")}</div>
@@ -3670,7 +3689,7 @@ function renderDue() {
     <div class="hero ${total ? "" : "done"}"><div class="ic">${total ? "⏰" : "✅"}</div><div><h2>${total ? `${total} reviews due` : "All caught up!"}</h2>
       <p>${total ? `${vAll.ids.length} words · ${jAll.ids.length} kanji · ${kAll.ids.length} kana${gAll.ids.length || grLearned() ? ` · ${gAll.ids.length} grammar` : ""} — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
       <div class="seg dueseg" id="dueBatch">${["20", "50", "all"].map(b => `<button class="${(S.dueBatch || "all") === b ? "on" : ""}" data-b="${b}">${b === "all" ? "All" : "Batch " + b}</button>`).join("")}</div></div>
-      <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button>${total ? `<button class="btn ghost small flopt" id="dueFlash">🃏 Due as flashcards</button>` : ""}</div>
+      <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button>${total ? `<button class="btn ghost small flopt" id="dueFlash">🃏 Due as flashcards</button>` : ""}${vAll.ids.length ? `<button class="btn ghost small flopt" id="dueSpeak">🎤 Speak due words</button>` : ""}</div>
     <div class="panel duepanel"><h2>Levels</h2>
       ${dueRow("kana:h", "あ", "Kana · Hiragana", secs["kana:h"].r)}${dueRow("kana:k", "ア", "Kana · Katakana", secs["kana:k"].r)}
       ${LEVELS.map(l => { const sec = secs[l], sets = LV[l].sets.map(s => ["set:" + s.id, secs["set:" + s.id]]).filter(x => x[1]), dueSets = sets.filter(x => x[1].r.ids.length);
@@ -3687,6 +3706,7 @@ function renderDue() {
   view.querySelectorAll("details.duesets").forEach(d => d.ontoggle = () => { dueOpen[d.dataset.l] = d.open; });
   $("#dueBatch").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.dueBatch = b.dataset.b; save(); renderDue(); };
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review); });
+  const dsp = $("#dueSpeak"); if (dsp) dsp.onclick = () => { sfx.click(); go(() => spkStart(dueScan().ids.filter(id => WORDS[id]), "Speak due words", dueView, true)); };
   const dfl = $("#dueFlash"); if (dfl) dfl.onclick = () => { sfx.click(); go(() => flashcards(dueScan().ids.filter(id => WORDS[id]).concat(kanaDueScan().ids.map(k => "k:" + k), kjDueScan().ids.filter(c => KJ[c]).map(c => "j:" + c)), "🃏 Due flashcards", dueView, { dueOnly: true })); };
   updateDueBadge();
 }
@@ -4725,7 +4745,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -5243,11 +5263,12 @@ async function pimsLessonView(lv, n) {
       <button class="mode" data-m="typing"><div class="ic">⌨️</div><h3>Typing</h3><p>Type the Japanese</p></button>
       ${canAudio() ? `<button class="mode" data-m="listen"><div class="ic">🎧</div><h3>Listening</h3><p>Hear & choose</p></button>` : ""}
       <button class="mode" data-m="match"><div class="ic">🧩</div><h3>Match</h3><p>Pairs game</p></button>
+      <button class="mode spktile" data-m="speak"><div class="ic">🎤</div><h3>Speaking</h3><p>Say the words</p></button>
     </div>
     ${missing ? `<div class="btnrow"><button class="btn sec" id="pmAdd">➕ Add ${missing} word${missing > 1 ? "s" : ""} to Seen</button></div>` : ""}
     <div class="panel" id="pmWords">${ids.map(id => wordRow(WORDS[id]).replace('<span style="text-align:right', `<span class="pmsrc">${lvlOf(id) === "pm" ? "Pimsleur set" : LNAME(lvlOf(id))}</span><span style="text-align:right`)).join("")}</div>`;
   bindBack(pimsView);
-  view.querySelectorAll("button.mode").forEach(b => b.onclick = () => { sfx.click(); pimsDrill(ids, `Lesson ${n} · ${b.dataset.m === "match" ? "Match" : MODES[b.dataset.m].t}`, back, b.dataset.m); });
+  view.querySelectorAll("button.mode").forEach(b => b.onclick = () => { sfx.click(); if (b.dataset.m === "speak") return go(() => spkStart(ids, `Lesson ${n} · Speaking`, back)); pimsDrill(ids, `Lesson ${n} · ${b.dataset.m === "match" ? "Match" : MODES[b.dataset.m].t}`, back, b.dataset.m); });
   const a = $("#pmAdd"); if (a) a.onclick = () => { const r = pimsAddLesson(lv, n, true); alsave(); toast(`➕ ${r ? r.created.length : 0} words added to Seen`); go(back); };
   $("#pmWords").onclick = e => { const r = e.target.closest(".row"); if (r) wordModal(WORDS[+r.dataset.id]); };
 }
@@ -8552,6 +8573,290 @@ document.addEventListener("keydown", e => {
   else if (e.key === "ArrowRight" && $("#mkNext")) { e.preventDefault(); $("#mkNext").click(); }
   else if (e.key === "ArrowLeft" && MK.pos) { e.preventDefault(); $("#mkPrev").click(); }
 });
+/* ================= Speaking practice (Batch 4) =================
+   Say-the-word: a word is shown (kanji; "Show reading" hint), the learner taps the big mic and says it. Web Speech API
+   (SpeechRecognition / webkitSpeechRecognition, lang ja-JP, up to 5 alternatives) — every alternative is normalized
+   (NFKC, katakana → hiragana, ー and おう/えい long vowels, ぢ/づ/を, punctuation, digits → kanji numerals) and compared with
+   the word's kana and written forms (plus homophones that the recognizer may write with other kanji, via the word lists).
+   Fallback "Record & compare" (MediaRecorder): record yourself, play it next to the native audio, self-grade Again / Good.
+   Grading — recognition is unreliable, so speaking can only help: a match (or self-graded Good) is a Good review on the
+   word's reading track (Hard if the reading hint was shown or it took a retry); a miss / Again never changes the schedule,
+   it is only counted in the speaking stats (S.spkLog {day: {n, ok, miss}}). Only words already seen are practised.
+   The microphone is never started automatically: the first tap explains the permission prompt. */
+const spkSR = () => window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const spkCanRec = () => !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+const SPK_V = (() => { const m = {}, rows = { "あ": "あかさたなはまやらわがざだばぱぁゃゎ", "い": "いきしちにひみりぎじぢびぴぃ", "う": "うくすつぬふむゆるぐずづぶぷぅゅゔ", "え": "えけせてねへめれげぜでべぺぇ", "お": "おこそとのほもよろをごぞどぼぽぉょ" };
+  for (const v in rows) for (const c of rows[v]) m[c] = v; return m; })();
+const SPK_DIG = "〇一二三四五六七八九";
+/* canonical kana-ish key: the same for 先生/せんせい/センセー only when the text is kana; kanji pass through */
+function spkCanon(s) {
+  s = String(s || "").normalize("NFKC").toLowerCase().replace(/[\s、。，．,.!?！？・「」『』（）()\[\]【】〜~…:：;；"'`\-–—]/g, "").replace(/～/g, "");
+  s = s.replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+  let o = "";
+  for (const ch of s) {
+    const pv = SPK_V[o[o.length - 1]];
+    if (ch === "ー") o += pv || "";
+    else if (ch === "う" && pv === "お") o += "お";
+    else if (ch === "い" && pv === "え") o += "え";
+    else o += ch;
+  }
+  return o.replace(/ぢ/g, "じ").replace(/づ/g, "ず").replace(/を/g, "お");
+}
+const spkDigits = s => s.normalize("NFKC").replace(/\d+/g, d => +d === 10 ? "十" : +d < 100 && d.length === 2 ? (d[0] === "1" ? "" : SPK_DIG[d[0]]) + "十" + (d[1] === "0" ? "" : SPK_DIG[d[1]]) : [...d].map(x => SPK_DIG[x]).join(""));
+const spkForms = w => {
+  const strip = x => x.replace(/\s*[(（][^)）]*[)）]\s*/g, "").replace(/[～〜]/g, "").trim();
+  const suru = /する/.test(w.kana) && !/する$/.test(w.kana.replace(/\s*\(する\)$/, ""));
+  const wr = w.jp.split(/[;；、,]\s*/).map(strip).filter(Boolean), kn = w.kana.split(/[;；、,]\s*/).map(strip).filter(Boolean);
+  const all = [...wr, ...kn]; if (suru) all.slice().forEach(f => all.push(f + "する"));
+  return { written: wr, kana: kn, keys: [...new Set(all.map(spkCanon))].filter(Boolean) };
+};
+let SPK_DICT = null, SPK_DICT_N = 0;   // written form → canon(kana) of every loaded word (homophones written with other kanji)
+function spkDict() {
+  if (SPK_DICT && SPK_DICT_N === WORDS.length) return SPK_DICT;
+  SPK_DICT = {}; SPK_DICT_N = WORDS.length;
+  for (const w of WORDS) { if (!w || !w.jp) continue; const k = spkCanon(w.kana.replace(/\s*\(.*\)$/, "").split(/[;；、]/)[0]); for (const f of w.jp.split(/[;；、,]\s*/)) { const c = spkCanon(f.replace(/[～〜]/g, "")); if (c) (SPK_DICT[c] = SPK_DICT[c] || new Set()).add(k); } }
+  return SPK_DICT;
+}
+/* does any recognized alternative say word w? → { ok, alt (the matching text), how } */
+function spkMatch(alts, w) {
+  const F = spkForms(w), keys = new Set(F.keys), D = spkDict();
+  for (const raw of alts || []) {
+    for (const t of [raw, spkDigits(raw)]) {
+      const c = spkCanon(t); if (!c) continue;
+      if (keys.has(c)) return { ok: true, alt: raw, how: "exact" };
+      const ks = D[c]; if (ks) for (const k of ks) if (keys.has(k)) return { ok: true, alt: raw, how: "homophone" };
+      for (const k of keys) if (k.length >= 2 && c.length <= k.length + 4 && c.includes(k)) return { ok: true, alt: raw, how: "contains" };
+    }
+  }
+  return { ok: false, alt: null, how: null };
+}
+/* ---------- stats ---------- */
+function spkCount(kind) { const L = nlog("spkLog"), t = todayStr(), x = L[t] = L[t] || { n: 0, ok: 0, miss: 0 }; x.n++; if (kind === "ok") x.ok++; else x.miss++; nlPrune("spkLog"); }
+function spkStatsHTML() {
+  const L = S.spkLog && typeof S.spkLog === "object" ? S.spkLog : {}, d7 = new Set(Array.from({ length: 7 }, (_, k) => daysAgo(k)));
+  let n = 0, ok = 0, n7 = 0, ok7 = 0; for (const d in L) { const x = L[d] || {}; n += +x.n || 0; ok += +x.ok || 0; if (d7.has(d)) { n7 += +x.n || 0; ok7 += +x.ok || 0; } }
+  if (!n) return "";
+  return `<div class="panel spkstats" id="spkStats"><h2>🎤 Speaking</h2><div class="row"><span>Last 7 days</span><b>${ok7} of ${n7} said right</b></div><div class="row"><span>Last 30 days</span><b>${ok} of ${n}</b></div>
+    <p class="muted" style="font-size:.8rem;margin:8px 2px 0">Misses never change a word's schedule (speech recognition can mishear) — they're only counted here.</p></div>`;
+}
+/* ---------- entry ---------- */
+function spkPool(ids, dueOnly) {
+  const now = Date.now(), seen = ids.filter(id => WORDS[id] && S.cards[id]);
+  const due = seen.filter(id => S.cards[id].due <= now).sort((a, b) => S.cards[a].due - S.cards[b].due);
+  if (dueOnly) return due.slice(0, 30);
+  const rest = shuffle(seen.filter(id => S.cards[id].due > now));
+  return due.concat(rest).slice(0, 15);
+}
+function spkStart(ids, title, back, dueOnly = false) {
+  const pool = spkPool(ids, dueOnly);
+  if (!pool.length) {
+    view.innerHTML = topbar(`🎤 ${esc(title)}`) + `<div class="card spkempty" id="spkEmpty"><div class="big">🎤</div><h2>${dueOnly ? "No words due" : "No words to practise yet"}</h2>
+      <p class="muted">${dueOnly ? "Nothing is due right now — practise any seen words from a level page instead." : "Speaking practice uses words you've already met. Learn a few words first, then come back."}</p><div class="btnrow"><button class="btn" id="spkBack">Back</button></div></div>`;
+    bindBack(back); $("#spkBack").onclick = () => go(back); return;
+  }
+  spkSession(pool, title, back);
+}
+/* ---------- session ---------- */
+let SPK = null;   // live session (tests read it through __N5.SPK)
+const SPK_MIC = `<svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><path fill="currentColor" d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Zm6-3.5a1 1 0 1 0-2 0 4 4 0 0 1-8 0 1 1 0 1 0-2 0 6 6 0 0 0 5 5.91V20H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-2.59A6 6 0 0 0 18 11.5Z"/></svg>`;
+function spkModeNow() {
+  if (spkSR() && S.spkMode !== "rec" && !(SPK && SPK.srOff)) return "sr";
+  if (spkCanRec()) return "rec";
+  return "none";
+}
+function spkSession(ids, title, back) {
+  SPK = { ids, title, back, pos: 0, tries: 0, hinted: false, done: false, res: [], rec: null, media: null, blobUrl: null, srOff: false, listening: false };
+  studyScreen = true;
+  cleanup = () => spkStopAll();
+  const onKey = e => {
+    if (!SPK || document.querySelector(".modal") || e.metaKey || e.ctrlKey || e.altKey || /input|textarea/i.test((e.target || {}).tagName || "")) return;
+    if (e.key === "Enter") { const n = $("#spkNext"); if (n) { e.preventDefault(); n.click(); } }
+    else if (e.key === " " || e.key === "m") { const m = $("#spkMic") || $("#spkRec"); if (m && !m.disabled) { e.preventDefault(); m.click(); } }
+    else if (e.key === "h") { const h = $("#spkHint"); if (h) h.click(); }
+  };
+  addEventListener("keydown", onKey);
+  const prev = cleanup; cleanup = () => { prev(); removeEventListener("keydown", onKey); };
+  spkShow();
+}
+function spkStopAll() {
+  if (!SPK) return;
+  try { SPK.rec && SPK.rec.abort && SPK.rec.abort(); } catch (e) {}
+  try { if (SPK.media && SPK.media.state === "recording") SPK.media.stop(); } catch (e) {}
+  if (SPK.stream) SPK.stream.getTracks().forEach(t => t.stop());
+  if (SPK.blobUrl) { try { URL.revokeObjectURL(SPK.blobUrl); } catch (e) {} }
+  clearTimeout(SPK.tmo);
+  SPK.rec = null; SPK.media = null; SPK.stream = null; SPK.listening = false;
+}
+function spkShow() {
+  spkStopAll();
+  if (SPK.pos >= SPK.ids.length) return spkFinish();
+  const id = SPK.ids[SPK.pos], w = WORDS[id], mode = spkModeNow(), F = spkForms(w), kana = F.kana[0] || w.kana;
+  SPK.tries = 0; SPK.hinted = false; SPK.answered = false; SPK.blobUrl = null;
+  const hasK = w.hasKanji != null ? w.hasKanji : /[\u4e00-\u9fff]/.test(w.jp);
+  view.innerHTML = topbar(`🎤 ${esc(SPK.title)}`, `<span class="muted" id="score">${SPK.pos + 1}/${SPK.ids.length}</span>`) + `<div class="sprog"><div id="sprog" style="width:${SPK.pos / SPK.ids.length * 100}%"></div></div>
+    <div class="card spkcard" id="spkCard" data-id="${id}" data-mode="${mode}"><div class="qtype">${mode === "rec" ? "Say it · Record & compare" : "Say this word"}</div>
+      <div class="spkword jp" id="spkWord">${esc(F.written[0] || w.jp)}</div>
+      ${hasK ? `<div class="spkread jp" id="spkRead" hidden>${esc(kana)}</div><button class="btn ghost small" id="spkHint">👁 Show reading</button>` : ""}
+      <div class="muted spkmean">${esc(w.en)}</div>
+      ${mode === "sr" ? `<button class="spkmic" id="spkMic" aria-label="Tap, then say the word">${SPK_MIC}</button><p class="spkstatus" id="spkStatus" aria-live="polite">Tap the mic, then say the word</p>`
+      : mode === "rec" ? `<button class="spkmic rec" id="spkRec" aria-label="Record yourself saying the word">${SPK_MIC}</button><p class="spkstatus" id="spkStatus" aria-live="polite">Tap to record yourself (up to 5 s), then compare</p>
+        <div class="spkcmp" id="spkCmp" hidden><button class="btn sec" id="spkYou">▶ You</button><button class="btn sec" id="spkNat">🔈 Native</button></div>
+        <div class="btnrow spkself" id="spkSelf" hidden><button class="btn ghost" id="spkAgain">Again</button><button class="btn" id="spkGood">Good</button></div>`
+      : `<div class="spknone" id="spkNone"><p><b>This browser can't use the microphone here.</b></p><p class="muted">Speaking practice needs speech recognition or audio recording. Try Safari on iOS 14.5+ or Chrome — or listen and repeat out loud:</p><button class="btn sec" id="spkNat">🔈 Native audio</button></div>`}
+      <div id="spkFb" class="spkfb"></div>
+      <div class="btnrow" id="spkNav">${mode === "none" ? `<button class="btn" id="spkNext">Next →</button>` : `<button class="btn ghost small" id="spkSkip">Skip</button>`}</div></div>
+    ${mode !== "none" && spkSR() && spkCanRec() ? `<div class="spkswitch"><button class="btn ghost small" id="spkSwitch">${mode === "sr" ? "🎙 Use Record & compare instead" : "🗣 Use speech recognition instead"}</button></div>` : ""}
+    <p class="muted spknote">${mode === "sr" ? "Only a match counts — as a Good review (Hard with the hint or a retry). Misses never change the schedule: recognition can mishear." : mode === "rec" ? "Good counts as a review (Hard with the hint). Again doesn't change the schedule." : ""}</p>
+    <p class="muted kbdhint" style="text-align:center;font-size:.8rem"><kbd>Space</kbd> mic · <kbd>H</kbd> reading · <kbd>Enter</kbd> next</p>`;
+  bindBack(SPK.back);
+  const hint = $("#spkHint"); if (hint) hint.onclick = () => { SPK.hinted = true; $("#spkRead").hidden = false; hint.remove(); };
+  const mic = $("#spkMic"); if (mic) mic.onclick = () => spkMicTap();
+  const rec = $("#spkRec"); if (rec) rec.onclick = () => spkRecTap();
+  const nat = $("#spkNat"); if (nat) nat.onclick = () => speak(w, true);
+  const sk = $("#spkSkip"); if (sk) sk.onclick = () => { SPK.pos++; spkShow(); };
+  const nx = $("#spkNext"); if (nx) nx.onclick = () => { SPK.pos++; spkShow(); };
+  const sw = $("#spkSwitch"); if (sw) sw.onclick = () => { S.spkMode = mode === "sr" ? "rec" : "auto"; SPK.srOff = false; save(); spkShow(); };
+}
+/* first mic use: explain the permission prompt (never start the mic without a tap) */
+function spkAskFirst(then) {
+  if (S.spkMicOk) return then();
+  const md = document.createElement("div"); md.className = "modal"; md.id = "spkPerm";
+  md.innerHTML = `<div class="box"><div class="big">🎤</div><h2>Microphone</h2><p>Speaking practice listens only while the mic button is lit, after you tap it. Your browser will now ask for microphone access.</p>
+    <p class="muted" style="font-size:.85rem">${spkModeNow() === "sr" ? "Speech is turned into text by your browser's speech service (Apple on iPhone/iPad — Siri &amp; Dictation must be on; Google in Chrome). Nothing is stored by this app." : "Recordings stay on this device and are discarded when you move on."}</p>
+    <div class="btnrow"><button class="btn ghost" id="spkPermNo">Not now</button><button class="btn" id="spkPermOk">Continue</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "spkPermNo") md.remove(); else if (e.target.id === "spkPermOk") { md.remove(); S.spkMicOk = true; save(); then(); } };
+}
+function spkStatus(t, cls = "") { const s = $("#spkStatus"); if (s) { s.textContent = t; s.className = "spkstatus " + cls; } }
+function spkMicTap() {
+  if (!SPK || SPK.answered) return;
+  if (SPK.listening) { try { SPK.rec.stop(); } catch (e) {} return; }
+  spkAskFirst(spkListen);
+}
+function spkListen() {
+  const C = spkSR(); if (!C || !SPK) return;
+  const id = SPK.ids[SPK.pos], r = new C(); let alts = [], err = null, ended = false;
+  r.lang = "ja-JP"; r.maxAlternatives = 5; r.interimResults = false; r.continuous = false;
+  r.onresult = e => { for (let i = 0; i < e.results.length; i++) { const res = e.results[i]; for (let j = 0; j < res.length; j++) if (res[j] && res[j].transcript) alts.push(res[j].transcript); } };
+  r.onerror = e => { err = e.error || "error"; };
+  r.onend = () => { if (ended) return; ended = true; clearTimeout(SPK && SPK.tmo); if (!SPK || SPK.ids[SPK.pos] !== id) return; SPK.listening = false; SPK.rec = null; $("#spkMic") && $("#spkMic").classList.remove("on"); spkHeard(alts, err); };
+  SPK.rec = r; SPK.listening = true;
+  try { r.start(); } catch (e) { SPK.listening = false; SPK.rec = null; return spkHeard([], "start"); }
+  $("#spkMic").classList.add("on"); spkStatus("Listening… say the word", "on");
+  SPK.tmo = setTimeout(() => { try { r.stop(); } catch (e) {} }, 8000);
+}
+function spkHeard(alts, err) {
+  const id = SPK.ids[SPK.pos], w = WORDS[id];
+  if (err === "not-allowed" || err === "service-not-allowed") return spkDenied(err);
+  if (err && err !== "no-speech" && err !== "aborted" && !alts.length) {
+    const msg = { network: "The speech service couldn't be reached (offline?).", "audio-capture": "No microphone was found.", "language-not-supported": "Japanese recognition isn't available in this browser." }[err] || "Speech recognition failed.";
+    spkStatus(msg + (spkCanRec() ? " You can use Record & compare instead." : ""), "bad");
+    if (spkCanRec() && !$("#spkUseRec")) $("#spkNav").insertAdjacentHTML("afterbegin", `<button class="btn sec" id="spkUseRec">🎙 Record & compare</button>`), $("#spkUseRec").onclick = () => { SPK.srOff = true; spkShow(); };
+    return;
+  }
+  if (!alts.length) { spkStatus("Didn't catch that — tap the mic and try again", "bad"); return; }
+  const m = spkMatch(alts, w), heard = [...new Set(alts)].slice(0, 3);
+  const heardHTML = `<div class="spkheard">Heard: ${heard.map((a, i) => `<span class="jp ${m.ok && a === m.alt ? "hit" : ""}">「${esc(a)}」</span>`).join(" ")}</div>`;
+  if (m.ok) {
+    const rating = SPK.hinted || SPK.tries ? 2 : 3;
+    spkGrade(id, rating);
+    $("#spkFb").innerHTML = `<div class="grok">✅ ${rating === 3 ? "Correct!" : "Correct (Hard)"}</div>${heardHTML}<div class="jp spkans">${esc(w.jp)} · ${esc(w.kana)}</div>`;
+    spkStatus(""); spkAfter(true);
+  } else {
+    SPK.tries++; spkCount("miss"); trackItem(false);
+    $("#spkFb").innerHTML = `<div class="grbad">❌ Not quite${SPK.tries >= 3 ? "" : " — try again"}</div>${heardHTML}`;
+    spkStatus(SPK.tries >= 3 ? "" : "Tap the mic to try again", "");
+    if (SPK.tries >= 3) spkReveal(); else if (!$("#spkShow")) { $("#spkNav").insertAdjacentHTML("afterbegin", `<button class="btn ghost small" id="spkShow">Show answer</button>`); $("#spkShow").onclick = spkReveal; }
+  }
+}
+/* gave up / 3 misses: show + play the answer; no schedule change */
+function spkReveal() {
+  const w = WORDS[SPK.ids[SPK.pos]];
+  const r = $("#spkRead"); if (r) r.hidden = false; const h = $("#spkHint"); if (h) h.remove();
+  $("#spkFb").insertAdjacentHTML("beforeend", `<div class="jp spkans">${esc(w.jp)} · ${esc(w.kana)}</div><p class="muted spknochg">Schedule unchanged.</p>`);
+  SPK.res.push({ id: w.id, r: 0 }); spkAfter(false);
+}
+function spkAfter(ok) {
+  SPK.answered = true;
+  const w = WORDS[SPK.ids[SPK.pos]], mic = $("#spkMic") || $("#spkRec"); if (mic) mic.disabled = true;
+  speak(w, true);   // native audio afterwards
+  $("#spkNav").innerHTML = `<button class="btn sec" id="spkReplay">🔈 Listen</button><button class="btn" id="spkNext">${SPK.pos + 1 >= SPK.ids.length ? "Finish" : "Next →"}</button>`;
+  $("#spkReplay").onclick = () => speak(w, true);
+  $("#spkNext").onclick = () => { SPK.pos++; spkShow(); };
+  if (ok) { sfx.good && sfx.good(); comboHit(true, $("#spkWord"), 4); }
+}
+function spkGrade(id, rating) {
+  grade(id, true, { rating, quiet: true, listen: false });
+  spkCount("ok"); SPK.res.push({ id, r: rating });
+}
+function spkDenied(err) {
+  SPK.srOff = err === "service-not-allowed";
+  const canRec = spkCanRec();
+  $("#spkFb").innerHTML = `<div class="spkdenied" id="spkDenied"><b>${err === "not-allowed" ? "Microphone access is blocked" : "Speech recognition isn't allowed here"}</b>
+    <p class="muted">${err === "not-allowed" ? "Allow the microphone for this site — iPhone: Settings › Safari › Microphone (or the aA menu › Website Settings); Chrome: the lock icon in the address bar." : "On iPhone/iPad turn on Siri &amp; Dictation (Settings › General › Keyboard › Enable Dictation). Home Screen apps may not get speech recognition — Record & compare works instead."}</p>
+    ${canRec ? `<button class="btn sec" id="spkToRec">🎙 Use Record & compare</button>` : ""}</div>`;
+  spkStatus("");
+  const b = $("#spkToRec"); if (b) b.onclick = () => { SPK.srOff = true; S.spkMode = err === "not-allowed" ? S.spkMode : S.spkMode; spkShow(); };
+}
+/* ---------- Record & compare ---------- */
+async function spkRecTap() {
+  if (!SPK || SPK.answered) return;
+  if (SPK.media && SPK.media.state === "recording") { SPK.media.stop(); return; }
+  spkAskFirst(spkRecord);
+}
+async function spkRecord() {
+  const id = SPK.ids[SPK.pos];
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) {
+    const denied = e && (e.name === "NotAllowedError" || e.name === "SecurityError");
+    $("#spkFb").innerHTML = `<div class="spkdenied" id="spkDenied"><b>${denied ? "Microphone access is blocked" : "No microphone available"}</b><p class="muted">${denied ? "Allow the microphone for this site — iPhone: Settings › Safari › Microphone; Chrome: the lock icon in the address bar. Meanwhile you can listen and repeat:" : "Connect a microphone, or listen and repeat out loud:"}</p><button class="btn sec" id="spkNat2">🔈 Native audio</button></div>`;
+    $("#spkNat2").onclick = () => speak(WORDS[id], true); return;
+  }
+  if (!SPK || SPK.ids[SPK.pos] !== id) { stream.getTracks().forEach(t => t.stop()); return; }
+  const type = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac"].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t));
+  const mr = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream), chunks = [];
+  SPK.media = mr; SPK.stream = stream;
+  mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  mr.onstop = () => {
+    clearTimeout(SPK && SPK.tmo); stream.getTracks().forEach(t => t.stop());
+    if (!SPK || SPK.ids[SPK.pos] !== id) return;
+    SPK.media = null; SPK.stream = null;
+    const b = $("#spkRec"); if (b) b.classList.remove("on");
+    if (SPK.blobUrl) { try { URL.revokeObjectURL(SPK.blobUrl); } catch (e) {} }
+    SPK.blobUrl = URL.createObjectURL(new Blob(chunks, { type: mr.mimeType || type || "audio/webm" }));
+    spkStatus("Compare your recording with the native audio, then grade yourself");
+    $("#spkCmp").hidden = false; $("#spkSelf").hidden = false;
+    $("#spkYou").onclick = () => { const a = new Audio(SPK.blobUrl); a.play().catch(() => {}); };
+    $("#spkNat").onclick = () => speak(WORDS[id], true);
+    $("#spkGood").onclick = () => { const r = SPK.hinted ? 2 : 3; spkGrade(id, r); $("#spkFb").innerHTML = `<div class="grok">✅ ${r === 3 ? "Good" : "Good (Hard — you used the hint)"}</div><div class="jp spkans">${esc(WORDS[id].jp)} · ${esc(WORDS[id].kana)}</div>`; $("#spkSelf").hidden = true; spkAfterRec(); };
+    $("#spkAgain").onclick = () => { spkCount("miss"); trackItem(false); SPK.res.push({ id, r: 0 }); $("#spkFb").innerHTML = `<div class="grbad">Again — keep practising</div><div class="jp spkans">${esc(WORDS[id].jp)} · ${esc(WORDS[id].kana)}</div><p class="muted spknochg">Schedule unchanged.</p>`; $("#spkSelf").hidden = true; spkAfterRec(); };
+    speak(WORDS[id], true);   // reference right after your take
+  };
+  mr.start(); $("#spkRec").classList.add("on"); spkStatus("Recording… tap again to stop", "on");
+  SPK.tmo = setTimeout(() => { try { if (mr.state === "recording") mr.stop(); } catch (e) {} }, 5000);
+}
+function spkAfterRec() {
+  SPK.answered = true; const b = $("#spkRec"); if (b) b.disabled = true;
+  $("#spkNav").innerHTML = `<button class="btn" id="spkNext">${SPK.pos + 1 >= SPK.ids.length ? "Finish" : "Next →"}</button>`;
+  $("#spkNext").onclick = () => { SPK.pos++; spkShow(); };
+}
+/* ---------- finish ---------- */
+function spkFinish() {
+  const res = SPK.res, ok = res.filter(x => x.r > 0), again = SPK.ids.slice(), back = SPK.back, title = SPK.title;
+  const list = ok.map(x => ({ k: "w", id: x.id, r: x.r, tr: "f", due: S.cards[x.id] && S.cards[x.id].f ? S.cards[x.id].f.due : Date.now() }));
+  if (ok.length) addXP(5 + ok.length * 2);
+  touchStreak(); save();
+  view.innerHTML = topbar(`🎤 ${esc(title)}`) + `<div class="card grfinish" id="spkDone"><div class="qtype">Speaking done</div><div class="big">${ok.length === SPK.ids.length ? "🌟" : "🎤"}</div>
+    <p><b>${ok.length}</b> of ${SPK.ids.length} words said right</p>
+    ${list.length ? `<ul class="grres">${list.map(x => `<li><span class="grow jp">${esc(WORDS[x.id].jp)}</span><span class="rtag r${x.r}">${RATE_NAMES[x.r]}</span></li>`).join("")}</ul>${nextReviewListHTML(list)}` : `<p class="muted">No schedules changed.</p>`}
+    <div class="btnrow"><button class="btn" id="spkMore">Practise again</button><button class="btn ghost" id="spkBack">Done</button></div></div>`;
+  bindBack(back); if (ok.length) sfx.level();
+  bindNextReview($("#spkDone"));
+  $("#spkMore").onclick = () => go(() => spkSession(shuffle(again), title, back));
+  $("#spkBack").onclick = () => go(back);
+  SPK = null;
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -8579,7 +8884,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "f01d0797e0fb";
+const BUILD = "d2ab9f31acfb";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -8629,7 +8934,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
