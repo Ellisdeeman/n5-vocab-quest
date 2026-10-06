@@ -1168,6 +1168,27 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .cjlad{padding:6px 0;font-size:.92rem}.cjprompt{margin:8px 0;font-size:1.05rem}
 .cjrule{margin:8px 0;padding:8px 10px;background:var(--card);border-left:3px solid var(--accent);border-radius:8px;font-size:.9rem;line-height:1.35}
 .ladchip{display:inline-block;font-size:.78rem;padding:2px 8px;border-radius:999px;background:var(--sep);margin-left:6px}
+
+/* Batch 9: ConjuGato-style conjugation */
+.cjhero{margin:8px 0 4px}.cjpractice{width:100%;min-height:56px;font-size:1.15rem;font-weight:700}
+.cjsubbtns{flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.cjfilt{padding:12px 14px}.cjflab{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--label2);margin:10px 0 6px}
+.cjflab:first-child{margin-top:0}
+.cjchips{display:flex;flex-wrap:wrap;gap:6px}
+.cjchip{font:inherit;font-size:.86rem;padding:8px 12px;min-height:40px;border-radius:999px;border:1px solid var(--sep);background:var(--card);color:var(--label);cursor:pointer}
+.cjchip.on{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:650}
+.cjexrow{padding:10px 0 0;border-bottom:none}
+.cjbrowse .cjverb{display:flex;width:100%;gap:8px;align-items:baseline;text-align:left;padding:10px 4px;border:0;border-bottom:.5px solid var(--sep);background:transparent;color:inherit;font:inherit;cursor:pointer;min-height:44px}
+.cjbrowse .cjverb:last-child{border-bottom:none}.cjg{margin-left:auto;font-size:.78rem;color:var(--label2)}
+.cjtable{display:flex;flex-direction:column;gap:0;padding:4px 8px}
+.cjcell{display:flex;width:100%;gap:10px;align-items:center;text-align:left;padding:12px 6px;border:0;border-bottom:.5px solid var(--sep);background:transparent;color:inherit;font:inherit;cursor:pointer;min-height:48px}
+.cjcell:last-child{border-bottom:none}.cjcell .cjans{flex:1;font-size:1.15rem;font-weight:650}
+.cjcell.cjirr .cjans{color:var(--accent)}.cjcell.cjirr{background:var(--goodT)}
+.cjrevcard .cjbig{font-size:1.85rem;font-weight:700;line-height:1.3}
+.cjrevcard .cjtarget{margin-top:10px;font-size:1.15rem}.cjansbig{font-size:1.7rem;font-weight:700;margin:6px 0}
+.cjrate{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.cjrate .btn{min-height:48px}.cjguide p{margin:8px 0;line-height:1.45}.cjhrow{padding:8px 0;border-bottom:.5px solid var(--sep);font-size:.92rem}
+.cjhrow:last-child{border-bottom:none}.cjforms .cjrow{position:relative}.cjguideb{flex-shrink:0}
 </style>
 </head>
 <body>
@@ -4822,7 +4843,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -10548,13 +10569,74 @@ function cjDistractors(w, formId, n = 3) {
   const arr = [...pool].filter(Boolean);
   return shuffle(arr).slice(0, n);
 }
-/* ================= Conjugation drills — COMPLETELY separate track =================
-   Own section (conjHome), own FSRS cards S.ccards keyed "wordId:formId", own daily new limit
-   S.cjLimit / S.newLogC, own stats. Does NOT feed totalDue(), pnTimeline, vocab goals, or
-   vocab new-word caps. Produce-ladder per (word, form) item: 1 MC → 2 type → 3 listen&type →
-   4 cloze. Lapse drops a rung. Entry from Grammar hub + Home. Audio: Keita files under
-   audio/cj/<kana>-<form>.mp3 when present, else speechSynthesis. */
-const CJ_KEY = "jlptVocabQuest.conj.v1"; // unused: lives inside S like grammar
+
+/* ---------- Guides (per form) + regularity / pattern packs ---------- */
+const CJ_GUIDES = {
+  masu: { t: "ます — polite non-past",
+    body: ["Ru-verb: drop る, add ます → たべる → たべます.",
+      "U-verb: change the last う-row sound to the い-row, add ます → のむ → のみます · かく → かきます · はなす → はなします.",
+      "する → します · くる → きます · いく → いきます."] },
+  masen: { t: "ません — polite negative",
+    body: ["Same stem as ます, then ません: たべます → たべません · のみます → のみません.",
+      "する → しません · くる → きません."] },
+  mashita: { t: "ました — polite past",
+    body: ["ます-stem + ました: たべました · のみました · しました · きました · いきました."] },
+  masendeshita: { t: "ませんでした — polite past negative",
+    body: ["ます-stem + ませんでした: たべませんでした · のみませんでした · しませんでした."] },
+  te: { t: "て-form",
+    body: ["Ru-verb: drop る + て → たべて · みて.",
+      "U-verb endings: う・つ・る → って (かって · まって · かえって) · む・ぶ・ぬ → んで (のんで · あそんで) · く → いて (かいて) · ぐ → いで (およいで) · す → して (はなして).",
+      "Specials: いく → いって (not いいて) · する → して · くる → きて."] },
+  tai: { t: "たい — want to…",
+    body: ["ます-stem + たい: たべたい · のみたい · したい · きたい · いきたい.",
+      "たい conjugates like an い-adjective (たべたくない · たべたかった)."] },
+  dict: { t: "Dictionary form",
+    body: ["The plain non-past form you look up in a dictionary: たべる · のむ · する · くる · いく.",
+      "From a ます form, undo the stem change: のみます → のむ · たべます → たべる."] },
+  ai_neg: { t: "い-adjective negative",
+    body: ["Drop い, add くない: たかい → たかくない.",
+      "Irregular: いい／よい → よくない (never いくない)."] },
+  ai_past: { t: "い-adjective past",
+    body: ["Drop い, add かった: たかい → たかかった · いい → よかった."] },
+  ai_pastneg: { t: "い-adjective past negative",
+    body: ["Drop い, add くなかった: たかくなかった · よくなかった."] },
+  na_neg: { t: "な-adjective negative",
+    body: ["Add じゃない (or ではない): しずか → しずかじゃない."] },
+  na_past: { t: "な-adjective past",
+    body: ["Add だった: しずか → しずかだった."] },
+  na_pastneg: { t: "な-adjective past negative",
+    body: ["Add じゃなかった (or ではなかった): しずかじゃなかった."] }
+};
+const cjGuide = fid => CJ_GUIDES[fid] || null;
+/* regularity buckets for filters */
+function cjReg(w) {
+  const g = cjGroup(w); if (!g) return null;
+  if (g === "suru" || g === "kuru") return "irr";
+  if (g === "iku" || (g === "ai" && (cjKana(w) === "いい" || cjKana(w) === "よい"))) return "special";
+  if (g === "ai" || g === "na") return "adj";
+  return "regular"; // ru / u
+}
+const CJ_REG_LABEL = { regular: "Regular", irr: "Irregular", special: "Specials", adj: "Adjectives" };
+const CJ_GROUP_LABEL = { ru: "る-verbs", u: "う-verbs", suru: "する", kuru: "来る", iku: "行く", ai: "い-adj", na: "な-adj" };
+/* pattern packs — small themed sets like ConjuGato rhymes */
+const CJ_PACKS = [
+  { id: "u-u", t: "う-verbs ending in う", match: w => cjGroup(w) === "u" && cjKana(w).endsWith("う") && cjKana(w) !== "いう" },
+  { id: "u-tsu", t: "う-verbs ending in つ", match: w => cjGroup(w) === "u" && cjKana(w).endsWith("つ") },
+  { id: "u-ru", t: "う-verbs ending in る (look like る-verbs)", match: w => cjGroup(w) === "u" && cjKana(w).endsWith("る") },
+  { id: "u-mu", t: "う-verbs ending in む・ぶ・ぬ", match: w => cjGroup(w) === "u" && /[むぶぬ]$/.test(cjKana(w)) },
+  { id: "u-ku", t: "う-verbs ending in く・ぐ", match: w => cjGroup(w) === "u" && /[くぐ]$/.test(cjKana(w)) },
+  { id: "u-su", t: "う-verbs ending in す", match: w => cjGroup(w) === "u" && cjKana(w).endsWith("す") },
+  { id: "ru", t: "る-verbs (ichidan)", match: w => cjGroup(w) === "ru" },
+  { id: "irr", t: "する · 来る · 行く", match: w => /^(suru|kuru|iku)$/.test(cjGroup(w)) },
+  { id: "ai", t: "い-adjectives", match: w => cjGroup(w) === "ai" },
+  { id: "na", t: "な-adjectives", match: w => cjGroup(w) === "na" }
+];
+/* ================= Conjugation — ConjuGato-style practice (Batch 9) =================
+   Completely separate FSRS track (S.ccards "wordId:formId"). Does NOT feed totalDue,
+   pnTimeline, vocab goals, or vocab new-word caps. Default practice = Reveal (think/speak
+   → Reveal → Keita audio + rule → Again/Hard/Good/Easy). Optional typing mode keeps the
+   4-rung produce ladder. Filters (forms / regularity / group / popularity / exclude known)
+   remembered in S.cjPref. Table per verb, pattern packs, per-form guides, practice history. */
 const CJ_PRESETS = [3, 5, 8, 10];
 const CJ_LADDER = [
   { t: "Recognize", d: "Pick the correct form (multiple choice)" },
@@ -10562,7 +10644,8 @@ const CJ_LADDER = [
   { t: "Listen", d: "Hear the form, type what you heard" },
   { t: "Use it", d: "Fill the blank in a short sentence" }
 ];
-const CJ_LS = [0, 2, 5, 10], CJ_OK = [0, 2, 3, 4]; // stability / correct-in-a-row thresholds per rung unlock
+const CJ_LS = [0, 2, 5, 10], CJ_OK = [0, 2, 3, 4];
+const CJ_TOP_N = 50;
 const cjLimitV = () => limV(S.cjLimit, 5);
 const ccards = () => isMap(S.ccards) ? S.ccards : {};
 const newTodayC = () => isMap(S.newLogC) && Array.isArray(S.newLogC[todayStr()]) ? S.newLogC[todayStr()] : [];
@@ -10573,29 +10656,81 @@ function markNewC(id) {
   if (ccards()[id] || newTodayC().includes(id)) return false;
   const L = nlog("newLogC"), t = todayStr(); (L[t] = L[t] || []).push(id); nlPrune("newLogC"); return true;
 }
-function cjDueScan() {
-  const now = Date.now(), C = ccards(), ids = []; let next = Infinity;
+function cjDueScan(ids) {
+  const now = Date.now(), C = ccards(), out = []; let next = Infinity;
+  const set = ids ? new Set(ids) : null;
   for (const id in C) {
-    if (!cjParse(id)) continue;
-    const d = C[id].due; if (d <= now) ids.push(id); else if (d < next) next = d;
+    if (!cjParse(id) || (set && !set.has(id))) continue;
+    const d = C[id].due; if (d <= now) out.push(id); else if (d < next) next = d;
   }
-  ids.sort((a, b) => C[a].due - C[b].due);
-  return { ids, next: next === Infinity ? null : next - now };
+  out.sort((a, b) => C[a].due - C[b].due);
+  return { ids: out, next: next === Infinity ? null : next - now };
 }
 const cjLearned = () => Object.keys(ccards()).filter(id => cjParse(id)).length;
+function cjHist() { return Array.isArray(S.cjHist) ? S.cjHist : []; }
+function cjHistPush(id, r, mode) {
+  if (!Array.isArray(S.cjHist)) S.cjHist = [];
+  S.cjHist.unshift({ id, r, mode, t: Date.now() });
+  if (S.cjHist.length > 120) S.cjHist.length = 120;
+}
+/* ---------- Preferences / filters ---------- */
+const cjPrefDef = () => ({
+  mode: "reveal",           // reveal | type
+  forms: CJ_FORMS.map(f => f.id),
+  regs: ["regular", "irr", "special", "adj"],
+  groups: ["ru", "u", "suru", "kuru", "iku", "ai", "na"],
+  pop: "seen",              // seen | top | all
+  excludeKnown: false,
+  pack: ""                  // pattern pack id or ""
+});
+function cjPref() {
+  if (!isMap(S.cjPref)) S.cjPref = cjPrefDef();
+  const p = Object.assign(cjPrefDef(), S.cjPref);
+  if (!Array.isArray(p.forms) || !p.forms.length) p.forms = cjPrefDef().forms;
+  if (!Array.isArray(p.regs) || !p.regs.length) p.regs = cjPrefDef().regs;
+  if (!Array.isArray(p.groups) || !p.groups.length) p.groups = cjPrefDef().groups;
+  return p;
+}
+function cjSavePref(patch) { S.cjPref = Object.assign(cjPref(), patch || {}); save(); }
+
+function cjAllEligibleIds() {
+  /* all N5 eligible verbs/adjectives (even unseen) — conjugation doesn't create vocab cards */
+  const out = [];
+  if (LV.n5 && LV.n5.ids) for (const id of LV.n5.ids) { const w = WORDS[id]; if (w && cjEligibleWord(w)) out.push(id); }
+  else for (const id of ALL_IDS) { const w = WORDS[id]; if (w && cjEligibleWord(w)) out.push(id); }
+  return out;
+}
 function cjKnownPool() {
-  /* verbs/adjectives the learner already knows (seen in vocab) — never pulls brand-new vocab */
-  return ALL_IDS.filter(id => {
-    const c = S.cards[id], w = WORDS[id];
-    return c && c.f && w && cjEligibleWord(w);
+  return ALL_IDS.filter(id => { const c = S.cards[id], w = WORDS[id]; return c && c.f && w && cjEligibleWord(w); });
+}
+function cjWordPool() {
+  const P = cjPref();
+  let ids;
+  if (P.pop === "all") ids = cjAllEligibleIds();
+  else if (P.pop === "top") ids = cjAllEligibleIds().slice(0, CJ_TOP_N);
+  else ids = cjKnownPool();
+  if (P.pack) {
+    const pack = CJ_PACKS.find(x => x.id === P.pack);
+    if (pack) ids = ids.filter(id => pack.match(WORDS[id]));
+  }
+  return ids.filter(id => {
+    const w = WORDS[id], g = cjGroup(w), r = cjReg(w);
+    if (!g || !r) return false;
+    if (!P.groups.includes(g)) return false;
+    if (!P.regs.includes(r)) return false;
+    return true;
   });
 }
-function cjPoolItems() {
-  const out = [];
-  for (const wid of cjKnownPool()) {
-    const w = WORDS[wid];
+function cjPoolItems(opts = {}) {
+  const P = cjPref(), forms = opts.forms || P.forms, out = [];
+  for (const wid of (opts.wids || cjWordPool())) {
+    const w = WORDS[wid]; if (!w) continue;
     for (const f of cjFormsFor(w)) {
-      if (cjConjugate(w, f.id)) out.push({ wid, fid: f.id, id: cjId(wid, f.id), w, f });
+      if (!forms.includes(f.id)) continue;
+      if (!cjConjugate(w, f.id)) continue;
+      const id = cjId(wid, f.id);
+      if (P.excludeKnown && cjStatus(id) === "known") continue;
+      out.push({ wid, fid: f.id, id, w, f });
     }
   }
   return out;
@@ -10606,21 +10741,17 @@ function cjRungOf(c) {
   for (let i = 1; i < 4; i++) if (s >= CJ_LS[i] && ok >= CJ_OK[i]) r = i + 1;
   return Math.min(4, Math.max(1, c.lad || r));
 }
-function cjGrade(id, rating, opts = {}) {
+function cjGrade(id, rating) {
   if (!isMap(S.ccards)) S.ccards = {};
-  const C = S.ccards, isNew = !C[id];
+  const C = S.ccards;
   const c = C[id] || { cj: 1, ok: 0, bad: 0, run: 0, lapses: 0, lad: 1 };
   c.cj = 1; markNewC(id);
   const was = cjRungOf(c);
   srsAnswer(c, id, rating > 1, { rating });
   if (rating === 1) { c.lad = Math.max(1, (c.lad || was) - 1); c.run = 0; }
-  else {
-    c.run = (c.run || 0) + 1;
-    const next = cjRungOf(c);
-    c.lad = Math.max(c.lad || 1, next);
-  }
+  else if (rating >= 3) { c.run = (c.run || 0) + 1; c.lad = Math.max(c.lad || 1, cjRungOf(c)); }
+  /* Hard (2): schedule updates, rung stays */
   c.t = Date.now(); C[id] = c;
-  /* do NOT call trackItem — conjugation must not count toward vocab daily goal / new-word caps */
   touchStreak(); save();
   return c;
 }
@@ -10634,37 +10765,31 @@ function cjAudioPath(w, fid) {
   const k = cjKana(w); if (!k) return "";
   return `audio/cj/${encodeURIComponent(k)}-${fid}.mp3`;
 }
-function cjSpeakForm(w, fid, force) {
+function cjSpeakForm(w, fid) {
   const a = cjConjugate(w, fid); if (!a) return;
   playFile(cjAudioPath(w, fid), a[0], 0.9);
 }
 function cjLadderHTML(id, compact) {
   const c = ccards()[id], r = cjRungOf(c);
-  const dots = CJ_LADDER.map((L, i) => {
-    const k = i + 1, on = k <= r;
-    return `<span class="laddot ${on ? "on" : ""}" title="${k}. ${L.t}">${on ? "●" : "○"}</span>`;
-  }).join("");
-  if (compact) return `<span class="ladchip" title="Ladder ${r}/4 · ${CJ_LADDER[r - 1].t}">🪜 ${r}/4</span>`;
-  return `<div class="ladder" aria-label="Produce-ladder: rung ${r} of 4"><div class="ladrow"><span class="ladlbl">🪜 Ladder</span>${dots}</div>
+  const dots = CJ_LADDER.map((L, i) => `<span class="laddot ${i + 1 <= r ? "on" : ""}" title="${i + 1}. ${L.t}">${i + 1 <= r ? "●" : "○"}</span>`).join("");
+  if (compact) return `<span class="ladchip" title="Ladder ${r}/4">🪜 ${r}/4</span>`;
+  return `<div class="ladder"><div class="ladrow"><span class="ladlbl">🪜 Ladder</span>${dots}</div>
     <div class="ladtxt"><b>${r}/4 · ${CJ_LADDER[r - 1].t}</b> — ${CJ_LADDER[r - 1].d}</div></div>`;
+}
+function cjChipRow(list, key, cur, allLabel) {
+  const on = v => (Array.isArray(cur) ? cur.includes(v) : cur === v) ? "on" : "";
+  return `<div class="cjchips" data-k="${key}">${allLabel ? `<button type="button" class="cjchip ${cur.length === list.length ? "on" : ""}" data-all="1">All</button>` : ""}
+    ${list.map(([v, lab]) => `<button type="button" class="cjchip ${on(v)}" data-v="${esc(v)}">${esc(lab)}</button>`).join("")}</div>`;
 }
 
 /* ---------- Hub ---------- */
 function conjHome() {
-  const due = cjDueScan(), pool = cjPoolItems(), learned = cjLearned(), left = newLeftC(), lim = cjLimitV();
-  const knownW = cjKnownPool().length;
-  const limTxt = lim === Infinity ? "no daily limit" : `${left} of ${lim} new form${lim === 1 ? "" : "s"} left today`;
-  const nextNew = pool.find(it => !ccards()[it.id]);
-  let hero;
-  if (due.ids.length) hero = `<div class="hero"><div class="ic">⏰</div><div><h2>${due.ids.length} conjugation review${due.ids.length === 1 ? "" : "s"} due</h2><p>Separate from vocab · ladder ${CJ_LADDER.map(x => x.t).join(" → ")}</p></div>
-    <button class="btn" id="cjRev">Review due</button></div>`;
-  else if (!knownW) hero = `<div class="hero"><div class="ic">🌱</div><div><h2>Learn some verbs first</h2><p>Conjugation drills use words you already know from vocab.</p></div>
-    <button class="btn" id="cjVocab">Vocab home</button></div>`;
-  else if (nextNew && left) hero = `<div class="hero"><div class="ic">✏️</div><div><h2>Practice a new form</h2><p>${esc(nextNew.w.jp)} → ${esc(nextNew.f.label)} · ${limTxt}</p></div>
-    <button class="btn" id="cjNew">Start</button></div>`;
-  else if (nextNew) hero = `<div class="hero done"><div class="ic">🌙</div><div><h2>Daily new-form limit reached</h2><p>${limTxt} · reviews still open anytime</p></div></div>`;
-  else hero = `<div class="hero done"><div class="ic">🎉</div><div><h2>All known forms introduced</h2><p>${due.next != null ? `Next review ${fmtIn(due.next)}` : "Keep reviewing to climb the ladder"}</p></div></div>`;
-
+  const P = cjPref(), dueAll = cjDueScan(), pool = cjPoolItems(), learned = cjLearned(), left = newLeftC(), lim = cjLimitV();
+  const poolIds = pool.map(it => it.id);
+  const due = cjDueScan(poolIds);
+  const knownW = cjKnownPool().length, wordN = cjWordPool().length;
+  const limTxt = lim === Infinity ? "no daily limit" : `${left}/${lim} new today`;
+  const neu = pool.filter(it => cjStatus(it.id) === "new");
   const byForm = {};
   for (const it of pool) {
     (byForm[it.fid] = byForm[it.fid] || { f: it.f, n: 0, due: 0, learned: 0 });
@@ -10673,38 +10798,105 @@ function conjHome() {
     if (st !== "new") byForm[it.fid].learned++;
     if (st === "due") byForm[it.fid].due++;
   }
-  view.innerHTML = topbar("✏️ Conjugation", `<button class="btn ghost small" id="cjHelp">?</button>`) +
+  const modeLbl = P.mode === "type" ? "Typing" : "Reveal";
+  view.innerHTML = topbar("✏️ Conjugation", `<button class="btn ghost small" id="cjHelpBtn" aria-label="Help">?</button>`) +
     `<div class="largetitle">Conjugation</div>
-    <p class="subtitle" id="cjSub">${learned} forms on your track · ${due.ids.length} due · ${knownW} known verbs/adjectives · ${limTxt}</p>
-    <p class="muted cjnote">Completely separate from vocab reviews, due counts, daily goals, and reminder notifications.</p>
-    ${hero}
-    <div class="sechead">Forms</div>
+    <p class="subtitle" id="cjSub">${due.ids.length} due · ${learned} on track · ${wordN} verbs/adj in filter · ${limTxt}</p>
+    <p class="muted cjnote">Own memory track — never changes vocab due counts or reminders.</p>
+    <div class="btnrow cjhero"><button class="btn cjpractice" id="cjGo">${due.ids.length ? `Practice due (${due.ids.length})` : neu.length && left ? "Practice new" : "Practice filtered"}</button></div>
+    <div class="btnrow cjsubbtns">
+      <button class="btn ghost small" id="cjDueOnly" ${due.ids.length ? "" : "disabled"}>Due</button>
+      <button class="btn ghost small" id="cjNewOnly" ${neu.length && left ? "" : "disabled"}>New</button>
+      <button class="btn ghost small" id="cjDrill">Filtered drill</button>
+      <button class="btn ghost small" id="cjMode">${modeLbl}</button>
+    </div>
+    <div class="sechead">Filters</div>
+    <div class="panel cjfilt">
+      <div class="cjflab">Forms</div>${cjChipRow(CJ_FORMS.map(f => [f.id, f.label]), "forms", P.forms, true)}
+      <div class="cjflab">Regularity</div>${cjChipRow([["regular", "Regular"], ["irr", "Irregular"], ["special", "Specials"], ["adj", "Adjectives"]], "regs", P.regs, true)}
+      <div class="cjflab">Group</div>${cjChipRow([["ru", "る"], ["u", "う"], ["suru", "する"], ["kuru", "来る"], ["iku", "行く"], ["ai", "い-adj"], ["na", "な-adj"]], "groups", P.groups, true)}
+      <div class="cjflab">Words</div>${cjChipRow([["seen", "Seen vocab"], ["top", `Top ${CJ_TOP_N}`], ["all", "All N5"]], "pop", P.pop, false)}
+      <div class="row cjexrow"><span>Skip well-known forms</span><button class="switch ${P.excludeKnown ? "on" : ""}" id="cjExKnown" role="switch" aria-checked="${P.excludeKnown}"></button></div>
+    </div>
+    <div class="sechead">Forms <small class="muted">due in filter</small></div>
     <div class="panel cjforms">${CJ_FORMS.map(f => {
-      const x = byForm[f.id] || { n: 0, due: 0, learned: 0 };
-      if (!x.n && (f.cat === "ai" || f.cat === "na") && !cjKnownPool().some(id => WORDS[id] && WORDS[id].pos === f.cat.slice(0, 2))) return "";
+      const x = byForm[f.id]; if (!x || !x.n) return "";
       return `<button class="cjrow" data-f="${f.id}"><span class="cjlbl"><b>${esc(f.label)}</b><small class="muted">${esc(f.hint)}</small></span>
-        <span class="cjmeta">${x.learned}/${x.n}${x.due ? ` · <b class="duen">${x.due}</b> due` : ""}</span></button>`;
-    }).join("")}</div>
-    <div class="sechead">Ladder</div>
-    <div class="panel">${CJ_LADDER.map((L, i) => `<div class="cjlad"><b>🪜 ${i + 1}. ${esc(L.t)}</b> — ${esc(L.d)}</div>`).join("")}
-      <p class="muted" style="margin-top:8px">A miss drops you one rung. Climb with correct answers over time.</p></div>
+        <span class="cjmeta">${x.learned}/${x.n}${x.due ? ` · <b class="duen">${x.due}</b>` : ""}</span>
+        <button type="button" class="mini cjguideb" data-g="${f.id}" aria-label="Guide">📖</button></button>`;
+    }).join("") || `<p class="muted">No forms match the current filters.</p>`}</div>
+    <div class="sechead">Browse verbs</div>
+    <div class="panel cjbrowse">${cjWordPool().slice(0, 40).map(id => {
+      const w = WORDS[id], g = cjGroup(w);
+      return `<button class="cjverb" data-w="${id}"><span class="jp">${esc(w.jp)}</span><span class="muted">${esc(w.kana)}</span>
+        <span class="cjg">${esc(CJ_GROUP_LABEL[g] || g)}</span></button>`;
+    }).join("")}${cjWordPool().length > 40 ? `<p class="muted">Showing 40 of ${cjWordPool().length} — narrow filters to browse.</p>` : ""}</div>
+    <div class="sechead">Pattern packs</div>
+    <div class="panel">${CJ_PACKS.map(pk => {
+      const n = cjWordPool().filter(id => { const P0 = cjPref(); return true; }).length;
+      const nn = (P.pop === "seen" ? cjKnownPool() : cjAllEligibleIds()).filter(id => pk.match(WORDS[id])).length;
+      return `<button class="cjrow cjpack" data-pack="${pk.id}"><span class="cjlbl"><b>${esc(pk.t)}</b></span><span class="cjmeta">${nn} words</span></button>`;
+    }).join("")}
+      ${P.pack ? `<button class="btn ghost small" id="cjClearPack">Clear pack filter</button>` : ""}</div>
+    <div class="sechead">Recent</div>
+    <div class="panel cjhist">${cjHist().slice(0, 12).map(h => {
+      const p = cjParse(h.id), w = p && WORDS[p.wid], f = p && CJ_FORM[p.fid];
+      if (!w || !f) return "";
+      return `<div class="cjhrow"><span class="jp">${esc(w.jp)}</span> → ${esc(f.label)}
+        <span class="muted">${["", "Again", "Hard", "Good", "Easy"][h.r] || ""} · ${h.mode === "type" ? "type" : "reveal"}</span></div>`;
+    }).join("") || `<p class="muted">Your practice history shows up here.</p>`}</div>
     <div class="btnrow"><button class="btn ghost" id="cjGram">← Grammar</button>
       <button class="btn ghost" id="cjSet">Daily limit</button></div>`;
   bindBack(home);
-  const rv = $("#cjRev"); if (rv) rv.onclick = () => { sfx.click(); cjSession(due.ids, "review", "⏰ Conjugation · due", conjHome); };
-  const nv = $("#cjNew"); if (nv) nv.onclick = () => { sfx.click(); cjSession([nextNew.id], "learn", "✏️ New form", conjHome); };
-  const vv = $("#cjVocab"); if (vv) vv.onclick = () => { sfx.click(); go(home); };
+  const start = (ids, mode, title) => { if (!ids.length) return toast("Nothing to practice"); sfx.click(); cjSession(ids, mode, title, conjHome); };
+  $("#cjGo").onclick = () => {
+    if (due.ids.length) start(due.ids, "review", "⏰ Due");
+    else if (neu.length && left) start(neu.slice(0, Math.min(left, 10)).map(x => x.id), "learn", "✏️ New");
+    else start(shuffle(pool.map(x => x.id)).slice(0, 20), "drill", "🎯 Drill");
+  };
+  $("#cjDueOnly").onclick = () => start(due.ids, "review", "⏰ Due");
+  $("#cjNewOnly").onclick = () => start(neu.slice(0, Math.min(left, 10)).map(x => x.id), "learn", "✏️ New");
+  $("#cjDrill").onclick = () => start(shuffle(pool.map(x => x.id)).slice(0, 25), "drill", "🎯 Drill");
+  $("#cjMode").onclick = () => { cjSavePref({ mode: P.mode === "type" ? "reveal" : "type" }); go(conjHome); };
+  $("#cjExKnown").onclick = () => { cjSavePref({ excludeKnown: !P.excludeKnown }); go(conjHome); };
   $("#cjGram").onclick = () => { sfx.click(); go(grammarHome); };
   $("#cjSet").onclick = () => cjLimitModal();
-  $("#cjHelp").onclick = () => {
-    const md = document.createElement("div"); md.className = "modal";
-    md.innerHTML = `<div class="box"><h3>How conjugation works</h3>
-      <p>Each item is one <b>(word × form)</b> — e.g. たべる → て-form. Scheduling uses its own FSRS track and never changes your vocab due count or reminder threshold.</p>
-      <p>Only words you've already seen in vocab appear here. Daily new-form limit defaults to 5.</p>
-      <div class="btnrow"><button class="btn" id="x">Got it</button></div></div>`;
-    document.body.appendChild(md); md.querySelector("#x").onclick = () => md.remove(); md.onclick = e => { if (e.target === md) md.remove(); };
-  };
-  view.querySelectorAll(".cjrow").forEach(b => b.onclick = () => { sfx.click(); go(() => cjFormView(b.dataset.f)); });
+  $("#cjHelpBtn").onclick = () => cjHelpModal();
+  const clear = $("#cjClearPack"); if (clear) clear.onclick = () => { cjSavePref({ pack: "" }); go(conjHome); };
+  /* chip toggles */
+  view.querySelectorAll(".cjchips").forEach(row => {
+    row.onclick = e => {
+      const b = e.target.closest("button"); if (!b) return;
+      const key = row.dataset.k, cur = cjPref();
+      if (key === "pop") { cjSavePref({ pop: b.dataset.v }); return go(conjHome); }
+      let arr = cur[key].slice();
+      if (b.dataset.all) {
+        const all = key === "forms" ? CJ_FORMS.map(f => f.id) : key === "regs" ? ["regular", "irr", "special", "adj"] : ["ru", "u", "suru", "kuru", "iku", "ai", "na"];
+        arr = arr.length === all.length ? [all[0]] : all;
+      } else {
+        const v = b.dataset.v;
+        if (arr.includes(v)) { if (arr.length > 1) arr = arr.filter(x => x !== v); }
+        else arr.push(v);
+      }
+      cjSavePref({ [key]: arr }); go(conjHome);
+    };
+  });
+  view.querySelectorAll(".cjrow[data-f]").forEach(b => b.onclick = e => {
+    if (e.target.closest(".cjguideb")) return;
+    sfx.click(); go(() => cjFormView(b.dataset.f));
+  });
+  view.querySelectorAll(".cjguideb").forEach(b => b.onclick = e => { e.stopPropagation(); sfx.click(); go(() => cjGuideView(b.dataset.g)); });
+  view.querySelectorAll(".cjverb").forEach(b => b.onclick = () => { sfx.click(); go(() => cjTableView(+b.dataset.w)); });
+  view.querySelectorAll(".cjpack").forEach(b => b.onclick = () => { sfx.click(); cjSavePref({ pack: b.dataset.pack }); go(conjHome); });
+}
+function cjHelpModal() {
+  const md = document.createElement("div"); md.className = "modal";
+  md.innerHTML = `<div class="box"><h3>How conjugation practice works</h3>
+    <p><b>Reveal mode (default):</b> think or say the answer, tap Reveal, hear Keita, then rate Again / Hard / Good / Easy. Fast — burn through many cards.</p>
+    <p><b>Typing mode:</b> turn on with the mode button. Uses the 🪜 ladder (choose → type → listen → cloze).</p>
+    <p>Each card is one <b>(word × form)</b> on its own FSRS track. Filters and the last mode are remembered. Never changes vocab due counts or reminders.</p>
+    <div class="btnrow"><button class="btn" id="x">Got it</button></div></div>`;
+  document.body.appendChild(md); md.querySelector("#x").onclick = () => md.remove(); md.onclick = e => { if (e.target === md) md.remove(); };
 }
 function cjLimitModal() {
   const md = document.createElement("div"); md.className = "modal";
@@ -10725,26 +10917,66 @@ function cjLimitModal() {
 }
 function cjFormView(fid) {
   const f = CJ_FORM[fid]; if (!f) return conjHome();
-  const items = cjPoolItems().filter(it => it.fid === fid);
+  const items = cjPoolItems({ forms: [fid] });
   const due = items.filter(it => cjStatus(it.id) === "due").map(it => it.id);
   const neu = items.filter(it => cjStatus(it.id) === "new");
-  view.innerHTML = topbar(esc(f.label), "") + `<div class="largetitle">${esc(f.label)}</div>
-    <p class="subtitle">${esc(f.hint)} · ${items.length} known words</p>
-    ${due.length ? `<div class="hero"><div class="ic">⏰</div><div><h2>${due.length} due</h2></div><button class="btn" id="cjFRev">Review</button></div>` : ""}
-    ${neu.length && newLeftC() ? `<div class="hero"><div class="ic">🌱</div><div><h2>${Math.min(neu.length, newLeftC())} new available</h2></div><button class="btn" id="cjFNew">Learn</button></div>` : ""}
+  view.innerHTML = topbar(esc(f.label), `<button class="btn ghost small" id="cjG">📖</button>`) +
+    `<div class="largetitle">${esc(f.label)}</div>
+    <p class="subtitle">${esc(f.hint)} · ${items.length} matching words</p>
+    ${due.length ? `<div class="hero"><div class="ic">⏰</div><div><h2>${due.length} due</h2></div><button class="btn" id="cjFRev">Practice</button></div>` : ""}
+    ${neu.length && newLeftC() ? `<div class="hero"><div class="ic">🌱</div><div><h2>${Math.min(neu.length, newLeftC())} new</h2></div><button class="btn" id="cjFNew">Learn</button></div>` : ""}
     <div class="panel">${items.slice(0, 80).map(it => {
-      const st = cjStatus(it.id), ans = (cjConjugate(it.w, fid) || [])[0] || "";
-      return `<button class="cjitem" data-id="${esc(it.id)}"><span class="jp">${esc(it.w.jp)}</span><span class="muted">${esc(it.w.kana)}</span>
+      const st = cjStatus(it.id);
+      return `<button class="cjitem" data-id="${esc(it.id)}" data-w="${it.wid}"><span class="jp">${esc(it.w.jp)}</span><span class="muted">${esc(it.w.kana)}</span>
         <span class="grow">${cjLadderHTML(it.id, true)}</span><span class="grst st-${st}">${CJ_ST[st]}</span></button>`;
     }).join("")}</div>`;
   bindBack(conjHome);
+  $("#cjG").onclick = () => go(() => cjGuideView(fid));
   const r = $("#cjFRev"); if (r) r.onclick = () => { sfx.click(); cjSession(due, "review", `⏰ ${f.label}`, () => cjFormView(fid)); };
-  const n = $("#cjFNew"); if (n) n.onclick = () => {
+  const n = $("#cjFNew"); if (n) n.onclick = () => { sfx.click(); cjSession(neu.slice(0, newLeftC()).map(it => it.id), "learn", `✏️ ${f.label}`, () => cjFormView(fid)); };
+  view.querySelectorAll(".cjitem").forEach(b => b.onclick = e => {
+    if (e.detail === 2) return go(() => cjTableView(+b.dataset.w));
+    sfx.click(); cjSession([b.dataset.id], "drill", esc(f.label), () => cjFormView(fid));
+  });
+}
+
+/* ---------- Verb table ---------- */
+function cjTableView(wid) {
+  const w = WORDS[wid]; if (!w || !cjEligibleWord(w)) return conjHome();
+  const g = cjGroup(w), forms = cjFormsFor(w);
+  const irr = /^(suru|kuru|iku)$/.test(g) || (g === "ai" && (cjKana(w) === "いい" || cjKana(w) === "よい"));
+  view.innerHTML = topbar(esc(w.jp), "") + `<div class="largetitle jp">${esc(w.jp)}</div>
+    <p class="subtitle">${esc(w.kana)} · ${esc(w.en)} · <b>${esc(CJ_GROUP_LABEL[g] || g)}</b>${irr ? " · irregular" : ""}</p>
+    <div class="panel cjtable">${forms.map(f => {
+      const ans = (cjConjugate(w, f.id) || [])[0] || "—";
+      const id = cjId(wid, f.id), st = cjStatus(id);
+      const hi = irr || (f.id === "te" && g === "iku") || ((f.id.startsWith("ai_")) && (cjKana(w) === "いい" || cjKana(w) === "よい"));
+      return `<button class="cjcell ${hi ? "cjirr" : ""}" data-f="${f.id}"><span class="muted">${esc(f.label)}</span>
+        <span class="jp cjans">${esc(ans)}</span><span class="grst st-${st}">${CJ_ST[st]}</span></button>`;
+    }).join("")}</div>
+    <div class="btnrow"><button class="btn" id="cjPrThis">Practice this verb</button>
+      <button class="btn ghost" id="cjBack">Browse</button></div>`;
+  bindBack(conjHome);
+  view.querySelectorAll(".cjcell").forEach(b => b.onclick = () => { sfx.click(); cjSpeakForm(w, b.dataset.f); });
+  $("#cjPrThis").onclick = () => {
     sfx.click();
-    const take = neu.slice(0, newLeftC()).map(it => it.id);
-    cjSession(take, "learn", `✏️ ${f.label}`, () => cjFormView(fid));
+    const ids = forms.map(f => cjId(wid, f.id)).filter(id => cjConjugate(w, cjParse(id).fid));
+    cjSession(ids, "drill", w.jp, () => cjTableView(wid));
   };
-  view.querySelectorAll(".cjitem").forEach(b => b.onclick = () => { sfx.click(); cjSession([b.dataset.id], "practice", esc(f.label), () => cjFormView(fid)); });
+  $("#cjBack").onclick = () => go(conjHome);
+}
+
+/* ---------- Guide ---------- */
+function cjGuideView(fid) {
+  const G = cjGuide(fid), f = CJ_FORM[fid]; if (!G) return conjHome();
+  view.innerHTML = topbar("📖 " + esc(G.t), "") + `<div class="largetitle">${esc(G.t)}</div>
+    <div class="panel cjguide">${G.body.map(p => `<p>${esc(p)}</p>`).join("")}
+      ${f ? `<p class="muted">Used in practice as “${esc(f.label)}”.</p>` : ""}</div>
+    <div class="btnrow"><button class="btn" id="cjGPr">Practice this form</button>
+      <button class="btn ghost" id="cjGBack">Back</button></div>`;
+  bindBack(conjHome);
+  $("#cjGPr").onclick = () => { cjSavePref({ forms: [fid] }); go(conjHome); };
+  $("#cjGBack").onclick = () => go(conjHome);
 }
 
 /* ---------- Session ---------- */
@@ -10754,8 +10986,8 @@ function cjSession(ids, mode, title, back) {
   if (mode === "review") ids = ids.slice(0, batchOf(ids.length));
   if (mode === "learn") ids = ids.filter(id => !ccards()[id]).slice(0, Math.max(1, newLeftC()));
   if (!ids.length) { toast(mode === "learn" ? "Daily new-form limit reached" : "Nothing to practice"); return go(back || conjHome); }
+  const pref = cjPref(), useReveal = pref.mode !== "type";
   studyScreen = true;
-  /* time spent here is conjugation time, not vocab goal time: move it out of today's goal minutes when leaving */
   const tDay = todayStr(), tSec0 = tget(tDay).sec || 0;
   let tDone = false;
   const timeOut = () => {
@@ -10767,22 +10999,33 @@ function cjSession(ids, mode, title, back) {
   let pos = 0, right = 0, answered = false, q = null;
   const results = [];
   view.innerHTML = topbar(esc(title), `<span class="muted" id="score"></span>`) +
-    `<div class="sprog"><div id="sprog" style="width:0"></div></div><div id="qhost"></div>
-    <p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> · <kbd>Enter</kbd> check / next</p>`;
+    `<div class="sprog"><div id="sprog" style="width:0"></div></div><div id="qhost"></div>`;
   bindBack(back || conjHome);
   const progress = () => { $("#sprog").style.width = (pos / ids.length * 100) + "%"; $("#score").textContent = `${pos}/${ids.length}`; };
+  const afterGrade = (id, rating, ok) => {
+    answered = true; pos++; if (ok) right++;
+    let graded = false;
+    if (mode === "review" || mode === "learn") { cjGrade(id, rating); graded = true; }
+    else if (mode === "drill" && (ccards()[id] || newLeftC() > 0)) { cjGrade(id, rating); graded = true; }
+    if (graded) cjHistPush(id, rating, useReveal ? "reveal" : "type");
+    results.push({ id, ok, graded, r: rating, lad: cjRungOf(ccards()[id]) });
+    progress();
+  };
   const next = () => {
     answered = false; progress(); scrollTo(0, 0);
     if (pos >= ids.length) return finish();
     const id = ids[pos];
-    q = cjRenderQ(id, (ok, el) => {
-      answered = true; pos++; if (ok) right++;
+    q = useReveal ? cjRenderReveal(id, (rating, ok) => {
+      afterGrade(id, rating, ok);
+      const fb = $("#fb");
+      const nb = document.createElement("div"); nb.className = "btnrow";
+      nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`;
+      fb.appendChild(nb);
+      $("#nextBtn").onclick = next;
+    }) : cjRenderType(id, (ok, el) => {
       const rating = ok ? 3 : 1;
-      let graded = false;
-      if (mode === "review" || mode === "learn") { cjGrade(id, rating); graded = true; }
-      results.push({ id, ok, graded, lad: cjRungOf(ccards()[id]) });
+      afterGrade(id, rating, ok);
       comboHit(ok, el, 6);
-      progress();
       const fb = $("#fb"), nb = document.createElement("div"); nb.className = "btnrow";
       nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb);
       $("#nextBtn").onclick = next;
@@ -10791,13 +11034,12 @@ function cjSession(ids, mode, title, back) {
   const finish = () => {
     timeOut();
     addXP(Math.min(30, ids.length * 2));
-    $("#qhost").innerHTML = `<div class="card"><div class="qtype">${mode === "practice" ? "Practice done" : "Conjugation done!"}</div>
+    $("#qhost").innerHTML = `<div class="card"><div class="qtype">${mode === "drill" ? "Drill done" : "Conjugation done!"}</div>
       <div class="big">${right}/${ids.length}</div>
       <ul class="grres">${results.map(x => {
         const p = cjParse(x.id), w = WORDS[p.wid], f = CJ_FORM[p.fid];
         return `<li><span class="grow">${esc(w.jp)} → ${esc(f.label)}</span>${x.graded ? cjLadderHTML(x.id, true) : `<span class="muted">not scheduled</span>`}</li>`;
       }).join("")}</ul>
-      ${mode === "practice" ? `<p class="muted">Practice only — your conjugation schedule is unchanged.</p>` : ""}
       <div class="btnrow"><button class="btn" id="cjDone">Conjugation</button><button class="btn ghost" id="cjHome">Home</button></div></div>`;
     sfx.level(); if (right === ids.length) confetti(80);
     $("#cjDone").onclick = () => go(back || conjHome); $("#cjHome").onclick = () => go(home);
@@ -10805,20 +11047,78 @@ function cjSession(ids, mode, title, back) {
   };
   const onKey = e => {
     if (document.querySelector(".modal")) return;
-    if (!answered && q && e.key === "Enter" && q.submit) { e.preventDefault(); q.submit(); return; }
+    if (!answered && q) {
+      if (e.key === "Enter" && q.reveal) { e.preventDefault(); q.reveal(); return; }
+      if (e.key === "Enter" && q.submit) { e.preventDefault(); q.submit(); return; }
+      if (q.choose && /^[1-4]$/.test(e.key) && e.target.tagName !== "INPUT") q.choose(+e.key - 1);
+      if (q.rate && /^[1-4]$/.test(e.key)) { e.preventDefault(); q.rate(+e.key); return; }
+    }
     if (e.target.tagName === "INPUT" && !e.target.disabled) return;
-    if (!answered && q && q.choose && /^[1-4]$/.test(e.key)) q.choose(+e.key - 1);
-    else if (answered && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const b = $("#nextBtn"); if (b) b.click(); }
+    if (answered && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const b = $("#nextBtn"); if (b) b.click(); }
   };
   addEventListener("keydown", onKey);
   cleanup = () => { removeEventListener("keydown", onKey); timeOut(); };
   next();
 }
+
+/* Reveal card: think/speak → Reveal → audio + rule → rate */
+function cjRenderReveal(id, onRate) {
+  const p = cjParse(id), w = WORDS[p.wid], f = CJ_FORM[p.fid], accepted = cjConjugate(w, f.id) || [];
+  const g = cjGroup(w), host = $("#qhost");
+  let done = false, revealed = false;
+  host.innerHTML = `<div class="card cjrevcard">
+    <div class="qtype">Think · say it · reveal</div>
+    <div class="cjprompt"><span class="jp cjbig">${esc(w.jp)}</span>
+      <div class="muted">${esc(w.kana)} · ${esc(w.en)}</div>
+      <div class="cjtarget">→ <b>${esc(f.label)}</b> <span class="muted">(${esc(f.hint)})</span></div>
+      <div class="muted cjgline">${esc(CJ_GROUP_LABEL[g] || g)}${/^(suru|kuru|iku)$/.test(g) ? " · irregular" : ""}</div>
+    </div>
+    ${cjLadderHTML(id, true)}
+    <div class="btnrow"><button class="btn" id="cjReveal">Reveal</button></div>
+    <div class="feedback" id="fb" hidden></div></div>`;
+  const reveal = () => {
+    if (revealed) return; revealed = true;
+    $("#cjReveal").disabled = true;
+    const fb = $("#fb"); fb.hidden = false;
+    const rule = cjRule(w, f.id), G = cjGuide(f.id);
+    fb.innerHTML = `<div class="jp cjansbig">${esc(accepted[0])}</div>
+      ${accepted[1] ? `<div class="muted">also: ${esc(accepted[1])}</div>` : ""}
+      <button class="mini" id="cjSayAns">🔈 Hear it</button>
+      ${rule ? `<p class="cjrule">${esc(rule)}</p>` : ""}
+      ${G ? `<button class="btn ghost small" id="cjOpenG">📖 ${esc(G.t)}</button>` : ""}
+      <div class="btnrow cjrate">
+        <button class="btn ghost" data-r="1">Again</button>
+        <button class="btn ghost" data-r="2">Hard</button>
+        <button class="btn" data-r="3">Good</button>
+        <button class="btn" data-r="4">Easy</button>
+      </div>
+      <p class="muted kbdhint" style="text-align:center;font-size:.8rem"><kbd>1</kbd>–<kbd>4</kbd> rate</p>`;
+    cjSpeakForm(w, f.id);
+    $("#cjSayAns").onclick = () => cjSpeakForm(w, f.id);
+    const og = $("#cjOpenG"); if (og) og.onclick = () => go(() => cjGuideView(f.id));
+    fb.querySelectorAll(".cjrate button").forEach(b => b.onclick = () => {
+      if (done) return; done = true;
+      const r = +b.dataset.r;
+      fb.querySelectorAll(".cjrate button").forEach(x => x.disabled = true);
+      onRate(r, r > 1);
+    });
+  };
+  $("#cjReveal").onclick = reveal;
+  return {
+    reveal,
+    rate: n => {
+      if (!revealed) { reveal(); return; }
+      const b = host.querySelector(`.cjrate button[data-r="${n}"]`); if (b && !done) b.click();
+    }
+  };
+}
+
+/* Typing / ladder path (optional mode) */
 function cjCheckAns(input, accepted) {
   const n = normAns(input);
   return accepted.some(a => normAns(a) === n || normAscii(romajiToKana(input)) === normAscii(a));
 }
-function cjRenderQ(id, onAnswer, mode) {
+function cjRenderType(id, onAnswer, mode) {
   const p = cjParse(id), w = WORDS[p.wid], f = CJ_FORM[p.fid], accepted = cjConjugate(w, f.id) || [];
   const c = ccards()[id], rung = mode === "learn" ? 1 : cjRungOf(c);
   const host = $("#qhost");
@@ -10831,14 +11131,16 @@ function cjRenderQ(id, onAnswer, mode) {
     return `<div class="${ok ? "grok" : "grbad"}">${ok ? "✅ Correct!" : "❌ Not quite"}</div>
       <div class="jp">${esc(accepted[0])}</div>${accepted[1] ? `<div class="muted">also: ${esc(accepted[1])}</div>` : ""}
       ${rule ? `<p class="cjrule">${esc(rule)}</p>` : ""}${extra}
-      <button class="mini" id="cjSayAns" aria-label="Play answer">🔈 Hear it</button>`;
+      <button class="mini" id="cjSayAns" aria-label="Play answer">🔈 Hear it</button>
+      <button class="btn ghost small" id="cjOpenG">📖 Guide</button>`;
   };
-  const bindSay = () => { const b = host.querySelector("#cjSayAns"); if (b) b.onclick = () => cjSpeakForm(w, f.id, true); };
-
-  /* Rung 1: MC */
+  const bindSay = () => {
+    const b = host.querySelector("#cjSayAns"); if (b) b.onclick = () => cjSpeakForm(w, f.id);
+    const g = host.querySelector("#cjOpenG"); if (g) g.onclick = () => go(() => cjGuideView(f.id));
+  };
   if (rung === 1) {
     const dist = cjDistractors(w, f.id, 3);
-    while (dist.length < 3) dist.push(accepted[0] + "ー"); // pad rarely
+    while (dist.length < 3) dist.push(accepted[0] + "ー");
     const opts = shuffle([accepted[0], ...dist.slice(0, 3)]);
     host.innerHTML = `<div class="card">${head}<p class="muted">What is the <b>${esc(f.label)}</b>?</p>
       <div class="choices">${opts.map((o, j) => `<button class="choice jp" data-i="${j}"><span class="k">${j + 1}</span>${esc(o)}</button>`).join("")}</div>
@@ -10846,25 +11148,23 @@ function cjRenderQ(id, onAnswer, mode) {
     const btns = [...host.querySelectorAll(".choice")];
     const choose = j => {
       if (done || !btns[j]) return; done = true;
-      const ok = opts[j] === accepted[0] || accepted.includes(opts[j]);
+      const ok = accepted.includes(opts[j]);
       btns.forEach((b, k) => { b.disabled = true; if (accepted.includes(opts[k])) b.classList.add("right"); });
       if (!ok) btns[j].classList.add("wrong");
-      host.querySelector("#fb").innerHTML = fb(ok); bindSay();
+      host.querySelector("#fb").innerHTML = fb(ok); bindSay(); cjSpeakForm(w, f.id);
       onAnswer(ok, btns[j]);
     };
     btns.forEach((b, j) => b.onclick = () => choose(j));
     return { choose };
   }
-
-  /* Rung 3: listen & type — play audio first */
   if (rung === 3) {
-    host.innerHTML = `<div class="card">${head}<p class="muted">Listen, then type the form you heard (${esc(f.label)}).</p>
+    host.innerHTML = `<div class="card">${head}<p class="muted">Listen, then type the form (${esc(f.label)}).</p>
       <div class="btnrow"><button class="btn" id="cjPlay">▶️ Play</button></div>
       <input class="typein" id="typein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="ja" placeholder="kana or romaji">
       <div class="typehelp">Romaji converts as you type · Enter to check</div>
       <div class="btnrow"><button class="btn" id="checkBtn">Check</button><button class="btn ghost" id="giveBtn">🤷 I don't know</button></div>
       <div class="feedback" id="fb"></div></div>`;
-    const play = () => cjSpeakForm(w, f.id, true);
+    const play = () => cjSpeakForm(w, f.id);
     $("#cjPlay").onclick = play; setTimeout(play, 350);
   } else if (rung === 4) {
     const cz = cjCloze(f.id, w);
@@ -10877,7 +11177,6 @@ function cjRenderQ(id, onAnswer, mode) {
       <div class="feedback" id="fb"></div></div>`;
     host.dataset.cz = cz.s;
   } else {
-    /* Rung 2: type */
     host.innerHTML = `<div class="card">${head}<p class="muted">Type the <b>${esc(f.label)}</b>.</p>
       <input class="typein" id="typein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="ja" placeholder="kana or romaji">
       <div class="typehelp">Romaji converts as you type · Enter to check</div>
@@ -10892,7 +11191,7 @@ function cjRenderQ(id, onAnswer, mode) {
     host.querySelector("#checkBtn").disabled = true;
     host.querySelector("#giveBtn").disabled = true;
     const filled = rung === 4 ? `<div class="grsent jp">${esc((host.dataset.cz || "___").replace("___", accepted[0]))}</div>` : "";
-    host.querySelector("#fb").innerHTML = fb(ok, filled); bindSay();
+    host.querySelector("#fb").innerHTML = fb(ok, filled); bindSay(); cjSpeakForm(w, f.id);
     onAnswer(ok, inp || host);
   };
   $("#checkBtn").onclick = () => submit(false);
@@ -10900,12 +11199,11 @@ function cjRenderQ(id, onAnswer, mode) {
   return { submit: () => submit(false) };
 }
 
-/* Home / Grammar entry tiles */
 function conjHomeTileHTML() {
   const due = cjDueScan().ids.length, learned = cjLearned(), known = cjKnownPool().length;
   return `<button class="mode cjtile-home" data-m="conjugation"><div class="ic">✏️</div>
     <h3>Conjugation ${due ? `<span class="badge">${due}</span>` : ""}</h3>
-    <p>${known ? `${learned} forms · ${known} known verbs/adj` : "Practice forms of verbs you know"} · own track</p></button>`;
+    <p>${known ? `${learned} forms · ${known} known verbs/adj` : "Practice forms of verbs you know"} · Reveal mode</p></button>`;
 }
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
@@ -10935,7 +11233,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "6da5ed93f9fb";
+const BUILD = "a6b648abc222";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -10985,7 +11283,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjRungOf, ccards, newLeftC, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
