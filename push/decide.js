@@ -15,10 +15,11 @@ const DEF = { thr: 10, rep: 60, nudge: true, nudgeAt: "19:00", qs: "23:00", qe: 
 const hm = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || "")); return m ? (+m[1] % 24) * 60 + Math.min(59, +m[2]) : null; };
 function local(now, tz) {   // { day: "YYYY-MM-DD", min: minutes since local midnight }
   let p;
-  try { p = new Intl.DateTimeFormat("en-CA", { timeZone: tz || "UTC", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(now)); }
+  try { p = new Intl.DateTimeFormat("en-CA", { timeZone: tz || "UTC", year: "numeric", month: "2-digit", day: "2-digit", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(now)); }
   catch (e) { return local(now, "UTC"); }
   const g = t => (p.find(x => x.type === t) || {}).value;
-  return { day: `${g("year")}-${g("month")}-${g("day")}`, min: (+g("hour") % 24) * 60 + +g("minute") };
+  const wd = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[g("weekday")];
+  return { day: `${g("year")}-${g("month")}-${g("day")}`, min: (+g("hour") % 24) * 60 + +g("minute"), wd: wd == null ? new Date(now).getUTCDay() : wd };
 }
 function quiet(min, qs, qe) {
   const a = hm(qs), b = hm(qe);
@@ -40,7 +41,13 @@ function decide(now, cfg, count, st0) {
   } else {
     st.thrAt = null;   // studied below the threshold → re-arm
     const na = hm(c.nudgeAt);
-    if (c.nudge && n > 0 && na != null && !q && st.nudgeDay !== L.day && L.min >= na && L.min < na + NUDGE_WIN) {
+    // Opt-in Sunday weekly report takes the evening slot (instead of the ordinary nudge) once per Sunday.
+    if (c.weekRpt && L.wd === 0 && na != null && !q && L.min >= na && L.min < na + NUDGE_WIN && st.weekDay !== L.day) {
+      send = { kind: "week", n, title: "JLPT Quest",
+        body: n ? `Weekly report ready · ${plural(n, "review")} still due — open the app for your 7-day summary`
+                : "Weekly report ready — open the app for your 7-day summary" };
+      st.weekDay = L.day; st.nudgeDay = L.day;
+    } else if (c.nudge && n > 0 && na != null && !q && st.nudgeDay !== L.day && L.min >= na && L.min < na + NUDGE_WIN) {
       send = { kind: "nudge", n, title: "JLPT Quest", body: `Evening check-in: ${plural(n, "review")} due — a few minutes keeps your streak going` };
       st.nudgeDay = L.day;
     }
