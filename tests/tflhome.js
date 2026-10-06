@@ -10,7 +10,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
   await p.goto(URL+'?t='+Date.now());await p.waitForSelector('.tabbar');await p.waitForTimeout(900);return p;};
  let p=await mk(()=>{if(localStorage.getItem('seeded'))return;localStorage.setItem('seeded',1);const now=Date.now(),D=864e5,cards={};
   for(let i=0;i<12;i++)cards[i]={box:2,due:now-36e5,ok:3,bad:1,f:{st:2,sp:null,s:4+i,d:5,lr:now-6*D,due:now-36e5}};
-  localStorage.setItem('n5VocabQuest.v1',JSON.stringify({cards,levels:['n5'],autoAdvance:false,unlockAll:true,newLimit:3,pathFocus:'n5',xp:50}));
+  localStorage.setItem('n5VocabQuest.v1',JSON.stringify({cards,levels:['n5'],autoAdvance:false,unlockAll:true,newLimit:3,flKanji:false,pathFocus:'n5',xp:50}));
   localStorage.setItem('n5VocabQuest.kana.v1',JSON.stringify({cards:{'あ':{box:2,due:now-36e5,ok:3,bad:0,f:{st:2,sp:null,s:5,d:5,lr:now-6*D,due:now-36e5}}}}));});
  const ev=(f,a)=>p.evaluate(f,a),W=ms=>p.waitForTimeout(ms);
  const until=async(f,ms=8000)=>{const t0=Date.now();while(Date.now()-t0<ms){if(await ev(f))return true;await W(100);}return false;};

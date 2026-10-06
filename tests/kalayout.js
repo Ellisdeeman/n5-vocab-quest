@@ -1,0 +1,9 @@
+const pw=require('playwright-core');(async()=>{const b=await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+for(const [w,h,n] of [[320,568,12],[375,667,12],[430,932,12],[320,568,14],[375,667,14]]){const ctx=await b.newContext({viewport:{width:w,height:h},deviceScaleFactor:2,hasTouch:true,isMobile:true,serviceWorkers:'block'});
+await ctx.addInitScript(()=>{if(localStorage.getItem('seeded'))return;localStorage.setItem('seeded',1);const now=Date.now(),D=864e5,cards={};for(let i=0;i<300;i++)cards[i]={box:2,due:now+3*D,ok:3,bad:1,f:{st:2,sp:null,s:4,d:5,lr:now-6*D,due:now+3*D}};localStorage.setItem('n5VocabQuest.v1',JSON.stringify({cards,levels:['n5'],newLimit:'off',sound:false}));});
+const p=await ctx.newPage();await p.goto('http://localhost:8766/?t='+Date.now());await p.waitForSelector('.tabbar');
+const r=await p.evaluate(async n=>{window.__kaSeed=4;window.__kaFast=true;__N5.gOpen('n5','kanaatro',__N5.home);const W=ms=>new Promise(r=>setTimeout(r,ms));while(!document.querySelector('#kaStart'))await W(30);document.querySelector('#kaStart').click();while(!document.querySelector('#kaGo'))await W(30);
+ const K=__N5.KA;if(n>12){K.jokers=[{id:'crane'}];K.handPlus=1;}document.querySelector('#kaGo').click();while(document.querySelectorAll('#kaHand .katile').length<n)await W(30);await W(1800);
+ const ts=[...document.querySelectorAll('#kaHand .katile')].map(t=>t.getBoundingClientRect()),pl=document.querySelector('#kaPlay').getBoundingClientRect(),b2=document.querySelector('#kaHint').getBoundingClientRect();
+ return {n:ts.length,w:Math.min(...ts.map(t=>t.width)).toFixed(1),h:Math.min(...ts.map(t=>t.height)).toFixed(1),playBottom:pl.bottom.toFixed(0),row2Bottom:b2.bottom.toFixed(0),sw:document.documentElement.scrollWidth,vh:innerHeight};},n);
+console.log(w,h,JSON.stringify(r));await p.screenshot({path:`/workspace/logs/lay-${w}-${n}.png`});await ctx.close();}await b.close();})();

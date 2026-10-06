@@ -1,0 +1,32 @@
+const pw=require('playwright-core');const BR=process.env.BROWSER||'chromium';const URL=process.env.URL||'http://localhost:8770/';const OUT=process.env.OUT||'/workspace/logs/kas-';
+(async()=>{const b=BR==='webkit'?await pw.webkit.launch():await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:3,hasTouch:true,serviceWorkers:'block',colorScheme:process.env.SCHEME||'dark',...(BR==='chromium'?{isMobile:true}:{})});
+await ctx.addInitScript(()=>{if(localStorage.getItem('seeded'))return;localStorage.setItem('seeded',1);const now=Date.now(),D=864e5,cards={};
+ for(let i=0;i<300;i++)cards[i]={box:2,due:i%4?now+3*D:now-36e5,ok:3,bad:1,f:{st:2,sp:null,s:4,d:5,lr:now-6*D,due:i%4?now+3*D:now-36e5}};
+ localStorage.setItem('n5VocabQuest.v1',JSON.stringify({cards,levels:['n5'],newLimit:'off',sound:false}));});
+const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(''+e));
+await p.goto(URL+'?t='+Date.now());await p.waitForSelector('.tabbar');await p.waitForTimeout(700);
+const ev=(f,a)=>p.evaluate(f,a),W=ms=>p.waitForTimeout(ms);
+await ev(()=>{window.__kaSeed=3;__N5.gOpen('n5','kanaatro',__N5.home);});await W(500);await p.screenshot({path:OUT+'intro.png'});
+await p.tap('#kaStart');await p.waitForSelector('#kaGo');await W(300);
+await ev(()=>{const K=__N5.KA;K.jokers=[{id:'tanuki'},{id:'demon'},{id:'kitsune'},{id:'daruma'}];K.streak=2;K.tanuki=1;K.lv={noun:2,verb:2,adj:1,phrase:2,count:1};K.cons=[{t:'tarot',id:'brush'},{t:'planet',id:'verb'}];K.money=7;});
+await p.tap('#kaGo');await W(1300);
+await ev(()=>{const K=__N5.KA,all=__N5.kaPossible(K),pp=all.find(x=>!__N5.S().cards[x.id]&&x.key.length>=3)||all[0];pp.seq.forEach(j=>document.querySelector(`#kaHand [data-t="${K.hand[j].id}"]`).click());});
+await W(500);await p.screenshot({path:OUT+'table.png'});
+await p.tap('#kaPlay');await p.waitForSelector('#kaMC');await W(450);await p.screenshot({path:OUT+'mc.png'});
+await ev(()=>__N5.KA.mc.choose(__N5.KA.mc.right));
+await p.waitForSelector('.kafloat.g',{timeout:15000}).then(()=>W(120)).then(()=>p.screenshot({path:OUT+'discovery.png'})).catch(()=>console.log('no discovery float'));
+await p.waitForSelector('.kapanel.fire',{timeout:15000}).catch(()=>console.log('no fire'));await W(150);await p.screenshot({path:OUT+'scoring.png'});
+await ev(async()=>{const K=__N5.KA;const W=ms=>new Promise(r=>setTimeout(r,ms));while(K.busy)await W(50);K.fast=true;K.score=__N5.kaTarget(K)-1;const pp=__N5.kaPossible(K)[0];K.sel=pp.seq.map(i=>K.hand[i].id);document.querySelector('#kaPlay').disabled=false;document.querySelector('#kaPlay').click();
+ while(!K.mc)await W(20);K.mc.choose(K.mc.right);while(!document.querySelector('#kaCash'))await W(30);});
+await W(300);await p.screenshot({path:OUT+'cash.png'});
+await p.tap('#kaCash');await p.waitForSelector('#kaNext');await W(500);await p.screenshot({path:OUT+'shop.png'});
+// boss
+await ev(()=>{const K=__N5.KA;K.fast=false;K.blind=2;K.boss='kata';__N5.gs;});
+await p.tap('#kaNext');await p.waitForSelector('#kaGo');await W(300);await p.screenshot({path:OUT+'bosssel.png'});
+await p.tap('#kaGo');await W(1400);await p.screenshot({path:OUT+'boss.png'});
+// summary
+await ev(()=>{const K=__N5.KA;K.fast=true;K.hands=1;K.score=-1e6;});
+await ev(async()=>{const K=__N5.KA;const W=ms=>new Promise(r=>setTimeout(r,ms));K.boss='neck';let pp=__N5.kaPossible(K)[0];if(!pp){K.hand=[...'いぬねこ'].map((ch,i)=>({id:5000+i,ch})).concat(K.hand.slice(4));pp=__N5.kaPossible(K)[0];}K.sel=pp.seq.map(i=>K.hand[i].id);document.querySelector('#kaPlay').disabled=false;document.querySelector('#kaPlay').click();while(!K.mc)await W(20);K.mc.choose((K.mc.right+1)%4);while(!document.querySelector('#kaFinal'))await W(30);});
+await W(600);await p.screenshot({path:OUT+'summary.png'});
+console.log('errs',JSON.stringify(errs));await b.close();})();

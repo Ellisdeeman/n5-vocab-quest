@@ -971,6 +971,24 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 @media (max-width:360px){.katile{height:56px}.kach{font-size:27px}.kahand{gap:7px 4px}.kahand.kah7 .kach{font-size:23px}}
 .kaoffer.kavch{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;justify-content:center;text-align:left;background-color:#2a2410;border-color:rgba(255,214,102,.35)}
 .kaoffer.kavch .kaj{width:50px}.kaoffer.kavch .kaod{flex:1 1 140px}
+/* ---- Smart Home Start ---- */
+.smartbox{margin:2px 0 16px}
+.smartbtn{width:100%;min-height:58px;font-size:1.12rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:16px;padding:12px 16px}
+.smartbtn .smic{font-size:1.3rem;line-height:1}.smartbtn .smgo{margin-left:auto;opacity:.85}
+.smartline{margin:7px 6px 0;color:var(--label2);font-size:.86rem;line-height:1.35;text-align:center}
+/* ---- Kanji flashcards ---- */
+.fltop{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin:0 0 6px}.fltop .fldir{flex:1 1 220px;margin:0}
+.flkjtog{min-height:44px;white-space:nowrap}.flkjtog[aria-pressed="false"]{color:var(--label2)}
+.flkjf{font-size:4.4rem;line-height:1.15}
+.flkjlearn{text-align:left}.flkjlearn .kjsvgwrap{width:min(40vw,160px)}
+/* ---- FSRS optimizer ---- */
+.foptbox{border-bottom:1px solid var(--border);padding:4px 0 8px}
+.foptbox>.row:first-child{border-bottom:0;padding-bottom:2px}
+.foptbox>.row:last-child{border-bottom:0}
+.foptst{font-size:.84rem;margin:2px 0 6px;line-height:1.4}
+.foptfew{font-size:.86rem;font-weight:600;color:var(--label);background:var(--fill);border-radius:10px;padding:8px 10px;margin:4px 0 8px}
+.foptprog{height:8px;border-radius:8px;background:var(--fill2);overflow:hidden;margin:10px 0 4px}.foptprog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.foptres{font-size:.88rem;line-height:1.45;background:var(--fill);border-radius:12px;padding:10px 12px;margin:10px 0 4px;color:var(--label)}
 </style>
 </head>
 <body>
@@ -1678,6 +1696,7 @@ function srsAnswer(c, id, correct, ctx = {}, allowListen = false) {
   else r = ctx.rating || autoRating(correct, id);   // flashcards: self-graded rating
   if (r) {
     const prev = c[tr];
+    if (typeof flogAdd === "function") flogAdd(allowListen ? "w" + id + (tr === "L" ? "L" : "") : (c.l ? "j" : "k") + id, r, prev, now);   // per-review log for the optimizer
     if (prev && prev.st === 2) revLogAdd(allowListen ? lvlOf(+id) : c.l ? "kj" + c.l : "kana", allowListen ? (tr === "L" ? "l" : "r") : c.l ? "j" : "k", r > 1);
     if (r === 1 && tr === "f") { if (prev && prev.st === 2) c.lapses = (+c.lapses || 0) + 1; delete c.lb; }
     c[tr] = ctx.fnext && ctx.fnext[r] ? Object.assign({}, ctx.fnext[r]) : fsrsNext(prev, r, now, fCfg());   // flashcards pass the exact previewed result
@@ -2432,6 +2451,7 @@ function home() {
   const unlockedCount = SETS.filter(setUnlocked).length, act = activeLevels();
   view.innerHTML = `
   <div class="largetitle">Today</div><p class="subtitle">${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} · studying <b>${esc(levelLabel())}</b></p>
+  ${smartHTML(D)}
   ${levelPickerHTML()}
   ${D ? dailyHeroHTML(D, true) : `<div class="hero"><div class="ic">📅</div><div><h2>Today's session</h2><p>Loading your path…</p></div><button class="btn" disabled>Start ▶</button></div>`}
   ${D ? flHomeHTML() : ""}
@@ -2476,7 +2496,7 @@ function home() {
   map.onclick = e => { if (e.target.dataset.id) wordModal(WORDS[+e.target.dataset.id]); };
   bindLevelPicker(); bindGoalPanel();
   if (D) bindDailyBtn(D, home, "path");
-  bindFlHome();
+  bindFlHome(); bindSmart(D);
   bindAudioLesson();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
@@ -2590,7 +2610,7 @@ function levelPage(l) {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: () => flashcards(LV[l].ids, `🃏 Flashcards · ${LNAME(l)}`, me) };
+    const special = { speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: async () => { const g = viewGen; if (S.flKanji !== false && KJL[l]) await loadKanji(l); if (g !== viewGen) return; flashcards(LV[l].ids.concat(flKanjiPool(l)), `🃏 Flashcards · ${LNAME(l)}`, me, { kjAble: !!KJL[l], rebuild: () => LV[l].ids.concat(flKanjiPool(l)) }); } };
     go(() => special[m] ? special[m]() : quiz(m, ALL_IDS, undefined, me));
   });
   bindGameTiles(view, l, me);
@@ -2802,6 +2822,7 @@ function settings(page = false) {
     ${sw("retypeMC", "✍️ Also in multiple choice", "After a wrong pick or 🤷, type the reading once")}
     <div class="row fsrsrow"><span style="text-align:left">🧠 Desired retention<br><small class="muted">How likely you are to still know an item when it comes back — higher means more frequent reviews</small></span><span class="seg" id="retSeg" role="radiogroup" aria-label="Desired retention">${[0.85, 0.9, 0.95].map(v => `<button role="radio" aria-checked="${(+S.retention || 0.9) === v}" class="${(+S.retention || 0.9) === v ? "on" : ""}" data-v="${v}">${Math.round(v * 100)}%</button>`).join("")}</span></div>
     <div class="row fsrsrow"><span style="text-align:left">📅 Longest review gap<br><small class="muted">Even well-known items come back at least this often</small></span><span class="seg" id="maxIvlSeg" role="radiogroup" aria-label="Longest review gap">${[[365, "1 yr"], [1095, "3 yrs"], [3650, "10 yrs"]].map(([v, t]) => `<button role="radio" aria-checked="${(+S.maxIvl || 1095) === v}" class="${(+S.maxIvl || 1095) === v ? "on" : ""}" data-v="${v}">${t}</button>`).join("")}</span></div>
+    ${typeof foptHTML === "function" ? foptHTML() : ""}
     ${(() => { const can = "caches" in window && (location.protocol === "https:" || location.hostname === "localhost");
       return `<div class="row"><span style="text-align:left">📥 Offline levels & audio<br><small class="muted" id="dlInfo">${can ? "Played audio is cached automatically. Pick levels to download their word list + all word/sentence audio (kana audio always included):" : "Available when the app is opened from its website."}</small>
       ${can ? `<span class="dlpick">${LEVELS.map(l => `<label><input type="checkbox" class="dlLv" value="${l}" ${activeLevels().includes(l) ? "checked" : ""}> ${LNAME(l)} <small class="muted">~${LV[l].info.mb || "?"} MB</small></label>`).join("")}</span>` : ""}</span>
@@ -2842,7 +2863,7 @@ function settings(page = false) {
   md.querySelector("#kjPer").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.kanjiPerDay = +b.dataset.v; dropUntouched(); save(); md.querySelectorAll("#kjPer button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#pathOv").onclick = e => { S.pathOverlap = S.pathOverlap === false; dropUntouched(); save(); e.currentTarget.classList.toggle("on", S.pathOverlap); e.currentTarget.setAttribute("aria-checked", S.pathOverlap); };
   const segPick = (id, f) => { md.querySelector(id).onclick = e => { const b = e.target.closest("button"); if (!b) return; f(b); save(); md.querySelectorAll(id + " button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); sfx.good(); }; };
-  segPick("#retSeg", b => { S.retention = +b.dataset.v; }); segPick("#maxIvlSeg", b => { S.maxIvl = +b.dataset.v; });
+  segPick("#retSeg", b => { S.retention = +b.dataset.v; }); if (typeof bindFopt === "function") bindFopt(md); segPick("#maxIvlSeg", b => { S.maxIvl = +b.dataset.v; });
   segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; }); segPick("#musVolSeg", b => { S.musicVol = b.dataset.mv; if (typeof kmTick === "function") kmTick(); });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
@@ -3536,7 +3557,7 @@ function renderDue() {
     <div class="hero ${total ? "" : "done"}"><div class="ic">${total ? "⏰" : "✅"}</div><div><h2>${total ? `${total} reviews due` : "All caught up!"}</h2>
       <p>${total ? `${vAll.ids.length} words · ${jAll.ids.length} kanji · ${kAll.ids.length} kana — only due items, no new words, mixed modes incl. typing` : `Nothing due${nextAll != null ? ` · next review ${fmtIn(nextAll)}` : ""}.`}</p>
       <div class="seg dueseg" id="dueBatch">${["20", "50", "all"].map(b => `<button class="${(S.dueBatch || "all") === b ? "on" : ""}" data-b="${b}">${b === "all" ? "All" : "Batch " + b}</button>`).join("")}</div></div>
-      <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button>${vAll.ids.length ? `<button class="btn ghost small flopt" id="dueFlash">🃏 Due words as flashcards</button>` : ""}</div>
+      <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button>${total ? `<button class="btn ghost small flopt" id="dueFlash">🃏 Due as flashcards</button>` : ""}</div>
     <div class="panel duepanel"><h2>Levels</h2>
       ${dueRow("kana:h", "あ", "Kana · Hiragana", secs["kana:h"].r)}${dueRow("kana:k", "ア", "Kana · Katakana", secs["kana:k"].r)}
       ${LEVELS.map(l => { const sec = secs[l], sets = LV[l].sets.map(s => ["set:" + s.id, secs["set:" + s.id]]).filter(x => x[1]), dueSets = sets.filter(x => x[1].r.ids.length);
@@ -3552,7 +3573,7 @@ function renderDue() {
   view.querySelectorAll("details.duesets").forEach(d => d.ontoggle = () => { dueOpen[d.dataset.l] = d.open; });
   $("#dueBatch").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.dueBatch = b.dataset.b; save(); renderDue(); };
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review); });
-  const dfl = $("#dueFlash"); if (dfl) dfl.onclick = () => { sfx.click(); go(() => flashcards(dueScan().ids.filter(id => WORDS[id]), "🃏 Due flashcards", dueView, { dueOnly: true })); };
+  const dfl = $("#dueFlash"); if (dfl) dfl.onclick = () => { sfx.click(); go(() => flashcards(dueScan().ids.filter(id => WORDS[id]).concat(kanaDueScan().ids.map(k => "k:" + k), kjDueScan().ids.filter(c => KJ[c]).map(c => "j:" + c)), "🃏 Due flashcards", dueView, { dueOnly: true })); };
   updateDueBadge();
 }
 /* upcoming (not yet due) items of a section, soonest first — for "Review ahead" */
@@ -5405,10 +5426,19 @@ const FL_DIRS = [["jp", "JP → EN"], ["en", "EN → JP"], ["listen", "🎧 List
 const flIvl = ms => { const m = ms / 60e3; return m < 60 ? Math.max(1, Math.round(m)) + "m" : m < 1440 ? Math.round(m / 60) + "h" : m < 1440 * 30 ? Math.round(m / 1440) + "d" : m < 1440 * 365 ? (m / 43800).toFixed(1).replace(/\.0$/, "") + "mo" : (m / 525600).toFixed(1).replace(/\.0$/, "") + "y"; };
 /* the FSRS outcome for each rating, from the card's current state on that track */
 /* kana items ride along as "k:<char>" (their own KS store, reading track only, exempt from the new-word limit) */
+/* kanji ride along as "j:<char>" (JS store, own kanji track, reading/meaning directions only, new ones within the daily kanji limit) */
 const flIsK = id => typeof id === "string" && id.startsWith("k:");
-const flCard = id => flIsK(id) ? KS.cards[id.slice(2)] : S.cards[id];
-const flBox = id => flIsK(id) ? kcard(id.slice(2)).box : card(id).box;
-const flDueT = id => flIsK(id) ? kcard(id.slice(2)).due : card(id).due;
+const flIsJ = id => typeof id === "string" && id.startsWith("j:");
+const flCard = id => flIsK(id) ? KS.cards[id.slice(2)] : flIsJ(id) ? JS.cards[id.slice(2)] : S.cards[id];
+const flBox = id => flIsK(id) ? kcard(id.slice(2)).box : flIsJ(id) ? jcard(id.slice(2)).box : card(id).box;
+const flDueT = id => flIsK(id) ? kcard(id.slice(2)).due : flIsJ(id) ? jcard(id.slice(2)).due : card(id).due;
+const flOk = id => flIsK(id) ? !!KITEMS[id.slice(2)] : flIsJ(id) ? !!(typeof KJ !== "undefined" && KJ[id.slice(2)]) : !!WORDS[id];
+const flLogKey = (id, tr) => flIsK(id) ? "k" + id.slice(2) : flIsJ(id) ? "j" + id.slice(2) : "w" + id + (tr === "L" ? "L" : "");
+/* a level's due kanji + a few new unlocked ones (the daily kanji limit is applied in the queue); [] until its kanji file is loaded */
+function flKanjiPool(l, nNew = 5) {
+  if (typeof KJL === "undefined" || !KJL[l] || !KJL[l].loaded || S.flKanji === false) return [];
+  return kjDueScan(l).ids.filter(c => KJ[c]).map(c => "j:" + c).concat(kjNewFor0(l, nNew).map(c => "j:" + c));
+}
 function flPreview(id, tr, now = Date.now()) {
   const c = flCard(id), o = [null];
   let base = c ? c[tr] || null : null;
@@ -5419,26 +5449,34 @@ function flPreview(id, tr, now = Date.now()) {
 }
 function flQueue(pool, opts = {}) {
   const now = Date.now(), tr = (S.flashDir || "jp") === "listen" ? "L" : "f";
-  const due = pool.filter(id => { const c = flCard(id); if (!c) return false; const t = flIsK(id) ? "f" : tr, f = c[t]; return t === "L" ? !!f && f.due <= now : (f ? f.due : c.due) <= now; })
+  if (tr === "L") pool = pool.filter(id => !flIsJ(id));   // no kanji cards on the listening track
+  const due = pool.filter(id => { const c = flCard(id); if (!c) return false; const t = flIsK(id) || flIsJ(id) ? "f" : tr, f = c[t]; return t === "L" ? !!f && f.due <= now : (f ? f.due : c.due) <= now; })
     .sort((a, b) => flBox(a) - flBox(b) || flDueT(a) - flDueT(b));
   if (opts.dueOnly) return due;
   const nNew = opts.nNew != null ? opts.nNew : Math.min(20, Math.max(0, S.newPerDay | 0) || 10);
-  const words = pool.filter(id => !flIsK(id)), kana = pool.filter(id => flIsK(id) && !flCard(id));
+  const words = pool.filter(id => !flIsK(id) && !flIsJ(id)), kana = pool.filter(id => flIsK(id) && !flCard(id));
   const fresh = (tr === "L" ? words.filter(id => S.cards[id] && !S.cards[id].L)   // listening: seen words starting their listening track
     : capPool(words.filter(id => !S.cards[id]))).concat(kana).slice(0, nNew);
-  return due.concat(fresh);
+  const kj = tr === "L" ? [] : capPoolK(pool.filter(id => flIsJ(id) && !flCard(id)).map(id => id.slice(2))).slice(0, opts.nNewK != null ? opts.nNewK : 5).map(c => "j:" + c);
+  const mix = []; let wi = 0, ki = 0;   // a new kanji after every ~3 new words
+  while (wi < fresh.length || ki < kj.length) { for (let k = 0; k < 3 && wi < fresh.length; k++) mix.push(fresh[wi++]); if (ki < kj.length) mix.push(kj[ki++]); }
+  return due.concat(mix);
 }
 function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
   studyScreen = true;
   const dir = S.flashDir || "jp", tr = dir === "listen" ? "L" : "f";
   if (tr === "L" && !canAudio()) { S.flashDir = "jp"; return flashcards(pool, title, back, opts); }
-  const Q = flQueue(pool.filter(id => flIsK(id) ? KITEMS[id.slice(2)] : WORDS[id]), opts);
+  const pool0 = pool, hasKj = pool.some(flIsJ);
+  if (S.flKanji === false) pool = pool.filter(id => !flIsJ(id));
+  const Q = flQueue(pool.filter(flOk), opts);
   const dirSeg = `<div class="fldir seg" id="flDir" role="radiogroup" aria-label="Card direction">${FL_DIRS.map(([k, t]) => `<button role="radio" aria-checked="${k === dir}" class="${k === dir ? "on" : ""}" data-d="${k}">${t}</button>`).join("")}</div>`;
-  view.innerHTML = topbar(title, `<span class="muted" id="score"></span>`) + `<div class="sprog"><div id="sprog" style="width:0"></div></div>${dirSeg}${newTodayHTML()}<div id="qhost"></div>`;
+  const kjBtn = hasKj || opts.kjAble ? `<button class="btn ghost small flkjtog" id="flKj" aria-pressed="${S.flKanji !== false}">字 Kanji ${S.flKanji !== false ? "on" : "off"}</button>` : "";
+  view.innerHTML = topbar(title, `<span class="muted" id="score"></span>`) + `<div class="sprog"><div id="sprog" style="width:0"></div></div><div class="fltop">${dirSeg}${kjBtn}</div>${newTodayHTML()}<div id="qhost"></div>`;
   bindBack(back);
-  $("#flDir").onclick = e => { const b = e.target.closest("button"); if (!b || b.dataset.d === S.flashDir) return; S.flashDir = b.dataset.d; save(); go(() => flashcards(pool, title, back, opts)); };
+  $("#flDir").onclick = e => { const b = e.target.closest("button"); if (!b || b.dataset.d === S.flashDir) return; S.flashDir = b.dataset.d; save(); go(() => flashcards(pool0, title, back, opts)); };
+  const kb = $("#flKj"); if (kb) kb.onclick = () => { S.flKanji = S.flKanji === false; save(); sfx.click(); go(() => flashcards(opts.rebuild ? opts.rebuild() : pool0, title, back, Object.assign({}, opts, { kjAble: true }))); };
   if (!Q.length) {
-    if (capReached() && pool.some(id => !flIsK(id) && isNewWord(id)) && !opts.dueOnly) return capView(false, back);
+    if (capReached() && pool.some(id => !flIsK(id) && !flIsJ(id) && isNewWord(id)) && !opts.dueOnly) return capView(false, back);
     $("#qhost").innerHTML = `<div class="card"><div class="big">🎉</div><p>Nothing due here${tr === "L" ? " on the listening track" : ""} right now.</p><div class="btnrow"><button class="btn" id="flBackBtn">Back</button></div></div>`;
     $("#flBackBtn").onclick = () => go(back || home); return;
   }
@@ -5447,13 +5485,16 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
   const prog = () => { $("#score").textContent = `${F.done} done · ${Math.max(0, F.q.length - F.pos)} left`; $("#sprog").style.width = (F.pos / Math.max(1, F.q.length) * 100) + "%"; const nt = $("#newToday"); if (nt) nt.outerHTML = newTodayHTML(); };
   const show = () => {
     F.flipped = false;
-    while (F.pos < F.q.length && !flIsK(F.q[F.pos]) && !S.cards[F.q[F.pos]] && !canIntro(F.q[F.pos])) F.q.splice(F.pos, 1);   // limit reached mid-session
+    while (F.pos < F.q.length && !flIsK(F.q[F.pos]) && !flCard(F.q[F.pos]) && !(flIsJ(F.q[F.pos]) ? canIntroK(F.q[F.pos].slice(2)) : canIntro(F.q[F.pos]))) F.q.splice(F.pos, 1);   // limit reached mid-session
     prog();
     if (F.pos >= F.q.length) return finish();
-    const id = F.q[F.pos], K = flIsK(id), kit = K ? KITEMS[id.slice(2)] : null, w = K ? null : WORDS[id], isNew = !flCard(id);
-    if (!K) { markNew(id); qStart(id, "flash", { listen: tr === "L" }); }
-    const say = force => K ? kSay(kit) : speak(w, force);
-    const front = K ? (dir === "en" ? `<div class="prompt en flen">${esc(kit.r)}</div><div class="sub"><span class="tag">${kit.s === "h" ? "hiragana" : "katakana"}</span></div>`
+    const id = F.q[F.pos], K = flIsK(id), J = flIsJ(id), kit = K ? KITEMS[id.slice(2)] : null, kj = J ? KJ[id.slice(2)] : null, w = K || J ? null : WORDS[id], isNew = !flCard(id);
+    if (J) markNewK(kj.c);
+    else if (!K) { markNew(id); qStart(id, "flash", { listen: tr === "L" }); }
+    const say = force => J ? null : K ? kSay(kit) : speak(w, force);
+    const front = J ? (dir === "en" ? `<div class="prompt en flen">${esc(kj.mean)}</div><div class="sub"><span class="tag">kanji</span></div>`
+      : `<div class="prompt jp flword flkjf">${esc(kj.c)}</div><div class="sub"><span class="tag">kanji · ${esc(LNAME(kj.lvl))}</span></div>`)
+      : K ? (dir === "en" ? `<div class="prompt en flen">${esc(kit.r)}</div><div class="sub"><span class="tag">${kit.s === "h" ? "hiragana" : "katakana"}</span></div>`
       : dir === "listen" ? `<button class="bigspk" id="flSpk" aria-label="Play the sound">🔊</button>`
       : `<div class="prompt jp flword flkch">${esc(kit.id)}</div>`)   /* kana: no front audio except in Listening (it would give the answer away) */
       : dir === "en" ? `<div class="prompt en flen">${esc(w.en)}</div><div class="sub"><span class="tag">${POS_NAMES[w.pos] || "word"}</span></div>`
@@ -5466,7 +5507,7 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
       <div class="flgrades" id="flGrades" hidden></div>
       <div class="btnrow flundo"><button class="btn ghost small" id="flUndo" ${F.hist.length ? "" : "disabled"}>↩︎ Undo</button></div>`;
     const spk = $("#flSpk"); if (spk) spk.onclick = e => { e.stopPropagation(); say(true); };
-    if (dir === "listen") setTimeout(() => say(true), 200); else if (dir === "jp" && S.autoSpeak && !K) say(false);
+    if (dir === "listen") setTimeout(() => say(true), 200); else if (dir === "jp" && S.autoSpeak && !K && !J) say(false);
     $("#flCard").onclick = e => { if (e.target.closest("button, a")) return; if (!F.flipped) flip(); };
     $("#flUndo").onclick = undo; $("#flShow").onclick = flip;
     swipe($("#flCard"));
@@ -5474,6 +5515,14 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
   const flip = () => {
     if (F.flipped || F.pos >= F.q.length) return; F.flipped = true;
     const id = F.q[F.pos];
+    if (flIsJ(id)) {   // kanji back: stroke order (KanjiVG), on/kun readings, meaning, example words
+      const k = KJ[id.slice(2)];
+      $("#flBackSide").hidden = false; $("#flHint").hidden = true; $("#flShowRow").hidden = true;
+      $("#flBackSide").innerHTML = learnCardHTML(k).replace('class="card kjlearn"', 'class="kjlearn flkjlearn"');
+      bindLearn($("#flBackSide"), k);
+      F.prev = flPreview(id, "f");
+      return gradeBtns();
+    }
     if (flIsK(id)) {
       const kit = KITEMS[id.slice(2)];
       $("#flBackSide").hidden = false; $("#flHint").hidden = true; $("#flShowRow").hidden = true;
@@ -5501,15 +5550,16 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
   };
   const rate = r => {
     if (!F.flipped || F.busy) return; F.busy = true;
-    const id = F.q[F.pos], K = flIsK(id);
-    F.hist.push({ id, K, pos: F.pos, q: F.q.slice(), done: F.done, counts: F.counts.slice(), card: flCard(id) ? JSON.stringify(flCard(id)) : null,
-      nl: JSON.stringify(newToday()), ans: S.answered, sg: JSON.stringify(SESSION_GRADED), xp: S.xp, rl: JSON.stringify(S.revLog || {}) });
+    const id = F.q[F.pos], K = flIsK(id), J = flIsJ(id);
+    F.hist.push({ id, K, J, pos: F.pos, q: F.q.slice(), done: F.done, counts: F.counts.slice(), card: flCard(id) ? JSON.stringify(flCard(id)) : null,
+      nl: JSON.stringify(newToday()), nlk: JSON.stringify(newTodayK()), lk: flLogKey(id, tr), ul: JSON.stringify(JS.unl || {}), ans: S.answered, sg: JSON.stringify(SESSION_GRADED), xp: S.xp, rl: JSON.stringify(S.revLog || {}) });
     if (F.hist.length > 30) F.hist.shift();
-    if (K) kGrade(id.slice(2), r > 1, { rating: r, fnext: F.prev, quiet: true });
+    if (J) kjGrade(id.slice(2), r > 1, { rating: r, fnext: F.prev, quiet: true });
+    else if (K) kGrade(id.slice(2), r > 1, { rating: r, fnext: F.prev, quiet: true });
     else grade(id, r > 1, { rating: r, fnext: F.prev, listen: tr === "L", quiet: true });
     if (r > 1) addXP(r === 4 ? 6 : 4); else sfx.bad();
     F.counts[r]++; F.done++;
-    const c = flCard(id), f = c[K ? "f" : tr];
+    const c = flCard(id), f = c[K || J ? "f" : tr];
     if (f && f.due - Date.now() < 15 * 60e3) F.q.splice(Math.min(F.q.length, F.pos + 4), 0, id);   // short (re)learning step: back this session
     F.pos++;
     const st = $("#flStamp"); if (st) { st.textContent = RATE_NAMES[r]; st.className = "flstamp on r" + r; }
@@ -5517,8 +5567,10 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
   };
   const undo = () => {
     const h = F.hist.pop(); if (!h) return;
-    if (h.K) { const k = h.id.slice(2); if (h.card) KS.cards[k] = JSON.parse(h.card); else delete KS.cards[k]; ksave(); }
+    if (h.J) { const k = h.id.slice(2); if (h.card) JS.cards[k] = JSON.parse(h.card); else delete JS.cards[k]; JS.unl = JSON.parse(h.ul); jsave(); nlog("newLogK")[todayStr()] = JSON.parse(h.nlk); }
+    else if (h.K) { const k = h.id.slice(2); if (h.card) KS.cards[k] = JSON.parse(h.card); else delete KS.cards[k]; ksave(); }
     else if (h.card) S.cards[h.id] = JSON.parse(h.card); else delete S.cards[h.id];
+    if (typeof flogUndo === "function") flogUndo(h.lk);
     nlog("newLog")[todayStr()] = JSON.parse(h.nl); S.answered = h.ans; SESSION_GRADED = JSON.parse(h.sg); S.revLog = JSON.parse(h.rl);
     if (S.xp > h.xp) { S.xp = h.xp; updateHeader(); }
     F.q = h.q; F.pos = h.pos; F.done = h.done; F.counts = h.counts; save(); sfx.click(); toast("↩︎ Undone");
@@ -5568,20 +5620,29 @@ function flKanaPool() { return kanaDueScan().ids.map(k => "k:" + k).concat(newKa
 function flHomeDeck(sel = flHomeSel()) {
   const st = sel === "path" ? pathState().cur : sel;
   if (st === "kana") return { pool: flKanaPool(), opts: {}, label: "Kana", st };
-  if (st === "all") return { pool: dueScan().ids.filter(id => WORDS[id]).concat(kanaDueScan().ids.map(k => "k:" + k)), opts: { dueOnly: true }, label: "All levels due", st, dueN: dueScan().ids.length + kanaDueScan().ids.length };
+  if (st === "all") { const jd = S.flKanji !== false ? kjDueScan().ids : [];
+    return { pool: dueScan().ids.filter(id => WORDS[id]).concat(kanaDueScan().ids.map(k => "k:" + k), jd.filter(c => KJ[c]).map(c => "j:" + c)), opts: { dueOnly: true }, label: "All levels due", st, dueN: dueScan().ids.length + kanaDueScan().ids.length + jd.length }; }
   if (!LV[st] || !LV[st].loaded) return null;
-  return { pool: LV[st].ids, opts: {}, label: LNAME(st), st };
+  flKanjiLoad(st);
+  return { pool: LV[st].ids.concat(flKanjiPool(st)), opts: { kjAble: !!KJL[st], rebuild: () => LV[st].ids.concat(flKanjiPool(st)) }, label: LNAME(st), st };
+}
+/* fetch a level's kanji in the background (once; retried after a minute if offline), then refresh the Home card */
+function flKanjiLoad(l) {
+  if (S.flKanji === false || !KJL[l] || KJL[l].loaded || KJL[l].failAt > Date.now() - 60e3 || KJL[l].flReq) return;
+  KJL[l].flReq = 1;
+  loadKanji(l).then(ok => { KJL[l].flReq = 0; const b = $("#flHome"); if (ok && b && curView === home) { b.outerHTML = flHomeHTML(); bindFlHome(); } });
 }
 function flHomeCounts(d) {
-  const Q = flQueue(d.pool.filter(id => flIsK(id) ? KITEMS[id.slice(2)] : WORDS[id]), d.opts), now = Date.now(), tr = (S.flashDir || "jp") === "listen" ? "L" : "f";
-  const nNew = Q.filter(id => { const c = flCard(id); return !c || (!flIsK(id) && tr === "L" && !c.L); }).length;
-  return { due: d.dueN != null && tr === "f" ? d.dueN : Q.length - nNew, nNew, total: Q.length };
+  const Q = flQueue(d.pool.filter(flOk), d.opts), now = Date.now(), tr = (S.flashDir || "jp") === "listen" ? "L" : "f";
+  const nNewK = Q.filter(id => flIsJ(id) && !flCard(id)).length;
+  const nNew = Q.filter(id => { const c = flCard(id); return !c || (!flIsK(id) && tr === "L" && !c.L); }).length - nNewK;
+  return { due: d.dueN != null && tr === "f" ? d.dueN : Q.length - nNew - nNewK, nNew, nNewK, total: Q.length };
 }
 function flHomeHTML() {
   const sel = flHomeSel(), d = flHomeDeck(sel), dirName = (FL_DIRS.find(x => x[0] === (S.flashDir || "jp")) || FL_DIRS[0])[1];
   if (!d) { const st = sel === "path" ? pathState().cur : sel; if (LV[st] && !(LV[st].failed > 1)) loadLevel(st).then(ok => { if (!ok) LV[st].failed = (LV[st].failed || 0) + 1; if (curView === home) go(home); }); }
   const n = d ? flHomeCounts(d) : null, wordDeck = d && d.st !== "kana" && d.st !== "all";
-  const sub = !n ? "Loading words…" : `<b class="flhn" id="flHomeDue">${n.due}</b> due · <b class="flhn" id="flHomeNew">${n.nNew}</b> new` +
+  const sub = !n ? "Loading words…" : `<b class="flhn" id="flHomeDue">${n.due}</b> due · <b class="flhn" id="flHomeNew">${n.nNew}</b> new${n.nNewK ? ` · <b class="flhn" id="flHomeNewK">${n.nNewK}</b> new kanji` : ""}` +
     (wordDeck && (S.flashDir || "jp") !== "listen" ? ` <span class="muted">· ${newLimitV() === Infinity ? "no daily limit" : `${newLeft()} of ${newLimitV()} new words left today`}</span>` : d.st === "kana" ? ` <span class="muted">· kana don't count toward the limit</span>` : "");
   const chips = flHomeOpts().map(([k, t]) => `<button role="radio" aria-checked="${k === sel}" class="${k === sel ? "on" : ""}" data-fl="${k}">${esc(t)}</button>`).join("");
   return `<div class="hero flhome" id="flHome"><div class="ic">🃏</div><div><h2>Flashcards <span class="lvtag" id="flHomeDir">${esc(dirName)}</span></h2>
@@ -5697,8 +5758,10 @@ const KA_JOKERS = {
   neko:     { n: "Maneki-neko", c: 5, d: "Earn $1 every time you play a word with kanji" },
   daruma:   { n: "Daruma", c: 6, d: "+2 Mult for each meaning check in a row you got right" },
   kitsune:  { n: "Kitsune Sensei", c: 6, d: "×2 Mult for words that are due for review" },
-  crane:    { n: "Origami Crane", c: 6, d: "+1 hand size: hold one more tile" }
+  crane:    { n: "Origami Crane", c: 6, d: "+1 hand size: hold one more tile" },
+  shodo:    { n: "Shodō Brush", c: 5, d: "+4 Mult for each kanji in the word's written form (not under the Kanji Mask)" }
 };
+const kaKanjiN = w => [...(w.jp || "")].filter(ch => /[\u3400-\u9fff\uf900-\ufaff々]/.test(ch)).length;
 /* hand size: 12, +1 per Origami Crane, +1 per Tsuru voucher; capped at 14 */
 const KA_HAND = 12, KA_HAND_MAX = 14;
 const kaHandSize = K => Math.min(KA_HAND_MAX, KA_HAND + K.jokers.filter(j => j.id === "crane").length + (K.handPlus || 0));
@@ -5845,6 +5908,7 @@ function kaScore(K, id, tiles, o = {}) {
     else if (j.id === "neko" && w.hasKanji) { s.money = 1; }
     else if (j.id === "daruma" && K.streak) { s.mult = 2 * K.streak; mult += s.mult; }
     else if (j.id === "kitsune" && due) { s.x = 2; mult *= 2; }
+    else if (j.id === "shodo" && kanjiOk && kaKanjiN(w)) { s.mult = 4 * kaKanjiN(w); mult += s.mult; }
     else return;
     steps.push(s);
   });
@@ -5858,6 +5922,7 @@ function kaScore(K, id, tiles, o = {}) {
 /* ---------- art: hand-drawn SVG jokers and consumables (no external images) ---------- */
 const kaSvg = (bg1, bg2, body, id) => `<svg viewBox="0 0 60 80" class="kaart" aria-hidden="true"><defs><linearGradient id="kg${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bg1}"/><stop offset="1" stop-color="${bg2}"/></linearGradient></defs><rect width="60" height="80" rx="6" fill="url(#kg${id})"/><circle cx="30" cy="34" r="25" fill="#fff" opacity=".07"/>${body}</svg>`;
 const KA_ART = {
+  shodo: () => kaSvg("#f4ead2", "#c9b48a", `<rect x="8" y="50" width="44" height="22" rx="3" fill="#2b2b2b" opacity=".12"/><path d="M14 66c6-10 14-14 22-12 6 2 6 8 0 10-5 2-12 1-14-2" fill="none" stroke="#1e1e1e" stroke-width="4.5" stroke-linecap="round"/><path d="M39 8l9 3-12 34-6-2z" fill="#8a5a2b"/><path d="M39 8l9 3-1.5 4.3-9-3z" fill="#d9b25f"/><path d="M30 43l6 2c-1 6-4 10-8 11 0-4 0-9 2-13z" fill="#1e1e1e"/><text x="44" y="34" font-size="11" font-family="serif" fill="#a3262a" font-weight="700">字</text>`, "shodo"),
   crane: () => kaSvg("#bfe3f2", "#24557a", `<circle cx="44" cy="18" r="7" fill="#f6e7b0" opacity=".9"/><path d="M6 44l22-6 6-20 4 18 16-12-10 20 6 6-18-2-6 10-2-12z" fill="#fff" stroke="#c9d6e0" stroke-width="1"/><path d="M28 38l6-20 4 18z" fill="#e8eef3"/><path d="M38 36l16-12-10 20z" fill="#f2f6f9"/><path d="M6 44l22-6" stroke="#d94b3d" stroke-width="2"/><path d="M8 64q22-8 44 0" stroke="#7fb3cf" stroke-width="1.5" fill="none"/><text x="30" y="74" text-anchor="middle" font-size="9" fill="#173a52" font-family="serif">鶴</text>`, "crane"),
   tanuki: () => kaSvg("#f2c46d", "#b86b2a", `<path d="M22 14c3 3 3 7 8 7s5-4 8-7c-1 6-3 9-8 9s-7-3-8-9z" fill="#4c9a4a"/><ellipse cx="30" cy="38" rx="17" ry="15" fill="#8a5a33"/><circle cx="16" cy="25" r="5" fill="#5d3a1f"/><circle cx="44" cy="25" r="5" fill="#5d3a1f"/><path d="M15 37c5-6 11-6 13 0-3 4-10 4-13 0zM45 37c-5-6-11-6-13 0 3 4 10 4 13 0z" fill="#2b1a0e"/><circle cx="22" cy="37" r="2.2" fill="#fff"/><circle cx="38" cy="37" r="2.2" fill="#fff"/><ellipse cx="30" cy="46" rx="7" ry="5" fill="#f1dfc2"/><ellipse cx="30" cy="44" rx="2.6" ry="2" fill="#2b1a0e"/><path d="M27 49q3 2 6 0" stroke="#2b1a0e" stroke-width="1.2" fill="none"/><text x="30" y="72" text-anchor="middle" font-size="11" font-weight="900" fill="#3b230f" font-family="serif">狸</text>`, "tn"),
   demon: () => kaSvg("#ff6b5b", "#7a0f1c", `<path d="M17 22l-5-12 11 8zM43 22l5-12-11 8z" fill="#f6e7b0"/><ellipse cx="30" cy="38" rx="17" ry="16" fill="#d92b2b"/><path d="M18 33l9 3M42 33l-9 3" stroke="#2a0606" stroke-width="2.5" stroke-linecap="round"/><circle cx="23" cy="38" r="3" fill="#ffe14d"/><circle cx="37" cy="38" r="3" fill="#ffe14d"/><path d="M21 48q9 6 18 0l-3 4h-12z" fill="#2a0606"/><path d="M24 49l1.5 3 1.5-3M33 49l1.5 3 1.5-3" fill="#fff"/><text x="46" y="20" font-size="16" font-weight="900" fill="#fff" font-family="serif">゛</text><text x="30" y="72" text-anchor="middle" font-size="11" font-weight="900" fill="#ffe9e3" font-family="serif">鬼</text>`, "dm"),
@@ -6523,6 +6588,240 @@ async function kmRender(v = "normal", secs = 12, wav = false) {
   }
   return { peak: +peak.toFixed(3), rms: +Math.sqrt(sum / n).toFixed(4), notes, bars: Math.floor(s / 8), wav: b64 };
 }
+/* ================= FSRS review log + in-app parameter optimizer =================
+   Every scheduled rating (words: reading + listening tracks, kana, kanji) is appended to a compact per-review log
+   in its own localStorage key (not synced): [key, unixSec, rating, flag, s?, d?, lastReviewSec?]
+     flag 0 = the item's track started fresh with this review
+     flag 1 = first logged review of an item that already had a memory state (stores s, d, last review → replayable)
+     flag 2 = continuation
+   The optimizer is a port of the fsrs-rs / fsrs-optimizer approach for FSRS-5: replay each item's history through
+   the memory model, minimise binary cross-entropy of the predicted recall (reviews ≥ 1 day apart) plus the fsrs-rs
+   L2 regulariser towards the defaults, Adam with a cosine-decayed learning rate, parameters clipped to the fsrs-rs
+   bounds. Gradients use central finite differences (no autodiff in the browser). It runs in a Web Worker
+   (main-thread fallback) and needs ≥ 400 such reviews. Settings: optimize → before/after log loss + RMSE →
+   apply / keep; revert; optional monthly re-optimize (only applied if it predicts better). */
+const FLOG_KEY = "jlptVocabQuest.fsrsLog.v1", FLOG_MAX = 30000, FOPT_MIN = 400, FSRS_DEF = FSRS_W.slice();
+let FLOG = null;
+try { FLOG = JSON.parse(localStorage.getItem(FLOG_KEY) || "null"); } catch (e) {}
+if (!FLOG || !Array.isArray(FLOG.e)) FLOG = { v: 1, since: Date.now(), e: [] };
+let FLOG_KEYS = new Set(FLOG.e.map(x => x[0])), flogT = 0;
+function flogSave() {
+  clearTimeout(flogT); flogT = 0;
+  for (let i = 0; i < 3; i++) { try { localStorage.setItem(FLOG_KEY, JSON.stringify(FLOG)); return true; } catch (e) { FLOG.e.splice(0, Math.ceil(FLOG.e.length / 4)); } }   // storage full: drop the oldest quarter
+  return false;
+}
+addEventListener("pagehide", () => { if (flogT) flogSave(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && flogT) flogSave(); });
+/* called by srsAnswer for every scheduled rating; prev = the track state before this review (null for a new item) */
+function flogAdd(key, r, prev, now = Date.now()) {
+  const e = [key, Math.round(now / 1000), r];
+  if (!FLOG_KEYS.has(key)) { FLOG_KEYS.add(key); if (!prev || prev.s == null || prev.d == null) e.push(0); else e.push(1, +(+prev.s).toFixed(4), +(+prev.d).toFixed(4), prev.lr ? Math.round(prev.lr / 1000) : 0); }
+  else e.push(2);
+  FLOG.e.push(e);
+  if (FLOG.e.length > FLOG_MAX) { FLOG.e.splice(0, FLOG.e.length - FLOG_MAX); }
+  if (!flogT) flogT = setTimeout(flogSave, 1500);
+}
+/* undo support (flashcards): drop the newest entry if it belongs to this key */
+function flogUndo(key) { const L = FLOG.e; if (L.length && L[L.length - 1][0] === key) { const x = L.pop(); if (x[3] !== 2 && !L.some(e => e[0] === key)) FLOG_KEYS.delete(key); flogSave(); } }
+
+/* ---------- optimizer core: self-contained (serialised into a Worker; also callable on the main thread) ---------- */
+function foptCore(scope) {
+  const DECAY = -0.5, FACTOR = Math.pow(0.9, 1 / DECAY) - 1, DAY = 86400;
+  const DEF = [0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621];
+  // spread of each parameter across users (fsrs-rs FSRS-5 regularisation scale) and its allowed range (fsrs-rs clipper)
+  const STD = [6.61, 9.52, 17.69, 27.74, 0.55, 0.28, 0.67, 0.12, 0.4, 0.18, 0.34, 0.27, 0.08, 0.14, 0.57, 0.25, 1.03, 0.27, 0.39];
+  const LO = [0.001, 0.001, 0.001, 0.001, 1, 0.001, 0.001, 0.001, 0, 0, 0.001, 0.001, 0.001, 0.001, 0, 0, 1, 0, 0];
+  const HI = [100, 100, 100, 100, 10, 4, 4, 0.75, 4.5, 0.8, 3.5, 5, 0.25, 0.9, 4, 1, 6, 2, 2];
+  const clampW = w => { const o = w.map((x, i) => Math.min(HI[i], Math.max(LO[i], x))); for (let i = 1; i < 4; i++) o[i] = Math.max(o[i], o[i - 1]); return o; };
+  const cl = (x, a, b) => Math.min(b, Math.max(a, x));
+  /* entries (chronological) → sequences { r0 | s0,d0 ; dt[], r[] } */
+  function build(entries) {
+    const by = new Map();
+    for (const e of entries) { const k = e[0]; let a = by.get(k); if (!a) by.set(k, a = []); a.push(e); }
+    const seqs = []; let samples = 0, total = 0;
+    for (const a of by.values()) {
+      total += a.length;
+      const f = a[0]; let seq;
+      if (f[3] === 0) { seq = { r0: f[2], s0: 0, d0: 0, t: f[1], dt: [], r: [] }; }
+      else if (f[3] === 1 && f[6] > 0 && f[4] > 0) { seq = { r0: 0, s0: f[4], d0: f[5], t: f[6], dt: [Math.floor((f[1] - f[6]) / DAY)], r: [f[2]] }; }
+      else continue;   // history starts mid-way (trimmed) — can't replay it
+      let t = f[1];
+      for (let i = 1; i < a.length; i++) { seq.dt.push(Math.floor((a[i][1] - t) / DAY)); seq.r.push(a[i][2]); t = a[i][1]; }
+      seq.dt = Float64Array.from(seq.dt); seq.r = Int8Array.from(seq.r);
+      for (const d of seq.dt) if (d >= 1) samples++;
+      seqs.push(seq);
+    }
+    return { seqs, samples, total, items: by.size };
+  }
+  /* FSRS-5 memory model (identical maths to the app's fsrsNext, without learning steps / fuzz) */
+  const D0 = (w, r) => cl(w[4] - Math.exp(w[5] * (r - 1)) + 1, 1, 10);
+  const nextD = (w, d, r) => cl(w[7] * D0(w, 4) + (1 - w[7]) * (d + (10 - d) * (-w[6] * (r - 3)) / 9), 1, 10);
+  const recallS = (w, d, s, R, r) => s * (1 + Math.exp(w[8]) * (11 - d) * Math.pow(s, -w[9]) * (Math.exp((1 - R) * w[10]) - 1) * (r === 2 ? w[15] : 1) * (r === 4 ? w[16] : 1));
+  const forgetS = (w, d, s, R) => Math.min(w[11] * Math.pow(d, -w[12]) * (Math.pow(s + 1, w[13]) - 1) * Math.exp((1 - R) * w[14]), s / Math.exp(w[17] * w[18]));
+  const ret = (t, s) => Math.pow(1 + FACTOR * t / s, DECAY);
+  /* replay: returns the memory state after the sequence and (optionally) feeds each prediction to cb(R, recalled) */
+  function replay(w, q, cb) {
+    let s, d;
+    if (q.r0) { s = Math.max(w[q.r0 - 1], 0.1); d = D0(w, q.r0); } else { s = q.s0; d = q.d0; }
+    const n = q.dt.length;
+    for (let i = 0; i < n; i++) {
+      const t = q.dt[i], r = q.r[i];
+      if (t < 1) s = s * Math.exp(w[17] * (r - 3 + w[18]));
+      else { const R = ret(t, s); if (cb) cb(R, r > 1); s = r === 1 ? forgetS(w, d, s, R) : recallS(w, d, s, R, r); }
+      s = cl(s, 0.01, 36500);
+      d = nextD(w, d, r);
+    }
+    return { s, d };
+  }
+  function lossOf(w, data) {
+    let L = 0, n = 0;
+    for (const q of data.seqs) replay(w, q, (R, y) => { const p = cl(R, 1e-4, 1 - 1e-4); L -= y ? Math.log(p) : Math.log(1 - p); n++; });
+    return { L, n };
+  }
+  function metrics(w, data) {
+    const B = 20, bp = new Float64Array(B), by = new Float64Array(B), bn = new Float64Array(B); let L = 0, n = 0;
+    for (const q of data.seqs) replay(w, q, (R, y) => { const p = cl(R, 1e-4, 1 - 1e-4); L -= y ? Math.log(p) : Math.log(1 - p); n++; const b = Math.min(B - 1, Math.floor(R * B)); bp[b] += R; by[b] += y ? 1 : 0; bn[b]++; });
+    let se = 0; for (let b = 0; b < B; b++) if (bn[b]) se += bn[b] * Math.pow(bp[b] / bn[b] - by[b] / bn[b], 2);
+    return { logloss: n ? L / n : null, rmse: n ? Math.sqrt(se / n) : null, n };
+  }
+  function objective(w, data, N) {
+    const { L, n } = lossOf(w, data); let pen = 0;
+    for (let i = 0; i < 19; i++) pen += Math.pow((w[i] - DEF[i]) / STD[i], 2);
+    return L / Math.max(1, n) + pen / Math.max(1, N);
+  }
+  function optimize(entries, cur, o = {}, onProg) {
+    const data = build(entries), N = data.samples;
+    const curW = (cur && cur.length === 19 ? cur : DEF).slice();
+    const before = metrics(curW, data);
+    if (N < (o.min ?? 400)) return { ok: false, reason: "few", samples: N, total: data.total, before };
+    const iters = o.iters || 160, lr0 = o.lr || 0.04, b1 = 0.9, b2 = 0.999, eps = 1e-8;
+    let w = clampW(DEF.slice()), m = new Array(19).fill(0), v = new Array(19).fill(0);
+    let best = w.slice(), bestJ = objective(w, data, N);
+    const curJ = objective(clampW(curW), data, N); if (curJ < bestJ) { bestJ = curJ; best = clampW(curW); }
+    for (let it = 1; it <= iters; it++) {
+      const g = new Array(19);
+      for (let i = 0; i < 19; i++) {
+        const h = 1e-4 * Math.max(1, Math.abs(w[i])), wp = w.slice(), wm = w.slice(); wp[i] += h; wm[i] -= h;
+        g[i] = (objective(wp, data, N) - objective(wm, data, N)) / (2 * h);
+      }
+      const lr = 0.1 * lr0 + 0.9 * lr0 * 0.5 * (1 + Math.cos(Math.PI * (it - 1) / iters));
+      for (let i = 0; i < 19; i++) { m[i] = b1 * m[i] + (1 - b1) * g[i]; v[i] = b2 * v[i] + (1 - b2) * g[i] * g[i]; const mh = m[i] / (1 - Math.pow(b1, it)), vh = v[i] / (1 - Math.pow(b2, it)); w[i] -= lr * mh / (Math.sqrt(vh) + eps); }
+      w = clampW(w);
+      const J = objective(w, data, N); if (J < bestJ) { bestJ = J; best = w.slice(); }
+      if (onProg && it % 8 === 0) onProg(it / iters);
+    }
+    best = best.map(x => +x.toFixed(5));
+    return { ok: true, w: best, samples: N, total: data.total, items: data.items, before, after: metrics(best, data), iters };
+  }
+  const api = { DEF, STD, LO, HI, build, replay, metrics, optimize, objective, clampW };
+  if (scope && typeof scope.postMessage === "function") scope.onmessage = e => {
+    try { const r = optimize(e.data.entries, e.data.cur, e.data.o || {}, p => scope.postMessage({ type: "p", p })); scope.postMessage({ type: "done", r }); }
+    catch (err) { scope.postMessage({ type: "err", msg: String(err && err.message || err) }); }
+  };
+  return api;
+}
+const FOPT = foptCore(null);
+/* run in a Worker (falls back to the main thread if Workers/Blob URLs are unavailable) */
+function foptRun(o = {}, onProg) {
+  const entries = FLOG.e, cur = FSRS_W.slice();
+  return new Promise(res => {
+    let wk = null;
+    try { const url = URL.createObjectURL(new Blob([`(${foptCore.toString()})(self);`], { type: "text/javascript" })); wk = new Worker(url); URL.revokeObjectURL(url); } catch (e) { wk = null; }
+    if (!wk) { setTimeout(() => res(FOPT.optimize(entries, cur, o, onProg)), 30); return; }
+    FOPT_STATE.worker = wk;
+    wk.onmessage = e => { if (e.data.type === "p") onProg && onProg(e.data.p); else { wk.terminate(); FOPT_STATE.worker = null; res(e.data.type === "done" ? e.data.r : { ok: false, reason: "err", msg: e.data.msg }); } };
+    wk.onerror = e => { wk.terminate(); FOPT_STATE.worker = null; res(FOPT.optimize(entries, cur, o, onProg)); };
+    wk.postMessage({ entries, cur, o });
+  });
+}
+const FOPT_STATE = { worker: null, last: null, busy: false };
+/* parameters in use: S.fsrsW (optimized) or the defaults */
+function fsrsApplyW(w) { const ok = Array.isArray(w) && w.length === 19 && w.every(x => Number.isFinite(+x)); FSRS_W.splice(0, 19, ...(ok ? w.map(Number) : FSRS_DEF)); return ok; }
+if (S.fsrsW && !fsrsApplyW(S.fsrsW)) delete S.fsrsW;
+const foptSamples = () => FOPT.build(FLOG.e).samples;
+function foptApply(r) {
+  S.fsrsOpt = Object.assign({}, S.fsrsOpt || {}, { at: Date.now(), samples: r.samples, before: r.before, after: r.after, prev: S.fsrsW ? S.fsrsW.slice() : null });
+  S.fsrsW = r.w.slice(); fsrsApplyW(S.fsrsW); save();
+}
+function foptRevert() { const o = S.fsrsOpt || {}; if (o.prev) S.fsrsW = o.prev.slice(); else delete S.fsrsW; fsrsApplyW(S.fsrsW); S.fsrsOpt = Object.assign({}, o, { reverted: Date.now(), prev: null }); save(); }
+/* optional: re-optimize monthly in the background (applies only if it predicts your reviews better) */
+function foptAutoCheck() {
+  if (!S.fsrsAuto || FOPT_STATE.busy) return;
+  const last = (S.fsrsOpt && S.fsrsOpt.at) || 0; if (Date.now() - last < 30 * F_DAY) return;
+  if (foptSamples() < FOPT_MIN) return;
+  FOPT_STATE.busy = true;
+  foptRun().then(r => { FOPT_STATE.busy = false; if (r && r.ok && r.after.logloss < r.before.logloss - 1e-4) { foptApply(r); toast("🧠 Your review schedule was re-optimized"); } else { S.fsrsOpt = Object.assign({}, S.fsrsOpt || {}, { at: Date.now(), checked: 1 }); save(); } });
+}
+setTimeout(foptAutoCheck, 20000);
+/* ---------- Settings block ---------- */
+const fmtLL = x => x == null ? "—" : x.toFixed(3), fmtPct = x => x == null ? "—" : (x * 100).toFixed(1) + "%";
+function foptHTML() {
+  const n = foptSamples(), o = S.fsrsOpt || {}, using = !!S.fsrsW, L = FOPT_STATE.last;
+  const status = using ? `Using <b>your optimized parameters</b> (${new Date(o.at).toLocaleDateString()}): log loss ${fmtLL(o.before && o.before.logloss)} → <b>${fmtLL(o.after && o.after.logloss)}</b> · RMSE ${fmtPct(o.before && o.before.rmse)} → <b>${fmtPct(o.after && o.after.rmse)}</b>`
+    : "Using the default FSRS-5 parameters.";
+  const res = L && L.ok ? `<div class="foptres" id="foptRes"><b>Result</b> (${L.samples} reviews, ${L.items} items)<br>Log loss <b>${fmtLL(L.before.logloss)}</b> → <b>${fmtLL(L.after.logloss)}</b> · RMSE <b>${fmtPct(L.before.rmse)}</b> → <b>${fmtPct(L.after.rmse)}</b> <span class="muted">(lower is better)</span>
+      <div class="btnrow" style="justify-content:flex-start"><button class="btn small" id="foptApply">Apply</button><button class="btn ghost small" id="foptKeep">Keep current</button></div></div>`
+    : L && !L.ok && L.reason === "err" ? `<div class="foptres" id="foptRes">Optimization failed: ${esc(L.msg || "")}</div>` : "";
+  return `<div class="foptbox" id="foptBox"><div class="row"><span style="text-align:left">🧪 Optimize my schedule<br><small class="muted">Fits the FSRS memory model to your own review history (needs ${FOPT_MIN}+ reviews done a day or more apart)</small></span></div>
+    <p class="muted foptst" id="foptStatus">${status}</p>
+    ${n < FOPT_MIN ? `<p class="foptfew" id="foptFew">Not enough reviews yet (${n}/${FOPT_MIN})</p>` : ""}
+    <div class="btnrow" style="justify-content:flex-start"><button class="btn small" id="foptGo" ${n < FOPT_MIN || FOPT_STATE.busy ? "disabled" : ""}>${FOPT_STATE.busy ? "Optimizing…" : "Optimize my schedule"}</button>${using ? `<button class="btn ghost small" id="foptRevert">${o.prev ? "Revert to previous" : "Revert to defaults"}</button>` : ""}</div>
+    <div class="foptprog" id="foptProg" ${FOPT_STATE.busy ? "" : "hidden"}><i id="foptBar"></i></div>${res}
+    <div class="row"><span style="text-align:left">Re-optimize monthly<br><small class="muted">Runs in the background; only applied if it predicts your reviews better</small></span><button class="switch ${S.fsrsAuto ? "on" : ""}" id="foptAuto" role="switch" aria-checked="${!!S.fsrsAuto}" aria-label="Re-optimize monthly"></button></div></div>`;
+}
+function bindFopt(root) {
+  const box = root.querySelector("#foptBox"); if (!box) return;
+  const redraw = () => { const b = root.querySelector("#foptBox"); if (b) { b.outerHTML = foptHTML(); bindFopt(root); } };
+  const go1 = box.querySelector("#foptGo"); if (go1) go1.onclick = () => {
+    if (FOPT_STATE.busy) return; FOPT_STATE.busy = true; FOPT_STATE.last = null; redraw();
+    foptRun({}, p => { const bar = root.querySelector("#foptBar"); if (bar) bar.style.width = Math.round(p * 100) + "%"; })
+      .then(r => { FOPT_STATE.busy = false; FOPT_STATE.last = r; redraw(); });
+  };
+  const ap = box.querySelector("#foptApply"); if (ap) ap.onclick = () => { foptApply(FOPT_STATE.last); FOPT_STATE.last = null; sfx.good(); toast("🧠 Optimized parameters applied"); redraw(); };
+  const kp = box.querySelector("#foptKeep"); if (kp) kp.onclick = () => { FOPT_STATE.last = null; redraw(); };
+  const rv = box.querySelector("#foptRevert"); if (rv) rv.onclick = () => { foptRevert(); toast("↩︎ Parameters reverted"); redraw(); };
+  box.querySelector("#foptAuto").onclick = e => { S.fsrsAuto = !S.fsrsAuto; save(); e.currentTarget.classList.toggle("on", S.fsrsAuto); e.currentTarget.setAttribute("aria-checked", !!S.fsrsAuto); };
+}
+
+/* ================= Smart Home Start =================
+   One big button at the top of Home that picks the best next activity, in this order:
+   1) due reviews (all tracks mixed: words, kanji, kana; a lesson already started is continued first, since it holds
+   its own reviews and just-learned items fall due inside it)  2) today's path lesson while it still has new items
+   (within the daily new-word / new-kanji limits)  3) [grammar / reading come in later releases]
+   4) daily goal not met yet → practice of seen words  5) goal met → suggest a game of Kanaatro. */
+function smartPlan(D) {
+  const vd = dueScan().ids.length, jd = kjDueScan().ids.length, kd = kanaDueScan().ids.length, td = vd + jd + kd;
+  const inLesson = D && !D.done && D.pos > 0 && D.items.length > D.pos;   // a started lesson already holds its reviews; finish it first
+  if (td > 0 && !inLesson) {
+    const parts = [vd && `${vd} word${vd === 1 ? "" : "s"}`, jd && `${jd} kanji`, kd && `${kd} kana`].filter(Boolean);
+    const mins = Math.max(1, Math.round(td * 8 / 60));
+    return { k: "due", label: `Review ${td} due`, line: `${parts.join(" · ")} — about ${mins} min, all tracks mixed`, run: () => startDueReview("all", home) };
+  }
+  if (D && !D.done && D.items.length > D.pos) {
+    const rest = D.items.slice(D.pos), nw = rest.filter(it => it.isNew && !it.j).length, nk = rest.filter(it => it.j && it.mode === "learn").length;
+    const lim = newLimitV() === Infinity ? "no daily limit" : `${newLeft()} of ${newLimitV()} new words left today`;
+    return { k: "new", label: D.pos ? "Continue today's lesson" : "Learn new words",
+      line: `${rest.length} step${rest.length === 1 ? "" : "s"}${nw ? ` · ${nw} new word${nw === 1 ? "" : "s"}` : ""}${nk ? ` · ${nk} new kanji` : ""} · ${lim}`,
+      run: () => go(() => dailySession(home, "path")) };
+  }
+  if (!goalMet()) {
+    const g = goalParts()[0];
+    return { k: "practice", label: "Practice", line: `Nothing due and today's new items are done · goal ${g.have}/${g.need} ${g.label} — a mixed quiz of words you've seen`, run: () => go(dueOrPractice) };
+  }
+  const cur = pathState().cur, l = gamesFor(cur).includes("kanaatro") ? cur : (activeLevels().find(x => x !== "kana") || "n5");
+  return { k: "game", label: "Play Kanaatro", line: `Daily goal met 🎉 — nothing due. Relax with a round of Kanaatro (${LNAME(l)})`, run: () => gOpen(l, "kanaatro", home) };
+}
+const SMART_IC = { due: "⏰", new: "🌱", practice: "🎯", game: "🃏" };
+function smartHTML(D) {
+  if (!D) return `<div class="smartbox" id="smartBox"><button class="btn smartbtn" id="smartStart" disabled><span class="smic" aria-hidden="true">▶</span><span>Start</span></button><p class="smartline" id="smartLine">Getting today's plan ready…</p></div>`;
+  const p = smartPlan(D);
+  return `<div class="smartbox" id="smartBox" data-plan="${p.k}"><button class="btn smartbtn" id="smartStart" aria-describedby="smartLine"><span class="smic" aria-hidden="true">${SMART_IC[p.k]}</span><span>Start · ${esc(p.label)}</span><span class="smgo" aria-hidden="true">▶</span></button>
+    <p class="smartline" id="smartLine">${esc(p.line)}</p></div>`;
+}
+function bindSmart(D) {
+  const b = $("#smartStart"); if (!b || !D) return;
+  b.onclick = () => { sfx.click(); const p = smartPlan(D); p.run(); };
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -6548,7 +6847,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "25d0a4209a80";
+const BUILD = "425867a10dc8";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -6598,7 +6897,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { WORDS, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { WORDS, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

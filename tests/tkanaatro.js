@@ -61,11 +61,15 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
   K.streak=3;out.daruma=run(['daruma'],167,'がっこう').mult-b.mult;K.streak=0;
   out.neko=run(['neko'],167,'がっこう').steps.some(s=>s.money===1);
   out.wrong=run([],167,'がっこう',{wrong:true}).mult/b.mult;
+  out.shodo=run(['shodo'],167,'がっこう').mult-b.mult;out.shodoKana=run(['shodo'],250,'コーヒー').mult-run([],250,'コーヒー').mult;
+  K.blind=2;K.boss='mask';out.shodoMask=run(['shodo'],167,'がっこう').mult-run([],167,'がっこう').mult;K.blind=0;K.boss=null;
   out.order=(()=>{K.jokers=[{id:'kappa'},{id:'demon'}];const a=__N5.kaScore(K,167,T('がっこう')).mult;K.jokers=[{id:'demon'},{id:'kappa'}];const c=__N5.kaScore(K,167,T('がっこう')).mult;return [a,c];})();
   K.jokers=[];return {out,bm:b.mult};});
  const o=jk.out;
  ok('Dakuten Demon ×1.5 per dakuten kana',Math.abs(o.demon-1.5)<1e-9,JSON.stringify(o));
  ok('Kappa +3 Mult per small kana',o.kappa===3);
+ ok('Shodō Brush +4 Mult per kanji (学校 → +8), nothing for kana words or under the Kanji Mask',o.shodo===8&&o.shodoKana===0&&o.shodoMask===0,JSON.stringify([o.shodo,o.shodoKana,o.shodoMask]));
+ ok('Shodō Brush has hand-drawn SVG art',await ev(()=>{const K=__N5.KA_JOKERS;return !!K.shodo&&/<svg/.test(__N5.KA_ART.shodo());}));
  ok('Haiku ×2 for exactly 5 kana',o.haiku===2);
  ok('Katakana Ronin +30 chips for katakana words',o.ronin===30);
  ok('Salaryman doubles chips for work words (会社)',o.salary===2);

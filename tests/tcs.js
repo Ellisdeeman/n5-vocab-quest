@@ -1,0 +1,4 @@
+const pw=require('playwright-core');const seed=require('./seed.js');
+(async()=>{const b=await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});const ctx=await b.newContext({viewport:{width:393,height:852},colorScheme:'dark',serviceWorkers:'block'});
+await ctx.addInitScript(`if(!localStorage.getItem('seeded')){localStorage.setItem('seeded',1);(${seed})()}`);const p=await ctx.newPage();await p.goto('http://localhost:8766/');await p.waitForSelector('.duecard');
+console.log(await p.evaluate(()=>{const h=document.querySelector('.hero');const cs=getComputedStyle(h,'::before');return {bg:cs.backgroundColor,w:cs.width,tint:getComputedStyle(h).getPropertyValue('--tint'),acc:getComputedStyle(h).getPropertyValue('--accent'),bl:getComputedStyle(h).borderLeftColor}}));await b.close();})();

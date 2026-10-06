@@ -1,0 +1,23 @@
+const pw=require('playwright-core');const BR=process.env.BROWSER||'chromium';const URL=process.env.URL||'http://localhost:8770/';
+(async()=>{const b=BR==='webkit'?await pw.webkit.launch():await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
+const ctx=await b.newContext({viewport:{width:375,height:667},deviceScaleFactor:2,hasTouch:true,serviceWorkers:'block',colorScheme:process.env.SCHEME||'dark',...(BR==='chromium'?{isMobile:true}:{})});
+await ctx.addInitScript(()=>{if(localStorage.getItem('seeded'))return;localStorage.setItem('seeded',1);const now=Date.now(),D=864e5,cards={};
+ for(let i=0;i<300;i++)cards[i]={box:2,due:i%5?now+3*D:now-36e5,ok:3,bad:1,f:{st:2,sp:null,s:4,d:5,lr:now-6*D,due:i%5?now+3*D:now-36e5}};
+ localStorage.setItem('n5VocabQuest.v1',JSON.stringify({cards,levels:['n5'],newLimit:15,sound:false}));});
+const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(''+e));p.on('console',m=>{if(m.type()==='error')errs.push('console:'+m.text())});
+await p.goto(URL+'?t='+Date.now());await p.waitForSelector('.tabbar');await p.waitForTimeout(800);
+const ev=(f,a)=>p.evaluate(f,a);
+await ev(()=>{window.__kaSeed=12345;__N5.gOpen('n5','kanaatro',__N5.home);});await p.waitForTimeout(600);
+await p.screenshot({path:'/workspace/logs/ka-intro.png'});
+await p.tap('#kaStart');await p.waitForSelector('#kaGo');await p.waitForTimeout(400);await p.screenshot({path:'/workspace/logs/ka-blind.png'});
+await p.tap('#kaGo');await p.waitForTimeout(1200);
+const info=await ev(()=>{const K=__N5.KA;return {deck:K.deck.map(t=>t.ch).join(''),hand:K.hand.map(t=>t.ch).join(''),poss:__N5.kaPossible(K).slice(0,8).map(x=>x.key+':'+x.score),dict:K.dict.map.size};});
+console.log(JSON.stringify(info));
+await p.screenshot({path:'/workspace/logs/ka-table.png'});
+// select best
+await ev(()=>{const K=__N5.KA,pp=__N5.kaPossible(K)[0];if(pp)pp.seq.forEach(j=>document.querySelector(`#kaHand [data-t="${K.hand[j].id}"]`).click());});
+await p.waitForTimeout(400);await p.screenshot({path:'/workspace/logs/ka-sel.png'});
+await p.tap('#kaPlay');await p.waitForSelector('#kaMC');await p.waitForTimeout(500);await p.screenshot({path:'/workspace/logs/ka-mc.png'});
+await ev(()=>__N5.KA.mc.choose(__N5.KA.mc.right));await p.waitForTimeout(1500);await p.screenshot({path:'/workspace/logs/ka-score.png'});
+await p.waitForTimeout(2500);await p.screenshot({path:'/workspace/logs/ka-after.png'});
+console.log('errs',JSON.stringify(errs));await b.close();})();

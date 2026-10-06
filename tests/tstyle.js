@@ -105,5 +105,15 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await p.evaluate(()=>__N5.go(__N5.settingsView));await p.waitForSelector('#newLimRow');await p.evaluate(()=>document.querySelector('#newLimRow').scrollIntoView({block:'center'}));await check('settings daily limits');
   await p.evaluate(()=>__N5.go(__N5.statsView));await p.waitForSelector('#memStats');await p.evaluate(()=>document.querySelector('#memStats').scrollIntoView());await check('memory (FSRS) stats');
   await p.evaluate(()=>document.querySelector('#memHard')&&document.querySelector('#memHard').scrollIntoView({block:'center'}));await check('memory hardest words');
+  // batch 1: smart start, kanji flashcards, FSRS optimizer
+  await p.evaluate(()=>__N5.go(__N5.home));await p.waitForSelector('#smartStart');await check('home smart start');
+  await p.evaluate(async()=>{await __N5.loadKanji('n5');const cs=Object.keys(__N5.KJ).filter(c=>__N5.KJ[c].lvl==='n5').slice(0,3).map(c=>'j:'+c);__N5.S().newLogK={};__N5.go(()=>__N5.flashcards(cs,'🃏 Kanji',__N5.home,{kjAble:true}));});
+  await p.waitForSelector('.flkjf');await check('flashcards kanji front');
+  await tap('#flShow');await p.waitForSelector('#flBackSide .kjlearn');await p.waitForTimeout(800);await check('flashcards kanji back');
+  await p.evaluate(()=>{__N5.go(__N5.settingsView);});await p.waitForSelector('#foptBox');await p.evaluate(()=>document.querySelector('#foptBox').scrollIntoView({block:'center'}));await check('settings optimizer (not enough)');
+  await p.evaluate(()=>{__N5.FOPT_STATE.busy=true;__N5.go(__N5.settingsView);});await p.waitForSelector('#foptProg:not([hidden])');await p.evaluate(()=>{document.querySelector('#foptBar').style.width='40%';document.querySelector('#foptBox').scrollIntoView({block:'center'});});await check('settings optimizer running');
+  await p.evaluate(()=>{__N5.FOPT_STATE.busy=false;__N5.FOPT_STATE.last={ok:true,samples:812,items:140,total:1300,before:{logloss:.412,rmse:.061},after:{logloss:.379,rmse:.019},w:__N5.FSRS_DEF.slice()};__N5.go(__N5.settingsView);});await p.waitForSelector('#foptApply');await p.evaluate(()=>document.querySelector('#foptRes').scrollIntoView({block:'center'}));await check('settings optimizer result');
+  await p.evaluate(()=>{const S=__N5.S();__N5.FOPT_STATE.last=null;S.fsrsW=__N5.FSRS_DEF.slice();S.fsrsOpt={at:Date.now(),samples:812,before:{logloss:.412,rmse:.061},after:{logloss:.379,rmse:.019},prev:null};__N5.go(__N5.settingsView);});await p.waitForSelector('#foptRevert');await p.evaluate(()=>document.querySelector('#foptBox').scrollIntoView({block:'center'}));await check('settings optimizer applied');
+  await p.evaluate(()=>{const S=__N5.S();delete S.fsrsW;delete S.fsrsOpt;});
   await ctx.close();}
  await b.close();console.log('SUMMARY',BR,R.filter(Boolean).length,'/',R.length);process.exit(R.every(Boolean)?0:1);})();
