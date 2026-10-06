@@ -19,7 +19,7 @@ const SH='/workspace/n5-game/';
  const p=await ctx.newPage();p.setDefaultTimeout(15000);p.on('pageerror',e=>errs.push(''+e));p.on('console',m=>{if(m.type()==='error'&&!/Failed to load resource/.test(m.text()))errs.push(m.text())});
  await p.goto(URL+'?t='+Date.now());await p.waitForSelector('.tabbar');await p.waitForTimeout(800);
  const ev=(f,a)=>p.evaluate(f,a),W=ms=>p.waitForTimeout(ms);
- const shot=async n=>{if(SHOTS)await p.screenshot({path:SH+'shot-'+n+'.png'});};
+ const shot=async n=>{if(SHOTS){await p.waitForTimeout(700);await p.screenshot({path:SH+'shot-'+n+'.png'});}};
  const fits=()=>ev(()=>document.documentElement.scrollWidth<=innerWidth);
  // ---------- Auto pace: unit
  const u=await ev(()=>{const S=__N5.S(),now=Date.now(),D=864e5,mk=(n,ok)=>{const rl={};for(let i=0;i<7;i++){const d=new Date(now-i*D).toLocaleDateString('en-CA');rl[d]={n5f:n,'n5f+':ok};}return rl;};

@@ -1141,6 +1141,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .loc.big{width:84px;height:84px;font-size:2rem;background:var(--accent);color:var(--accent-ink)}
 .loq{margin-top:12px;text-align:left}.loqq{font-size:1.15rem;margin:6px 0}
 .lorow .btn.sec{background:var(--card)}
+.rdcard .rdpct b{font-size:inherit}
 </style>
 </head>
 <body>
@@ -9682,8 +9683,8 @@ const newPerSessionV = () => paceOn() ? Math.min(40, paceLimit()) : Math.max(0, 
 function paceWhy(P) {
   const bits = [];
   if (P.acc == null) bits.push(`not enough recent reviews to adjust yet (${P.nRev}/20) — using your max`);
-  else bits.push(`${P.nRev} reviews this week`);
-  bits.push(`reviews ≈ ${P.load < 1 ? "<1" : Math.round(P.load)} min/day this week (goal ${P.goal} min)`);
+  else bits.push(`${P.nRev} reviews in the last 7 days`);
+  bits.push(`coming reviews ≈ ${P.load < 1 ? "<1" : Math.round(P.load)} min/day (goal ${P.goal} min)`);
   let tip = "";
   if (P.acc != null && P.acc < 85) tip = "Below the 85–90% sweet spot, so fewer new words until reviews feel easier.";
   else if (P.lF < 1) tip = "Your review load is growing, so fewer new words keeps the daily goal manageable.";
@@ -9941,7 +9942,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "eeb1c3f95474";
+const BUILD = "d1a85edf5c5e";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });

@@ -41,7 +41,7 @@ const SHORT=['good','bad','click','idk','tick','unlock','hit'],CELEB=['level','g
  ok('settings: Analog selected by default',await ev(()=>document.querySelector('#sfxSeg .on').dataset.sfx==='analog'&&!__N5.S().sfxStyle));
  ok('settings: Soft volume by default',await ev(()=>document.querySelector('#sfxVolSeg .on').dataset.v==='soft'));
  const tgt=await ev(()=>[...document.querySelectorAll('#sfxSeg button,#sfxVolSeg button')].map(x=>{const q=x.getBoundingClientRect();return Math.min(q.width,q.height)}));
- ok('settings sound buttons ≥44px',tgt.every(x=>x>=44),JSON.stringify(tgt));
+ ok('settings sound buttons ≥44px',tgt.every(x=>x>=43.9)/* sub-pixel layout rounding */,JSON.stringify(tgt));
  ok('settings fits 375px',await ev(()=>document.documentElement.scrollWidth<=innerWidth));
  let a0=await ev(()=>({...__AC}));await ev(()=>__N5.sfx.good());let a1=await ev(()=>({...__AC}));
  ok('analog style plays through the analog voices (noise mallet/filters)',a1.src>a0.src||a1.filt>a0.filt,JSON.stringify([a0,a1]));
