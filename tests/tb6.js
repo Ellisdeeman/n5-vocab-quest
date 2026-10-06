@@ -28,12 +28,14 @@ const SH='/workspace/n5-game/';
   S.revLog=mk(20,17);out.mid=__N5.paceCompute();
   S.revLog=mk(10,7.8);out.lo=__N5.paceCompute();
   S.revLog={};out.none=__N5.paceCompute();
+  S.revLog=mk(10,10);S.newLimit='off';out.off=__N5.paceCompute();S.newLimit=20;
   S.revLog=mk(10,10);for(let i=100;i<800;i++)S.cards[i]={box:2,due:now+3*D,ok:2,bad:0,f:{st:2,s:3,d:5,lr:now-D,due:now+(i%7)*D}};out.load=__N5.paceCompute();
   const k=JSON.parse(keep);S.revLog=k.rl;S.cards=k.c;delete S.pace;return out;});
  ok('pace: ≥90% accuracy, light load → max (20)',u.hi.n===20&&u.hi.acc===100,JSON.stringify(u.hi));
  ok('pace: 85% → about half way (12–13)',u.mid.n>=12&&u.mid.n<=13,JSON.stringify(u.mid));
  ok('pace: 78% → minimum (5)',u.lo.n===5,JSON.stringify(u.lo));
  ok('pace: no review history → max, flagged',u.none.n===20&&u.none.acc===null,JSON.stringify(u.none));
+ ok('pace: manual limit Off → 30/day ceiling',u.off.n===30,JSON.stringify(u.off));
  ok('pace: heavy 7-day forecast (700 reviews ≈ 13 min/day vs 15) → reduced',u.load.n<12&&u.load.load>10,JSON.stringify(u.load));
  // ---------- Home explanation + cap
  const home=await ev(()=>{__N5.go(__N5.home);const n=document.querySelector('#paceNote');return n&&n.textContent.replace(/\s+/g,' ');});

@@ -41,7 +41,7 @@ const SH='/workspace/n5-game/';const KEY='n5VocabQuest.v1';
     out.paths.push(`audio/rd/${st.id}-${i+1}.mp3`);});
    if(N.rdWordIds(st).length<8)out.bad.push(st.id+' few linked words');}
   const miss=[];await Promise.all(out.paths.map(async u=>{const r=await fetch(u,{method:'HEAD'});if(!r.ok)miss.push(u);}));out.miss=miss;delete out.paths;return out;});
- ok('≥15 original stories in 3 tiers',C.n>=15&&Object.keys(C.tiers).length>=3,JSON.stringify(C.tiers));
+ ok('≥40 original stories in 4 tiers (incl. N4 preview)',C.n>=40&&Object.keys(C.tiers).length>=4,JSON.stringify(C.tiers));
  ok('every story: 3–5 questions, 4 distinct options, key words resolve, tokens linked or glossed',C.bad.length===0,C.bad.slice(0,8).join(' | '));
  ok(`narration file for every sentence (${C.sent})`,C.miss.length===0,C.miss.slice(0,5).join(' '));
  console.log('INFO stories',C.n,'questions',C.q,'sentences',C.sent);

@@ -1140,6 +1140,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .loc{width:56px;height:56px;border-radius:50%;border:none;background:var(--fill);color:var(--label);font-size:1.4rem;cursor:pointer}
 .loc.big{width:84px;height:84px;font-size:2rem;background:var(--accent);color:var(--accent-ink)}
 .loq{margin-top:12px;text-align:left}.loqq{font-size:1.15rem;margin:6px 0}
+.lorow .btn.sec{background:var(--card)}
 </style>
 </head>
 <body>
@@ -9937,7 +9938,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "5a16dc8bd0c3";
+const BUILD = "3074dccb8604";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });

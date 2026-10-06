@@ -17,7 +17,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  const home=async()=>{await ev(()=>__N5.go(__N5.home));return until(()=>!!document.querySelector('#flHome #flHomeGo:not([disabled])'));};
  const info=()=>ev(()=>{const g=document.querySelector('#flHomeGo'),r=g.getBoundingClientRect();return {due:+document.querySelector('#flHomeDue').textContent,nw:+document.querySelector('#flHomeNew').textContent,sub:document.querySelector('#flHomeSub').textContent,
    on:document.querySelector('#flHomeLv button.on').textContent,chips:[...document.querySelectorAll('#flHomeLv button')].map(b=>b.dataset.fl),h:r.height,btn:g.textContent,dir:document.querySelector('#flHomeDir').textContent,
-   chipH:Math.min(...[...document.querySelectorAll('#flHomeLv button')].map(b=>b.getBoundingClientRect().height)),after:!!document.querySelector('.hero + .flhome')};});
+   chipH:Math.min(...[...document.querySelectorAll('#flHomeLv button')].map(b=>b.getBoundingClientRect().height)),after:!!document.querySelector('.hero + .flhome, .hero + #paceNote + .flhome')};});
  ok('Home shows the Flashcards card',await home());
  let I=await info();
  ok("card defaults to the guided-path level (N5) and sits under Today's session",I.on.includes('N5')&&I.after,JSON.stringify(I));

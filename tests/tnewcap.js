@@ -45,7 +45,7 @@ const seedFn=o=>{if(localStorage.getItem('seeded'))return;localStorage.setItem('
   await p.selectOption('#newLimSel','5');ok('settings: preset 5 saved',await ev(()=>__N5.S().newLimit===5&&JSON.parse(localStorage.getItem('n5VocabQuest.v1')).newLimit===5));
   await p.selectOption('#newLimSel','custom');ok('settings: Custom shows a number box',await ev(()=>!document.querySelector('#newLimNum').hidden));
   await p.fill('#newLimNum','7');await p.dispatchEvent('#newLimNum','change');ok('settings: custom 7 saved',await ev(()=>__N5.S().newLimit===7&&__N5.newLimitV()===7));
-  await p.selectOption('#newLimSel','off');ok('settings: Off saved (no limit)',await ev(()=>__N5.S().newLimit==='off'&&__N5.newLeft()===Infinity));
+  await ev(()=>{__N5.S().autoPace=false;});/* manual cap semantics; Auto pace (tb6) treats Off as a 30/day max */await p.selectOption('#newLimSel','off');ok('settings: Off saved (no limit)',await ev(()=>__N5.S().newLimit==='off'&&__N5.newLeft()===Infinity));
   await p.selectOption('#newLimSel','5');await p.selectOption('#kjLimSel','3');ok('settings: kanji limit 3 saved',await ev(()=>__N5.S().kjLimit===3));
   await ev(()=>__N5.go(()=>{}));await p.tap('.tabbar [data-tab="home"]').catch(()=>ev(()=>__N5.go(__N5.home||(()=>{}))));await W(400);
   ok('Home shows "New today: 0/5"',await until(()=>/New today: 0\/5/.test((document.querySelector('#newToday')||{}).textContent||'')),await ev(()=>(document.querySelector('#newToday')||{}).textContent));
