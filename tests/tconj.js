@@ -82,6 +82,25 @@ const seed = () => {
     ok('conjugation due NOT in totalDue / vocab due', await ev(d0 => __N5.totalDue() === d0, beforeDue));
     ok('newLogC used (not vocab newLog)', await ev(() => { const t = Object.keys(__N5.S().newLogC || {}); return t.length >= 0; }));
   }
+  // ladder rungs 2–4 + lapse drop + isolation from vocab
+  const lid = await ev(() => { const it = __N5.cjPoolItems().find(x => /te$|masu$/.test(x.id)) || __N5.cjPoolItems()[0]; return it.id; });
+  const iso0 = await ev(() => ({ acc: JSON.stringify(__N5.paceAcc()), items: JSON.parse(localStorage.getItem('jlptVocabQuest.time.v1')).days[__N5.todayStr()]?.items || 0, nl: JSON.stringify(__N5.S().newLog || {}), td: __N5.totalDue(), tl: __N5.pnTimeline().now }));
+  for (const rung of [2, 3, 4]) {
+    await ev(([id, r]) => { const C = __N5.S().ccards || (__N5.S().ccards = {}); C[id] = { cj: 1, ok: 5, bad: 0, run: 5, lad: r, due: Date.now() - 1000, f: { st: 2, sp: null, s: 20, d: 5, lr: Date.now() - 20 * 864e5, due: Date.now() - 1000 } }; }, [lid, rung]);
+    await ev(id => __N5.cjSession([id], 'review', 'rung', () => __N5.conjHome()), lid);
+    await p.waitForSelector('#qhost .card'); await p.waitForTimeout(300);
+    const shape = await ev(() => ({ q: document.querySelector('#qhost .qtype').textContent, typein: !!document.querySelector('#typein'), play: !!document.querySelector('#cjPlay'), cloze: /＿＿/.test(document.querySelector('#qhost').textContent) }));
+    ok(`rung ${rung} renders the right question type`, shape.q.includes(rung + '/4') && shape.typein && (rung === 3 ? shape.play : rung === 4 ? shape.cloze : !shape.play && !shape.cloze), JSON.stringify(shape));
+    if (rung === 2 || rung === 3) { await ev(id => { const p = id.split(':'), a = __N5.cjConjugate(__N5.WORDS[p[0]], p[1])[0]; const i = document.querySelector('#typein'); i.value = a; }, lid); await p.tap('#checkBtn');
+      await p.waitForSelector('#nextBtn'); ok(`rung ${rung}: typed correct answer → ✅ and stays on/climbs ladder`, await ev(id => /Correct/.test(document.querySelector('#fb').textContent) && __N5.ccards()[id].lad >= 2, lid)); }
+    if (rung === 4) { await p.tap('#giveBtn'); await p.waitForSelector('#nextBtn');
+      ok('miss → rule line shown + lapse drops one rung (4 → 3)', await ev(id => !!document.querySelector('.cjrule') && __N5.ccards()[id].lad === 3, lid)); }
+    await p.tap('#nextBtn'); await p.waitForTimeout(300);
+  }
+  const iso1 = await ev(() => ({ acc: JSON.stringify(__N5.paceAcc()), items: JSON.parse(localStorage.getItem('jlptVocabQuest.time.v1')).days[__N5.todayStr()]?.items || 0, nl: JSON.stringify(__N5.S().newLog || {}), td: __N5.totalDue(), tl: __N5.pnTimeline().now }));
+  ok('conjugation reviews leave vocab pace accuracy, goal items, vocab new-word log, due count and reminder timeline unchanged', JSON.stringify(iso0) === JSON.stringify(iso1), JSON.stringify([iso0, iso1]));
+  ok('conjugation reviews logged under their own key', await ev(() => Object.keys(__N5.S().revLog[__N5.todayStr()] || {}).some(k => k.startsWith('conj'))));
+  ok('ladder view on the form screen shows 🪜 chips', await ev(id => { __N5.go(() => __N5.cjFormView(id.split(':')[1])); return true; }, lid) && await (async () => { await p.waitForTimeout(400); return ev(() => document.querySelectorAll('.cjitem .ladchip').length > 0); })());
   // Grammar entry
   await p.evaluate(() => __N5.go(__N5.grammarHome)); await p.waitForTimeout(500);
   ok('Grammar hub has Conjugation drills button', await ev(() => !!document.querySelector('#grConj')));
