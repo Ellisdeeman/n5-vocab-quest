@@ -90,10 +90,12 @@ const seed = () => {
     await ev(id => __N5.cjSession([id], 'review', 'rung', () => __N5.conjHome()), lid);
     await p.waitForSelector('#qhost .card'); await p.waitForTimeout(300);
     const shape = await ev(() => ({ q: document.querySelector('#qhost .qtype').textContent, typein: !!document.querySelector('#typein'), play: !!document.querySelector('#cjPlay'), cloze: /＿＿/.test(document.querySelector('#qhost').textContent) }));
+    if (rung === 3) await shot('b8-conj-listen');
     ok(`rung ${rung} renders the right question type`, shape.q.includes(rung + '/4') && shape.typein && (rung === 3 ? shape.play : rung === 4 ? shape.cloze : !shape.play && !shape.cloze), JSON.stringify(shape));
     if (rung === 2 || rung === 3) { await ev(id => { const p = id.split(':'), a = __N5.cjConjugate(__N5.WORDS[p[0]], p[1])[0]; const i = document.querySelector('#typein'); i.value = a; }, lid); await p.tap('#checkBtn');
       await p.waitForSelector('#nextBtn'); ok(`rung ${rung}: typed correct answer → ✅ and stays on/climbs ladder`, await ev(id => /Correct/.test(document.querySelector('#fb').textContent) && __N5.ccards()[id].lad >= 2, lid)); }
     if (rung === 4) { await p.tap('#giveBtn'); await p.waitForSelector('#nextBtn');
+      await shot('b8-conj-rule');
       ok('miss → rule line shown + lapse drops one rung (4 → 3)', await ev(id => !!document.querySelector('.cjrule') && __N5.ccards()[id].lad === 3, lid)); }
     await p.tap('#nextBtn'); await p.waitForTimeout(300);
   }

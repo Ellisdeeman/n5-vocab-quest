@@ -1159,7 +1159,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .hqcell b{font-weight:650}.hqic{font-size:1.15rem;line-height:1.2}
 .hqbtns{margin:0}.hqbtns .btn{flex:1}
 .weekcard h3{margin:0}.wkgrid .mode h3{font-size:1.35rem}
-.wkup{color:var(--ok)}.wkdn{color:var(--bad)}.wkready{margin:12px 6px;line-height:1.4}
+.wkup{color:var(--good)}.wkdn{color:var(--bad)}.wkready{margin:12px 6px;line-height:1.4}
 .wkhard .wkrow{display:flex;flex-wrap:wrap;gap:6px 10px;padding:8px 0;border-bottom:.5px solid var(--sep);align-items:baseline}
 .wkhard .wkrow:last-child{border-bottom:none}.wkhard .grow{flex:1;min-width:8em}
 .cjnote{margin:0 6px 10px;font-size:.86rem}.cjforms .cjrow,.cjitem{display:flex;width:100%;gap:10px;align-items:center;text-align:left;padding:12px 4px;border:0;border-bottom:.5px solid var(--sep);background:transparent;color:inherit;font:inherit;cursor:pointer;min-height:48px}
@@ -10266,9 +10266,9 @@ function weekDelta(a, b, unit = "") {
   if (a == null || b == null) return "";
   const d = a - b; if (!d) return ` · same as prior week`;
   const sign = d > 0 ? "+" : "";
-  if (unit === "%") return ` · <span class="${d > 0 ? "wkup" : "wkdn"}">${sign}${Math.round(d * 100)} pts vs prior week</span>`;
-  if (unit === "sec") return ` · <span class="${d > 0 ? "wkup" : "wkdn"}">${sign}${fmtMin(Math.abs(d))} vs prior week</span>`;
-  return ` · <span class="${d > 0 ? "wkup" : "wkdn"}">${sign}${d} vs prior week</span>`;
+  if (unit === "%") return ` · <span class="${d > 0 ? "wkup" : "wkdn"}">${d > 0 ? "+" : "−"}${Math.abs(Math.round(d * 100))} pts vs prior week</span>`;
+  if (unit === "sec") return ` · <span class="${d > 0 ? "wkup" : "wkdn"}">${d > 0 ? "+" : "−"}${fmtMin(Math.abs(d))} vs prior week</span>`;
+  return ` · <span class="${d > 0 ? "wkup" : "wkdn"}">${d > 0 ? "+" : "−"}${Math.abs(d)} vs prior week</span>`;
 }
 function weekReportCardHTML() {
   const W = weekReportData(), acc = weekPct(W.r0.acc);
@@ -10500,60 +10500,28 @@ function cjEligibleWord(w) {
   if (!/[うくぐすつぬぶむる]$/.test(k) && k !== "する" && k !== "くる") return false;
   return !!cjGroup(w) && cjFormsFor(w).some(f => cjConjugate(w, f.id));
 }
-/* short cloze sentences per form (kana, with ___ blank) — filled with the conjugated answer */
+/* cloze frames: neutral time/place frames that fit any verb or adjective, so the blank never forces a nonsense
+   combination (e.g. "drink" + "meet"); the English line uses the word's own gloss */
 const CJ_CLOZE = {
-  masu: [
-    { s: "まいにち コーヒーを ___。", en: "I drink coffee every day." },
-    { s: "あした ともだちと ___。", en: "I'll meet a friend tomorrow." }
-  ],
-  masen: [
-    { s: "きょうは さけを ___。", en: "I won't drink alcohol today." },
-    { s: "わたしは 魚を ___。", en: "I don't eat fish." }
-  ],
-  mashita: [
-    { s: "きのう えいがを ___。", en: "I watched a movie yesterday." },
-    { s: "せんしゅう 京都へ ___。", en: "I went to Kyoto last week." }
-  ],
-  masendeshita: [
-    { s: "きのうは べんきょう ___。", en: "I didn't study yesterday." },
-    { s: "けさ あさごはんを ___。", en: "I didn't eat breakfast this morning." }
-  ],
-  te: [
-    { s: "ちょっと ___ ください。", en: "Please wait a moment." },
-    { s: "なまえを ___ ください。", en: "Please write your name." }
-  ],
-  tai: [
-    { s: "にほんへ ___。", en: "I want to go to Japan." },
-    { s: "すしが ___。", en: "I want to eat sushi." }
-  ],
-  dict: [
-    { s: "あした ともだちに ___。", en: "(plain) I'll meet a friend tomorrow." },
-    { s: "よく ほんを ___。", en: "I often read books." }
-  ],
-  ai_neg: [
-    { s: "このへやは ___。", en: "This room isn't big / expensive / …" },
-    { s: "きょうは ___。", en: "Today isn't hot / cold / …" }
-  ],
-  ai_past: [
-    { s: "きのうは ___。", en: "Yesterday was hot / fun / …" },
-    { s: "そのテストは ___。", en: "That test was hard / easy / …" }
-  ],
-  ai_pastneg: [
-    { s: "きのうは ___。", en: "Yesterday wasn't busy / cold / …" }
-  ],
-  na_neg: [
-    { s: "ここは ___。", en: "It isn't quiet / lively / … here." },
-    { s: "かれは ___。", en: "He isn't kind / healthy / …" }
-  ],
-  na_past: [
-    { s: "きのうは ___。", en: "Yesterday was quiet / free / …" }
-  ],
-  na_pastneg: [
-    { s: "パーティーは ___。", en: "The party wasn't lively / fun / …" }
-  ]
+  masu: [["まいにち ___。", "I {v} every day."], ["あした ___。", "I'll {v} tomorrow."]],
+  masen: [["きょうは ___。", "I won't {v} today."], ["あまり ___。", "I don't {v} much."]],
+  mashita: [["きのう ___。", "I {v} (past) yesterday."], ["せんしゅう ___。", "I {v} (past) last week."]],
+  masendeshita: [["きのうは ___。", "I didn't {v} yesterday."], ["けさは ___。", "I didn't {v} this morning."]],
+  te: [["ちょっと ___ ください。", "Please {v} a little / for a moment."], ["すぐ ___ ください。", "Please {v} right away."]],
+  tai: [["あした ___。", "I want to {v} tomorrow."], ["いつか ___。", "Someday I want to {v}."]],
+  dict: [["あした ___ よ。", "(plain) I'll {v} tomorrow."], ["まいにち ___。", "(plain) I {v} every day."]],
+  ai_neg: [["きょうは ___。", "Today it isn't {a}."], ["それは ___。", "That isn't {a}."]],
+  ai_past: [["きのうは ___。", "Yesterday it was {a}."], ["その えいがは ___。", "That movie was {a}."]],
+  ai_pastneg: [["きのうは ___。", "Yesterday it wasn't {a}."], ["テストは ___。", "The test wasn't {a}."]],
+  na_neg: [["ここは ___。", "It isn't {a} here."], ["それは ___。", "That isn't {a}."]],
+  na_past: [["きのうは ___。", "Yesterday it was {a}."], ["まちは ___。", "The town was {a}."]],
+  na_pastneg: [["パーティーは ___。", "The party wasn't {a}."], ["へやは ___。", "The room wasn't {a}."]]
 };
-function cjCloze(formId) {
-  const L = CJ_CLOZE[formId] || []; return L.length ? L[Math.floor(Math.random() * L.length)] : { s: "___。", en: "" };
+function cjGloss(w) { return String((w && w.en) || "").split(/[;,(]/)[0].replace(/^to\s+/, "").trim() || "…"; }
+function cjCloze(formId, w) {
+  const L = CJ_CLOZE[formId] || []; if (!L.length) return { s: "___。", en: "" };
+  const [s, en] = L[Math.floor(Math.random() * L.length)], g = cjGloss(w);
+  return { s, en: en.replace("{v}", g).replace("{a}", g) };
 }
 /* MC distractors: other conjugations of the same word + near-miss common errors */
 function cjDistractors(w, formId, n = 3) {
@@ -10899,7 +10867,7 @@ function cjRenderQ(id, onAnswer, mode) {
     const play = () => cjSpeakForm(w, f.id, true);
     $("#cjPlay").onclick = play; setTimeout(play, 350);
   } else if (rung === 4) {
-    const cz = cjCloze(f.id);
+    const cz = cjCloze(f.id, w);
     host.innerHTML = `<div class="card">${head}<p class="muted">Type the <b>${esc(f.label)}</b> that fits.</p>
       <div class="grq jp">${esc(cz.s).replace("___", "＿＿")}</div>
       ${cz.en ? `<div class="muted grhint">${esc(cz.en)}</div>` : ""}
@@ -10967,7 +10935,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "60fc2646f643";
+const BUILD = "6da5ed93f9fb";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
