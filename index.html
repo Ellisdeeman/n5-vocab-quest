@@ -7042,7 +7042,7 @@ const GR_DATA = [
 /* ---------- Plain verb forms ---------- */
 { id: "dict", cat: "Plain verb forms", t: "Verb groups & dictionary form", p: "V (dictionary form)",
   l: ["The <b>dictionary form</b> is the plain present: たべる, のむ, する. Verbs fall into three groups:",
-      "• <b>Group 1 (u-verbs)</b>: the last sound is -u (かう, かく, およぐ, はなす, まつ, あそぶ, よむ, かえる). ます-form: -u → -i + ます: かく → か<b>き</b>ます.<br>• <b>Group 2 (ru-verbs)</b>: end in -iru / -eru; drop る: たべる → たべます, みる → みます. A few -iru/-eru verbs are Group 1 anyway: かえる (go home), はいる, はしる, しる.<br>• <b>Group 3 (irregular)</b>: する → します, くる → きます."],
+      "• <b>Group 1 (u-verbs)</b>: most verbs — every ending except -iru / -eru (かう, かく, およぐ, はなす, まつ, あそぶ, よむ), plus a few -iru / -eru exceptions. ます-form: -u → -i + ます: かく → か<b>き</b>ます.<br>• <b>Group 2 (ru-verbs)</b>: end in -iru / -eru; drop る: たべる → たべます, みる → みます. Exceptions that look like Group 2 but are Group 1: かえる (go home), はいる, はしる, しる — かえる → かえります.<br>• <b>Group 3 (irregular)</b>: する → します, くる → きます."],
   ex: [["毎日、本を読む。", "まいにち、ほんを よむ。", "I read books every day. (casual)"], ["明日、学校に行く。", "あした、がっこうに いく。", "I'm going to school tomorrow. (casual)"]],
   d: [{ k: "c", q: "よみます", f: "dictionary form", a: ["よむ"], en: "read" },
       { k: "c", q: "おきます", f: "dictionary form", a: ["おきる"], en: "get up" },
@@ -7322,8 +7322,10 @@ const GR_CATS = [...new Set(GR_DATA.map(p => p.cat))];
 const GR_PRESETS = [1, 2, 3, 5];
 const GR_KIND = { p: "Particle choice", m: "Choose", c: "Conjugation", o: "Sentence order" };
 const grLimitV = () => limV(S.grLimit, 2);
-function gcards() { if (!S.gcards || typeof S.gcards !== "object" || Array.isArray(S.gcards)) S.gcards = {}; return S.gcards; }
-const newTodayG = () => nlog("newLogG")[todayStr()] || [];
+/* read-only accessors never add keys to S (restore / undo compare stores exactly); grGrade creates them on first use */
+const isMap = x => !!x && typeof x === "object" && !Array.isArray(x);
+const gcards = () => isMap(S.gcards) ? S.gcards : {};
+const newTodayG = () => isMap(S.newLogG) && Array.isArray(S.newLogG[todayStr()]) ? S.newLogG[todayStr()] : [];
 const newLeftG = () => Math.max(0, grLimitV() - newTodayG().length);
 const isNewG = id => !gcards()[id] && !newTodayG().includes(id);
 const canIntroG = id => !isNewG(id) || newLeftG() > 0;
@@ -7348,7 +7350,8 @@ function grStatus(id) {
 const GR_ST = { new: "New", due: "Due", learning: "Learning", known: "Known" };
 /* one FSRS review for a grammar point (r = 1..4) */
 function grGrade(id, r) {
-  const G = gcards(), isNew = !G[id];
+  if (!isMap(S.gcards)) S.gcards = {};
+  const G = S.gcards, isNew = !G[id];
   const c = G[id] || { g: 1, ok: 0, bad: 0 };
   c.g = 1; markNewG(id);
   srsAnswer(c, id, r > 1, { rating: r });
@@ -7435,7 +7438,7 @@ function grSession(ids, mode, title, back, then) {
     results.push({ id, r, graded });
   };
   const next = () => {
-    answered = false; progress();
+    answered = false; progress(); scrollTo(0, 0);
     if (pos >= queue.length) { q = null; return finish(); }
     const it = queue[pos];
     q = grRenderDrill(it.id, it.i, (ok, el) => {
@@ -7573,6 +7576,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Kanji: meanings, readings, stroke counts & frequency from <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT, David Gouveia), derived from <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a> (EDRDG, CC BY-SA 4.0), with JLPT levels from Jonathan Waller's <a href="http://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">JLPT resources</a>. Stroke order & look-alike shapes from <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> © Ulrich Apel (CC BY-SA 3.0). The kanji data files (data/kanji-*.json) are shared under CC BY-SA.<br>
   Pimsleur words: <b>unofficial, compiled from learner notes; not affiliated with Pimsleur</b> — word lists only (word, reading, meaning, lesson), cross-checked from ${PIMS.meta.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a>`).join(", ")}; the ${PIMS.pm.length} words not in the JLPT lists use the same NanamiNeural TTS. Pimsleur is a trademark of its owner.<br>
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
+  Grammar: ${GR_DATA.length} N5 points — explanations, example sentences and drills are original, written for this app (no textbook text); example and drill audio use the same NanamiNeural TTS.<br>
   Scheduling: <a href="https://github.com/open-spaced-repetition/py-fsrs" target="_blank" rel="noopener">FSRS-5</a> (Free Spaced Repetition Scheduler, MIT, Open Spaced Repetition — default parameters), ported to plain JavaScript.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
@@ -7584,7 +7588,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "1233c75ed58c";
+const BUILD = "0e911d891005";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
