@@ -1122,6 +1122,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .lspk .prompt.en{font-size:1.5rem}.lspk .sub{margin:6px 0}
 .confpanel{text-align:left}.confrow{padding:6px 0;border-bottom:1px solid var(--sep);font-size:1rem}.confrow:last-child{border-bottom:none}.confx{color:var(--label2);margin:0 4px}
 .cfch .choice{font-size:1.3rem}
+.lspk .spkmic{font-size:2.4rem}
 </style>
 </head>
 <body>
@@ -9105,7 +9106,7 @@ function cfIndex() {
   return CF_IDX;
 }
 const cfFind = (given, w) => (cfIndex().get(cfH(given)) || []).filter(id => id !== w.id && WORDS[id] && cfH(WORDS[id].kana) !== cfH(w.kana));
-const cfWord = x => `<span class="jp">${x.hasKanji ? `${esc(x.kana)} ${esc(x.jp)}` : esc(x.jp)}</span> (${esc(x.en)})`;
+const cfWord = x => { const j = String(x.jp).split(/;\s*/)[0], k = String(x.kana).replace(/ \(する\)$/, ""); return `<span class="jp">${x.hasKanji && j !== k ? `${esc(k)} ${esc(j)}` : esc(j)}</span> (${esc(String(x.en).split(/[;,]\s*/).slice(0, 2).join(", "))})`; };
 function cfLog(a, b) {   // a = the right word, b = what it was confused with (word id or "p:は>が")
   if (a == null || b == null || a === b) return;
   const L = S.confuse || (S.confuse = {}), k = typeof b === "string" && b.startsWith("p:") ? b : `${a}>${b}`;
@@ -9176,7 +9177,7 @@ function confSectionHTML() {
   const P = confPairs(8), Q = confParticles(4);
   return `<h3 class="sectionh" style="margin:18px 0 6px">🔀 Confusables</h3>
     <p class="muted" style="margin:0 0 8px;font-size:.9rem">Pairs you've mixed up — when you pick or type another word instead of the answer.</p>
-    ${P.length ? `<div class="panel confpanel">${P.map(g => { const A = WORDS[g.a], B = WORDS[g.b]; return `<div class="confrow"><span class="jp">${esc(A.jp)}</span> <small class="muted">${esc(A.en)}</small> <span class="confx">⇄</span> <span class="jp">${esc(B.jp)}</span> <small class="muted">${esc(B.en)}</small> <span class="tag">×${g.n}</span></div>`; }).join("")}</div>
+    ${P.length ? `<div class="panel confpanel">${P.map(g => { const A = WORDS[g.a], B = WORDS[g.b]; return `<div class="confrow">${cfWord(A)} <span class="confx">⇄</span> ${cfWord(B)} <span class="tag">×${g.n}</span></div>`; }).join("")}</div>
       <div class="btnrow" style="justify-content:flex-start"><button class="btn" id="confDrill">🔀 Confusables drill</button></div>`
       : `<div class="panel" style="text-align:center"><p class="muted" style="margin:6px 0">No confused pairs yet — they'll appear here as you practise.</p></div>`}
     ${Q.length ? `<div class="panel confpanel"><b>Particle mix-ups</b>${Q.map(x => `<div class="confrow"><span class="jp">${esc(x.pk)}</span> → <b class="jp">${esc(x.ans)}</b> <span class="tag">×${x.n}</span>${CF_PR[[x.pk, x.ans].sort().join("|")] ? `<div class="muted cftip">${esc(CF_PR[[x.pk, x.ans].sort().join("|")])}</div>` : ""}</div>`).join("")}</div>` : ""}`;
@@ -9205,7 +9206,7 @@ function confDrill(back = leechView) {
     $("#cfProg").textContent = `${pos + 1} / ${Q.length}`;
     $("#qhost").innerHTML = `<div class="card"><div class="qtype">${it.k === "l" ? "🎧 Which word do you hear?" : "Which word means…"}</div>
       ${it.k === "l" ? `<button class="bigspk" id="cfSay" aria-label="Play again">🔈</button>` : `<div class="prompt en">${esc(X.en)}</div>`}
-      <div class="choices cfch">${opts.map((o, i) => `<button class="choice jp" data-i="${i}"><span class="k">${i + 1}</span>${esc(o.jp)}${o.hasKanji ? `<small class="clzk">${esc(o.kana)}</small>` : ""}</button>`).join("")}</div><div class="feedback" id="fb"></div></div>`;
+      <div class="choices cfch">${opts.map((o, i) => `<button class="choice jp" data-i="${i}"><span class="k">${i + 1}</span>${esc(String(o.jp).split(/;\s*/)[0])}${o.hasKanji ? `<small class="clzk">${esc(o.kana)}</small>` : ""}</button>`).join("")}</div><div class="feedback" id="fb"></div></div>`;
     const say = () => speak(X, true);
     if (it.k === "l") { $("#cfSay").onclick = say; setTimeout(say, 200); }
     let done = false; const btns = [...document.querySelectorAll("#qhost .choice")];
@@ -9253,7 +9254,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "f8206b01a6fb";
+const BUILD = "0a3c505d16d4";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });

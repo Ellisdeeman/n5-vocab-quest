@@ -86,7 +86,7 @@ const MOCK=o=>{
   if(e==='mc'){ok('rung 1 → multiple choice (meaning/reverse/reading)',['meaning','reverse','reading'].includes(m)&&await ev(()=>document.querySelectorAll('#qhost .choice').length===4),m);
    ok('rung chip 1/5',/1\/5/.test(chip||''),chip);await shot('ladder-mc');
    // pick a wrong option → corrective note
-   const wi=await ev(()=>{const W=__N5.WORDS,id=__N5.CUR.w.id;const bs=[...document.querySelectorAll('#qhost .choice')];return bs.findIndex(b=>!b.textContent.includes(__N5.CUR.mode==='meaning'?W[id].en:W[id].jp));});
+   const wi=await ev(()=>{const W=__N5.WORDS,id=__N5.CUR.w.id;const bs=[...document.querySelectorAll('#qhost .choice')];const w=W[id],m=__N5.CUR.mode,key=m==='meaning'?w.en:m==='reading'?w.kana:w.jp.split(/;\s*/)[0];return bs.findIndex(b=>b.textContent.replace(/^\d/,'').trim()!==key.trim()&&!b.textContent.includes(key));});
    await p.tap(`#qhost .choice[data-i="${wi}"]`);await W(250);
    const note=await ev(()=>{const n=document.querySelector('#fb .cfnote');return n&&n.textContent});
    ok('MC miss → "You picked … — the answer was …"',/You picked.*the answer was/.test(note||''),note);
@@ -157,12 +157,12 @@ const MOCK=o=>{
  await p.waitForSelector('#confDrill');
  ok('Leeches page: Confusables pairs listed (top first)',await ev(()=>{const r=[...document.querySelectorAll('.confpanel .confrow')];return r.length>=3&&/来る/.test(r[0].textContent)&&/×3/.test(r[0].textContent)}));
  ok('Leeches page: particle mix-ups with rule',await ev(()=>/Particle mix-ups/.test(document.body.textContent)&&/topic/.test(document.querySelector('.confpanel:last-of-type').textContent)));
- ok('fits 393px (leeches)',await fits());await ev(()=>document.querySelector('#confDrill').scrollIntoView({block:'center'}));await shot('confuse-leeches');
+ ok('fits 393px (leeches)',await fits());await W(500);await ev(()=>scrollTo(0,0));await W(200);await shot('confuse-leeches');
  await p.tap('#confDrill');await p.waitForSelector('#qhost .cfch');
  const nQ=await ev(()=>+document.querySelector('#cfProg').textContent.split('/')[1]);ok('drill: 2 questions per pair',nQ===4,nQ);
  const before2=await ev(()=>JSON.stringify(__N5.S().cards));
  for(let k=0;k<nQ;k++){await p.waitForSelector('#qhost .cfch');if(k===0)await shot('confuse-drill');
-  const i=await ev(()=>[...document.querySelectorAll('#qhost .cfch .choice')].findIndex(b=>b.textContent.replace(/^\d/,'').startsWith(__N5.WORDS[window.__cfX].jp)));
+  const i=await ev(()=>[...document.querySelectorAll('#qhost .cfch .choice')].findIndex(b=>b.textContent.replace(/^\d/,'').startsWith(__N5.WORDS[window.__cfX].jp.split(/;\s*/)[0])));
   await p.tap(`#qhost .cfch .choice[data-i="${i}"]`);await W(200);if(k===0){ok('drill feedback shows both words',await ev(()=>/vs/.test(document.querySelector('#fb').textContent)));await shot('confuse-drill-answer');}
   await p.tap('#cfNext');await W(200);}
  ok('drill done card: 4 / 4, pairs tamed',await ev(()=>/4 \/ 4 right/.test(document.body.textContent)&&/2 pairs tamed/.test(document.body.textContent)));
