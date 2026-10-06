@@ -1027,6 +1027,65 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .grres{list-style:none;padding:0;margin:8px 0;text-align:left}.grres li{display:flex;align-items:center;gap:8px;padding:8px 2px;border-top:.5px solid var(--sep)}
 .grres .grow{flex:1;min-width:0}
 #grModal .box{max-height:86vh;overflow:auto;text-align:left}
+/* ---------- Batch 3: header fit + touch-only hint hiding ---------- */
+@media (max-width:430px){.navin{gap:6px;padding-left:calc(10px + var(--safe-l));padding-right:calc(10px + var(--safe-r))}.logo{gap:6px;font-size:1rem}.logo .appic{width:32px;height:32px}.stats{gap:4px}.pill{padding:5px 8px}}
+@media (max-width:370px){.pill{padding:4px 6px}.logo{font-size:.95rem}}
+/* keyboard shortcut hints only make sense with a keyboard: hide them on touch-first devices */
+@media (hover:none) and (pointer:coarse){.kbdhint{display:none!important}}
+/* ---------- Reading (app21) ---------- */
+.rdtile-home .ic{--c:var(--orange);font-family:"Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",sans-serif;font-weight:700}
+.mktile-home .ic{--c:var(--pink)}
+.rdopts{padding-top:4px;padding-bottom:4px}.rdopts .row{border-bottom:0}
+.rdlist{display:flex;flex-direction:column;gap:10px}
+.rdcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow);color:var(--label);min-height:64px}
+.rdcard:active{background:var(--fill)}
+.rdcard .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.rdcard b{font-size:1.08rem;font-weight:700}.rdcard small{color:var(--label2);font-size:.8rem}
+.rdn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--fill);color:var(--label2);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.rdbar{display:block;height:6px;border-radius:6px;background:var(--fill2);overflow:hidden;margin-top:4px;max-width:220px}.rdbar i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.rdcard .rdpct{font-size:.74rem}
+ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
+.rdstory{text-align:left}.rdtitle{margin:4px 0 2px;font-size:1.45rem;line-height:1.7}.rden-title{margin:0 0 6px;font-size:.88rem}
+.rdtools{justify-content:flex-start;flex-wrap:wrap;gap:8px;margin:8px 0 6px}.rdtools .btn.on{background:var(--accentT);color:var(--label);border-color:var(--accent)}
+.rdsent{padding:8px 6px;border-top:.5px solid var(--sep);border-radius:10px;transition:background .2s}.rdsent.playing{background:var(--accentT)}
+.rdjp{font-size:1.3rem;line-height:2.15;margin:0;overflow-wrap:anywhere}
+.rdw{display:inline;background:none;padding:0 1px;margin:0;border-radius:4px;color:var(--label);font:inherit;line-height:inherit;min-height:0;min-width:0;cursor:pointer}
+.rdw.lk{text-decoration:underline dotted var(--label3,var(--label2));text-underline-offset:6px;text-decoration-thickness:1.5px}
+.rdw:active,.rdw:focus-visible{background:var(--accentT)}
+.rdp{color:var(--label)}
+.rden{display:none;margin:2px 0 4px;font-size:.9rem}.showen .rden{display:block}
+.rdhint{font-size:.8rem;margin:10px 0 0}
+.rdsheet{text-align:center}.rdsheet .prompt{font-size:2.2rem}.rdkana{font-size:1.25rem}.rdmean{font-size:1.1rem;margin:8px 0}
+.rdform{font-size:.88rem;margin:2px 0}.rdstat{font-size:.85rem;margin:6px 0}.rdcap{font-size:.84rem;margin:6px 0 0}.rdcap.full{color:var(--label);background:var(--badT);border-radius:10px;padding:8px 10px}
+.rdq .rdqq{font-size:1.3rem}
+#rdModal .box{max-height:86vh;overflow:auto;text-align:left}
+.rdtools .btn{flex:0 0 auto}
+@media (hover:none) and (pointer:coarse){.idk kbd{display:none}}
+/* mock JLPT */
+.mkformat .row{align-items:flex-start;gap:10px}.mkmins{font-weight:700;white-space:nowrap;color:var(--accent)}.mknote{font-size:.8rem;margin:10px 2px 0;line-height:1.45}
+.mkhist{padding:4px 0}.mkhrow{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:.5px solid var(--sep);padding:10px 14px;color:var(--label);font:inherit;text-align:left;cursor:pointer}.mkhrow:last-child{border-bottom:0}
+.mkhrow .grow{flex:1;display:flex;flex-direction:column;min-width:0}.mkhrow small{color:var(--label2);font-size:.78rem}.mktot{font-size:1.25rem;font-weight:800;font-variant-numeric:tabular-nums}.mkempty{text-align:center}
+.topbar.mktop{flex-wrap:nowrap}.mktop>b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem}
+.mktimer{font-variant-numeric:tabular-nums;font-weight:800;background:var(--fill);border-radius:10px;padding:4px 9px;min-width:3.6em;text-align:center}.mktimer.low{background:var(--red);color:#fff}.mkcount{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
+.mkq{text-align:left}.mkq .qtype{text-align:left}.mkins{font-size:.88rem;color:var(--label2);margin:4px 0 12px;line-height:1.5}
+.mkpass{background:var(--fill);border-radius:12px;padding:12px 14px;font-size:1rem;line-height:1.85;margin-bottom:12px;max-height:46vh;overflow:auto;white-space:normal}
+.mkbl{font-weight:700;color:var(--label2)}.mkbl.cur{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);border-radius:6px;padding:0 2px}
+.mkstem{font-size:1.15rem;line-height:1.9;margin:6px 0 14px}.mku{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}.mkblank{white-space:nowrap;color:var(--accent)}
+.mkslot{display:inline-block;min-width:2.6em;border-bottom:2px solid var(--label3);height:1.4em;vertical-align:bottom;margin:0 2px;text-align:center;font-size:.9rem;color:var(--accent)}.mkslot.star{border-color:var(--accent)}
+.mkscene{font-size:1.05rem;line-height:1.6}.mksceneen{font-size:.82rem;margin-top:2px}
+.mkaudio{display:flex;align-items:center;gap:12px;margin:4px 0 14px}.mkaudio .btn{flex:0 0 auto}
+.choice.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--bg2));box-shadow:0 0 0 2px var(--accent) inset}
+.mkopts .choice{text-align:left;justify-content:flex-start}.mkspk{font-weight:800;font-size:1.1rem}
+.mknav{justify-content:space-between}.mknav .btn{flex:1 1 0;min-width:0}
+.mkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:8px;margin:14px 0}.mkgrid button{height:42px;border-radius:10px;border:1px solid var(--sep);background:var(--bg2);color:var(--label);font:inherit;font-weight:700;cursor:pointer}
+.mkgrid button.on{background:var(--accent);color:#fff;border-color:var(--accent)}.mkgrid button.cur{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent)}
+.mkintro .big{font-size:3rem;margin:6px 0}
+.mkres{text-align:center}.mktotal{margin:6px 0 2px}.mktotal b{font-size:3.4rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}.mktotal span{font-size:1.2rem;color:var(--label2)}
+.mkverdict{display:inline-block;border-radius:999px;padding:6px 14px;font-weight:700;margin-bottom:14px;font-size:.9rem}.mkverdict.pass{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}.mkverdict.fail{background:color-mix(in srgb,var(--orange) 18%,transparent);color:var(--label)}
+.mkscore{text-align:left;margin:10px 0}.mkrow{display:flex;justify-content:space-between;gap:10px;font-size:.92rem}.mkbarw{position:relative;height:12px;border-radius:6px;background:var(--fill);margin:6px 0 3px;overflow:visible}
+.mkbar{height:100%;border-radius:6px;background:var(--orange)}.mkbar.ok{background:var(--green)}.mkmin{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--label);opacity:.6}
+.mkparts{text-align:left;margin-top:12px}.mkparts li{display:flex;justify-content:space-between;gap:8px}.mkagain{font-size:.85rem;margin:12px 0}
+.mkmiss .mkm{border-top:.5px solid var(--sep);padding:12px 0}.mkmiss .mkm:first-of-type{border-top:0}.mkmq{font-size:1.02rem;line-height:1.7;margin:4px 0}.mkyour{color:var(--red);margin:2px 0;font-size:.9rem}.mkright{color:var(--green);margin:2px 0;font-size:.9rem;font-weight:600}
+.mkmiss details{margin:6px 0;font-size:.9rem}.mkmiss summary{cursor:pointer;color:var(--accent)}.mkpasstxt,.mkscript{line-height:1.8;background:var(--fill);border-radius:10px;padding:8px 10px}
 </style>
 </head>
 <body>
@@ -2269,7 +2328,7 @@ function runSession(cfg) {
   const finite = !!cfg.items;
   view.innerHTML = topbar(cfg.title, `<span class="muted" id="score">${finite ? "" : "0/0"}</span>`) +
     (finite ? `<div class="sprog"><div id="sprog" style="width:0"></div></div>` : "") +
-    (cfg.showNew ? newTodayHTML(cfg.showNew === "path") : "") + `<div id="qhost"></div><p class="muted" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>0</kbd> I don't know · <kbd>Enter</kbd> check / next</p>`;
+    (cfg.showNew ? newTodayHTML(cfg.showNew === "path") : "") + `<div id="qhost"></div><p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>0</kbd> I don't know · <kbd>Enter</kbd> check / next</p>`;
   bindBack(cfg.back || home);
   const ntUpd = () => { const nt = $("#newToday"); if (nt) nt.outerHTML = newTodayHTML(cfg.showNew === "path"); };
   const progress = () => { ntUpd(); if (finite) { const p = cfg.progress(); $("#sprog").style.width = (p.done / p.total * 100) + "%"; $("#score").textContent = `${p.done}/${p.total}`; } else $("#score").textContent = `${right}/${total}`; };
@@ -2501,6 +2560,10 @@ function home() {
       return `<button class="mode duecard" data-m="due"><div class="ic">⏰</div><h3>Due Reviews ${td ? `<span class="badge">${td}</span>` : ""}</h3><p>${td ? `${td} due across levels, kanji, kana & grammar` : `Nothing due${nx != null ? ` · next ${fmtIn(nx)}` : ""}`}</p></button>`; })()}
     ${(() => { const gd = grDueScan().ids.length, gl = grLearned();
       return `<button class="mode grtile-home" data-m="grammar"><div class="ic">文</div><h3>Grammar ${gd ? `<span class="badge">${gd}</span>` : ""}</h3><p>${gl ? `${gl}/${GR_DATA.length} N5 points` : `${GR_DATA.length} N5 points`} · lessons & drills</p></button>`; })()}
+    ${(() => { const rd = RD_DATA.filter(x => x.id in rdDoneMap()).length;
+      return `<button class="mode rdtile-home" data-m="reading-stories"><div class="ic">読</div><h3>Reading</h3><p>${rd ? `${rd}/${RD_DATA.length} stories read` : `${RD_DATA.length} graded N5 stories`} · tap words</p></button>`; })()}
+    ${(() => { const H = mkHist(), l = H[H.length - 1];
+      return `<button class="mode mktile-home" data-m="mock"><div class="ic">📝</div><h3>Mock JLPT N5</h3><p>${l ? `Last ${l.total}/180 · ${l.pass ? "pass" : "not yet"}` : "Timed practice test · 90 min"}</p></button>`; })()}
     <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
     <button class="mode" data-m="reverse"><div class="ic">🔄</div><h3>Reverse</h3><p>English → Japanese</p></button>
     <button class="mode" data-m="reading"><div class="ic">📖</div><h3>Reading Quiz</h3><p>Kanji → kana (${KANJI_IDS.length} words)</p></button>
@@ -2540,7 +2603,7 @@ function home() {
   bindAudioLesson();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, "reading-stories": readingHome, mock: mockHome };
     go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
@@ -2641,6 +2704,7 @@ function levelPage(l) {
       <button class="mode" data-m="flash"><div class="ic">🃏</div><h3>Flashcards</h3><p>Flip & self-grade (FSRS)</p></button>
       <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${SETS.filter(setUnlocked).length} unlocked</p></button>
       <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing</p></button>
+      ${l === "n5" ? `<button class="mode rdtile-home" data-m="reading-stories"><div class="ic">読</div><h3>Reading</h3><p>${RD_DATA.length} graded stories</p></button><button class="mode mktile-home" data-m="mock"><div class="ic">📝</div><h3>Mock JLPT N5</h3><p>Timed practice test</p></button>` : ""}
       <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
     </div>
     <div class="sechead" id="gamesHead">Games · ${LNAME(l)}</div>${gameTilesHTML(l)}`;
@@ -2650,7 +2714,7 @@ function levelPage(l) {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: async () => { const g = viewGen; if (S.flKanji !== false && KJL[l]) await loadKanji(l); if (g !== viewGen) return; flashcards(LV[l].ids.concat(flKanjiPool(l)), `🃏 Flashcards · ${LNAME(l)}`, me, { kjAble: !!KJL[l], rebuild: () => LV[l].ids.concat(flKanjiPool(l)) }); } };
+    const special = { "reading-stories": readingHome, mock: mockHome, speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: async () => { const g = viewGen; if (S.flKanji !== false && KJL[l]) await loadKanji(l); if (g !== viewGen) return; flashcards(LV[l].ids.concat(flKanjiPool(l)), `🃏 Flashcards · ${LNAME(l)}`, me, { kjAble: !!KJL[l], rebuild: () => LV[l].ids.concat(flKanjiPool(l)) }); } };
     go(() => special[m] ? special[m]() : quiz(m, ALL_IDS, undefined, me));
   });
   bindGameTiles(view, l, me);
@@ -3253,7 +3317,7 @@ function kanaSession(mode) {
   const titles = { k2r: "🔤 Kana → Romaji", r2k: "🅰️ Romaji → Kana", type: "⌨️ Type Romaji", listen: "🎧 Kana Listening" };
   const pool = kPool(); let right = 0, total = 0, q = null, answered = false, adv = null;
   kQueue = []; kRecent = [];
-  view.innerHTML = topbar(titles[mode], `<span class="muted" id="score">0/0</span>`) + `<div id="qhost"></div><p class="muted" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>Enter</kbd> next</p>`;
+  view.innerHTML = topbar(titles[mode], `<span class="muted" id="score">0/0</span>`) + `<div id="qhost"></div><p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>Enter</kbd> next</p>`;
   bindBack(kanaHome);
   const next = () => {
     clearTimeout(adv); answered = false;
@@ -3345,6 +3409,11 @@ function allAudioPaths(levels = ["n5"]) {
   levels.filter(l => LV[l].loaded).forEach(l => LV[l].ids.forEach(id => { p.add(wordAudioPath(WORDS[id])); ex(id).forEach(x => p.add(sentenceAudioPath(x))); }));
   Object.values(KITEMS).forEach(it => p.add(`k/${kFile(it)}.mp3`));
   if (LV.pm && LV.pm.loaded) LV.pm.ids.forEach(id => p.add(wordAudioPath(WORDS[id])));   // Pimsleur set (small)
+  if (levels.includes("n5")) {   // N5 grammar examples + drill sentences, graded-reading narration, mock-test listening
+    if (typeof GR_DATA !== "undefined") GR_DATA.forEach(g => { g.ex.forEach((e, i) => p.add(grAudio(g.id, i))); g.d.forEach((d, i) => { if (grDrillSentence(d)) p.add(grAudio(g.id, i, true)); }); });
+    if (typeof RD_DATA !== "undefined") RD_DATA.forEach(st => st.s.forEach((x, i) => p.add(rdAudio(st.id, i))));
+    if (typeof MK_BANK !== "undefined") ["lt", "lp", "lu", "lq"].forEach(k => MK_BANK[k].forEach(it => p.add(`mk/${it.id}.mp3`)));
+  }
   return [...p];
 }
 /* cache one versioned data file and drop older versions of the same file (the SW does the same on normal fetches) */
@@ -3711,7 +3780,7 @@ function kanaDueSession(ids, title, back, then) {
   const items = ids.slice(0, batchOf(ids.length)).map(id => ({ id })), first = items.length, retried = new Set();
   let pos = 0, right = 0, answered = false, q = null, adv = null;
   view.innerHTML = topbar(title, `<span class="muted" id="score"></span>`) + `<div class="sprog"><div id="sprog" style="width:0"></div></div><div id="qhost"></div>
-    <p class="muted" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>0</kbd> I don't know · <kbd>Enter</kbd> next</p>`;
+    <p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>0</kbd> I don't know · <kbd>Enter</kbd> next</p>`;
   bindBack(back || dueView);
   const progress = () => { $("#sprog").style.width = (pos / items.length * 100) + "%"; $("#score").textContent = `${pos}/${items.length}`; };
   const next = () => {
@@ -4656,7 +4725,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -4728,6 +4797,7 @@ function mergeStore(n, a, b, LM, RM, OM) {
     else if (r === "dailies") o[k] = mergeMap(x, y, sessionPick);
     else if (r === "dailies1") { const w = x === undefined ? y : y === undefined ? x : sessionPick(x, y); if (w !== undefined) o[k] = w; }
     else if (r === "streak") continue;
+    else if (r === "attempts") { const m = new Map(); for (const z of [...(Array.isArray(x) ? x : []), ...(Array.isArray(y) ? y : [])]) if (z && z.t && !m.has(z.t)) m.set(z.t, z); o[k] = [...m.values()].sort((p, q) => p.t - q.t).slice(-30); }
     else if (r === "mapLww") {
       const m = {}, xm = isObj(x) ? x : {}, ym = isObj(y) ? y : {}, pk = p + ".";
       const es = new Set([...Object.keys(xm), ...Object.keys(ym)]); for (const q of new Set([...Object.keys(LM), ...Object.keys(RM)])) if (q.startsWith(pk)) es.add(q.slice(pk.length));
@@ -6836,7 +6906,7 @@ function bindFopt(root) {
    One big button at the top of Home that picks the best next activity, in this order:
    1) due reviews (all tracks mixed: words, kanji, kana; a lesson already started is continued first, since it holds
    its own reviews and just-learned items fall due inside it)  2) today's path lesson while it still has new items
-   (within the daily new-word / new-kanji limits)  3) [grammar / reading come in later releases]
+   (within the daily new-word / new-kanji limits)  3) a new grammar point, then one graded story a day
    4) daily goal not met yet → practice of seen words  5) goal met → suggest a game of Kanaatro. */
 function smartPlan(D) {
   const vd = dueScan().ids.length, jd = kjDueScan().ids.length, kd = kanaDueScan().ids.length, gd = grDueScan().ids.length, td = vd + jd + kd + gd;
@@ -6858,6 +6928,8 @@ function smartPlan(D) {
     const lim = grLimitV() === Infinity ? "no daily limit" : `${newLeftG()} of ${grLimitV()} new grammar left today`;
     return { k: "grammar", label: `Grammar: ${gn.t.split(" — ")[0]}`, line: `New grammar point ${gn.n} of ${GR_DATA.length} — a short lesson + drills · ${lim}`, run: () => go(() => grLesson(gn.id, home)) };
   }
+  const rn = rdWanted() && !rdToday().length && rdNext();   // one graded story a day, after new grammar
+  if (rn) return { k: "reading", label: `Reading: ${rn.en}`, line: `Story ${rn.n} of ${RD_DATA.length} · ${RD_TIERS[rn.tier].stars} ${RD_TIERS[rn.tier].name} · ${rdSeenPct(rn)}% of its words seen · ${rn.q.length} questions`, run: () => go(() => rdStory(rn.id, home)) };
   if (!goalMet()) {
     const g = goalParts()[0];
     return { k: "practice", label: "Practice", line: `Nothing due and today's new items are done · goal ${g.have}/${g.need} ${g.label} — a mixed quiz of words you've seen`, run: () => go(dueOrPractice) };
@@ -6865,7 +6937,7 @@ function smartPlan(D) {
   const cur = pathState().cur, l = gamesFor(cur).includes("kanaatro") ? cur : (activeLevels().find(x => x !== "kana") || "n5");
   return { k: "game", label: "Play Kanaatro", line: `Daily goal met 🎉 — nothing due. Relax with a round of Kanaatro (${LNAME(l)})`, run: () => gOpen(l, "kanaatro", home) };
 }
-const SMART_IC = { due: "⏰", new: "🌱", grammar: "文", practice: "🎯", game: "🃏" };
+const SMART_IC = { due: "⏰", new: "🌱", grammar: "文", reading: "読", practice: "🎯", game: "🃏" };
 function smartHTML(D) {
   if (!D) return `<div class="smartbox" id="smartBox"><button class="btn smartbtn" id="smartStart" disabled><span class="smic" aria-hidden="true">▶</span><span>Start</span></button><p class="smartline" id="smartLine">Getting today's plan ready…</p></div>`;
   const p = smartPlan(D);
@@ -7562,6 +7634,924 @@ function grLessonModal(id) {
   document.body.appendChild(md);
   md.onclick = e => { if (e.target === md || e.target.id === "grModalClose") md.remove(); };
 }
+/* ================= Reading: original graded N5 stories (written for this app) =================
+   Sentence markup: tokens separated by "/"; 漢字[よみ] = furigana for the kanji run before it; "@lemma" links the token
+   to an N5 word list entry (its dictionary form as written in the list); a leading "#" marks a name (never linked).
+   Unmarked tokens link automatically when the token itself is an N5 word. x = glosses for words outside the N5 list.
+   Questions: q (Japanese, same markup) · qe (English) · o (options, correct first; shuffled on screen) · k (key words, lemmas). */
+const RD_TIERS = { 1: { name: "Starter", stars: "★", note: "Short present-tense stories" }, 2: { name: "Building", stars: "★★", note: "Past tense, て-form, ～たい" }, 3: { name: "Confident", stars: "★★★", note: "Longer stories with reasons and plans" } };
+const RD_DATA = [
+{ id: "r01", tier: 1, t: "私[わたし]の 家族[かぞく]", en: "My Family", s: [
+  ["私[わたし]/は/#アンナ/です/。", "I'm Anna."],
+  ["アメリカ/から/来[き]ました@来る/。", "I came from America."],
+  ["家族[かぞく]/は/四人[よにん]/です/。", "There are four people in my family."],
+  ["父[ちち]/と/母[はは]/と/弟[おとうと]/が/います@居る/。", "I have a father, a mother and a younger brother."],
+  ["父[ちち]/は/会社[かいしゃ]/で/働[はたら]いて@働く/います/。", "My father works at a company."],
+  ["母[はは]/は/先生[せんせい]/です/。", "My mother is a teacher."],
+  ["弟[おとうと]/は/まだ/子供[こども]/です/。", "My younger brother is still a child."],
+  ["日曜日[にちようび]/は/みんな/で/よく/公園[こうえん]/へ/行[い]きます@行く/。", "On Sundays we often all go to the park together."]],
+  x: { "アメリカ": ["アメリカ", "America"], "四人": ["よにん", "four people"] },
+  q: [
+  { q: "#アンナさん/は/どこ/から/来[き]ました@来る/か/。", qe: "Where did Anna come from?", o: ["アメリカ", "日本[にほん]", "中国[ちゅうごく]", "イギリス"], k: ["来る"] },
+  { q: "#アンナさん/の/家族[かぞく]/は/何人[なんにん]/です/か/。", qe: "How many people are in Anna's family?", o: ["四人[よにん]", "三人[さんにん]", "五人[ごにん]", "二人[ふたり]"], k: ["家族"] },
+  { q: "お母[かあ]さん@お母さん/の/仕事[しごと]/は/何[なん]/です/か/。", qe: "What is her mother's job?", o: ["先生[せんせい]", "医者[いしゃ]", "学生[がくせい]", "会社[かいしゃ]の 人[ひと]"], k: ["先生", "母"] },
+  { q: "日曜日[にちようび]/に/みんな/で/どこ/へ/行[い]きます@行く/か/。", qe: "Where do they all go on Sundays?", o: ["公園[こうえん]", "学校[がっこう]", "病院[びょういん]", "銀行[ぎんこう]"], k: ["公園", "日曜日"] }] },
+
+{ id: "r02", tier: 1, t: "朝[あさ]ご飯[はん]", en: "Breakfast", s: [
+  ["私[わたし]/は/毎朝[まいあさ]/六時[ろくじ]/に/起[お]きます@起きる/。", "I get up at six every morning."],
+  ["朝[あさ]ご飯[はん]@朝御飯/は/パン/と/卵[たまご]/です/。", "Breakfast is bread and eggs."],
+  ["コーヒー/も/飲[の]みます@飲む/。", "I also drink coffee."],
+  ["牛乳[ぎゅうにゅう]/は/あまり/飲[の]みません@飲む/。", "I don't drink much milk."],
+  ["七時[しちじ]/に/家[いえ]/を/出[で]ます@出る/。", "I leave home at seven."],
+  ["駅[えき]/まで/歩[ある]いて@歩く/十分[じゅっぷん]/です/。", "It's a ten-minute walk to the station."]],
+  x: { "六時": ["ろくじ", "six o'clock"], "七時": ["しちじ", "seven o'clock"], "十分": ["じゅっぷん", "ten minutes"] },
+  q: [
+  { q: "何時[なんじ]/に/起[お]きます@起きる/か/。", qe: "What time does this person get up?", o: ["六時[ろくじ]", "七時[しちじ]", "八時[はちじ]", "五時[ごじ]"], k: ["起きる", "毎朝"] },
+  { q: "朝[あさ]ご飯[はん]@朝御飯/は/何[なん]/です/か/。", qe: "What is breakfast?", o: ["パンと 卵[たまご]", "ご飯[はん]と 魚[さかな]", "パンと 果物[くだもの]", "卵[たまご]だけ"], k: ["朝御飯", "卵"] },
+  { q: "何[なに]/を/あまり/飲[の]みません@飲む/か/。", qe: "What does this person not drink much of?", o: ["牛乳[ぎゅうにゅう]", "コーヒー", "お茶[ちゃ]", "水[みず]"], k: ["牛乳", "飲む"] },
+  { q: "駅[えき]/まで/どう/やって/行[い]きます@行く/か/。", qe: "How does this person get to the station?", o: ["歩[ある]いて 行[い]きます", "バスで 行[い]きます", "電車[でんしゃ]で 行[い]きます", "自転車[じてんしゃ]で 行[い]きます"], k: ["歩く", "駅"] }] },
+
+{ id: "r03", tier: 1, t: "私[わたし]の 部屋[へや]", en: "My Room", s: [
+  ["これ/は/私[わたし]/の/部屋[へや]/です/。", "This is my room."],
+  ["部屋[へや]/は/あまり/広[ひろ]く@広い/ありません@有る/。", "The room isn't very big."],
+  ["でも/、/とても/明[あか]るい@明るい/です/。", "But it's very bright."],
+  ["窓[まど]/の/近[ちか]く/に/机[つくえ]/が/あります@有る/。", "There is a desk near the window."],
+  ["机[つくえ]/の/上[うえ]/に/本[ほん]/と/時計[とけい]/が/あります@有る/。", "On the desk there are books and a clock."],
+  ["ベッド/の/下[した]/に/猫[ねこ]/が/います@居る/。", "There is a cat under the bed."],
+  ["猫[ねこ]/の/名前[なまえ]/は/#タマ/です/。", "The cat's name is Tama."]],
+  q: [
+  { q: "部屋[へや]/は/どう/です/か/。", qe: "What is the room like?", o: ["あまり 広[ひろ]くないですが、明[あか]るいです", "広[ひろ]くて 明[あか]るいです", "狭[せま]くて 暗[くら]いです", "広[ひろ]いですが、暗[くら]いです"], k: ["広い", "明るい"] },
+  { q: "机[つくえ]/は/どこ/に/あります@有る/か/。", qe: "Where is the desk?", o: ["窓[まど]の 近[ちか]く", "ドアの 前[まえ]", "ベッドの 下[した]", "部屋[へや]の 外[そと]"], k: ["机", "窓"] },
+  { q: "猫[ねこ]/は/どこ/に/います@居る/か/。", qe: "Where is the cat?", o: ["ベッドの 下[した]", "机[つくえ]の 上[うえ]", "窓[まど]の 近[ちか]く", "いすの 上[うえ]"], k: ["猫", "下"] },
+  { q: "机[つくえ]/の/上[うえ]/に/何[なに]/が/あります@有る/か/。", qe: "What is on the desk?", o: ["本[ほん]と 時計[とけい]", "本[ほん]と かばん", "時計[とけい]と ペン", "傘[かさ]と 本[ほん]"], k: ["時計", "上"] }] },
+
+{ id: "r04", tier: 1, t: "日曜日[にちようび]", en: "Sunday", s: [
+  ["きのう/は/日曜日[にちようび]/でした/。", "Yesterday was Sunday."],
+  ["私[わたし]/は/友達[ともだち]/と/デパート/へ/行[い]きました@行く/。", "I went to a department store with a friend."],
+  ["デパート/で/青[あお]い@青い/シャツ/を/買[か]いました@買う/。", "I bought a blue shirt at the department store."],
+  ["それから/、/レストラン/で/昼[ひる]ご飯[はん]@昼御飯/を/食[た]べました@食べる/。", "After that we ate lunch at a restaurant."],
+  ["昼[ひる]ご飯[はん]@昼御飯/は/とても/おいしかった@美味しい/です/。", "Lunch was very good."],
+  ["夜[よる]/は/家[いえ]/で/テレビ/を/見[み]ました@見る/。", "In the evening I watched TV at home."]],
+  q: [
+  { q: "きのう/は/何曜日[なんようび]/でした/か/。", qe: "What day was yesterday?", o: ["日曜日[にちようび]", "土曜日[どようび]", "月曜日[げつようび]", "金曜日[きんようび]"], k: ["日曜日", "昨日"] },
+  { q: "デパート/で/何[なに]/を/買[か]いました@買う/か/。", qe: "What did this person buy at the department store?", o: ["青[あお]い シャツ", "白[しろ]い シャツ", "青[あお]い 靴[くつ]", "黒[くろ]い かばん"], k: ["青い", "買う"] },
+  { q: "昼[ひる]ご飯[はん]@昼御飯/は/どう/でした/か/。", qe: "How was lunch?", o: ["とても おいしかったです", "あまり おいしくなかったです", "とても 高[たか]かったです", "少[すく]なかったです"], k: ["美味しい", "昼御飯"] },
+  { q: "夜[よる]/、/何[なに]/を/しました/か/。", qe: "What did this person do in the evening?", o: ["テレビを 見[み]ました", "本[ほん]を 読[よ]みました", "友達[ともだち]と 話[はな]しました", "映画[えいが]を 見[み]に 行[い]きました"], k: ["見る", "夜"] }] },
+
+{ id: "r05", tier: 1, t: "雨[あめ]の 日[ひ]", en: "A Rainy Day", s: [
+  ["今日[きょう]/は/雨[あめ]/です/。", "It's raining today."],
+  ["朝[あさ]/から/とても/寒[さむ]い@寒い/です/。", "It has been very cold since the morning."],
+  ["私[わたし]/は/傘[かさ]/を/持[も]って@持つ/学校[がっこう]/へ/行[い]きました@行く/。", "I took an umbrella and went to school."],
+  ["学校[がっこう]/の/前[まえ]/で/#田中[たなか]さん/に/会[あ]いました@会う/。", "I met Tanaka-san in front of the school."],
+  ["#田中[たなか]さん/は/傘[かさ]/が/ありませんでした@有る/。", "Tanaka-san didn't have an umbrella."],
+  ["それで/、/二人[ふたり]/で/私[わたし]/の/傘[かさ]/に/入[はい]りました@入る/。", "So the two of us shared my umbrella."]],
+  x: { "それで": ["それで", "so, and so"] },
+  q: [
+  { q: "今日[きょう]/の/天気[てんき]/は/どう/です/か/。", qe: "What is the weather like today?", o: ["雨[あめ]で、寒[さむ]いです", "晴[は]れで、暑[あつ]いです", "曇[くも]りで、暖[あたた]かいです", "雪[ゆき]で、寒[さむ]いです"], k: ["雨", "寒い"] },
+  { q: "学校[がっこう]/の/前[まえ]/で/だれ/に/会[あ]いました@会う/か/。", qe: "Who did this person meet in front of the school?", o: ["田中[たなか]さん", "先生[せんせい]", "お母[かあ]さん", "弟[おとうと]"], k: ["会う", "学校"] },
+  { q: "#田中[たなか]さん/は/何[なに]/が/ありませんでした@有る/か/。", qe: "What didn't Tanaka-san have?", o: ["傘[かさ]", "かばん", "ノート", "ペン"], k: ["傘"] },
+  { q: "二人[ふたり]/は/どう/しました/か/。", qe: "What did the two of them do?", o: ["一[ひと]つの 傘[かさ]に 入[はい]りました", "タクシーで 帰[かえ]りました", "学校[がっこう]を 休[やす]みました", "傘[かさ]を 買[か]いました"], k: ["入る", "二人"] }] },
+
+{ id: "r06", tier: 1, t: "家[いえ]の 近[ちか]くの 店[みせ]", en: "The Shop Near My House", s: [
+  ["私[わたし]/の/家[いえ]/の/近[ちか]く/に/コンビニ/が/あります@有る/。", "There is a convenience store near my house."],
+  ["コンビニ/は/朝[あさ]/も/夜[よる]/も/開[あ]いて@開く/います/。", "The convenience store is open both morning and night."],
+  ["私[わたし]/は/よく/夜[よる]/、/コンビニ/へ/行[い]きます@行く/。", "I often go to the convenience store at night."],
+  ["おにぎり/や/飲[の]み物[もの]@飲み物/を/買[か]います@買う/。", "I buy things like rice balls and drinks."],
+  ["おにぎり/は/一[ひと]つ@一つ/百二十円[ひゃくにじゅうえん]/です/。", "One rice ball is 120 yen."],
+  ["店[みせ]/の/人[ひと]/は/いつも/元気[げんき]/です/。", "The shop staff are always cheerful."]],
+  x: { "コンビニ": ["コンビニ", "convenience store"], "おにぎり": ["おにぎり", "rice ball"], "百二十円": ["ひゃくにじゅうえん", "120 yen"] },
+  q: [
+  { q: "コンビニ/は/どこ/に/あります@有る/か/。", qe: "Where is the convenience store?", o: ["家[いえ]の 近[ちか]く", "駅[えき]の 前[まえ]", "学校[がっこう]の 隣[となり]", "公園[こうえん]の 中[なか]"], k: ["近く"] },
+  { q: "コンビニ/は/いつ/開[あ]いて@開く/います/か/。", qe: "When is the convenience store open?", o: ["朝[あさ]も 夜[よる]も", "朝[あさ]だけ", "夜[よる]だけ", "日曜日[にちようび]だけ"], k: ["開く", "夜"] },
+  { q: "おにぎり/は/一[ひと]つ@一つ/いくら/です/か/。", qe: "How much is one rice ball?", o: ["百二十円[ひゃくにじゅうえん]", "二百円[にひゃくえん]", "百円[ひゃくえん]", "二百二十円[にひゃくにじゅうえん]"], k: ["一つ"] },
+  { q: "店[みせ]/の/人[ひと]/は/どう/です/か/。", qe: "What are the shop staff like?", o: ["いつも 元気[げんき]です", "いつも 忙[いそが]しいです", "あまり 元気[げんき]じゃないです", "いつも 静[しず]かです"], k: ["店", "元気"] }] },
+
+{ id: "r07", tier: 2, t: "家族[かぞく]で 旅行[りょこう]", en: "A Family Trip", s: [
+  ["先月[せんげつ]/、/家族[かぞく]/と/#東京[とうきょう]/へ/旅行[りょこう]/に/行[い]きました@行く/。", "Last month I went on a trip to Tokyo with my family."],
+  ["#東京[とうきょう]/は/人[ひと]/が/とても/多[おお]かった@多い/です/。", "There were a lot of people in Tokyo."],
+  ["朝[あさ]/は/大[おお]きい@大きい/公園[こうえん]/を/散歩[さんぽ]しました@散歩/。", "In the morning we took a walk in a big park."],
+  ["公園[こうえん]/の/中[なか]/に/古[ふる]い@古い/建物[たてもの]/が/ありました@有る/。", "There was an old building in the park."],
+  ["昼[ひる]/は/有名[ゆうめい]な@有名/店[みせ]/で/魚[さかな]/の/料理[りょうり]/を/食[た]べました@食べる/。", "At noon we ate a fish dish at a famous restaurant."],
+  ["午後[ごご]/は/友達[ともだち]/に/葉書[はがき]@葉書/を/書[か]きました@書く/。", "In the afternoon I wrote a postcard to a friend."],
+  ["ホテル/の/部屋[へや]/は/狭[せま]かった@狭い/です/が/、/きれいでした@綺麗/。", "The hotel room was small, but it was clean."],
+  ["また/行[い]きたい@行く/です/。", "I want to go again."]],
+  q: [
+  { q: "だれ/と/#東京[とうきょう]/へ/行[い]きました@行く/か/。", qe: "Who did this person go to Tokyo with?", o: ["家族[かぞく]", "友達[ともだち]", "一人[ひとり]で", "先生[せんせい]"], k: ["家族", "旅行"] },
+  { q: "#東京[とうきょう]/は/どう/でした/か/。", qe: "What was Tokyo like?", o: ["人[ひと]が とても 多[おお]かったです", "とても 静[しず]かでした", "人[ひと]が 少[すく]なかったです", "とても 寒[さむ]かったです"], k: ["多い"] },
+  { q: "昼[ひる]/に/何[なに]/を/食[た]べました@食べる/か/。", qe: "What did they eat at noon?", o: ["魚[さかな]の 料理[りょうり]", "肉[にく]の 料理[りょうり]", "パンと 卵[たまご]", "カレー"], k: ["魚", "料理"] },
+  { q: "ホテル/の/部屋[へや]/は/どう/でした/か/。", qe: "What was the hotel room like?", o: ["狭[せま]かったですが、きれいでした", "広[ひろ]くて、きれいでした", "狭[せま]くて、汚[きたな]かったです", "広[ひろ]かったですが、古[ふる]かったです"], k: ["狭い", "綺麗"] }] },
+
+{ id: "r08", tier: 2, t: "妹[いもうと]の 誕生日[たんじょうび]", en: "My Sister's Birthday", s: [
+  ["来週[らいしゅう]/の/土曜日[どようび]/は/妹[いもうと]/の/誕生日[たんじょうび]/です/。", "Next Saturday is my younger sister's birthday."],
+  ["妹[いもうと]/は/本[ほん]/が/大好[だいす]き@大好き/です/。", "My sister loves books."],
+  ["きのう/、/私[わたし]/は/本屋[ほんや]/へ/行[い]きました@行く/。", "Yesterday I went to a bookstore."],
+  ["動物[どうぶつ]/の/絵[え]/が/たくさん/ある@有る/本[ほん]/を/買[か]いました@買う/。", "I bought a book with lots of pictures of animals."],
+  ["母[はは]/は/ケーキ/を/作[つく]ります@作る/。", "My mother is going to make a cake."],
+  ["父[ちち]/は/花[はな]/を/買[か]って@買う/来[き]ます@来る/。", "My father is going to buy flowers and bring them home."],
+  ["パーティー/は/夜[よる]/七時[しちじ]/から/です/。", "The party starts at seven in the evening."],
+  ["みんな/で/歌[うた]/を/歌[うた]います@歌う/。", "We will all sing songs together."]],
+  x: { "本屋": ["ほんや", "bookstore"], "ケーキ": ["ケーキ", "cake"], "七時": ["しちじ", "seven o'clock"] },
+  q: [
+  { q: "妹[いもうと]/の/誕生日[たんじょうび]/は/いつ/です/か/。", qe: "When is the sister's birthday?", o: ["来週[らいしゅう]の 土曜日[どようび]", "今週[こんしゅう]の 土曜日[どようび]", "来週[らいしゅう]の 日曜日[にちようび]", "あした"], k: ["誕生日", "来週", "土曜日"] },
+  { q: "妹[いもうと]/は/何[なに]/が/大好[だいす]き@大好き/です/か/。", qe: "What does the sister love?", o: ["本[ほん]", "花[はな]", "歌[うた]", "ケーキ"], k: ["大好き"] },
+  { q: "お母[かあ]さん@お母さん/は/何[なに]/を/します/か/。", qe: "What is the mother going to do?", o: ["ケーキを 作[つく]ります", "花[はな]を 買[か]います", "本[ほん]を 買[か]います", "歌[うた]を 教[おし]えます"], k: ["作る"] },
+  { q: "パーティー/は/何時[なんじ]/から/です/か/。", qe: "What time does the party start?", o: ["七時[しちじ]", "六時[ろくじ]", "八時[はちじ]", "九時[くじ]"], k: ["パーティー", "夜"] }] },
+
+{ id: "r09", tier: 2, t: "図書館[としょかん]", en: "The Library", s: [
+  ["私[わたし]/は/毎週[まいしゅう]/水曜日[すいようび]/に/図書館[としょかん]/へ/行[い]きます@行く/。", "I go to the library every Wednesday."],
+  ["図書館[としょかん]/は/駅[えき]/の/隣[となり]/に/あります@有る/。", "The library is next to the station."],
+  ["いつも/本[ほん]/を/三冊[さんさつ]/借[か]ります@借りる/。", "I always borrow three books."],
+  ["先週[せんしゅう]/借[か]りた@借りる/本[ほん]/は/とても/おもしろかった@面白い/です/。", "The books I borrowed last week were very interesting."],
+  ["でも/、/一冊[いっさつ]/は/難[むずか]しくて@難しい/、/あまり/分[わ]かりませんでした@分かる/。", "But one was difficult, and I didn't understand it very well."],
+  ["図書館[としょかん]/の/中[なか]/で/は/、/大[おお]きい@大きい/声[こえ]/で/話[はな]して@話す/は/いけません/。", "Inside the library you must not talk in a loud voice."],
+  ["今日[きょう]/は/本[ほん]/を/返[かえ]して@返す/、/新[あたら]しい@新しい/本[ほん]/を/借[か]ります@借りる/。", "Today I'll return my books and borrow new ones."]],
+  x: { "三冊": ["さんさつ", "three (books)"], "一冊": ["いっさつ", "one (book)"], "いけません": ["いけません", "must not (after ～ては)"] },
+  q: [
+  { q: "いつ/図書館[としょかん]/へ/行[い]きます@行く/か/。", qe: "When does this person go to the library?", o: ["毎週[まいしゅう] 水曜日[すいようび]", "毎週[まいしゅう] 金曜日[きんようび]", "毎日[まいにち]", "日曜日[にちようび]だけ"], k: ["図書館", "毎週", "水曜日"] },
+  { q: "図書館[としょかん]/は/どこ/に/あります@有る/か/。", qe: "Where is the library?", o: ["駅[えき]の 隣[となり]", "学校[がっこう]の 前[まえ]", "公園[こうえん]の 中[なか]", "銀行[ぎんこう]の 後[うし]ろ"], k: ["隣", "駅"] },
+  { q: "先週[せんしゅう]/借[か]りた@借りる/本[ほん]/は/どう/でした/か/。", qe: "How were the books borrowed last week?", o: ["おもしろかったですが、一冊[いっさつ]は 難[むずか]しかったです", "全部[ぜんぶ] やさしかったです", "あまり おもしろくなかったです", "まだ 読[よ]んでいません"], k: ["面白い", "難しい"] },
+  { q: "図書館[としょかん]/の/中[なか]/で/何[なに]/を/して/は/いけません/か/。", qe: "What must you not do inside the library?", o: ["大[おお]きい 声[こえ]で 話[はな]すこと", "本[ほん]を 読[よ]むこと", "本[ほん]を 借[か]りること", "勉強[べんきょう]すること"], k: ["声", "話す"] }] },
+
+{ id: "r10", tier: 2, t: "風邪[かぜ]", en: "A Cold", s: [
+  ["きのう/の/朝[あさ]/から/頭[あたま]/が/痛[いた]かった@痛い/です/。", "Since yesterday morning I had a headache."],
+  ["会社[かいしゃ]/を/休[やす]んで@休む/、/病院[びょういん]/へ/行[い]きました@行く/。", "I took the day off work and went to the hospital."],
+  ["お医者[いしゃ]さん@医者/は/「/風邪[かぜ]/です/ね/。/薬[くすり]/を/飲[の]んで@飲む/、/よく/寝[ね]て@寝る/ください/」/と/言[い]いました@言う/。", "The doctor said, \"It's a cold. Take some medicine and get plenty of sleep.\""],
+  ["家[いえ]/に/帰[かえ]って@帰る/、/薬[くすり]/を/飲[の]みました@飲む/。", "I went home and took the medicine."],
+  ["それから/、/夜[よる]/まで/寝[ね]ました@寝る/。", "Then I slept until evening."],
+  ["今朝[けさ]/は/もう/頭[あたま]/が/痛[いた]く@痛い/ありません@有る/。", "This morning my head doesn't hurt anymore."],
+  ["でも/、/今日[きょう]/も/家[いえ]/で/休[やす]みます@休む/。", "But I'll rest at home today too."]],
+  q: [
+  { q: "きのう/、/どこ/が/痛[いた]かった@痛い/です/か/。", qe: "What hurt yesterday?", o: ["頭[あたま]", "おなか", "足[あし]", "目[め]"], k: ["頭", "痛い"] },
+  { q: "きのう/、/何[なに]/を/しました/か/。", qe: "What did this person do yesterday?", o: ["会社[かいしゃ]を 休[やす]んで、病院[びょういん]へ 行[い]きました", "会社[かいしゃ]へ 行[い]きました", "友達[ともだち]と 出[で]かけました", "薬[くすり]を 買[か]いに 行[い]きました"], k: ["病院", "休む"] },
+  { q: "お医者[いしゃ]さん@医者/は/何[なん]/と/言[い]いました@言う/か/。", qe: "What did the doctor say?", o: ["薬[くすり]を 飲[の]んで、よく 寝[ね]てください", "会社[かいしゃ]へ 行[い]ってください", "たくさん 食[た]べてください", "毎日[まいにち] 病院[びょういん]へ 来[き]てください"], k: ["薬", "寝る"] },
+  { q: "今日[きょう]/は/どう/します/か/。", qe: "What will this person do today?", o: ["家[いえ]で 休[やす]みます", "会社[かいしゃ]へ 行[い]きます", "病院[びょういん]へ 行[い]きます", "友達[ともだち]に 会[あ]います"], k: ["休む", "今日"] }] },
+
+{ id: "r11", tier: 2, t: "夏休[なつやす]み", en: "Summer Vacation", x: { "日": ["ひ", "day"] }, s: [
+  ["去年[きょねん]/の/夏休[なつやす]み@夏休み/、/私[わたし]/は/おばあさん/の/家[いえ]/へ/行[い]きました@行く/。", "Last summer vacation I went to my grandmother's house."],
+  ["おばあさん/の/家[いえ]/は/海[うみ]/の/近[ちか]く/に/あります@有る/。", "My grandmother's house is near the sea."],
+  ["毎日[まいにち]/海[うみ]/で/泳[およ]ぎました@泳ぐ/。", "I swam in the sea every day."],
+  ["海[うみ]/の/水[みず]/は/とても/きれいでした@綺麗/。", "The sea water was very clean."],
+  ["夜[よる]/は/おばあさん/と/一緒[いっしょ]/に/晩[ばん]ご飯[はん]@晩御飯/を/作[つく]りました@作る/。", "In the evenings I made dinner with my grandmother."],
+  ["おばあさん/の/料理[りょうり]/は/とても/おいしかった@美味しい/です/。", "My grandmother's cooking was delicious."],
+  ["帰[かえ]る@帰る/日[ひ]/、/おばあさん/と/駅[えき]/で/写真[しゃしん]/を/撮[と]りました@撮る/。", "On the day I went home, I took a photo with my grandmother at the station."],
+  ["今年[ことし]/の/夏[なつ]/も/また/行[い]きたい@行く/です/。", "I want to go again this summer too."]],
+  q: [
+  { q: "夏休[なつやす]み@夏休み/に/どこ/へ/行[い]きました@行く/か/。", qe: "Where did this person go during summer vacation?", o: ["おばあさんの 家[いえ]", "友達[ともだち]の 家[いえ]", "山[やま]", "外国[がいこく]"], k: ["夏休み", "おばあさん"] },
+  { q: "おばあさん/の/家[いえ]/は/どこ/に/あります@有る/か/。", qe: "Where is the grandmother's house?", o: ["海[うみ]の 近[ちか]く", "山[やま]の 上[うえ]", "駅[えき]の 前[まえ]", "町[まち]の 中[なか]"], k: ["海", "近く"] },
+  { q: "毎日[まいにち]/何[なに]/を/しました/か/。", qe: "What did this person do every day?", o: ["海[うみ]で 泳[およ]ぎました", "山[やま]に 登[のぼ]りました", "本[ほん]を 読[よ]みました", "料理[りょうり]を 習[なら]いました"], k: ["泳ぐ", "毎日"] },
+  { q: "帰[かえ]る@帰る/日[ひ]/に/何[なに]/を/しました/か/。", qe: "What did they do on the day this person went home?", o: ["駅[えき]で 写真[しゃしん]を 撮[と]りました", "晩[ばん]ご飯[はん]を 作[つく]りました", "海[うみ]で 泳[およ]ぎました", "デパートで 買[か]い物[もの]を しました"], k: ["写真", "撮る"] }] },
+
+{ id: "r12", tier: 3, t: "日本語[にほんご]の クラス", en: "My Japanese Class", s: [
+  ["私[わたし]/は/去年[きょねん]/の/四月[しがつ]/から/日本語[にほんご]/を/勉強[べんきょう]して@勉強/います/。", "I have been studying Japanese since April last year."],
+  ["クラス/は/火曜日[かようび]/と/木曜日[もくようび]/の/夜[よる]/、/七時[しちじ]/から/九時[くじ]/まで/です/。", "Class is on Tuesday and Thursday evenings, from seven to nine."],
+  ["先生[せんせい]/は/とても/おもしろい@面白い/人[ひと]/です/。", "The teacher is a very funny person."],
+  ["クラス/で/は/、/よく/二人[ふたり]/で/話[はな]す@話す/練習[れんしゅう]/を/します/。", "In class we often practise speaking in pairs."],
+  ["漢字[かんじ]/は/難[むずか]しい@難しい/です/が/、/少[すこ]し/ずつ/覚[おぼ]えて@覚える/います/。", "Kanji are difficult, but I'm learning them little by little."],
+  ["先週[せんしゅう]/、/初[はじ]めて@初めて/日本語[にほんご]/で/手紙[てがみ]/を/書[か]きました@書く/。", "Last week I wrote a letter in Japanese for the first time."],
+  ["先生[せんせい]/は/「/とても/上手[じょうず]/です/ね/」/と/言[い]いました@言う/。", "My teacher said, \"That's very good.\""],
+  ["来年[らいねん]/は/日本[にほん]/へ/旅行[りょこう]/に/行[い]きたい@行く/です/。", "Next year I want to travel to Japan."],
+  ["その/前[まえ]/に/、/もっと/勉強[べんきょう]します@勉強/。", "Before that, I'll study more."]],
+  x: { "日本語": ["にほんご", "Japanese (language)"], "四月": ["しがつ", "April"], "七時": ["しちじ", "seven o'clock"], "九時": ["くじ", "nine o'clock"], "ずつ": ["ずつ", "little by little (少しずつ)"], "日本": ["にほん", "Japan"] },
+  q: [
+  { q: "いつ/から/日本語[にほんご]/を/勉強[べんきょう]して@勉強/います/か/。", qe: "Since when has this person been studying Japanese?", o: ["去年[きょねん]の 四月[しがつ]", "今年[ことし]の 四月[しがつ]", "去年[きょねん]の 九月[くがつ]", "先月[せんげつ]"], k: ["去年", "勉強"] },
+  { q: "クラス/は/何曜日[なんようび]/に/あります@有る/か/。", qe: "On which days is the class?", o: ["火曜日[かようび]と 木曜日[もくようび]", "月曜日[げつようび]と 水曜日[すいようび]", "火曜日[かようび]と 金曜日[きんようび]", "土曜日[どようび]と 日曜日[にちようび]"], k: ["火曜日", "木曜日"] },
+  { q: "漢字[かんじ]/は/どう/です/か/。", qe: "How are kanji going for this person?", o: ["難[むずか]しいですが、少[すこ]しずつ 覚[おぼ]えています", "とても やさしいです", "難[むずか]しいので、勉強[べんきょう]していません", "もう 全部[ぜんぶ] 覚[おぼ]えました"], k: ["漢字", "難しい", "覚える"] },
+  { q: "先週[せんしゅう]/何[なに]/を/しました/か/。", qe: "What did this person do last week?", o: ["日本語[にほんご]で 手紙[てがみ]を 書[か]きました", "日本[にほん]へ 行[い]きました", "先生[せんせい]に 電話[でんわ]を しました", "新[あたら]しい クラスに 入[はい]りました"], k: ["手紙", "書く"] },
+  { q: "来年[らいねん]/、/何[なに]/を/し/たい/です/か/。", qe: "What does this person want to do next year?", o: ["日本[にほん]へ 旅行[りょこう]に 行[い]きたいです", "日本[にほん]で 働[はたら]きたいです", "日本語[にほんご]の 先生[せんせい]に なりたいです", "毎日[まいにち] クラスに 行[い]きたいです"], k: ["来年", "旅行"] }] },
+
+{ id: "r13", tier: 3, t: "道[みち]を 聞[き]く", en: "Asking the Way", s: [
+  ["先週[せんしゅう]/の/日曜日[にちようび]/、/私[わたし]/は/初[はじ]めて@初めて/友達[ともだち]/の/家[いえ]/へ/行[い]きました@行く/。", "Last Sunday I went to my friend's house for the first time."],
+  ["駅[えき]/を/出[で]て@出る/、/地図[ちず]/を/見[み]ました@見る/が/、/道[みち]/が/よく/分[わ]かりませんでした@分かる/。", "I left the station and looked at the map, but I couldn't really work out the way."],
+  ["それで/、/近[ちか]く/に/いた@居る/男[おとこ]/の/人[ひと]/に/道[みち]/を/聞[き]きました@聞く/。", "So I asked a man who was nearby for directions."],
+  ["男[おとこ]/の/人[ひと]/は/「/この/道[みち]/を/まっすぐ/行[い]って@行く/、/二[ふた]つ/目[め]/の/交差点[こうさてん]/を/右[みぎ]/へ/行[い]って@行く/ください/」/と/言[い]いました@言う/。", "The man said, \"Go straight along this road and turn right at the second intersection.\""],
+  ["「/銀行[ぎんこう]/の/隣[となり]/に/白[しろ]い@白い/建物[たてもの]/が/あります@有る/。/そこ/です/よ/」", "\"There's a white building next to the bank. That's the one.\""],
+  ["私[わたし]/は/「/ありがとう/ございます/」/と/言[い]って@言う/、/歩[ある]きました@歩く/。", "I said \"Thank you\" and walked on."],
+  ["十分[じゅっぷん]/ぐらい/で/友達[ともだち]/の/家[いえ]/に/着[つ]きました@着く/。", "I got to my friend's house in about ten minutes."],
+  ["友達[ともだち]/は/家[いえ]/の/前[まえ]/で/待[ま]って@待つ/いました/。", "My friend was waiting in front of the house."]],
+  x: { "それで": ["それで", "so, and so"], "目": ["め", "-th (二つ目 = second)"], "十分": ["じゅっぷん", "ten minutes"] },
+  q: [
+  { q: "どうして/男[おとこ]/の/人[ひと]/に/道[みち]/を/聞[き]きました@聞く/か/。", qe: "Why did this person ask the man for directions?", o: ["道[みち]が よく 分[わ]からなかったからです", "地図[ちず]が なかったからです", "友達[ともだち]が いなかったからです", "雨[あめ]が 降[ふ]っていたからです"], k: ["道", "分かる", "聞く"] },
+  { q: "友達[ともだち]/の/家[いえ]/へ/どう/行[い]きます@行く/か/。", qe: "How do you get to the friend's house?", o: ["二[ふた]つ目[め]の 交差点[こうさてん]を 右[みぎ]へ 行[い]きます", "一[ひと]つ目[め]の 交差点[こうさてん]を 左[ひだり]へ 行[い]きます", "二[ふた]つ目[め]の 交差点[こうさてん]を 左[ひだり]へ 行[い]きます", "駅[えき]の 前[まえ]で バスに 乗[の]ります"], k: ["交差点", "右"] },
+  { q: "友達[ともだち]/の/家[いえ]/は/どれ/です/か/。", qe: "Which one is the friend's house?", o: ["銀行[ぎんこう]の 隣[となり]の 白[しろ]い 建物[たてもの]", "銀行[ぎんこう]の 前[まえ]の 白[しろ]い 建物[たてもの]", "駅[えき]の 隣[となり]の 黒[くろ]い 建物[たてもの]", "公園[こうえん]の 中[なか]の 古[ふる]い 建物[たてもの]"], k: ["銀行", "白い", "建物"] },
+  { q: "友達[ともだち]/の/家[いえ]/まで/何分[なんぷん]/ぐらい/歩[ある]きました@歩く/か/。", qe: "About how many minutes did this person walk to the friend's house?", o: ["十分[じゅっぷん]ぐらい", "五分[ごふん]ぐらい", "二十分[にじゅっぷん]ぐらい", "一時間[いちじかん]ぐらい"], k: ["歩く"] }] },
+
+{ id: "r14", tier: 3, t: "メール", en: "An Email", s: [
+  ["#山田[やまだ]さん/、/こんにちは/。", "Hello, Yamada-san."],
+  ["先週[せんしゅう]/は/おいしい@美味しい/お茶[ちゃ]/を/ありがとう/ございました/。", "Thank you for the delicious tea last week."],
+  ["家族[かぞく]/と/一緒[いっしょ]/に/飲[の]みました@飲む/。", "I drank it with my family."],
+  ["母[はは]/も/「/おいしい@美味しい/」/と/言[い]って@言う/いました/。", "My mother said it was delicious too."],
+  ["来月[らいげつ]/の/三日[みっか]/に/、/私[わたし]/の/家[いえ]/で/パーティー/を/します/。", "On the third of next month I'm having a party at my house."],
+  ["#山田[やまだ]さん/も/来[き]ません@来る/か/。", "Would you like to come too?"],
+  ["パーティー/は/午後[ごご]/六時[ろくじ]/から/です/。", "The party starts at 6 p.m."],
+  ["私[わたし]/の/家[いえ]/は/駅[えき]/から/歩[ある]いて@歩く/五分[ごふん]/です/。", "My house is a five-minute walk from the station."],
+  ["来[く]る@来る/前[まえ]/に/、/電話[でんわ]/を/ください/。", "Please call me before you come."],
+  ["#リサ", "Lisa"]],
+  x: { "六時": ["ろくじ", "six o'clock"], "五分": ["ごふん", "five minutes"], "ください": ["ください", "please (give me)"] },
+  q: [
+  { q: "#リサさん/は/お茶[ちゃ]/を/だれ/と/飲[の]みました@飲む/か/。", qe: "Who did Lisa drink the tea with?", o: ["家族[かぞく]", "山田[やまだ]さん", "友達[ともだち]", "一人[ひとり]で 飲[の]みました"], k: ["お茶", "家族"] },
+  { q: "パーティー/は/いつ/です/か/。", qe: "When is the party?", o: ["来月[らいげつ]の 三日[みっか]", "来週[らいしゅう]の 三日[みっか]", "今月[こんげつ]の 三日[みっか]", "来月[らいげつ]の 四日[よっか]"], k: ["来月", "三日"] },
+  { q: "パーティー/は/何時[なんじ]/から/です/か/。", qe: "What time does the party start?", o: ["午後[ごご] 六時[ろくじ]", "午前[ごぜん] 六時[ろくじ]", "午後[ごご] 三時[さんじ]", "午後[ごご] 五時[ごじ]"], k: ["午後"] },
+  { q: "#リサさん/の/家[いえ]/は/駅[えき]/から/どの/ぐらい/です/か/。", qe: "How far is Lisa's house from the station?", o: ["歩[ある]いて 五分[ごふん]", "バスで 五分[ごふん]", "歩[ある]いて 十分[じゅっぷん]", "電車[でんしゃ]で 五分[ごふん]"], k: ["歩く", "駅"] },
+  { q: "#山田[やまだ]さん/は/来[く]る@来る/前[まえ]/に/何[なに]/を/します/か/。", qe: "What should Yamada-san do before coming?", o: ["リサさんに 電話[でんわ]を します", "お茶[ちゃ]を 買[か]います", "メールを 書[か]きます", "駅[えき]で 待[ま]ちます"], k: ["電話", "前"] }] },
+
+{ id: "r15", tier: 3, t: "山[やま]に 登[のぼ]った 日[ひ]", en: "The Day We Climbed a Mountain", s: [
+  ["先週[せんしゅう]/の/日曜日[にちようび]/、/会社[かいしゃ]/の/人[ひと]/と/山[やま]/に/登[のぼ]りました@登る/。", "Last Sunday I climbed a mountain with people from work."],
+  ["朝[あさ]/八時[はちじ]/に/駅[えき]/の/前[まえ]/で/会[あ]って@会う/、/バス/で/山[やま]/まで/行[い]きました@行く/。", "We met in front of the station at eight in the morning and went to the mountain by bus."],
+  ["天気[てんき]/は/よかった/です/が/、/少[すこ]し/寒[さむ]かった@寒い/です/。", "The weather was good, but it was a little cold."],
+  ["山[やま]/の/道[みち]/は/細[ほそ]くて@細い/、/大変[たいへん]/でした/。", "The mountain path was narrow and hard going."],
+  ["二時間[にじかん]/ぐらい/歩[ある]いて@歩く/、/山[やま]/の/上[うえ]/に/着[つ]きました@着く/。", "After walking for about two hours, we reached the top of the mountain."],
+  ["上[うえ]/から/見[み]た@見る/町[まち]/は/とても/小[ちい]さかった@小さい/です/。", "The town looked very small from the top."],
+  ["みんな/で/お弁当[べんとう]/を/食[た]べました@食べる/。", "We all ate our boxed lunches."],
+  ["帰[かえ]り/の/バス/で/は/、/みんな/疲[つか]れて@疲れる/寝[ね]て@寝る/いました/。", "On the bus home, everyone was tired and asleep."],
+  ["とても/楽[たの]しい@楽しい/一日[いちにち]/でした/。", "It was a really fun day."]],
+  x: { "よかった": ["よかった", "was good (past of いい)"], "八時": ["はちじ", "eight o'clock"], "二時間": ["にじかん", "two hours"], "帰り": ["かえり", "the way home"], "一日": ["いちにち", "one day, a day"] },
+  q: [
+  { q: "だれ/と/山[やま]/に/登[のぼ]りました@登る/か/。", qe: "Who did this person climb the mountain with?", o: ["会社[かいしゃ]の 人[ひと]", "家族[かぞく]", "学校[がっこう]の 友達[ともだち]", "一人[ひとり]で 登[のぼ]りました"], k: ["会社", "登る"] },
+  { q: "何[なに]/で/山[やま]/まで/行[い]きました@行く/か/。", qe: "How did they get to the mountain?", o: ["バス", "電車[でんしゃ]", "車[くるま]", "自転車[じてんしゃ]"], k: ["山"] },
+  { q: "山[やま]/の/道[みち]/は/どう/でした/か/。", qe: "What was the mountain path like?", o: ["細[ほそ]くて、大変[たいへん]でした", "広[ひろ]くて、楽[らく]でした", "とても 短[みじか]かったです", "人[ひと]が 多[おお]かったです"], k: ["細い", "大変", "道"] },
+  { q: "帰[かえ]り/の/バス/で/、/みんな/は/何[なに]/を/して/いました/か/。", qe: "What was everyone doing on the bus home?", o: ["寝[ね]ていました", "歌[うた]っていました", "お弁当[べんとう]を 食[た]べていました", "写真[しゃしん]を 撮[と]っていました"], k: ["寝る", "疲れる"] }] },
+
+{ id: "r16", tier: 3, t: "新[あたら]しい アパート", en: "My New Apartment", s: [
+  ["私[わたし]/は/先月[せんげつ]/から/新[あたら]しい@新しい/アパート/に/住[す]んで@住む/います/。", "Since last month I have been living in a new apartment."],
+  ["前[まえ]/の/アパート/は/駅[えき]/から/遠[とお]かった@遠い/です/。", "My old apartment was far from the station."],
+  ["新[あたら]しい@新しい/アパート/は/駅[えき]/から/近[ちか]くて@近い/、/便利[べんり]/です/。", "The new apartment is close to the station and convenient."],
+  ["でも/、/前[まえ]/の/アパート/より/少[すこ]し/狭[せま]い@狭い/です/。", "But it's a little smaller than my old apartment."],
+  ["部屋[へや]/は/二[ふた]つ@二つ/あります@有る/。", "There are two rooms."],
+  ["一[ひと]つ@一つ/は/寝[ね]る@寝る/部屋[へや]/で/、/もう/一[ひと]つ@一つ/は/勉強[べんきょう]する@勉強/部屋[へや]/です/。", "One is for sleeping, and the other is for studying."],
+  ["アパート/の/近[ちか]く/に/は/スーパー/と/郵便局[ゆうびんきょく]/が/あります@有る/。", "Near the apartment there is a supermarket and a post office."],
+  ["来週[らいしゅう]/の/土曜日[どようび]/に/友達[ともだち]/を/呼[よ]んで@呼ぶ/、/一緒[いっしょ]/に/晩[ばん]ご飯[はん]@晩御飯/を/食[た]べます@食べる/。", "Next Saturday I'll invite friends over and we'll have dinner together."],
+  ["私[わたし]/は/カレー/を/作[つく]ります@作る/。", "I'm going to make curry."]],
+  x: { "スーパー": ["スーパー", "supermarket"], "カレー": ["カレー", "curry"] },
+  q: [
+  { q: "前[まえ]/の/アパート/は/どう/でした/か/。", qe: "What was the old apartment like?", o: ["駅[えき]から 遠[とお]かったです", "駅[えき]から 近[ちか]かったです", "とても 新[あたら]しかったです", "部屋[へや]が 一[ひと]つでした"], k: ["遠い", "駅"] },
+  { q: "新[あたら]しい@新しい/アパート/は/どう/です/か/。", qe: "What is the new apartment like?", o: ["便利[べんり]ですが、前[まえ]の アパートより 少[すこ]し 狭[せま]いです", "前[まえ]の アパートより 広[ひろ]くて、便利[べんり]です", "駅[えき]から 遠[とお]くて、不便[ふべん]です", "古[ふる]いですが、とても 広[ひろ]いです"], k: ["便利", "狭い"] },
+  { q: "アパート/の/近[ちか]く/に/何[なに]/が/あります@有る/か/。", qe: "What is near the apartment?", o: ["スーパーと 郵便局[ゆうびんきょく]", "銀行[ぎんこう]と 病院[びょういん]", "公園[こうえん]と 図書館[としょかん]", "駅[えき]と 本屋[ほんや]"], k: ["郵便局", "近く"] },
+  { q: "来週[らいしゅう]/の/土曜日[どようび]/に/何[なに]/を/します/か/。", qe: "What will this person do next Saturday?", o: ["友達[ともだち]と 晩[ばん]ご飯[はん]を 食[た]べます", "友達[ともだち]の 家[いえ]へ 行[い]きます", "新[あたら]しい アパートを 探[さが]します", "レストランへ 行[い]きます"], k: ["友達", "晩御飯"] }] }
+];
+/* function words / endings: tap shows a short note instead of a dictionary entry */
+const RD_GLOSS = { "は": "topic particle (wa)", "が": "subject particle; “but” between clauses", "を": "object particle (o)", "に": "particle: time / destination / location of existence", "へ": "direction particle (e)", "で": "particle: place of action / means; て-form of です", "と": "“and” / “with” / quoting (と言いました)", "も": "“also, too”", "の": "possessive / linking particle", "から": "“from”; “because”", "まで": "“until, as far as”", "や": "“and (among others)”", "より": "“than”", "か": "question particle", "ね": "“isn't it?” (seeking agreement)", "よ": "“you know” (telling news)", "ぐらい": "“about, around”", "です": "polite “is / am / are”", "でした": "polite past “was”", "ます": "polite verb ending", "ません": "polite negative", "ました": "polite past", "ありません": "polite negative (“isn't”)", "ありませんでした": "polite past negative", "います": "polite ～ている (ongoing / state)", "いました": "polite past ～ている", "ください": "“please (do)” after the て-form", "これ": "“this (thing)”", "その": "“that ～”", "この": "“this ～”", "そこ": "“there”", "どこ": "“where”", "何": "“what”", "だれ": "“who”", "いつ": "“when”", "どう": "“how”", "いくら": "“how much”", "やって": "どうやって = “how, by what means”", "どれ": "“which one”", "どの": "“which ～”", "し": "し = stem of する (do)", "して": "て-form of する (do)", "します": "polite “do”", "しました": "polite past of する (do)", "たい": "“want to” (after a verb stem)", "な": "な-adjective link before a noun", "ありがとう": "“thank you”", "ございます": "polite “there is” (ありがとうございます)", "ございました": "polite past (ありがとうございました)", "こんにちは": "“hello”", "「": "quote mark", "」": "quote mark", "、": "comma", "。": "full stop" };
+/* ================= Reading: graded N5 stories (app21d data) =================
+   S.rdDone = { storyId: best correct answers } (synced: max) · S.rdDay = {"YYYY-MM-DD": [storyIds]} (synced: union)
+   S.rdFuri = furigana on (default) / false · S.rdEn = show English under each sentence.
+   Tap a word: reading / meaning / audio, and "Add to study" (a Seen card, counted against the daily new-word limit).
+   Comprehension answers grade the questions' key words like a multiple-choice quiz (Good, Hard when slow, Again when
+   wrong) — but only words already in review; everything else keeps its schedule. */
+const RD = {}; RD_DATA.forEach((s, i) => { s.n = i + 1; RD[s.id] = s; });
+const RD_HARD_MS = 20000;
+const RD_MAP = (() => {   // N5 lookups: written form, and kana → word only when that kana belongs to one entry
+  const jp = {}, kc = {};
+  LV.n5.ids.forEach(id => { const w = WORDS[id]; if (!(w.jp in jp)) jp[w.jp] = id; const k = w.kana.replace(/\s*\(.*\)$/, ""); (kc[k] = kc[k] || []).push(id); });
+  const kana = {}; for (const k in kc) if (kc[k].every(id => WORDS[id].jp === WORDS[kc[k][0]].jp)) kana[k] = kc[k][0];
+  return { jp, kana };
+})();
+const rdStrip = s => s.replace(/\[[^\]]*\]/g, "");
+/* 漢字[よみ] → <ruby> (or plain kanji when furigana is off) */
+const rdRuby = (s, furi = S.rdFuri !== false) => esc(s).replace(/([\u4e00-\u9fff々]+)\[([^\]]+)\]/g, (m, k, r) => furi ? `<ruby>${k}<rt>${r}</rt></ruby>` : k);
+/* one token → { raw, surf, id (N5 word id) | null, gloss: [reading, meaning] | note string | null, name } */
+function rdToken(tk, st) {
+  const name = tk.startsWith("#"); if (name) tk = tk.slice(1);
+  const [raw, lem] = tk.split("@"), surf = rdStrip(raw);
+  let id = null, gloss = null;
+  if (!name) {
+    if (lem) id = lem in RD_MAP.jp ? RD_MAP.jp[lem] : lem in RD_MAP.kana ? RD_MAP.kana[lem] : null;
+    else if (surf in RD_MAP.jp) id = RD_MAP.jp[surf];
+    else if (RD_GLOSS[surf]) gloss = RD_GLOSS[surf];
+    else if (surf in RD_MAP.kana) id = RD_MAP.kana[surf];
+    if (id == null && !gloss && st && st.x && st.x[surf]) gloss = st.x[surf];
+  }
+  return { raw, surf, id, gloss, name };
+}
+const rdPlain = s => s.split("/").map(tk => tk.replace(/^#/, "").split("@")[0]).join("");   // keeps 漢字[よみ]
+const rdSentenceText = s => s.split("/").map(t => rdStrip(t.replace(/^#/, "").split("@")[0])).join("");
+const rdTokHTML = (str, st, si) => str.split("/").map((tk, ti) => { const t = rdToken(tk, st), p = /^[、。「」]$/.test(t.surf);
+  return p ? `<span class="rdp">${esc(t.surf)}</span>` : `<button class="rdw ${t.id != null ? "lk" : ""}" data-s="${si}" data-t="${ti}">${rdRuby(t.raw)}</button>`; }).join("");
+function rdWordIds(st) { const ids = new Set(); st.s.forEach(([s]) => s.split("/").forEach(tk => { const t = rdToken(tk, st); if (t.id != null) ids.add(t.id); })); return [...ids]; }
+const rdSeenPct = st => { const ids = rdWordIds(st); return ids.length ? Math.round(ids.filter(id => S.cards[id]).length / ids.length * 100) : 0; };
+const rdAudio = (id, i) => `rd/${id}-${i + 1}.mp3`;
+const rdDoneMap = () => isMap(S.rdDone) ? S.rdDone : {};
+const rdToday = () => isMap(S.rdDay) && Array.isArray(S.rdDay[todayStr()]) ? S.rdDay[todayStr()] : [];
+const rdNext = () => RD_DATA.find(s => !(s.id in rdDoneMap())) || null;
+const rdWanted = () => (S.levels || ["n5"]).includes("n5") || Object.keys(rdDoneMap()).length > 0;
+const rdInReview = id => { const c = S.cards[id]; return !!(c && c.f && c.f.st === 2); };
+
+/* ---------- Story list ---------- */
+function readingHome() {
+  const done = rdDoneMap(), nx = rdNext(), nDone = RD_DATA.filter(s => s.id in done).length, furi = S.rdFuri !== false;
+  const hero = nx ? `<div class="hero"><div class="ic">📰</div><div><h2>Next: ${esc(nx.en)}</h2><p>Story ${nx.n} of ${RD_DATA.length} · ${RD_TIERS[nx.tier].stars} ${RD_TIERS[nx.tier].name} · ${rdSeenPct(nx)}% of its words seen</p></div><button class="btn" id="rdNextBtn">Read ▶</button></div>`
+    : `<div class="hero done"><div class="ic">🎉</div><div><h2>All ${RD_DATA.length} stories read</h2><p>Read them again any time — key words in review get a quick check</p></div></div>`;
+  view.innerHTML = topbar("読 Reading") + `<div class="largetitle">Reading</div>
+    <p class="subtitle" id="rdSub">${nDone} of ${RD_DATA.length} stories read · tap any word for its meaning</p>${hero}
+    <div class="panel rdopts"><div class="row"><span>ふりがな Furigana<br><small class="muted">Readings above kanji in stories</small></span><button class="switch ${furi ? "on" : ""}" id="rdFuriSw" role="switch" aria-checked="${furi}" aria-label="Furigana"></button></div></div>
+    ${[1, 2, 3].map(tier => `<div class="sechead">${RD_TIERS[tier].stars} ${RD_TIERS[tier].name} <small class="muted">· ${RD_TIERS[tier].note}</small></div>
+      <div class="rdlist">${RD_DATA.filter(s => s.tier === tier).map(s => { const pct = rdSeenPct(s), best = done[s.id];
+        return `<button class="rdcard" data-rd="${s.id}"><span class="rdn">${s.n}</span><span class="grow"><b class="jp">${rdRuby(s.t, furi)}</b><small>${esc(s.en)} · ${s.s.length} sentences</small>
+          <span class="rdbar" aria-label="${pct}% of words seen"><i style="width:${pct}%"></i></span><small class="rdpct">${pct}% of words seen</small></span>
+          ${best != null ? `<span class="grst st-known">✓ ${best}/${s.q.length}</span>` : `<span class="grst">New</span>`}</button>`; }).join("")}</div>`).join("")}
+    <p class="muted grcredit">Stories and questions are original, written for this app with N5 grammar and vocabulary. Narration: Microsoft neural TTS voice ja-JP-NanamiNeural via edge-tts.</p>`;
+  bindBack(home);
+  const nb = $("#rdNextBtn"); if (nb) nb.onclick = () => { sfx.click(); go(() => rdStory(nx.id, readingHome)); };
+  $("#rdFuriSw").onclick = e => { S.rdFuri = S.rdFuri === false; save(); go(readingHome); };
+  view.querySelectorAll(".rdcard").forEach(b => b.onclick = () => { sfx.click(); go(() => rdStory(b.dataset.rd, readingHome)); });
+}
+
+/* ---------- Reader ---------- */
+let RD_PLAY = null;
+function rdStopPlay() { if (RD_PLAY) { RD_PLAY.stop = true; try { RD_PLAY.a && RD_PLAY.a.pause(); } catch (e) {} RD_PLAY = null; } document.querySelectorAll(".rdsent.playing").forEach(e => e.classList.remove("playing")); const b = $("#rdPlayAll"); if (b) b.textContent = "▶ Play all"; }
+function rdPlayAll(st) {
+  if (RD_PLAY) return rdStopPlay();
+  const P = RD_PLAY = { i: 0, stop: false, a: null }; $("#rdPlayAll").textContent = "⏹ Stop";
+  const step = () => {
+    if (P.stop || RD_PLAY !== P) return;
+    document.querySelectorAll(".rdsent.playing").forEach(e => e.classList.remove("playing"));
+    if (P.i >= st.s.length) return rdStopPlay();
+    const i = P.i++, row = document.querySelector(`.rdsent[data-s="${i}"]`); if (row) { row.classList.add("playing"); row.scrollIntoView({ block: "nearest", behavior: REDUCED_MOTION() ? "auto" : "smooth" }); }
+    if (curAudio) { try { curAudio.pause(); } catch (e) {} }
+    const a = P.a = new Audio(AUDIO_BASE + rdAudio(st.id, i)); curAudio = a;
+    let moved = false; const next = () => { if (moved) return; moved = true; setTimeout(step, 350); };
+    a.addEventListener("ended", next); a.addEventListener("error", () => { speakText(rdSentenceText(st.s[i][0]), true, 0.85); setTimeout(next, 1800); });
+    try { const p = a.play(); if (p && p.catch) p.catch(() => setTimeout(next, 1200)); } catch (e) { setTimeout(next, 1200); }
+  };
+  step();
+}
+function rdStory(id, back = readingHome) {
+  const st = RD[id]; if (!st) return readingHome();
+  const furi = S.rdFuri !== false, en = !!S.rdEn, ids = rdWordIds(st), seen = ids.filter(x => S.cards[x]).length;
+  view.innerHTML = topbar(`読 ${st.n}/${RD_DATA.length}`) + `<div class="panel rdstory ${en ? "showen" : ""}" id="rdStory" data-rd="${id}">
+    <div class="qtype">${RD_TIERS[st.tier].stars} ${RD_TIERS[st.tier].name}</div><h2 class="rdtitle jp">${rdRuby(st.t, furi)}</h2><p class="muted rden-title">${esc(st.en)} · <span id="rdSeen">${seen}/${ids.length}</span> words seen</p>
+    <div class="btnrow rdtools"><button class="btn sec small" id="rdPlayAll">▶ Play all</button><button class="btn ghost small ${furi ? "on" : ""}" id="rdFuri" aria-pressed="${furi}">ふりがな ${furi ? "on" : "off"}</button><button class="btn ghost small ${en ? "on" : ""}" id="rdEn" aria-pressed="${en}">English ${en ? "on" : "off"}</button></div>
+    <div class="rdtext">${st.s.map(([s, e], i) => `<div class="rdsent" data-s="${i}"><p class="jp rdjp">${rdTokHTML(s, st, i)}${grSayBtn(rdSentenceText(s), rdAudio(id, i))}</p><p class="muted rden">${esc(e)}</p></div>`).join("")}</div>
+    <p class="muted rdhint">Tap a word for its reading and meaning · words with a dotted line are in the N5 list</p></div>
+    <div class="grgo"><button class="btn" id="rdQuizBtn">Questions (${st.q.length}) ▶</button><p class="muted">Answers check the story's key words that are already in your reviews</p></div>`;
+  bindBack(back);
+  cleanup = rdStopPlay;
+  $("#rdPlayAll").onclick = () => { sfx.click(); rdPlayAll(st); };
+  $("#rdFuri").onclick = () => { S.rdFuri = S.rdFuri === false; save(); rdStopPlay(); go(() => rdStory(id, back)); };
+  $("#rdEn").onclick = () => { S.rdEn = !S.rdEn; save(); const on = !!S.rdEn, b = $("#rdEn"); $("#rdStory").classList.toggle("showen", on); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); b.textContent = `English ${on ? "on" : "off"}`; };
+  $("#rdQuizBtn").onclick = () => { sfx.click(); go(() => rdQuiz(id, back)); };
+  view.querySelector(".rdtext").onclick = e => { const b = e.target.closest(".rdw"); if (!b) return; const tk = st.s[+b.dataset.s][0].split("/")[+b.dataset.t]; rdWordSheet(rdToken(tk, st), () => { const n = ids.filter(x => S.cards[x]).length, el = $("#rdSeen"); if (el) el.textContent = `${n}/${ids.length}`; }); };
+}
+/* ---------- Word sheet ---------- */
+function rdAddWord(id) {
+  if (S.cards[id]) return "have";
+  if (!canIntro(id)) return "cap";
+  const now = Date.now(); markNew(id);
+  S.cards[id] = { box: 0, due: now, ok: 0, bad: 0, f: fNew(now) };   // Seen: FSRS starts at its first real review
+  trackItem(true); save(); if (typeof updateDueBadge === "function") updateDueBadge();
+  return "added";
+}
+function rdWordSheet(t, after) {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "rdSheet";
+  const w = t.id != null ? WORDS[t.id] : null;
+  let body;
+  if (w) {
+    const c = S.cards[w.id], st = !c ? "Not studied yet" : rdInReview(w.id) ? `In review · ${trackText(c.f)}` : "In your study list";
+    const form = rdStrip(t.raw) !== w.jp ? `<p class="muted rdform">In the story: <span class="jp">${rdRuby(t.raw, true)}</span></p>` : "";
+    body = `<div class="prompt jp">${esc(w.jp)}</div><div class="jp rdkana">${esc(w.kana)}</div><div class="muted">${esc(ROMA(w.kana.replace(/\s*\(.*\)$/, "")))}</div>
+      <p class="rdmean">${esc(w.en)}</p>${form}<p class="muted rdstat" id="rdStat">${esc(st)}</p>
+      <div class="btnrow"><button class="btn sec" id="rdSay">🔈 Listen</button><button class="btn" id="rdAdd" ${c ? "disabled" : ""}>${c ? "✓ In study list" : "＋ Add to study"}</button></div>
+      <p class="muted rdcap" id="rdCap">${c ? "" : newLimitV() === Infinity ? "No daily new-word limit" : `${newLeft()} of ${newLimitV()} new words left today`}</p>`;
+  } else if (t.gloss) {
+    const g = Array.isArray(t.gloss) ? t.gloss : null;
+    body = `<div class="prompt jp">${rdRuby(t.raw, true)}</div>${g ? `<div class="jp rdkana">${esc(g[0])}</div><p class="rdmean">${esc(g[1])}</p><p class="muted">Not in the N5 word list</p>` : `<p class="rdmean">${esc(t.gloss)}</p><p class="muted">Grammar word / ending</p>`}
+      <div class="btnrow"><button class="btn sec" id="rdSay">🔈 Listen</button></div>`;
+  } else body = `<div class="prompt jp">${rdRuby(t.raw, true)}</div><p class="rdmean">${t.name ? "A name" : "—"}</p><div class="btnrow"><button class="btn sec" id="rdSay">🔈 Listen</button></div>`;
+  md.innerHTML = `<div class="box rdsheet" role="dialog" aria-label="Word">${body}<div class="btnrow"><button class="btn ghost" id="rdClose">Close</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "rdClose") { md.remove(); after && after(); } };
+  md.querySelector("#rdSay").onclick = () => w ? speak(w, true) : speakText(Array.isArray(t.gloss) ? t.gloss[0] : t.surf, true, 0.85);
+  const ab = md.querySelector("#rdAdd");
+  if (ab) ab.onclick = () => {
+    const r = rdAddWord(w.id), cap = md.querySelector("#rdCap");
+    if (r === "added") { sfx.good(); ab.disabled = true; ab.textContent = "✓ Added"; md.querySelector("#rdStat").textContent = "Added — it joins your reviews (Seen)"; cap.textContent = newLimitV() === Infinity ? "" : `${newLeft()} of ${newLimitV()} new words left today`; toast(`＋ ${w.jp} added to study`); }
+    else if (r === "cap") { sfx.bad && sfx.bad(); cap.innerHTML = `🌙 Daily new-word limit reached (${newLimitV()}) — add it tomorrow, or raise the limit in Settings`; cap.classList.add("full"); ab.disabled = true; ab.textContent = "Limit reached"; }
+  };
+}
+
+/* ---------- Comprehension questions ---------- */
+function rdQuiz(id, back = readingHome) {
+  const st = RD[id]; if (!st) return readingHome();
+  studyScreen = true;
+  const qs = st.q.map(q => ({ q, opts: shuffle(q.o) }));
+  let pos = 0, right = 0, answered = false, t0 = 0;
+  const words = {};   // key-word id → worst rating this run
+  view.innerHTML = topbar(`読 ${esc(st.en)}`, `<span class="muted" id="score"></span>`) + `<div class="sprog"><div id="sprog" style="width:0"></div></div><div id="qhost"></div>
+    <p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> choose · <kbd>Enter</kbd> next</p>`;
+  bindBack(() => rdStory(id, back));
+  const progress = () => { $("#sprog").style.width = (pos / qs.length * 100) + "%"; $("#score").textContent = `${pos}/${qs.length}`; };
+  const show = () => {
+    answered = false; progress(); scrollTo(0, 0);
+    if (pos >= qs.length) return finish();
+    const { q, opts } = qs[pos];
+    $("#qhost").innerHTML = `<div class="card rdq" data-q="${pos}"><div class="qtype">Question ${pos + 1} of ${qs.length}</div>
+      <div class="grq jp rdqq">${rdRuby(rdPlain(q.q))}</div><div class="muted grhint">${esc(q.qe)}</div>
+      <div class="choices grlong">${opts.map((o, j) => `<button class="choice jp" data-i="${j}"><span class="k">${j + 1}</span>${rdRuby(o)}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div><button class="btn ghost small" id="rdPeek">📖 Look at the story</button></div>`;
+    t0 = performance.now();
+    const btns = [...view.querySelectorAll("#qhost .choice")];
+    const choose = j => {
+      if (answered || !btns[j]) return; answered = true;
+      const ok = opts[j] === q.o[0], slow = performance.now() - t0 > RD_HARD_MS;
+      btns.forEach((b, k) => { b.disabled = true; if (opts[k] === q.o[0]) b.classList.add("right"); }); if (!ok) btns[j].classList.add("wrong");
+      if (ok) right++;
+      const r = ok ? (slow ? 2 : 3) : 1;
+      for (const k of q.k) { const wid = k in RD_MAP.jp ? RD_MAP.jp[k] : RD_MAP.kana[k]; if (wid != null && rdInReview(wid)) words[wid] = Math.min(words[wid] || 4, r); }
+      comboHit(ok, btns[j], 6); pos++; progress();
+      $("#fb").innerHTML = `<div class="${ok ? "grok" : "grbad"}">${ok ? "✅ Correct!" : `❌ The answer: <span class="jp">${rdRuby(q.o[0])}</span>`}</div><div class="btnrow"><button class="btn" id="nextBtn">${pos >= qs.length ? "See results" : "Next →"}</button></div>`;
+      $("#nextBtn").onclick = show;
+    };
+    btns.forEach((b, j) => b.onclick = () => choose(j));
+    $("#rdPeek").onclick = () => rdStoryModal(st);
+    QZ.choose = choose;
+  };
+  const QZ = { choose: null };
+  const finish = () => {
+    const graded = Object.entries(words).map(([wid, r]) => { grade(+wid, r > 1, { rating: r, quiet: true, listen: false }); return { wid: +wid, r }; });
+    if (!isMap(S.rdDone)) S.rdDone = {};
+    S.rdDone[id] = Math.max(S.rdDone[id] || 0, right);
+    const L = nlog("rdDay"), t = todayStr(); L[t] = [...new Set([...(L[t] || []), id])].sort(); nlPrune("rdDay");
+    touchStreak(); save(); addXP(10 + right * 3);
+    const nx = rdNext();
+    $("#qhost").innerHTML = `<div class="card grfinish" id="rdFinish"><div class="qtype">Story done!</div><div class="big">${right === qs.length ? "🌟" : "✅"}</div>
+      <p>${right}/${qs.length} questions correct</p>
+      ${graded.length ? `<ul class="grres">${graded.map(x => `<li><span class="grow jp">${esc(WORDS[x.wid].jp)}</span><span class="rtag r${x.r}">${RATE_NAMES[x.r]}</span></li>`).join("")}</ul>${nextReviewListHTML()}`
+        : `<p class="muted">None of the key words are in review yet — schedules unchanged.</p>`}
+      <div class="btnrow"><button class="btn" id="rdBackList">Stories</button>${nx && nx.id !== id ? `<button class="btn sec" id="rdNextStory">Next story ▶</button>` : ""}<button class="btn ghost" id="rdAgain">Read again</button></div></div>`;
+    $("#sprog").style.width = "100%"; sfx.level(); if (right === qs.length) confetti(100);
+    bindNextReview($("#qhost"));
+    $("#rdBackList").onclick = () => go(readingHome);
+    $("#rdAgain").onclick = () => go(() => rdStory(id, back));
+    const ns = $("#rdNextStory"); if (ns) ns.onclick = () => go(() => rdStory(nx.id, readingHome));
+  };
+  const onKey = e => {
+    if (document.querySelector(".modal")) return;
+    if (!answered && /^[1-4]$/.test(e.key) && QZ.choose) QZ.choose(+e.key - 1);
+    else if (answered && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const b = $("#nextBtn") || $("#rdBackList"); if (b) b.click(); }
+  };
+  addEventListener("keydown", onKey); cleanup = () => removeEventListener("keydown", onKey);
+  show();
+}
+function rdStoryModal(st) {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "rdModal";
+  md.innerHTML = `<div class="box rdstory" role="dialog" aria-label="${esc(st.en)}"><h2 class="jp">${rdRuby(st.t)}</h2>${st.s.map(([s]) => `<p class="jp rdjp">${rdRuby(rdPlain(s))}</p>`).join("")}
+    <div class="btnrow"><button class="btn" id="rdModalClose">Close</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "rdModalClose") md.remove(); };
+}
+/* ================= Mock JLPT N5: hand-written item banks (original — written for this app, never copied) =================
+   {…} = underlined part · （　） = blank. Options: the correct answer first (shuffled on screen). w = N5 word (dictionary
+   form) the item tests, for "misses = Again if that word is already in review". Sentence-grammar items also come from the
+   app's own grammar drills (GR_DATA particle drills). Listening: lines [speaker, text] with M / F / N (narrator);
+   audio is pre-generated per item (audio/mk/<id>.mp3). */
+const MK_BANK = {
+ kr: [ // もんだい1 漢字読み
+  ["{先週} ともだちと えいがを みました。", ["せんしゅう", "せんしゅ", "せいしゅう", "ぜんしゅう"], "先週"],
+  ["まいにち {六時}に おきます。", ["ろくじ", "ろくし", "ろっじ", "ろうじ"]],
+  ["この {川}は とても きれいです。", ["かわ", "やま", "いけ", "うみ"], "川"],
+  ["{来月} 日本へ いきます。", ["らいげつ", "らいがつ", "くるげつ", "らいつき"], "来月"],
+  ["えきの {北}がわに ぎんこうが あります。", ["きた", "みなみ", "にし", "ひがし"], "北"],
+  ["テーブルの {上}に ほんが あります。", ["うえ", "した", "なか", "よこ"], "上"],
+  ["あの {白い} くるまは だれのですか。", ["しろい", "くろい", "あおい", "あかい"], "白い"],
+  ["{午前} 十時に あいましょう。", ["ごぜん", "ごせん", "こぜん", "ごうぜん"], "午前"],
+  ["わたしの {父}は いしゃです。", ["ちち", "はは", "あに", "あね"], "父"],
+  ["{毎朝} コーヒーを のみます。", ["まいあさ", "まいにち", "まいばん", "まいしゅう"], "毎朝"],
+  ["きのうは {雨}でした。", ["あめ", "ゆき", "くもり", "はれ"], "雨"],
+  ["{外国}へ いきたいです。", ["がいこく", "かいこく", "がいごく", "そとくに"], "外国"],
+  ["ともだちに {電話}を かけます。", ["でんわ", "でんは", "てんわ", "でんしゃ"], "電話"],
+  ["ケーキを {半分} たべました。", ["はんぶん", "はんふん", "はんぷん", "はぶん"], "半分"],
+  ["{千円} かして ください。", ["せんえん", "せいえん", "ぜんえん", "せんねん"]],
+  ["ここに {名前}を かいて ください。", ["なまえ", "なまい", "めいまえ", "なまや"], "名前"],
+  ["{今年}の なつは あついです。", ["ことし", "こんとし", "いまとし", "こどし"], "今年"],
+  ["つぎの かどを {右}へ まがって ください。", ["みぎ", "ひだり", "まえ", "うしろ"], "右"],
+  ["{学校}は 8時からです。", ["がっこう", "がこう", "がっこ", "かっこう"], "学校"],
+  ["にちようびに {山}に のぼりました。", ["やま", "かわ", "うみ", "もり"], "山"],
+  ["この ほんは {高い}です。", ["たかい", "ひくい", "やすい", "ながい"], "高い"],
+  ["わからない ことは {先生}に ききましょう。", ["せんせい", "せんせ", "せいせい", "ぜんせい"], "先生"],
+  ["{水}を ください。", ["みず", "みす", "すい", "みつ"], "水"]],
+ ot: [ // もんだい2 表記
+  ["まいばん {てれび}を みます。", ["テレビ", "テルビ", "デレビ", "テレビー"], "テレビ"],
+  ["{みなみ}の まどを あけて ください。", ["南", "西", "北", "東"], "南"],
+  ["{らいねん} 日本へ いきます。", ["来年", "来生", "未年", "来午"], "来年"],
+  ["{ちいさい} いぬが います。", ["小さい", "少さい", "小い", "少い"], "小さい"],
+  ["せんせいの {はなし}を ききました。", ["話", "語", "読", "記"], "話"],
+  ["すきな {たべもの}は なんですか。", ["食べ物", "食べ者", "飲べ物", "良べ物"], "食べ物"],
+  ["いっしょに {こーひー}を のみませんか。", ["コーヒー", "コーヒ", "コヒー", "ユーヒー"], "コーヒー"],
+  ["{でんしゃ}で きました。", ["電車", "雷車", "電東", "雪車"], "電車"],
+  ["{やすみ}の ひは なにを しますか。", ["休み", "体み", "本み", "休すみ"], "休み"],
+  ["{ほてる}に とまります。", ["ホテル", "ホラル", "ホテレ", "ボテル"], "ホテル"],
+  ["{みみ}が いたいです。", ["耳", "目", "手", "口"], "耳"],
+  ["{ごご} 3時に きて ください。", ["午後", "牛後", "午役", "牛役"], "午後"],
+  ["あの {たかい} たてものは なんですか。", ["高い", "長い", "古い", "安い"], "高い"],
+  ["{ともだち}と あそびました。", ["友だち", "反だち", "友たち", "支だち"], "友達"]],
+ cx: [ // もんだい3 文脈規定
+  ["あついですから、まどを （　） ください。", ["あけて", "しめて", "つけて", "けして"], "開ける"],
+  ["きのう くつを 1（　） かいました。", ["そく", "ほん", "まい", "だい"]],
+  ["ねる まえに はを （　）。", ["みがきます", "あらいます", "ふきます", "きります"], "磨く"],
+  ["この へやは （　）ですね。でんきを つけましょう。", ["くらい", "あかるい", "ひろい", "せまい"], "暗い"],
+  ["おなかが （　）から、なにか たべたいです。", ["すきました", "いっぱいです", "なりました", "あきました"]],
+  ["としょかんで ほんを 2さつ （　）。", ["かりました", "かしました", "かきました", "ききました"], "借りる"],
+  ["かわの うえに （　）が あります。", ["はし", "いけ", "みせ", "えき"], "橋"],
+  ["わたしは まいばん 11時に （　）。", ["ねます", "おきます", "あびます", "きます"], "寝る"],
+  ["この にくは （　）ですから、たべないで ください。", ["ふるい", "あたらしい", "おいしい", "やすい"], "古い"],
+  ["えきまで タクシーで 15ふん （　）。", ["かかります", "かけます", "かえります", "かわります"]],
+  ["あめが ふって いますから、（　）を もって いきます。", ["かさ", "かぎ", "かばん", "くつ"], "傘"],
+  ["その ペンを ちょっと （　） ください。", ["かして", "かりて", "かえて", "かって"], "貸す"],
+  ["この ズボンは ちょっと （　）です。もっと ながいのは ありますか。", ["みじかい", "ながい", "ひろい", "おもい"], "短い"],
+  ["すみません、トイレは （　）ですか。", ["どこ", "いつ", "なに", "だれ"]],
+  ["まいあさ シャワーを （　）。", ["あびます", "はいります", "あらいます", "いれます"], "浴びる"],
+  ["わたしは コーヒーに さとうを （　）。", ["いれます", "つけます", "おきます", "ならべます"], "入れる"]],
+ pa: [ // もんだい4 言い換え類義
+  ["{きのうは いそがしかったです。}", ["きのうは ひまでは ありませんでした。", "きのうは ひまでした。", "きのうは やすみでした。", "きのうは つかれませんでした。"], "忙しい"],
+  ["{あには ギターが へたです。}", ["あには ギターが じょうずでは ありません。", "あには ギターが すきです。", "あには ギターを ひきません。", "あには ギターが じょうずです。"], "下手"],
+  ["{この へやは くらいです。}", ["この へやは あかるくないです。", "この へやは ひろくないです。", "この へやは しずかです。", "この へやは あかるいです。"], "暗い"],
+  ["{おととい} デパートに いきました。", ["ふつかまえに デパートに いきました。", "きのう デパートに いきました。", "あさって デパートに いきます。", "せんしゅう デパートに いきました。"], "一昨日"],
+  ["{トイレは あちらです。}", ["おてあらいは あちらです。", "だいどころは あちらです。", "げんかんは あちらです。", "でぐちは あちらです。"], "トイレ"],
+  ["{わたしは がっこうで えいごを おしえて います。}", ["わたしは えいごの せんせいです。", "わたしは えいごの がくせいです。", "わたしは えいごを ならって います。", "わたしは がっこうで えいごを べんきょうして います。"], "教える"],
+  ["{この りんごは やすいです。}", ["この りんごは たかくないです。", "この りんごは おいしくないです。", "この りんごは ちいさくないです。", "この りんごは たかいです。"], "安い"],
+  ["{あしたは はれるでしょう。}", ["あしたは いい てんきでしょう。", "あしたは あめでしょう。", "あしたは くもりでしょう。", "あしたは ゆきでしょう。"], "晴れる"],
+  ["{たなかさんは ははの あねです。}", ["たなかさんは わたしの おばです。", "たなかさんは わたしの おばあさんです。", "たなかさんは わたしの あねです。", "たなかさんは わたしの いもうとです。"], "伯母さん"],
+  ["{きょうは しごとが ありません。}", ["きょうは やすみです。", "きょうは いそがしいです。", "きょうは しごとを します。", "きょうは かいしゃへ いきます。"], "仕事"]],
+ g1: [ // もんだい1 文の文法1 (hand-written forms; particle items come from the grammar drills)
+  ["きのう デパートへ かいものに （　）。", ["いきました", "いきます", "いって", "いく"]],
+  ["この へやは しずか（　） ひろいです。", ["で", "と", "に", "が"]],
+  ["わたしは さかなが （　） すきでは ありません。", ["あまり", "とても", "よく", "たくさん"]],
+  ["まいあさ シャワーを あびて（　）、がっこうへ いきます。", ["から", "まで", "ので", "より"]],
+  ["あした いっしょに こうえんへ （　）。", ["いきませんか", "いきましたか", "いって いますか", "いきませんでしたか"]],
+  ["A「この ケーキ、たべても いいですか。」 B「ええ、（　）。」", ["どうぞ", "どういたしまして", "ごちそうさま", "いただきます"]],
+  ["やまださんは （　） 人ですか。", ["どんな", "なに", "どれ", "どう"]],
+  ["ここで たばこを すわないで （　）。", ["ください", "います", "あります", "なります"]],
+  ["きのうは さむかったですが、きょうは （　）です。", ["あたたかい", "あたたかかった", "あたたかく", "あたたかくて"]],
+  ["わたしの いえは えき（　） ちかいです。", ["から", "を", "で", "へ"]],
+  ["ねる （　） はを みがきます。", ["まえに", "あとで", "まえ", "あと"]],
+  ["ノートに なまえを （　） ください。", ["かいて", "かく", "かいた", "かき"]],
+  ["あには わたし（　） 3さい うえです。", ["より", "から", "まで", "ほど"]]],
+ g2: [ // もんだい2 文の文法2 (★): [before, pieces in the right order, after, ★ position]
+  ["A「この ペンは だれのですか。」 B「それは", ["となりの", "へやの", "やまださん", "の"], "です。」", 2],
+  ["あそこで", ["しんぶんを", "よんで", "いる", "人は"], "わたしの あにです。", 2],
+  ["この", ["かんじ", "の", "よみかた", "を"], "おしえて ください。", 2],
+  ["ごはんを", ["たべた", "あとで", "この", "くすりを"], "のんで ください。", 2],
+  ["わたしは", ["えいがを", "みる", "の", "が"], "すきです。", 2],
+  ["きょうは", ["あめ", "です", "から", "どこへも"], "いきません。", 2],
+  ["やまださんは", ["かみが", "ながくて", "めが", "おおきい"], "人です。", 2],
+  ["まいあさ", ["シャワーを", "あびて", "から", "うちを"], "でます。", 2],
+  ["きのう", ["あたらしい", "くつ", "を", "はいて"], "でかけました。", 2],
+  ["A「なにを のみますか。」 B「わたしは", ["つめたい", "のみもの", "が", "いい"], "です。」", 2],
+  ["たなかさんは", ["あおい", "シャツ", "を", "きて"], "います。", 2],
+  ["すみません、くろい くつは", ["この", "みせ", "に", "も"], "ありますか。", 2],
+  ["きのう", ["かった", "ほん", "は", "とても"], "たかかったです。", 2],
+  ["これは", ["ははが", "つくった", "ケーキ", "の"], "しゃしんです。", 2]],
+ tg: [ // もんだい3 文章の文法: text with ［1］…［4］, options per blank
+  { by: "マイク", t: "わたしの すきな ところ", p: "わたしは こうえんが すきです。うちの ちかくに 大きい こうえんが あります。［1］ こうえんには いけが あって、さかなが たくさん います。わたしは 日よう日に よく こうえんへ ［2］。こうえんで ほんを よんで、さんぽを します。［3］、いけの まえで ともだちと しゃしんを とりました。こうえんは とても しずかで、［4］。",
+    b: [["その", "あの", "この", "どの"], ["いきます", "いきましょう", "いきたいですか", "いきませんでした"], ["きのう", "あした", "まいにち", "いつも"], ["わたしは だいすきです", "わたしは きらいです", "だれも いきません", "あまり すきでは ありません"]] },
+  { by: "リー", t: "日本の せいかつ", p: "わたしは 3か月まえに 日本へ きました。いまは だいがくの ちかくの アパートに すんで います。日本の たべものは とても おいしいです。［1］、すこし たかいです。だから、よく じぶんで りょうりを ［2］。日本ごは まだ じょうずでは ありませんが、［3］ べんきょうして います。らいねん、ともだちと きょうとへ りょこうに いきたいです。きょうとには ふるい おてらが たくさん ［4］。",
+    b: [["でも", "それから", "そして", "だから"], ["します", "しません", "しましたか", "しましょうか"], ["まいにち", "あまり", "ぜんぜん", "もう"], ["あります", "います", "ありましたか", "いましたか"]] },
+  { by: "アンナ", t: "わたしの しゅみ", p: "わたしの しゅみは りょうりです。日よう日は いつも ばんごはんを つくります。せんしゅうは カレーを つくりました。カレーは 父が いちばん すきな たべもの ［1］。父は「おいしいね」と ［2］。母も たくさん たべました。でも、おとうとは カレーが あまり すきでは ありません。［3］、おとうとには サンドイッチを つくりました。こんどの 日よう日は なにを つくりましょうか。かぞくに ［4］。",
+    b: [["です", "ですか", "でしょうか", "ではありませんか"], ["いいました", "いいます", "いいましょう", "いって ください"], ["だから", "でも", "それに", "では"], ["ききます", "きいて ください", "ききましたか", "きかないで ください"]] }],
+ rs: [ // もんだい4 内容理解（短文）
+  { p: "（がっこうで）ジョンさんの つくえの 上に、この メモが あります。\n\nジョンさん\nあしたの クラスは 10時からでは ありません。11時からです。きょうしつも かわりました。3かいの 305きょうしつに きて ください。\nやまだ",
+    q: "ジョンさんは あした 何時に どこへ いきますか。", o: ["11時に 305きょうしつへ いきます", "10時に 305きょうしつへ いきます", "11時に いつもの きょうしつへ いきます", "10時に いつもの きょうしつへ いきます"] },
+  { p: "きのうは 雨でしたから、わたしは うちに いました。ひるまで テレビを みて、ごごは へやの そうじを しました。ゆうがた、あねが ケーキを かって きました。ふたりで たべました。",
+    q: "「わたし」は きのうの ごご、何を しましたか。", o: ["へやの そうじを しました", "テレビを みました", "ケーキを かいに いきました", "あねと でかけました"] },
+  { p: "マリアさん\nこんどの 土よう日、いっしょに えいがを みませんか。えいがは 2時からです。1時半に えきの まえで あいましょう。ひるごはんは そのまえに たべて きて ください。\nさとう",
+    q: "マリアさんは 土よう日、どう しますか。", o: ["ひるごはんを たべてから、1時半に えきへ いきます", "1時半に えきで ひるごはんを たべます", "2時に えきの まえで さとうさんに あいます", "えいがの あとで、ひるごはんを たべます"] },
+  { p: "（スーパーの 入り口に ある おしらせ）\n\nおしらせ\n8月15日は やすみです。16日は あさ 10時から よる 7時までです。17日からは いつもと おなじ、あさ 9時から よる 9時までです。",
+    q: "8月16日に かいものを したいです。何時に いきますか。", o: ["ごご 3時", "あさ 9時", "よる 8時", "あさ 9時半"] },
+  { p: "わたしの いえには いぬが 2ひき います。大きい いぬは シロで、小さい いぬは クロです。シロは しろくて、クロは くろいです。まいあさ 父が シロと さんぽに いきます。クロは ゆうがた わたしと さんぽします。",
+    q: "ゆうがた「わたし」と さんぽする いぬは どれですか。", o: ["小さくて くろい いぬ", "大きくて しろい いぬ", "小さくて しろい いぬ", "大きくて くろい いぬ"] },
+  { p: "（かいしゃで）たなかさんの つくえの 上に メモが あります。\n\nたなかさん\nさっき やまもとさんから 電話が ありました。あしたの かいぎは ごご 2時からです。かいぎの まえに、やまもとさんに 電話して ください。\nきむら",
+    q: "たなかさんは まず 何を しますか。", o: ["やまもとさんに 電話します", "かいぎに でます", "きむらさんに 電話します", "メモを かきます"] }],
+ rm: [ // もんだい5 内容理解（中文）: two questions each
+  { t: "ゆきの まち", p: "わたしは 去年の 4月から ほっかいどうの 小さい まちに すんで います。まちの 人は とても しんせつです。ふゆは さむくて、ゆきが たくさん ふります。はじめての ふゆは とても たいへんでした。まいあさ ゆきの 中を あるいて、がっこうへ いきました。でも、ゆきの 日は いい ことも あります。日よう日に ともだちと スキーを しに いきました。スキーは はじめてでしたが、とても たのしかったです。こんどは かぞくと いっしょに いきたいです。",
+    qs: [["はじめての ふゆは どうでしたか。", ["さむくて、たいへんでした", "あたたかくて、たのしかったです", "ゆきが すくなかったです", "まちの 人が しんせつでは ありませんでした"]],
+         ["「わたし」は こんど 何を したいですか。", ["かぞくと スキーに いきたいです", "ともだちと スキーに いきたいです", "かぞくと ほっかいどうに すみたいです", "ひとりで スキーを ならいたいです"]]] },
+  { t: "あねの しごと", p: "わたしの あねは パンやで はたらいて います。あねは まいあさ 4時に おきて、5時から パンを つくります。みせは 7時に あきます。あさは、かいしゃや がっこうへ いく 人が たくさん きます。あねの しごとは ごご 2時に おわります。しごとの あと、あねは いつも すこし ねます。あねは「あさは はやいですが、パンを つくるのは たのしいです」と いって います。わたしも パンが 大すきです。日よう日は あねの みせへ いって、パンを かいます。",
+    qs: [["あねは 何時から パンを つくりますか。", ["5時", "4時", "7時", "2時"]],
+         ["あねは しごとの あと、何を しますか。", ["すこし ねます", "パンを かいます", "がっこうへ いきます", "みせを あけます"]]] },
+  { t: "ともだちへの てがみ", p: "けんさん、おげんきですか。わたしは いま、おおさかの だいがくで 日本ごを べんきょうして います。クラスには いろいろな くにの 学生が います。せんせいは やさしいですが、しゅくだいが おおいです。まいばん 2時間ぐらい しゅくだいを します。しゅうまつは よく ともだちと おおさかの まちを あるきます。おおさかの たべものは やすくて おいしいです。いちばん すきな たべものは たこやきです。8月に いちど くにへ かえります。そのとき、けんさんに あいたいです。　リン",
+    qs: [["リンさんは まいばん 何を しますか。", ["2時間ぐらい しゅくだいを します", "ともだちと まちを あるきます", "たこやきを たべます", "くにの かぞくに 電話します"]],
+         ["リンさんは 8月に 何を しますか。", ["くにへ かえって、けんさんに あいたいです", "けんさんと おおさかを あるきたいです", "だいがくで 日本ごを べんきょうします", "ともだちと たこやきを つくります"]]] }],
+ ri: [ // もんだい6 情報検索
+  { p: "さくら としょかん\n\n・あいて いる 時間\n　火よう日〜金よう日　9:00〜19:00\n　土よう日・日よう日　9:00〜17:00\n・月よう日は やすみです。\n・本は 1人 5さつまでです。2しゅうかんで かえして ください。",
+    q: "マリアさんは 日よう日の ごご 6時に としょかんへ いきたいです。としょかんは どうですか。", o: ["しまって います", "あいて います", "6時に あきます", "日よう日は やすみです"] },
+  { p: "みどり えいがかん　今週の じかんひょう\n\n『そらの いえ』　10:00 / 13:30 / 17:00 / 19:30（土・日だけ）\n『あおい うみ』　11:00 / 14:00 / 18:30",
+    q: "リーさんは 金よう日、しごとが 6時に おわります。かいしゃから えいがかんまで 30分 かかります。『あおい うみ』を みたいです。何時の えいがを みますか。", o: ["18:30", "14:00", "19:30", "17:00"] },
+  { p: "ひまわり プール\n\n・りょうきん：おとな 500円　こども（6さい〜12さい）200円　5さいまで 0円\n・火よう日は やすみです。\n・あいて いる 時間：10:00〜18:00",
+    q: "お父さん（42さい）と むすこ（10さい）と むすめ（4さい）が 土よう日に いきます。ぜんぶで いくらですか。", o: ["700円", "900円", "500円", "1200円"] }],
+ lt: [ // 聴解 もんだい1 課題理解 (options printed; question spoken before and after)
+  { id: "lt01", sit: "がっこうで 先生が 話して います。学生は あした 何を もって きますか。", lines: [["F", "あしたは こうえんへ 絵を かきに いきます。えんぴつと けしゴムを もって きて ください。"], ["M", "先生、かみも もって きますか。"], ["F", "かみは がっこうに ありますから、いりません。それから、おべんとうと のみものを わすれないで ください。"], ["M", "はい、わかりました。"]], o: ["えんぴつと けしゴムと おべんとうと のみもの", "えんぴつと かみと おべんとう", "かみと けしゴムと のみもの", "えんぴつと けしゴムと かみ"] },
+  { id: "lt02", sit: "男の 人と 女の 人が 話して います。男の 人は どこに いすを おきますか。", lines: [["F", "すみません、その いすを まどの ちかくに おいて ください。"], ["M", "まどの ちかくですね。テーブルの よこで いいですか。"], ["F", "あ、テーブルの よこは ちょっと せまいですね。ドアの ひだりに おいて ください。"], ["M", "はい、ドアの ひだりですね。"]], o: ["ドアの ひだり", "まどの ちかく", "テーブルの よこ", "ドアの みぎ"] },
+  { id: "lt03", sit: "みせで 女の 人と みせの 人が 話して います。女の 人は 何を かいますか。", lines: [["F", "すみません、この あかい かさは いくらですか。"], ["M", "1500円です。あおいのも ありますよ。こちらは 1000円です。"], ["F", "そうですか。じゃあ、あおいのを ください。それから、この ハンカチも おねがいします。"], ["M", "はい、ありがとうございます。"]], o: ["あおい かさと ハンカチ", "あかい かさと ハンカチ", "あおい かさだけ", "あかい かさだけ"] },
+  { id: "lt04", sit: "かいしゃで 男の 人と 女の 人が 話して います。女の 人は このあと まず 何を しますか。", lines: [["M", "やまださん、この てがみを 10まい コピーして ください。"], ["F", "はい。すぐ しますか。"], ["M", "いいえ、さきに かいぎしつの そうじを おねがいします。2時から かいぎが ありますから。"], ["F", "わかりました。"]], o: ["かいぎしつを そうじします", "てがみを コピーします", "かいぎに でます", "てがみを かきます"] },
+  { id: "lt05", sit: "男の 学生と 女の 学生が 話して います。ふたりは どこで あいますか。", lines: [["M", "あしたの えいが、何時に あいましょうか。"], ["F", "えいがは 3時からですね。2時半に えいがかんの まえは どうですか。"], ["M", "えいがかんの まえは 人が おおいですから、えきの まえの きっさてんは どうですか。"], ["F", "いいですね。じゃあ、2時に きっさてんで。"]], o: ["えきの まえの きっさてん", "えいがかんの まえ", "えきの 中", "えいがかんの 中の きっさてん"] },
+  { id: "lt06", sit: "女の 人と 男の 人が 話して います。男の 人は 何ばんの バスに のりますか。", lines: [["M", "すみません、としょかんへ いきたいんですが、何ばんの バスですか。"], ["F", "としょかんですか。3ばんと 5ばんの バスが いきますよ。でも、3ばんは 30分に 1かいですから、5ばんが いいですよ。"], ["M", "5ばんですね。ありがとうございます。"]], o: ["5ばん", "3ばん", "8ばん", "13ばん"] },
+  { id: "lt07", sit: "うちで お母さんと むすこが 話して います。むすこは このあと まず 何を しますか。", lines: [["F", "たろう、しゅくだいは おわりましたか。"], ["M", "まだです。いまから テレビを みたいです。"], ["F", "だめですよ。しゅくだいを してから、テレビを みて ください。"], ["M", "はい。でも、そのまえに おふろに はいっても いいですか。"], ["F", "いいですよ。"]], o: ["おふろに はいります", "しゅくだいを します", "テレビを みます", "ばんごはんを たべます"] },
+  { id: "lt08", sit: "女の 人が 電話で 話して います。女の 人は 何を かって かえりますか。", lines: [["F", "もしもし、いま スーパーに いますが、なにか かいましょうか。"], ["M", "ありがとう。たまごと ぎゅうにゅうを おねがいします。"], ["F", "パンは いりますか。"], ["M", "パンは まだ ありますから、いいです。あ、りんごも おねがいします。"]], o: ["たまごと ぎゅうにゅうと りんご", "たまごと ぎゅうにゅうと パン", "ぎゅうにゅうと パンと りんご", "たまごと パンと りんご"] },
+  { id: "lt09", sit: "がっこうで 先生と 学生が 話して います。学生は しゅくだいを いつ だしますか。", lines: [["M", "この しゅくだいは らいしゅうの 月よう日に だして ください。"], ["F", "先生、月よう日は やすみです。"], ["M", "あ、そうでしたね。じゃあ、火よう日に だして ください。"]], o: ["らいしゅうの 火よう日", "らいしゅうの 月よう日", "こんしゅうの 火よう日", "らいしゅうの 水よう日"] },
+  { id: "lt10", sit: "レストランで 男の 人と 女の 人が 話して います。男の 人は 何を たべますか。", lines: [["F", "わたしは カレーに します。たなかさんは？"], ["M", "ぼくは ラーメンが いいですね。あ、でも ラーメンは きょう ありませんね。"], ["F", "そうですね。サンドイッチは どうですか。"], ["M", "うーん、おなかが すいて いますから、カレーと サラダに します。"]], o: ["カレーと サラダ", "ラーメン", "サンドイッチ", "カレーだけ"] },
+  { id: "lt11", sit: "えきで 女の 人と 男の 人が 話して います。女の 人は どの 電車に のりますか。", lines: [["F", "すみません、とうきょうえきへ いきたいです。この 電車で いいですか。"], ["M", "いいえ、これは とうきょうえきへ いきません。となりの 2ばんせんの 電車に のって ください。"], ["F", "2ばんせんですね。何時の 電車が ありますか。"], ["M", "10時5分です。"]], o: ["2ばんせんの 10時5分の 電車", "1ばんせんの 10時5分の 電車", "2ばんせんの 10時15分の 電車", "いまの 電車"] },
+  { id: "lt12", sit: "がっこうで 男の 学生と 女の 学生が 話して います。男の 学生は あした 何を しますか。", lines: [["F", "あしたの ごご、いっしょに としょかんで べんきょうしませんか。"], ["M", "すみません、あしたは アルバイトが あります。あさっては どうですか。"], ["F", "あさっては わたしが ちょっと…。じゃあ、また こんど。"]], o: ["アルバイトを します", "としょかんで べんきょうします", "女の 学生と あそびます", "うちで やすみます"] },
+  { id: "lt13", sit: "女の 人と 男の 人が 話して います。男の 人は 何を もって いきますか。", lines: [["F", "あした やまへ いきますね。テレビで、あしたは ごごから 雨だと いって いましたよ。"], ["M", "そうですか。じゃあ、かさを もって いきます。"], ["F", "やまは さむいですから、セーターも もって いって ください。"], ["M", "はい。カメラも もって いきます。"]], o: ["かさと セーターと カメラ", "かさと カメラ", "セーターと カメラ", "かさと セーター"] },
+  { id: "lt14", sit: "うちで 男の 人と 女の 人が 話して います。ふたりは 何時に うちを でますか。", lines: [["M", "パーティーは 7時からですね。何時に でかけましょうか。"], ["F", "ここから 30分ぐらい かかりますから、6時半に でましょう。"], ["M", "でも、そのまえに はなやで はなを かいたいです。"], ["F", "じゃあ、6時に でましょう。"]], o: ["6時", "6時半", "7時", "5時半"] },
+  { id: "lt15", sit: "かいしゃで 女の 人と 男の 人が 話して います。男の 人は このあと まず どこへ いきますか。", lines: [["F", "すずきさん、やまださんが よんで いますよ。"], ["M", "え、どこに いますか。"], ["F", "3がいの かいぎしつです。あ、でも そのまえに、この 本を 2かいの としょしつに かえして ください。"], ["M", "わかりました。"]], o: ["2かいの としょしつ", "3がいの かいぎしつ", "1かいの しょくどう", "やまださんの へや"] }],
+ lp: [ // 聴解 もんだい2 ポイント理解
+  { id: "lp01", sit: "男の 人と 女の 人が 話して います。女の 人は きのう どこへ いきましたか。", lines: [["M", "きのうは どこかへ いきましたか。"], ["F", "ええ、デパートへ いきたかったですが、雨でしたから、えいがかんへ いきました。"], ["M", "そうですか。えいがは どうでしたか。"], ["F", "とても おもしろかったです。"]], o: ["えいがかん", "デパート", "うみ", "ともだちの うち"] },
+  { id: "lp02", sit: "男の 人と 女の 人が 話して います。男の 人は きょう 何で かいしゃへ きましたか。", lines: [["F", "きょうは はやいですね。"], ["M", "ええ、いつもは バスで きますが、きょうは じてんしゃで きました。てんきが いいですから。"], ["F", "いいですね。"]], o: ["じてんしゃ", "バス", "電車", "くるま"] },
+  { id: "lp03", sit: "女の 学生と 男の 学生が 話して います。男の 学生の おにいさんは どの 人ですか。", lines: [["F", "あの めがねを かけて いる 人が おにいさんですか。"], ["M", "いいえ、あれは ともだちです。あには その となりの、ぼうしを かぶって いる 人です。"], ["F", "ああ、せが たかい 人ですね。"]], o: ["ぼうしを かぶって いる 人", "めがねを かけて いる 人", "めがねを かけて、ぼうしを かぶって いる 人", "せが ひくい 人"] },
+  { id: "lp04", sit: "男の 人と 女の 人が 話して います。女の 人の たんじょうびは いつですか。", lines: [["M", "たんじょうびは いつですか。"], ["F", "6月8日です。"], ["M", "え、ぼくは 6月9日です。ちかいですね。"]], o: ["6月8日", "6月9日", "7月8日", "8月6日"] },
+  { id: "lp05", sit: "女の 人が 話して います。女の 人は まいあさ 何を のみますか。", lines: [["F", "わたしは まいあさ パンを たべます。のみものは、まえは コーヒーでしたが、いまは こうちゃを のみます。ぎゅうにゅうは あまり すきでは ありません。"]], o: ["こうちゃ", "コーヒー", "ぎゅうにゅう", "ジュース"] },
+  { id: "lp06", sit: "男の 人と 女の 人が 話して います。男の 人は きのう 何時間 ねましたか。", lines: [["F", "げんきが ありませんね。"], ["M", "きのうは しゅくだいが おおくて、2時に ねました。6時に おきましたから…。"], ["F", "4時間ですか。それは たいへんですね。"]], o: ["4時間", "2時間", "6時間", "8時間"] },
+  { id: "lp07", sit: "みせで 女の 人と みせの 人が 話して います。りんごは ぜんぶで いくらですか。", lines: [["F", "この りんごは ひとつ いくらですか。"], ["M", "ひとつ 100円です。"], ["F", "じゃあ、5つ ください。"], ["M", "はい、500円です。"]], o: ["500円", "100円", "150円", "600円"] },
+  { id: "lp08", sit: "男の 学生と 女の 学生が 話して います。男の 学生は なつやすみに 何を しましたか。", lines: [["F", "なつやすみは どうでしたか。"], ["M", "かぞくと やまへ いきたかったですが、父の しごとが いそがしくて、いけませんでした。それで、まいにち プールで およぎました。"], ["F", "そうですか。"]], o: ["プールで およぎました", "かぞくと やまへ いきました", "父と しごとを しました", "うみで およぎました"] },
+  { id: "lp09", sit: "男の 人と 女の 人が 話して います。女の 人は どうして きのう がっこうを やすみましたか。", lines: [["M", "きのうは どう しましたか。かぜですか。"], ["F", "いいえ、かぜでは ありません。あたまが いたかったですから、びょういんへ いきました。"], ["M", "そうですか。もう だいじょうぶですか。"], ["F", "はい。"]], o: ["あたまが いたかったからです", "かぜを ひいたからです", "びょういんで はたらいて いるからです", "あさ おきなかったからです"] },
+  { id: "lp10", sit: "女の 人と 男の 人が 話して います。男の 人の へやは 何がいですか。", lines: [["F", "やまださんの へやは この ビルの 5かいですか。"], ["M", "いいえ、5かいは じむしょです。わたしの へやは その 上の 6かいです。"]], o: ["6かい", "5かい", "4かい", "7かい"] },
+  { id: "lp11", sit: "男の 人と 女の 人が 話して います。女の 人は 何人 きょうだいですか。", lines: [["M", "きょうだいは いますか。"], ["F", "はい、あにが ふたりと、いもうとが ひとり います。"], ["M", "じゃあ、4人 きょうだいですね。"], ["F", "はい。"]], o: ["4人", "3人", "2人", "5人"] },
+  { id: "lp12", sit: "えきで 男の 人と 女の 人が 話して います。つぎの 電車は 何時に でますか。", lines: [["M", "すみません、つぎの 電車は 何時ですか。"], ["F", "9時20分です。あ、すみません、きょうは 日よう日ですから、9時40分です。"], ["M", "ありがとうございます。"]], o: ["9時40分", "9時20分", "9時4分", "10時20分"] },
+  { id: "lp13", sit: "女の 人と 男の 人が 話して います。男の 人は どんな スポーツが いちばん すきですか。", lines: [["F", "スポーツは 何が すきですか。テニスですか。"], ["M", "テニスは あまり じょうずじゃないです。サッカーを みるのは すきですが、いちばん すきなのは やきゅうです。まいしゅう やって います。"]], o: ["やきゅう", "テニス", "サッカー", "すいえい"] }],
+ lu: [ // 聴解 もんだい3 発話表現 (3 spoken choices; the scene is printed)
+  { id: "lu01", sc: "🍽️ レストランで、みせの 人を よびたいです。", en: "At a restaurant — you want to call the waiter.", o: ["すみません。", "いらっしゃいませ。", "ごちそうさまでした。"] },
+  { id: "lu02", sc: "🏠 ともだちの うちに つきました。これから うちに 入ります。", en: "You arrive at a friend's home and are about to go in.", o: ["おじゃまします。", "いってきます。", "ただいま。"] },
+  { id: "lu03", sc: "🏫 あさ、がっこうで 先生に あいました。", en: "You meet your teacher at school in the morning.", o: ["おはようございます。", "こんばんは。", "おやすみなさい。"] },
+  { id: "lu04", sc: "🍚 これから ごはんを たべます。", en: "You are about to start eating.", o: ["いただきます。", "ごちそうさまでした。", "いってらっしゃい。"] },
+  { id: "lu05", sc: "🖊️ ともだちの ペンを かりたいです。", en: "You want to borrow your friend's pen.", o: ["ペンを かして ください。", "ペンを かりて ください。", "ペンを かいましょうか。"] },
+  { id: "lu06", sc: "🗺️ みちが わかりません。えきへ いきたいです。", en: "You are lost and want to go to the station.", o: ["すみません、えきは どこですか。", "すみません、えきへ いきましたか。", "すみません、えきに いますか。"] },
+  { id: "lu07", sc: "🚪 うちへ かえりました。かぞくに あいさつします。", en: "You get home and greet your family.", o: ["ただいま。", "おかえりなさい。", "いってきます。"] },
+  { id: "lu08", sc: "📦 ともだちが にもつを たくさん もって います。てつだいたいです。", en: "Your friend is carrying a lot of bags — you want to help.", o: ["ひとつ もちましょうか。", "ひとつ もって ください。", "ひとつ もちませんか。"] },
+  { id: "lu09", sc: "🍬 ともだちに おかしを もらいました。", en: "A friend gives you some sweets.", o: ["ありがとう。", "どういたしまして。", "おめでとう。"] },
+  { id: "lu10", sc: "🪟 きょうしつが あついです。まどを あけたいです。先生に ききます。", en: "The classroom is hot — you ask the teacher about opening the window.", o: ["まどを あけても いいですか。", "まどを あけましたか。", "まどを あけて いますか。"] },
+  { id: "lu11", sc: "🎬 ともだちと いっしょに えいがを みたいです。", en: "You want to see a movie with a friend.", o: ["いっしょに えいがを みませんか。", "いっしょに えいがを みましたか。", "えいがは どこで みましたか。"] },
+  { id: "lu12", sc: "🏢 しごとが おわりました。さきに かいしゃを でます。", en: "Work is over and you leave the office before your colleagues.", o: ["おさきに しつれいします。", "いってらっしゃい。", "おかえりなさい。"] }],
+ lq: [ // 聴解 もんだい4 即時応答 (nothing printed)
+  { id: "lq01", s: "M", u: "おなまえは？", o: ["やまだです。", "げんきです。", "日本人です。"] },
+  { id: "lq02", s: "F", u: "いま 何時ですか。", o: ["3時です。", "3時間です。", "3かいです。"] },
+  { id: "lq03", s: "M", u: "この かばんは だれのですか。", o: ["わたしのです。", "あかいです。", "デパートで かいました。"] },
+  { id: "lq04", s: "F", u: "しゅうまつは 何を しましたか。", o: ["ともだちと テニスを しました。", "らいしゅう テニスを します。", "テニスが すきです。"] },
+  { id: "lq05", s: "M", u: "コーヒーと こうちゃと どちらが いいですか。", o: ["こうちゃを おねがいします。", "はい、そうです。", "どちらも ありません。"] },
+  { id: "lq06", s: "F", u: "おげんきですか。", o: ["はい、げんきです。", "はい、どうぞ。", "いいえ、けっこうです。"] },
+  { id: "lq07", s: "M", u: "いっしょに ひるごはんを たべませんか。", o: ["ええ、たべましょう。", "いいえ、たべて ください。", "はい、たべません。"] },
+  { id: "lq08", s: "F", u: "どうぞ、すわって ください。", o: ["ありがとうございます。", "いただきます。", "どういたしまして。"] },
+  { id: "lq09", s: "M", u: "がっこうまで どのぐらい かかりますか。", o: ["あるいて 10分です。", "8時からです。", "がっこうは あそこです。"] },
+  { id: "lq10", s: "F", u: "きのう、どうして がっこうを やすみましたか。", o: ["ねつが ありましたから。", "あした やすみます。", "がっこうへ いきます。"] },
+  { id: "lq11", s: "M", u: "この りんご、ひとつ いくらですか。", o: ["150円です。", "みっつです。", "あかい りんごです。"] },
+  { id: "lq12", s: "F", u: "おくには どちらですか。", o: ["ちゅうごくです。", "あちらです。", "えきの ちかくです。"] },
+  { id: "lq13", s: "M", u: "すみません、トイレを かりても いいですか。", o: ["はい、どうぞ。", "はい、かして ください。", "いいえ、ありがとう。"] },
+  { id: "lq14", s: "F", u: "なつやすみは いつからですか。", o: ["7月20日からです。", "2しゅうかんです。", "うみへ いきます。"] }]
+};
+/* order in which a spoken-choice item (発話表現 / 即時応答) reads its options — fixed per item so the audio matches the screen.
+   Returns indexes into o (o[0] is the correct answer). Shared with tools/mk_tts.js. */
+function mkPerm(id, n) { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; const r = h % n, a = []; for (let i = 0; i < n; i++) a.push((i + r) % n); if (h % 2) a.push(a.shift()) && a.reverse(); return a; }
+/* ================= Mock JLPT N5: timed practice exam in the N5 format (app22d item banks) =================
+   Sections & times as in the current N5: Vocabulary 20 min (21 items), Grammar・Reading 40 min (17 + 5), Listening 30 min (24).
+   Scaled-score estimate: Language Knowledge + Reading 0–120 (reading questions weigh 3, other items 1), Listening 0–60.
+   Pass = total ≥ 80/180 and LK+R ≥ 38 and Listening ≥ 19. S.mock = [attempts] (synced: union by time, newest 30 kept).
+   Results: a missed vocabulary item marks its word Again only when that word is already in review; nothing else changes. */
+const MK_FORMAT = {
+  v: { name: "Vocabulary", jp: "げんごちしき（もじ・ごい）", mins: 20, parts: [["kr", 7], ["ot", 5], ["cx", 6], ["pa", 3]] },
+  g: { name: "Grammar · Reading", jp: "げんごちしき（ぶんぽう）・どっかい", mins: 40, parts: [["g1", 9], ["g2", 4], ["tg", 1], ["rs", 2], ["rm", 1], ["ri", 1]] },
+  l: { name: "Listening", jp: "ちょうかい", mins: 30, parts: [["lt", 7], ["lp", 6], ["lu", 5], ["lq", 6]] } };
+const MK_SECS = ["v", "g", "l"];
+const MK_PART = {
+  kr: { mon: "もんだい1", label: "Kanji reading", b: "vocab", ins: "＿＿の ことばは ひらがなで どう かきますか。" },
+  ot: { mon: "もんだい2", label: "Orthography", b: "vocab", ins: "＿＿の ことばは どう かきますか。" },
+  cx: { mon: "もんだい3", label: "Word in context", b: "vocab", ins: "（　）に なにが はいりますか。" },
+  pa: { mon: "もんだい4", label: "Paraphrase", b: "vocab", ins: "＿＿の ぶんと だいたい おなじ いみの ぶんが あります。どれですか。" },
+  g1: { mon: "もんだい1", label: "Sentence grammar", b: "gram", ins: "（　）に 何を 入れますか。" },
+  g2: { mon: "もんだい2", label: "Sentence composition ★", b: "gram", ins: "★に 入る ものは どれですか。" },
+  tg: { mon: "もんだい3", label: "Text grammar", b: "gram", ins: "ぶんしょうを 読んで、［　］に 入る ものを えらんで ください。" },
+  rs: { mon: "もんだい4", label: "Short passage", b: "read", ins: "ぶんしょうを 読んで、しつもんに こたえて ください。" },
+  rm: { mon: "もんだい5", label: "Mid-length passage", b: "read", ins: "ぶんしょうを 読んで、しつもんに こたえて ください。" },
+  ri: { mon: "もんだい6", label: "Information retrieval", b: "read", ins: "みぎの ページを 見て、しつもんに こたえて ください。" },
+  lt: { mon: "もんだい1", label: "Task-based", b: "lis", ins: "しつもんを 聞いて、正しい こたえを えらんで ください。" },
+  lp: { mon: "もんだい2", label: "Point comprehension", b: "lis", ins: "しつもんを 聞いて、正しい こたえを えらんで ください。" },
+  lu: { mon: "もんだい3", label: "Utterance expressions", b: "lis", ins: "えを 見ながら しつもんを 聞いて ください。何と いいますか。" },
+  lq: { mon: "もんだい4", label: "Quick response", b: "lis", ins: "ぶんを 聞いて、1から3の 中から いちばん いい へんじを えらんで ください。" } };
+const MK_BUCKET = { vocab: "Vocabulary", gram: "Grammar", read: "Reading", lis: "Listening" };
+const MK_W = { vocab: 1, gram: 1, read: 3, lis: 1 };
+const MK_PASS = { total: 80, lkr: 38, lis: 19 };
+const MK_PLAYS = 2;
+const mkRng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const mkShuf = (a, R) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const mkHist = () => Array.isArray(S.mock) ? S.mock : [];
+const mkFmt = s => esc(s).replace(/\{([^}]*)\}/g, `<u class="mku">$1</u>`).replace(/（　）/g, `<span class="mkblank">（　　）</span>`).replace(/\n/g, "<br>");
+const mkQuestion = sit => { const p = sit.split("。").filter(x => x.trim()); return p[p.length - 1].trim() + "。"; };
+const mkScript = it => it.lines ? [it.sit, ...it.lines.map(([s, t]) => `${s === "M" ? "男" : s === "F" ? "女" : ""}：${t}`), mkQuestion(it.sit)] : null;
+/* every candidate item for a part: { key, ... } (keys are stable for history / least-recently-used selection) */
+function mkPool(part) {
+  const B = MK_BANK[part];
+  if (part === "g1") {
+    const drills = []; GR_DATA.forEach(p => p.d.forEach((d, i) => { if (d.k === "p" && d.o.length === 4) drills.push({ key: `g1:${p.id}:${i}`, s: d.s.replace("＿", "（　）"), o: [d.a, ...d.o.filter(x => x !== d.a)] }); }));
+    return drills.concat(B.map((x, i) => ({ key: `g1:h${i}`, s: x[0], o: x[1] })));
+  }
+  if (["kr", "ot", "cx", "pa"].includes(part)) return B.map((x, i) => ({ key: `${part}:${i}`, s: x[0], o: x[1], w: x[2] || null }));
+  if (part === "g2") return B.map((x, i) => ({ key: `g2:${i}`, g2: x }));
+  return B.map((x, i) => ({ key: `${part}:${x.id || i}`, x }));
+}
+/* expand a picked pool entry into one or more exam items */
+function mkExpand(part, e, R) {
+  const P = MK_PART[part], base = { part, b: P.b };
+  const mc = (key, stem, opts, extra = {}) => { const o = mkShuf(opts, R); return Object.assign({}, base, { key, stem, opts: o, a: o.indexOf(opts[0]) }, extra); };
+  if (e.s) return [mc(e.key, mkFmt(e.s), e.o, { w: e.w })];
+  if (e.g2) { const [pre, pcs, post, star] = e.g2, slots = pcs.map((_, i) => i === star ? `<span class="mkslot star">★</span>` : `<span class="mkslot"></span>`).join(" ");
+    return [mc(e.key, `${esc(pre)} ${slots} ${esc(post)}`, [pcs[star], ...pcs.filter((_, i) => i !== star)])]; }
+  const x = e.x;
+  if (part === "tg") return x.b.map((opts, i) => mc(`${e.key}:${i + 1}`, `［${i + 1}］に 入る ものは どれですか。`, opts, { pass: `<b>${esc(x.t)}</b>　<small>${esc(x.by)}</small><br>` + mkFmt(x.p).replace(/［(\d)］/g, (m, n) => `<span class="mkbl ${+n === i + 1 ? "cur" : ""}">［${n}］</span>`), pid: e.key }));
+  if (part === "rs" || part === "ri") return [mc(e.key, mkFmt(x.q), x.o, { pass: mkFmt(x.p), pid: e.key })];
+  if (part === "rm") return x.qs.map(([q, o], i) => mc(`${e.key}:${i + 1}`, mkFmt(q), o, { pass: `<b>${esc(x.t)}</b><br>` + mkFmt(x.p), pid: e.key }));
+  if (part === "lt" || part === "lp") return [mc(e.key, "", x.o, { audio: `mk/${x.id}.mp3`, script: mkScript(x) })];
+  /* spoken choices: fixed order (mkPerm) so the recording matches the buttons */
+  const perm = mkPerm(x.id, x.o.length), opts = perm.map(i => x.o[i]);
+  return [Object.assign({}, base, { key: e.key, stem: part === "lu" ? `<div class="mkscene">${esc(x.sc)}</div><div class="muted mksceneen">${esc(x.en)}</div>` : "", opts, a: perm.indexOf(0), spoken: true, audio: `mk/${x.id}.mp3`,
+    script: part === "lu" ? [x.sc.replace(/^\S+\s/, "") + " 何と いいますか。", ...opts.map((o, i) => `${i + 1}　${o}`)] : [`${x.s === "M" ? "男" : "女"}：${x.u}`, ...opts.map((o, i) => `${i + 1}　${o}`)] })];
+}
+/* build one full test: per part, least-used items first (across saved attempts), ties broken by the seed */
+function mkBuild(seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0) {
+  const R = mkRng(seed), used = {};
+  mkHist().forEach(a => (a.keys || []).forEach(k => used[k] = (used[k] || 0) + 1));
+  const secs = MK_SECS.map(k => {
+    const F = MK_FORMAT[k], items = [];
+    for (const [part, n] of F.parts) {
+      const pool = mkShuf(mkPool(part), R).sort((x, y) => (used[x.key] || 0) - (used[y.key] || 0));
+      pool.slice(0, n).forEach(e => items.push(...mkExpand(part, e, R)));
+    }
+    return { k, items };
+  });
+  return { seed, secs, t0: Date.now() };
+}
+/* score a finished exam (pure): answers = { "s:i": optionIndex } */
+function mkScore(ex, answers) {
+  const B = { vocab: [0, 0], gram: [0, 0], read: [0, 0], lis: [0, 0] }, parts = {}, miss = [];
+  ex.secs.forEach((s, si) => s.items.forEach((it, i) => {
+    const ch = answers[`${si}:${i}`], ok = ch === it.a;
+    B[it.b][1]++; if (ok) B[it.b][0]++;
+    const p = parts[it.part] || (parts[it.part] = [0, 0]); p[1]++; if (ok) p[0]++;
+    if (!ok) miss.push({ s: si, i, p: it.part, k: it.key, c: ch == null ? null : it.opts[ch], a: it.opts[it.a], w: it.w || null });
+  }));
+  const lw = b => B[b][0] * MK_W[b], lm = b => B[b][1] * MK_W[b];
+  const lkrMax = lm("vocab") + lm("gram") + lm("read");
+  const lkr = lkrMax ? Math.round(120 * (lw("vocab") + lw("gram") + lw("read")) / lkrMax) : 0;
+  const lis = B.lis[1] ? Math.round(60 * B.lis[0] / B.lis[1]) : 0, total = lkr + lis;
+  const fails = []; if (total < MK_PASS.total) fails.push("total"); if (lkr < MK_PASS.lkr) fails.push("lkr"); if (lis < MK_PASS.lis) fails.push("lis");
+  return { B, parts, lkr, lis, total, pass: !fails.length, fails, miss };
+}
+const mkPassOf = (lkr, lis) => lkr + lis >= MK_PASS.total && lkr >= MK_PASS.lkr && lis >= MK_PASS.lis;
+
+/* ---------- Home ---------- */
+function mockHome() {
+  const H = mkHist(), last = H[H.length - 1], best = H.reduce((m, a) => Math.max(m, a.total), 0);
+  const count = MK_SECS.reduce((n, k) => n + MK_FORMAT[k].parts.reduce((m, [p, c]) => m + c * (p === "tg" ? 4 : p === "rm" ? 2 : 1), 0), 0);
+  view.innerHTML = topbar("📝 Mock JLPT N5") + `<div class="largetitle">Mock JLPT N5</div>
+    <p class="subtitle">A timed practice test in the real N5 format · ${count} questions · 90 min</p>
+    <div class="hero"><div class="ic">📝</div><div><h2>${H.length ? `Take test #${H.length + 1}` : "Take your first mock test"}</h2><p>${H.length ? `Last: ${last.total}/180 ${last.pass ? "· pass" : "· not yet"} · best ${best}/180` : "Each test is drawn fresh from the question banks — least-used questions first"}</p></div><button class="btn" id="mkStart">Start ▶</button></div>
+    <div class="panel mkformat"><h2>The test</h2>${MK_SECS.map((k, n) => { const F = MK_FORMAT[k];
+      return `<div class="row"><span><b>${n + 1}. ${F.name}</b><br><small class="muted">${F.jp} · ${F.parts.map(([p, c]) => `${MK_PART[p].label} ${p === "tg" ? 4 : p === "rm" ? c * 2 : c}`).join(" · ")}</small></span><span class="mkmins">${F.mins} min</span></div>`; }).join("")}
+      <p class="muted mknote">Pass: 80/180 overall, at least 38/120 in Language Knowledge + Reading and 19/60 in Listening. Scores are an estimate (the real test uses statistical scaling). Listening clips play up to ${MK_PLAYS} times. Missed vocabulary is marked Again only for words already in your reviews.</p></div>
+    <div class="sechead">History</div>
+    ${H.length ? `<div class="panel mkhist">${H.slice().reverse().map((a, j) => `<button class="mkhrow" data-h="${H.length - 1 - j}"><span class="grow"><b>${new Date(a.t).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${new Date(a.t).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</b><small>LK+R ${a.lkr}/120 · Listening ${a.lis}/60 · ${Math.round((a.dur || 0) / 60000)} min</small></span><span class="mktot">${a.total}</span><span class="grst ${a.pass ? "st-known" : "st-due"}">${a.pass ? "Pass" : "Not yet"}</span></button>`).join("")}</div>`
+      : `<p class="muted mkempty">No attempts yet.</p>`}
+    <p class="muted grcredit">All questions are original, written for this app (sentence-grammar items also come from the app's grammar drills); none are taken from real JLPT tests. Listening audio: Microsoft neural TTS voices ja-JP-NanamiNeural / ja-JP-KeitaNeural via edge-tts.</p>`;
+  bindBack(home);
+  $("#mkStart").onclick = () => { sfx.click(); go(() => mkRun(mkBuild())); };
+  view.querySelectorAll(".mkhrow").forEach(b => b.onclick = () => { sfx.click(); go(() => mkResults(mkHist()[+b.dataset.h], mockHome)); });
+}
+
+/* ---------- Running a test ---------- */
+let MK = null;   // live test state (also read by tests through __N5.MK)
+function mkRun(ex) {
+  MK = { ex, si: 0, pos: 0, ans: {}, plays: {}, deadline: 0, started: 0, spent: [0, 0, 0], timer: null, audio: null, done: false };
+  studyScreen = true;
+  cleanup = () => { mkStopTimer(); mkStopAudio(); };
+  mkIntro();
+}
+function mkStopTimer() { if (MK && MK.timer) { clearInterval(MK.timer); MK.timer = null; } }
+function mkStopAudio() { if (MK && MK.audio) { try { MK.audio.pause(); } catch (e) {} MK.audio = null; } }
+function mkConfirmQuit() {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "mkQuit";
+  md.innerHTML = `<div class="box"><h2>Leave the test?</h2><p class="muted">Your answers will be lost and nothing is saved.</p><div class="btnrow"><button class="btn ghost" id="mkStay">Keep going</button><button class="btn" id="mkLeave">Leave</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "mkStay") md.remove(); if (e.target.id === "mkLeave") { md.remove(); MK = null; go(mockHome); } };
+}
+function mkIntro() {
+  const k = MK_SECS[MK.si], F = MK_FORMAT[k], n = MK.ex.secs[MK.si].items.length;
+  view.innerHTML = topbar(`📝 Section ${MK.si + 1} of 3`) + `<div class="card mkintro" id="mkIntro" data-sec="${k}"><div class="qtype">${F.jp}</div><div class="big">${["📖", "✍️", "🎧"][MK.si]}</div>
+    <h2>${F.name}</h2><p>${n} questions · ${F.mins} minutes</p>
+    <p class="muted">${k === "l" ? `Each clip plays automatically once; you can replay it ${MK_PLAYS - 1}× more. Turn your sound on.` : "You can move between questions and change answers until time runs out."}</p>
+    <div class="btnrow"><button class="btn" id="mkGo">Start ${F.name} ▶</button></div></div>`;
+  $("#backBtn").onclick = () => { sfx.click(); mkConfirmQuit(); };
+  $("#mkGo").onclick = () => { sfx.click(); MK.started = Date.now(); MK.deadline = MK.started + F.mins * 60000; MK.pos = 0; mkTick(); mkStopTimer(); MK.timer = setInterval(mkTick, 500); mkShow(); };
+}
+function mkTick() {
+  if (!MK || MK.done) return;
+  const left = Math.max(0, MK.deadline - Date.now()), el = $("#mkTime");
+  if (el) { el.textContent = `${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, "0")}`; el.classList.toggle("low", left < 60000); }
+  if (left <= 0 && $("#mkQ")) { toast("⏰ Time's up for this section"); mkFinishSection(); }
+}
+function mkShow() {
+  const sec = MK.ex.secs[MK.si], it = sec.items[MK.pos], P = MK_PART[it.part], key = `${MK.si}:${MK.pos}`, ch = MK.ans[key];
+  const firstOfPart = MK.pos === 0 || sec.items[MK.pos - 1].part !== it.part;
+  view.innerHTML = `<div class="topbar mktop"><button class="backbtn" id="backBtn" aria-label="Leave test">${I("chevronL")}Quit</button><b>${MK_FORMAT[sec.k].name}</b><span class="mktimer" id="mkTime" aria-label="Time left"></span><span class="muted mkcount" id="score">${MK.pos + 1}/${sec.items.length}</span></div>
+    <div class="sprog"><div id="sprog" style="width:${Object.keys(MK.ans).filter(k => k.startsWith(MK.si + ":")).length / sec.items.length * 100}%"></div></div>
+    <div class="card mkq" id="mkQ" data-part="${it.part}" data-key="${esc(it.key)}"><div class="qtype">${P.mon} · ${P.label}</div><p class="mkins jp">${esc(P.ins)}</p>
+      ${it.pass ? `<div class="mkpass jp">${it.pass}</div>` : ""}
+      ${it.audio ? `<div class="mkaudio"><button class="btn sec" id="mkPlay">▶ Play</button><span class="muted" id="mkPlays"></span></div>` : ""}
+      ${it.stem ? `<div class="mkstem jp">${it.stem}</div>` : ""}
+      <div class="choices grlong mkopts">${it.opts.map((o, j) => `<button class="choice jp ${ch === j ? "sel" : ""}" data-i="${j}" aria-pressed="${ch === j}"><span class="k">${j + 1}</span>${it.spoken ? `<span class="mkspk">${j + 1}</span>` : esc(o)}</button>`).join("")}</div></div>
+    <div class="btnrow mknav"><button class="btn ghost" id="mkPrev" ${MK.pos ? "" : "disabled"}>← Prev</button><button class="btn ghost" id="mkGrid">☰ ${Object.keys(MK.ans).filter(k => k.startsWith(MK.si + ":")).length}/${sec.items.length}</button>${MK.pos < sec.items.length - 1 ? `<button class="btn" id="mkNext">Next →</button>` : `<button class="btn" id="mkEnd">Finish section</button>`}</div>
+    <p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> move</p>`;
+  mkTick();
+  $("#backBtn").onclick = () => { sfx.click(); mkConfirmQuit(); };
+  view.querySelectorAll(".mkopts .choice").forEach(b => b.onclick = () => mkAnswer(+b.dataset.i));
+  const pv = $("#mkPrev"); pv.onclick = () => { if (MK.pos) { MK.pos--; mkStopAudio(); mkShow(); } };
+  const nx = $("#mkNext"); if (nx) nx.onclick = () => { MK.pos++; mkStopAudio(); mkShow(); };
+  const en = $("#mkEnd"); if (en) en.onclick = () => mkEndAsk();
+  $("#mkGrid").onclick = () => mkGrid();
+  if (it.audio) { $("#mkPlay").onclick = () => mkPlay(it, key); mkPlaysLabel(key); if (!MK.plays[key]) mkPlay(it, key); }
+  scrollTo(0, 0);
+}
+function mkPlaysLabel(key) { const n = MK.plays[key] || 0, el = $("#mkPlays"), b = $("#mkPlay"); if (el) el.textContent = `${Math.max(0, MK_PLAYS - n)} play${MK_PLAYS - n === 1 ? "" : "s"} left`; if (b) { b.disabled = n >= MK_PLAYS; b.textContent = n ? "↻ Replay" : "▶ Play"; } }
+function mkPlay(it, key) {
+  if ((MK.plays[key] || 0) >= MK_PLAYS) return;
+  MK.plays[key] = (MK.plays[key] || 0) + 1; mkPlaysLabel(key);
+  mkStopAudio(); if (curAudio) { try { curAudio.pause(); } catch (e) {} }
+  const a = MK.audio = new Audio(AUDIO_BASE + it.audio); curAudio = a;
+  const fb = () => { if (it.script) speakText(it.script.join("。").replace(/[男女]：/g, ""), true, 0.85); };
+  a.addEventListener("error", fb);
+  try { const p = a.play(); if (p && p.catch) p.catch(e => { if (e && e.name === "NotAllowedError") return; fb(); }); } catch (e) { fb(); }
+}
+function mkAnswer(j) {
+  const key = `${MK.si}:${MK.pos}`; MK.ans[key] = j; sfx.click();
+  view.querySelectorAll(".mkopts .choice").forEach((b, k) => { b.classList.toggle("sel", k === j); b.setAttribute("aria-pressed", k === j); });
+  const sec = MK.ex.secs[MK.si], n = Object.keys(MK.ans).filter(k => k.startsWith(MK.si + ":")).length;
+  $("#sprog").style.width = (n / sec.items.length * 100) + "%"; $("#mkGrid").textContent = `☰ ${n}/${sec.items.length}`;
+}
+function mkGrid() {
+  const sec = MK.ex.secs[MK.si], md = document.createElement("div"); md.className = "modal"; md.id = "mkGridM";
+  md.innerHTML = `<div class="box"><h2>${MK_FORMAT[sec.k].name}</h2><div class="mkgrid">${sec.items.map((it, i) => `<button class="${`${MK.si}:${i}` in MK.ans ? "on" : ""} ${i === MK.pos ? "cur" : ""}" data-i="${i}" aria-label="Question ${i + 1}">${i + 1}</button>`).join("")}</div>
+    <div class="btnrow"><button class="btn ghost" id="mkGridClose">Close</button><button class="btn" id="mkGridEnd">Finish section</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { const b = e.target.closest("[data-i]"); if (b) { md.remove(); MK.pos = +b.dataset.i; mkStopAudio(); mkShow(); return; } if (e.target === md || e.target.id === "mkGridClose") md.remove(); if (e.target.id === "mkGridEnd") { md.remove(); mkEndAsk(); } };
+}
+function mkEndAsk() {
+  const sec = MK.ex.secs[MK.si], left = sec.items.length - Object.keys(MK.ans).filter(k => k.startsWith(MK.si + ":")).length;
+  if (!left) return mkFinishSection();
+  const md = document.createElement("div"); md.className = "modal"; md.id = "mkEndM";
+  md.innerHTML = `<div class="box"><h2>Finish this section?</h2><p class="muted">${left} question${left === 1 ? " is" : "s are"} unanswered — they'll count as wrong. You can't come back to this section.</p><div class="btnrow"><button class="btn ghost" id="mkEndNo">Keep working</button><button class="btn" id="mkEndYes">Finish</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "mkEndNo") md.remove(); if (e.target.id === "mkEndYes") { md.remove(); mkFinishSection(); } };
+}
+function mkFinishSection() {
+  if (!MK || MK.done) return;
+  document.querySelectorAll(".modal").forEach(m => m.remove());
+  mkStopTimer(); mkStopAudio();
+  MK.spent[MK.si] = Math.min(Date.now(), MK.deadline) - MK.started;
+  if (MK.si < 2) { MK.si++; return mkIntro(); }
+  MK.done = true; mkSave();
+}
+function mkSave() {
+  const ex = MK.ex, sc = mkScore(ex, MK.ans), again = [];
+  for (const m of sc.miss) if (m.w) { const id = m.w in RD_MAP.jp ? RD_MAP.jp[m.w] : RD_MAP.kana[m.w]; if (id != null && rdInReview(id) && !again.includes(id)) { grade(id, false, { rating: 1, quiet: true, listen: false }); again.push(id); } }
+  const it = (s, i) => ex.secs[s].items[i];
+  const att = { t: Date.now(), dur: MK.spent.reduce((a, b) => a + b, 0), seed: ex.seed, lkr: sc.lkr, lis: sc.lis, total: sc.total, pass: sc.pass, B: sc.B, parts: sc.parts, again,
+    keys: ex.secs.flatMap(s => s.items.map(x => x.key)),
+    miss: sc.miss.map(m => { const x = it(m.s, m.i); return { p: m.p, q: (x.stem || "").replace(/<[^>]+>/g, "").slice(0, 200), pass: x.pass ? x.pass.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "").slice(0, 600) : "", c: m.c, a: m.a, sc: x.script || null, sp: !!x.spoken, o: x.spoken ? x.opts : null }; }) };
+  if (!Array.isArray(S.mock)) S.mock = [];
+  S.mock.push(att); if (S.mock.length > 30) S.mock = S.mock.slice(-30);
+  touchStreak(); save(); addXP(30);
+  MK = null; go(() => mkResults(att, mockHome, true));
+}
+
+/* ---------- Results ---------- */
+function mkResults(att, back = mockHome, fresh = false) {
+  if (!att) return mockHome();
+  const bar = (v, max, min, label, id) => `<div class="mkscore" id="${id}"><div class="mkrow"><b>${label}</b><span><b>${v}</b>/${max}</span></div><div class="mkbarw"><div class="mkbar ${v >= min ? "ok" : "low"}" style="width:${v / max * 100}%"></div><i class="mkmin" style="left:${min / max * 100}%" title="minimum ${min}"></i></div><small class="muted">${v >= min ? "✓" : "✗"} minimum ${min}</small></div>`;
+  const partRows = Object.keys(MK_PART).filter(p => att.parts && att.parts[p]).map(p => { const [c, n] = att.parts[p]; return `<li><span class="grow">${MK_PART[p].label} <small class="muted">${MK_PART[p].mon}</small></span><b>${c}/${n}</b></li>`; }).join("");
+  const why = []; if (att.total < MK_PASS.total) why.push(`total under ${MK_PASS.total}`); if (att.lkr < MK_PASS.lkr) why.push(`Language Knowledge + Reading under ${MK_PASS.lkr}`); if (att.lis < MK_PASS.lis) why.push(`Listening under ${MK_PASS.lis}`);
+  view.innerHTML = topbar("📝 Results") + `<div class="card mkres" id="mkRes" data-pass="${att.pass}"><div class="qtype">${new Date(att.t).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · ${Math.round((att.dur || 0) / 60000)} min</div>
+    <div class="mktotal"><b id="mkTotal">${att.total}</b><span>/180</span></div>
+    <div class="mkverdict ${att.pass ? "pass" : "fail"}" id="mkVerdict">${att.pass ? "🎉 Pass (estimate)" : "Not yet — " + esc(why.join(" · "))}</div>
+    ${bar(att.lkr, 120, MK_PASS.lkr, "Language Knowledge + Reading", "mkLkr")}${bar(att.lis, 60, MK_PASS.lis, "Listening", "mkLis")}
+    <p class="muted mknote">Overall pass mark ${MK_PASS.total}/180. Scaled scores are a linear estimate.</p>
+    <ul class="grres mkparts">${partRows}</ul>
+    ${att.again && att.again.length ? `<p class="mkagain">Marked Again (already in review): <span class="jp">${att.again.map(id => WORDS[id] ? esc(WORDS[id].jp) : "").join("、")}</span></p>` : `<p class="muted mkagain">Your review schedule is unchanged${att.miss.some(m => m.p === "kr" || m.p === "ot" || m.p === "cx" || m.p === "pa") ? " (missed words aren't in review yet)" : ""}.</p>`}
+    <div class="btnrow"><button class="btn" id="mkReview" ${att.miss.length ? "" : "disabled"}>Review mistakes (${att.miss.length})</button><button class="btn sec" id="mkAgain">New test</button><button class="btn ghost" id="mkBack">History</button></div></div>
+    <div id="mkMiss"></div>`;
+  bindBack(back);
+  if (fresh) { sfx.level(); if (att.pass) confetti(120); }
+  $("#mkAgain").onclick = () => { sfx.click(); go(() => mkRun(mkBuild())); };
+  $("#mkBack").onclick = () => go(mockHome);
+  $("#mkReview").onclick = () => { $("#mkMiss").innerHTML = mkMissHTML(att); $("#mkMiss").scrollIntoView({ block: "start", behavior: REDUCED_MOTION() ? "auto" : "smooth" }); };
+}
+function mkMissHTML(att) {
+  return `<div class="panel mkmiss" id="mkMissList"><h2>Mistakes (${att.miss.length})</h2>${att.miss.map(m => `<div class="mkm"><div class="qtype">${MK_PART[m.p].mon} · ${MK_PART[m.p].label}</div>
+    ${m.pass ? `<details><summary>Passage</summary><p class="jp mkpasstxt">${esc(m.pass).replace(/\n/g, "<br>")}</p></details>` : ""}
+    ${m.q ? `<p class="jp mkmq">${esc(m.q)}</p>` : ""}
+    <p class="mkyour">Your answer: <span class="jp">${m.c == null ? "— (no answer)" : esc(m.c)}</span></p><p class="mkright">Correct: <span class="jp">${esc(m.a)}</span></p>
+    ${m.sc ? `<details><summary>Script</summary><p class="jp mkscript">${m.sc.map(esc).join("<br>")}</p></details>` : ""}</div>`).join("")}</div>`;
+}
+document.addEventListener("keydown", e => {
+  if (!MK || MK.done || !$("#mkQ") || document.querySelector(".modal") || e.metaKey || e.ctrlKey || e.altKey) return;
+  const it = MK.ex.secs[MK.si].items[MK.pos];
+  if (/^[1-4]$/.test(e.key) && +e.key <= it.opts.length) { e.preventDefault(); mkAnswer(+e.key - 1); }
+  else if (e.key === "ArrowRight" && $("#mkNext")) { e.preventDefault(); $("#mkNext").click(); }
+  else if (e.key === "ArrowLeft" && MK.pos) { e.preventDefault(); $("#mkPrev").click(); }
+});
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -7577,6 +8567,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Pimsleur words: <b>unofficial, compiled from learner notes; not affiliated with Pimsleur</b> — word lists only (word, reading, meaning, lesson), cross-checked from ${PIMS.meta.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a>`).join(", ")}; the ${PIMS.pm.length} words not in the JLPT lists use the same NanamiNeural TTS. Pimsleur is a trademark of its owner.<br>
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
   Grammar: ${GR_DATA.length} N5 points — explanations, example sentences and drills are original, written for this app (no textbook text); example and drill audio use the same NanamiNeural TTS.<br>
+  Reading & Mock JLPT N5: ${RD_DATA.length} graded stories and every mock-test question are original, written for this app — nothing is taken from real JLPT tests; narration and listening audio use NanamiNeural plus <b>ja-JP-KeitaNeural</b> for male speakers (via edge-tts).<br>
   Scheduling: <a href="https://github.com/open-spaced-repetition/py-fsrs" target="_blank" rel="noopener">FSRS-5</a> (Free Spaced Repetition Scheduler, MIT, Open Spaced Repetition — default parameters), ported to plain JavaScript.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
@@ -7588,7 +8579,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "104671fedc9a";
+const BUILD = "45bef2df2e26";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -7638,7 +8629,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
