@@ -1065,7 +1065,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .mkhist{padding:4px 0}.mkhrow{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:.5px solid var(--sep);padding:10px 14px;color:var(--label);font:inherit;text-align:left;cursor:pointer}.mkhrow:last-child{border-bottom:0}
 .mkhrow .grow{flex:1;display:flex;flex-direction:column;min-width:0}.mkhrow small{color:var(--label2);font-size:.78rem}.mktot{font-size:1.25rem;font-weight:800;font-variant-numeric:tabular-nums}.mkempty{text-align:center}
 .topbar.mktop{flex-wrap:nowrap}.mktop>b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem}
-.mktimer{font-variant-numeric:tabular-nums;font-weight:800;background:var(--fill);border-radius:10px;padding:4px 9px;min-width:3.6em;text-align:center}.mktimer.low{background:var(--bad);color:#fff}.mkcount{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
+.mktimer{font-variant-numeric:tabular-nums;font-weight:800;background:var(--fill);border-radius:10px;padding:4px 9px;min-width:3.6em;text-align:center}.mktimer.low{background:#b91c1c;color:#fff}.mkcount{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
 .mkq{text-align:left}.mkq .qtype{text-align:left}.mkins{font-size:.88rem;color:var(--label2);margin:4px 0 12px;line-height:1.5}
 .mkpass{background:var(--fill);border-radius:12px;padding:12px 14px;font-size:1rem;line-height:1.85;margin-bottom:12px;max-height:46vh;overflow:auto;white-space:normal}
 .mkbl{font-weight:700;color:var(--label2)}.mkbl.cur{color:var(--label);box-shadow:inset 0 0 0 2px var(--accent);border-radius:6px;padding:0 2px}
@@ -1093,7 +1093,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .spkread{font-size:1.3rem;color:var(--label2)}.spkmean{font-size:.95rem;margin-bottom:6px}
 .spkmic{width:104px;height:104px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;margin:14px auto 4px;cursor:pointer;box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 35%,transparent);transition:transform .15s}
 .spkmic:active{transform:scale(.95)}.spkmic:disabled{opacity:.45;box-shadow:none}
-.spkmic.rec{background:var(--bad);color:#fff}
+.spkmic.rec{background:#b91c1c;color:#fff}
 .spkmic.on{animation:spkpulse 1.2s ease-in-out infinite}
 @keyframes spkpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}50%{box-shadow:0 0 0 18px color-mix(in srgb,var(--accent) 0%,transparent)}}
 @media (prefers-reduced-motion:reduce){.spkmic.on{animation:none;outline:4px solid var(--accent);outline-offset:4px}}
@@ -1104,6 +1104,10 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .spkdenied{background:var(--fill);border-radius:12px;padding:12px 14px;margin:8px 0;text-align:left;font-size:.9rem}.spkdenied p{margin:6px 0}
 .spknone{text-align:center}.spkswitch{text-align:center;margin:4px 0}.spknote{font-size:.8rem;text-align:center;margin:8px 4px}
 .spkempty{text-align:center}#spkPerm .big,.spkempty .big{font-size:2.6rem}
+.rtag.r3{color:#0b5d57}
+[data-theme=dark] .rtag.r3{color:var(--accent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .rtag.r3{color:var(--accent)}}
+.mkverdict.pass{color:var(--label)}
 </style>
 </head>
 <body>
@@ -8794,7 +8798,7 @@ function spkDenied(err) {
   const canRec = spkCanRec();
   $("#spkFb").innerHTML = `<div class="spkdenied" id="spkDenied"><b>${err === "not-allowed" ? "Microphone access is blocked" : "Speech recognition isn't allowed here"}</b>
     <p class="muted">${err === "not-allowed" ? "Allow the microphone for this site — iPhone: Settings › Safari › Microphone (or the aA menu › Website Settings); Chrome: the lock icon in the address bar." : "On iPhone/iPad turn on Siri &amp; Dictation (Settings › General › Keyboard › Enable Dictation). Home Screen apps may not get speech recognition — Record & compare works instead."}</p>
-    ${canRec ? `<button class="btn sec" id="spkToRec">🎙 Use Record & compare</button>` : ""}</div>`;
+    ${canRec ? `<button class="btn" id="spkToRec">🎙 Use Record & compare</button>` : ""}</div>`;
   spkStatus("");
   const b = $("#spkToRec"); if (b) b.onclick = () => { SPK.srOff = true; S.spkMode = err === "not-allowed" ? S.spkMode : S.spkMode; spkShow(); };
 }
@@ -8884,7 +8888,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "d2ab9f31acfb";
+const BUILD = "9a148951b90a";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
