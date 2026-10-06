@@ -1,0 +1,59 @@
+# Review reminders (Web Push) for JLPT Vocab Quest — see push/run.js. Public repo → Actions minutes are free.
+# Every 10 min (GitHub may start scheduled runs late or skip some under load). Per-device state lives on the push-state
+# branch (hashed keys + timestamps only); it is committed only when something changed. Pages builds from main only.
+name: Review reminders
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      test_sub:
+        description: "Optional: PushSubscription JSON — send one test push to it instead of the normal run"
+        required: false
+        default: ""
+permissions:
+  contents: write   # push-state branch
+  actions: write    # keep this scheduled workflow enabled (GitHub disables crons after 60 days without repo activity)
+concurrency:
+  group: review-reminders
+  cancel-in-progress: false
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: push
+          filter: blob:none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --prefix push --omit=dev --no-audit --no-fund
+      - name: Load state
+        run: |
+          git fetch --depth=1 origin push-state 2>/dev/null && git show FETCH_HEAD:state.json > state.json || echo '{"v":1,"dev":{}}' > state.json
+      - name: Decide and send
+        id: run
+        env:
+          VAPID_PUBLIC: ${{ secrets.VAPID_PUBLIC }}
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          PUSH_DATA_KEY: ${{ secrets.PUSH_DATA_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          TEST_SUB: ${{ github.event.inputs.test_sub }}
+        run: node push/run.js state.json
+      - name: Save state
+        if: steps.run.outputs.changed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/state.json?ref=push-state" --jq .sha 2>/dev/null || true)
+          gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/state.json" -f branch=push-state -f message="reminder state" \
+            -f content="$(base64 -w0 state.json)" ${sha:+-f sha=$sha} --silent
+      - name: Keep the schedule enabled
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(date -u +%H%M)" \< "0010" ]; then gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/push.yml/enable" --silent || true; fi
