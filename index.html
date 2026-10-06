@@ -990,7 +990,7 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .foptprog{height:8px;border-radius:8px;background:var(--fill2);overflow:hidden;margin:10px 0 4px}.foptprog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 .foptres{font-size:.88rem;line-height:1.45;background:var(--fill);border-radius:12px;padding:10px 12px;margin:10px 0 4px;color:var(--label)}
 /* ---------- Grammar (app20) ---------- */
-.grtile-home .ic{background:var(--indigo);font-family:"Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",sans-serif;font-weight:700}
+.grtile-home .ic{--c:var(--indigo);font-family:"Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",sans-serif;font-weight:700}
 .grcat{padding-left:0;padding-right:0;padding-bottom:4px;overflow:hidden}.grcat h2{padding:0 16px}
 .grrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:58px;padding:9px 14px;border-top:.5px solid var(--sep);color:var(--label);background:none}
 .grrow:active{background:var(--fill)}
@@ -7588,7 +7588,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "0e911d891005";
+const BUILD = "104671fedc9a";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });

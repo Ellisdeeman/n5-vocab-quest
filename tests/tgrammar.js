@@ -149,7 +149,7 @@ const SH='/workspace/n5-game/';
  const fl0=await T.ev(()=>__N5.FLOG.e.length);
  await T.tap('[data-review="grammar"]');
  ok('grammar review: 3 drills per due point',await T.until(()=>!!document.querySelector('#qhost .grcard')&&/0\/6/.test(document.querySelector('#score').textContent)));
- await T.p.screenshot({path:SH+'shot-grammar-review.png'});
+ await T.W(700);await T.p.screenshot({path:SH+'shot-grammar-review.png'});
  for(let n=0;n<10;n++){const k=await answer(T,true);if(!k)break;await nextB(T);}
  const rv=await T.ev(fl0=>{const G=__N5.gcards(),S=__N5.S(),d=S.revLog&&S.revLog[__N5.todayStr()]||{};return {due:__N5.grDueScan().ids.length,wa:G.wa.due>Date.now()+864e5,flog:__N5.FLOG.e.slice(fl0).map(e=>e[0]),rl:d.gramg,rlp:d['gramg+'],fin:!!document.querySelector('#grFinish')};},fl0);
  ok('reviews graded on the Grammar track: rescheduled > 1 day, flog g-keys, revLog gramg',rv.fin&&rv.due===0&&rv.wa&&rv.flog.includes('gwa')&&rv.flog.includes('gno')&&rv.rl===2&&rv.rlp===2,JSON.stringify(rv));
@@ -167,7 +167,7 @@ const SH='/workspace/n5-game/';
  T=await open(seed,{gdue:['he']},'dark');
  await T.ev(()=>__N5.startDueReview('all'));
  ok('only grammar due → "everything due" goes straight to grammar',await T.until(()=>!!document.querySelector('#qhost .grcard')));
- await T.p.screenshot({path:SH+'shot-grammar-drill-dark.png'});
+ await T.W(700);await T.p.screenshot({path:SH+'shot-grammar-drill-dark.png'});
  for(let n=0;n<5;n++){const k=await answer(T,true);if(!k)break;await nextB(T);}
  await T.ev(()=>__N5.startDueReview('grammar'));
  ok('nothing due → sheet; Practice anyway opens Grammar',await T.until(()=>!!document.querySelector('#nothingDue')));
