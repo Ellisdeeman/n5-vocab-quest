@@ -1123,6 +1123,10 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .confpanel{text-align:left}.confrow{padding:6px 0;border-bottom:1px solid var(--sep);font-size:1rem}.confrow:last-child{border-bottom:none}.confx{color:var(--label2);margin:0 4px}
 .cfch .choice{font-size:1.3rem}
 .lspk .spkmic{font-size:2.4rem}
+.leechbtns .btn.sec{background:var(--card)}
+.ladhelp{margin-top:6px;font-size:.85rem}.ladhelp summary{cursor:pointer;color:var(--accent);font-weight:600;min-height:44px;display:flex;align-items:center}
+.ladtab{width:100%;border-collapse:collapse;margin:4px 0;font-size:.82rem}.ladtab th,.ladtab td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--sep)}.ladtab th{color:var(--label2);font-weight:600}
+.ladhelp p{margin:6px 0 0;font-size:.8rem}
 </style>
 </head>
 <body>
@@ -2512,7 +2516,7 @@ function buildDaily() {
   const items = [];
   news.forEach((id, k) => { items.push({ id, mode: "meaning", isNew: 1 }); if (revItems.length) items.push(revItems.shift()); });
   items.push(...revItems);
-  shuffle(news).forEach(id => items.push({ id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
+  shuffle(news).forEach(id => items.push({ id, mode: ladderOn() ? "mixed" : Math.random() < 0.5 ? "typing" : "reverse" }));
   const kj = kanjiForSession(activeLevels(), activeLevels());
   if (kj.rev.length || kj.fresh.length) { const rv = shuffle(kj.rev.map(c => ({ j: 1, id: c, rev: 1 }))); items.splice(0, 0, ...rv); kj.fresh.forEach(c => items.push({ j: 1, id: c, mode: "learn" })); shuffle(kj.fresh).forEach(c => items.push({ j: 1, id: c, mode: "k2m" })); }
   return { date: todayStr(), levels: activeLevels().join(","), kanjiNew: kj.fresh.length, kanjiRev: kj.rev.length, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length + extra.length };
@@ -2920,7 +2924,7 @@ function leechView() {
   const ids = leechIds().sort((a, b) => card(b).bad - card(a).bad);
   view.innerHTML = topbar("🧛 Leeches", `<span class="muted">${ids.length} words</span>`) +
     `<p class="muted" style="margin:4px 0 10px">A word becomes a leech after 4+ misses or 2+ lapses (forgotten after being learned). Get it right 4 times in a row to tame it. Write a mnemonic — it's shown whenever the word is reviewed.</p>
-    ${ids.length ? `<div class="btnrow" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button><button class="btn sec" id="detention">📝 Detention</button></div><div id="llist"></div>`
+    ${ids.length ? `<div class="btnrow leechbtns" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button><button class="btn sec" id="detention">📝 Detention</button></div><div id="llist"></div>`
       : `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>No leeches right now — nice! Words you keep missing will show up here.</p></div>`}${confSectionHTML()}`;
   bindBack(); bindConfSection(leechView);
   if (!ids.length) return;
@@ -3933,7 +3937,7 @@ function buildPath() {
   kj.fresh.forEach(c => { items.push({ j: 1, id: c, mode: "learn" }); });
   news.forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: "k2r", isNew: 1 } : { id: it.id, mode: "meaning", isNew: 1 }));
   shuffle(kj.fresh).forEach(c => items.push({ j: 1, id: c, mode: "k2m" }));
-  shuffle(news.slice()).forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: Math.random() < 0.5 ? "r2k" : "type" } : { id: it.id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
+  shuffle(news.slice()).forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: Math.random() < 0.5 ? "r2k" : "type" } : { id: it.id, mode: ladderOn() ? "mixed" : Math.random() < 0.5 ? "typing" : "reverse" }));
   return { date: todayStr(), levels: "path", stage: ps.cur, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length, kanjiNew: kj.fresh.length, kanjiRev: kj.rev.length };
 }
 function pathHTML() {
@@ -8958,7 +8962,11 @@ function ladderHTML(w, compact = false) {
   else if (!c || !c.f) next = "New word — starts with multiple choice";
   else next = "Top rung reached";
   return `<div class="ladder" aria-label="Produce-ladder: rung ${r} of 5, ${LADDER[r - 1].t}"><div class="ladrow"><span class="ladlbl">🪜 Ladder</span>${dots}</div>
-    <div class="ladtxt"><b>${r}/5 · ${LADDER[r - 1].t}</b> — ${LADDER[r - 1].d}${ladderOn() ? "" : " · <i>Manual mode is on</i>"}<br><small class="muted">${next}${raw !== r ? ` · rung ${raw} skipped (${raw === 3 ? "no audio" : raw === 4 ? "speaking off" : "no example sentence"})` : ""}</small></div></div>`;
+    <div class="ladtxt"><b>${r}/5 · ${LADDER[r - 1].t}</b> — ${LADDER[r - 1].d}${ladderOn() ? "" : " · <i>Manual mode is on</i>"}<br><small class="muted">${next}${raw !== r ? ` · rung ${raw} skipped (${raw === 3 ? "no audio" : raw === 4 ? "speaking off" : "no example sentence"})` : ""}</small></div>${ladderHelpHTML()}</div>`;
+}
+function ladderHelpHTML() {
+  return `<details class="ladhelp"><summary>How the ladder works</summary><table class="ladtab"><tr><th>Rung</th><th>Asked as</th><th>Unlocks at</th></tr>${LADDER.map((L, i) => `<tr><td>${L.ic} ${i + 1}</td><td>${L.t}</td><td>${i ? `stability ≥ ${LADDER_S[i]} d · ${LADDER_OK[i]}+ correct` : "new words"}</td></tr>`).join("")}</table>
+    <p class="muted">Stability is the FSRS estimate of how long you'd remember the word (main reading/meaning track). A lapse drops a word one rung. Listen &amp; type needs audio; Speak is optional (Settings) and its misses never change the schedule; Use it needs an example sentence containing the word — missing rungs are skipped downwards.</p></details>`;
 }
 function ladderSettingsHTML() {
   return `<div class="row ladrowset"><span style="text-align:left">🪜 Question mode<br><small class="muted">Auto: each word climbs a ladder — multiple choice → type the reading → listen &amp; type → (speak) → use it in a sentence, based on how well you know it. Manual: random mix.</small></span><span class="seg" id="modeSeg" role="radiogroup" aria-label="Question mode">${[["auto", "Auto (ladder)"], ["manual", "Manual"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.modeAuto || "auto") === k}" class="${(S.modeAuto || "auto") === k ? "on" : ""}" data-v="${k}">${t}</button>`).join("")}</span></div>
@@ -9254,7 +9262,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "0a3c505d16d4";
+const BUILD = "a7d711e5e80b";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
