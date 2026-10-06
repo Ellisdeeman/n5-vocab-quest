@@ -48,3 +48,10 @@ No Pimsleur course audio is included.
 
 Grammar (gr/): lesson example sentences (gr/<point>-<n>.mp3) and drill sentences (gr/<point>-d<n>.mp3) were synthesized
 with ja-JP-NanamiNeural via edge-tts from sentences written for this app; gr/manifest.json lists the text of each file.
+
+Reading (rd/): per-sentence narration of the app's original graded N5 stories (rd/<story>-<n>.mp3), synthesized with
+ja-JP-NanamiNeural (rate -5%) via edge-tts 7.2.8; rd/manifest.json lists the text of each file.
+
+Mock JLPT N5 listening (mk/): one file per listening question (mk/<id>.mp3), built from edge-tts 7.2.8 segments —
+narrator ja-JP-NanamiNeural (lower pitch), women ja-JP-NanamiNeural, men ja-JP-KeitaNeural — joined with ffmpeg silences.
+All scripts were written for this app and are not taken from any real JLPT test; mk/manifest.json lists each file's lines.

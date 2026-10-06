@@ -1,5 +1,5 @@
 // Smart Home Start: one big Start button at the top of Home; picks due reviews (mixed tracks) → today's new items
-// (within caps) → practice (goal not met) → Kanaatro (goal met); explanation line; existing cards stay below. BROWSER=… URL=…
+// (within caps) → grammar → a reading story (once a day) → practice (goal not met) → Kanaatro (goal met); explanation line; existing cards stay below. BROWSER=… URL=…
 const pw=require('playwright-core');
 const URL=process.env.URL||'http://localhost:8766/';const BR=process.env.BROWSER||'webkit';
 const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?'':i);};
@@ -48,6 +48,10 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  await T.p.screenshot({path:'/workspace/n5-game/shot-grammar-smartstart.png'});
  await T.p.tap('#smartStart');ok('tap → first grammar lesson',await T.until(()=>!!document.querySelector('#grLesson[data-g="wa"]')));
  await T.ev(()=>{const S=__N5.S();S.newLogG={[__N5.todayStr()]:['wa','ga']};__N5.go(__N5.home);});await T.W(400);
+ I=await info(T.ev);ok('grammar done → a reading story comes next',I.plan==='reading'&&/Reading: My Family/.test(I.btn)&&/Story 1 of \d+/.test(I.line)&&/questions/.test(I.line),JSON.stringify(I));
+ await T.p.screenshot({path:'/workspace/n5-game/shot-reading-smartstart.png'});
+ await T.p.tap('#smartStart');ok('tap → story 1',await T.until(()=>!!document.querySelector('#rdStory')));
+ await T.ev(()=>{const S=__N5.S();S.rdDay={[__N5.todayStr()]:['r01']};__N5.go(__N5.home);});await T.W(400);
  I=await info(T.ev);ok('path done + goal not met → plan = practice',I.plan==='practice'&&/Practice/.test(I.btn)&&/goal/.test(I.line),JSON.stringify(I));
  await T.p.screenshot({path:'/workspace/n5-game/shot-smartstart-practice.png'});
  await T.p.tap('#smartStart');
@@ -60,7 +64,7 @@ const R=[];const ok=(n,c,i='')=>{R.push(!!c);console.log(c?'PASS':'FAIL',BR,n,c?
  await T.ctx.close();
  // ---- 4. goal met → Kanaatro ----
  T=await open(seed,{words:6,due:false,goal:6,grFull:true},'dark');
- await T.ev(()=>{const S=__N5.S();__N5.go(__N5.home);const D=S.dailies.path;D.done=true;__N5.go(__N5.home);});await T.W(400);
+ await T.ev(()=>{const S=__N5.S();S.rdDay={[__N5.todayStr()]:['r01']};__N5.go(__N5.home);const D=S.dailies.path;D.done=true;__N5.go(__N5.home);});await T.W(400);
  I=await info(T.ev);ok('goal met → suggests a game of Kanaatro',I.plan==='game'&&/Kanaatro/.test(I.btn)&&/goal met/i.test(I.line),JSON.stringify(I));
  await T.p.screenshot({path:'/workspace/n5-game/shot-smartstart-game-dark.png'});
  await T.p.tap('#smartStart');ok('tap → Kanaatro intro',await T.until(()=>!!document.querySelector('#kaStart')));
