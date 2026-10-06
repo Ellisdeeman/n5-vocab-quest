@@ -1129,6 +1129,17 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .ladhelp p{margin:6px 0 0;font-size:.8rem}
 /* Batch 6: reading known % (known = solid, seen = light) */
 .rdbar{position:relative}.rdbar i.rdseen{position:absolute;left:0;top:0;opacity:.35}.rdbar i.rdknown{position:relative}
+/* Batch 6: auto pace + listening-only */
+.pacenote{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin:10px 0;text-align:left;font-size:.95rem;color:var(--label)}
+.pacenote .paceic{font-size:1.3rem;line-height:1.4}.pacenote>div{flex:1}.pacesub{font-size:.82rem;margin-top:2px;line-height:1.4}.pacenote #paceInfo{min-width:44px;min-height:44px;padding:0}
+.paceinfo ul{padding-left:18px;margin:8px 0}.paceinfo li{margin:6px 0;font-size:.9rem}
+.loopts .seg{min-width:0;flex-wrap:wrap}.lonote{font-size:.82rem;text-align:center;margin:10px 6px}
+.loplayer{text-align:center}.lotitle{margin:6px 0 4px;font-size:1.25rem}.lotext{min-height:84px;display:flex;flex-direction:column;justify-content:center;margin:8px 0}
+.lojp{font-size:1.35rem;line-height:1.6;margin:4px 0;word-break:break-word}.loen{margin:2px 0 0;font-size:.95rem}.lohid{font-size:1rem}
+.loctl{display:flex;justify-content:center;align-items:center;gap:18px;margin:14px 0 6px}
+.loc{width:56px;height:56px;border-radius:50%;border:none;background:var(--fill);color:var(--label);font-size:1.4rem;cursor:pointer}
+.loc.big{width:84px;height:84px;font-size:2rem;background:var(--accent);color:var(--accent-ink)}
+.loq{margin-top:12px;text-align:left}.loqq{font-size:1.15rem;margin:6px 0}
 </style>
 </head>
 <body>
@@ -2612,6 +2623,7 @@ function home() {
       return `<button class="mode grtile-home" data-m="grammar"><div class="ic">文</div><h3>Grammar ${gd ? `<span class="badge">${gd}</span>` : ""}</h3><p>${gl ? `${gl}/${GR_DATA.length} N5 points` : `${GR_DATA.length} N5 points`} · lessons & drills</p></button>`; })()}
     ${(() => { const rd = RD_DATA.filter(x => x.id in rdDoneMap()).length;
       return `<button class="mode rdtile-home" data-m="reading-stories"><div class="ic">読</div><h3>Reading</h3><p>${rd ? `${rd}/${RD_DATA.length} stories read` : `${RD_DATA.length} graded N5 stories`} · tap words</p></button>`; })()}
+    <button class="mode lotile-home" data-m="listen-only"><div class="ic">🎧</div><h3>Listening-only</h3><p>Hands-free stories & sentences · audio first</p></button>
     ${(() => { const H = mkHist(), l = H[H.length - 1];
       return `<button class="mode mktile-home" data-m="mock"><div class="ic">📝</div><h3>Mock JLPT N5</h3><p>${l ? `Last ${l.total}/180 · ${l.pass ? "pass" : "not yet"}` : "Timed practice test · 90 min"}</p></button>`; })()}
     <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
@@ -2653,7 +2665,7 @@ function home() {
   bindAudioLesson();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, "reading-stories": readingHome, mock: mockHome };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, "reading-stories": readingHome, mock: mockHome, "listen-only": () => loHome(home) };
     go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
@@ -4779,7 +4791,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -8372,6 +8384,7 @@ function readingHome() {
     : `<div class="hero done"><div class="ic">🎉</div><div><h2>All ${RD_DATA.length} stories read</h2><p>Read them again any time — key words in review get a quick check</p></div></div>`;
   view.innerHTML = topbar("読 Reading") + `<div class="largetitle">Reading</div>
     <p class="subtitle" id="rdSub">${nDone} of ${RD_DATA.length} stories read · tap any word for its meaning</p>${hero}
+    <div class="btnrow lorow" style="justify-content:flex-start"><button class="btn sec" id="rdLoBtn">🎧 Listen hands-free</button></div>
     <div class="panel rdopts"><div class="row"><span>ふりがな Furigana<br><small class="muted">Readings above kanji in stories</small></span><button class="switch ${furi ? "on" : ""}" id="rdFuriSw" role="switch" aria-checked="${furi}" aria-label="Furigana"></button></div></div>
     ${Object.keys(RD_TIERS).map(Number).map(tier => `<div class="sechead">${RD_TIERS[tier].stars} ${RD_TIERS[tier].name} <small class="muted">· ${RD_TIERS[tier].note}</small></div>
       <div class="rdlist">${RD_DATA.filter(s => s.tier === tier).map(s => { const pct = rdSeenPct(s), kn = rdKnownPct(s), best = done[s.id];
@@ -8381,6 +8394,7 @@ function readingHome() {
     <p class="muted grcredit">Stories and questions are original, written for this app with N5 grammar and vocabulary. Narration: Microsoft neural TTS voices via edge-tts (ja-JP-KeitaNeural; ja-JP-NanamiNeural for female characters' lines).</p>`;
   bindBack(home);
   const nb = $("#rdNextBtn"); if (nb) nb.onclick = () => { sfx.click(); go(() => rdStory(nx.id, readingHome)); };
+  $("#rdLoBtn").onclick = () => { sfx.click(); go(() => loHome(readingHome)); };
   $("#rdFuriSw").onclick = e => { S.rdFuri = S.rdFuri === false; save(); go(readingHome); };
   view.querySelectorAll(".rdcard").forEach(b => b.onclick = () => { sfx.click(); go(() => rdStory(b.dataset.rd, readingHome)); });
 }
@@ -9664,7 +9678,7 @@ const newPerSessionV = () => paceOn() ? Math.min(40, paceLimit()) : Math.max(0, 
 function paceWhy(P) {
   const bits = [];
   if (P.acc == null) bits.push(`not enough recent reviews to adjust yet (${P.nRev}/20) — using your max`);
-  else bits.push(`you're at ${P.acc}% accuracy`);
+  else bits.push(`${P.nRev} reviews this week`);
   bits.push(`reviews ≈ ${P.load < 1 ? "<1" : Math.round(P.load)} min/day this week (goal ${P.goal} min)`);
   let tip = "";
   if (P.acc != null && P.acc < 85) tip = "Below the 85–90% sweet spot, so fewer new words until reviews feel easier.";
@@ -9701,8 +9715,200 @@ function bindPaceSettings(md) {
   if (sw) sw.onclick = () => { S.autoPace = !paceOn(); sw.classList.toggle("on", paceOn()); sw.setAttribute("aria-checked", paceOn()); if (row) row.hidden = !paceOn(); delete S.pace; drop(); save(); };
   if (sg) sg.onclick = e => { const b = e.target.closest("button"); if (!b) return; S.paceMin = +b.dataset.v; delete S.pace; drop(); save(); sg.querySelectorAll("button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); sfx.good(); };
 }
-/* placeholder: listening-only mode (filled in next step) */
-function loHome(back) { return readingHome(); }
+/* ======================================================================
+   Batch 6 · #5 Listening-only mode — hands-free audio queue (stories + example sentences)
+   ======================================================================
+   • Audio-only by default; the Japanese / English text can be revealed per item (or always shown).
+   • One <audio> element is created and first played inside the Start tap and then reused for every clip and
+     for the pauses (generated silent WAV clips) — so the queue keeps advancing on 'ended' events without
+     timers. That is what iOS Safari allows: playback must start from a user gesture; it never auto-starts.
+   • Media Session: lock-screen / headset title + play / pause / previous / next / stop where supported.
+   • Optional comprehension check after each story (practice only — no schedule change).
+   S.lo = { src: "stories"|"sentences"|"mix", scope: "unread"|"all", text, en, rep: 1|2, gap: "short"|"normal"|"long", checks } */
+const LO_GAP = { short: 700, normal: 1400, long: 2600 };
+let LO = null, LO_EL = null; const LO_SIL = {};
+const loOpts = () => Object.assign({ src: "stories", scope: "unread", text: false, en: false, rep: 1, gap: "normal", checks: false }, isObj(S.lo) ? S.lo : {});
+function loSilence(ms) {   // tiny 8 kHz 8-bit mono silent WAV (object URL, cached per length)
+  if (LO_SIL[ms]) return LO_SIL[ms];
+  const n = Math.max(80, Math.round(8 * ms)), buf = new ArrayBuffer(44 + n), v = new DataView(buf), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+  let url; try { url = URL.createObjectURL(new Blob([buf], { type: "audio/wav" })); } catch (e) { url = ""; }
+  return (LO_SIL[ms] = url);
+}
+function loStories(scope) {
+  const done = rdDoneMap(); let L = RD_DATA.slice();
+  if (scope === "unread") { const u = L.filter(s => !(s.id in done)); L = u.length ? u : L; }
+  return L;
+}
+function loSentenceItems(max = 40) {
+  const now = Date.now(), ids = ALL_IDS.filter(id => S.cards[id] && WORDS[id] && ex(id).length);
+  ids.sort((a, b) => (card(a).due || 0) - (card(b).due || 0));
+  return ids.slice(0, max).map(id => { const w = WORDS[id], x = ex(id)[0];
+    return { kind: "ex", src: sentenceAudioPath(x), jp: x[0], hl: x[2], en: x[1], title: `${String(w.jp).split(/;\s*/)[0]} · ${String(w.en).split(/[;,]/)[0]}`, sub: "Example sentence", id }; });
+}
+function loStoryItems(st) {
+  return st.s.map(([s, en], i) => ({ kind: "rd", src: rdAudio(st.id, i), jp: rdSentenceText(s), en, title: `${st.en}`, sub: `Story ${st.n} · ${i + 1}/${st.s.length}`, st: st.id, i }));
+}
+function loBuild(o) {
+  const items = [];
+  const stories = loStories(o.scope), sents = o.src === "stories" ? [] : loSentenceItems(o.src === "mix" ? 30 : 40);
+  if (o.src === "sentences") items.push(...sents);
+  else if (o.src === "stories") stories.forEach(st => { items.push(...loStoryItems(st)); items.push({ kind: "end", st: st.id }); });
+  else { let k = 0; stories.forEach(st => { items.push(...loStoryItems(st)); items.push({ kind: "end", st: st.id }); items.push(...sents.slice(k, k + 5)); k += 5; }); items.push(...sents.slice(k)); }
+  // tape: every clip × repeat, silences between repeats / items / stories
+  const tape = [], gap = LO_GAP[o.gap] || 1400;
+  items.forEach((it, n) => {
+    if (it.kind === "end") { tape.push({ t: "q", n, st: it.st }, { t: "s", ms: gap * 2, n }); return; }
+    for (let r = 0; r < (o.rep === 2 ? 2 : 1); r++) { tape.push({ t: "a", src: it.src, n, r }); tape.push({ t: "s", ms: r === 0 && o.rep === 2 ? Math.round(gap * 0.8) : gap, n }); }
+  });
+  return { items, tape };
+}
+function loAudioEl() {
+  if (LO_EL) return LO_EL;
+  const a = LO_EL = new Audio(); a.preload = "auto"; a.setAttribute("playsinline", ""); a.id = "loAudio";
+  a.addEventListener("ended", () => { if (!LO || !LO.playing || LO.el !== a) return; LO.pos++; loStep(); });
+  a.addEventListener("error", () => { if (!LO || !LO.playing || LO.el !== a) return; const t = LO.tape[LO.pos]; if (t && t.t === "a") { LO.fails++; LO.pos++; setTimeout(loStep, 250); } });
+  a.addEventListener("pause", () => { if (LO && LO.playing && !LO.internal && !a.ended && LO.el === a) { LO.playing = false; loUI(); loMediaState(); } });
+  a.addEventListener("play", () => { if (LO && !LO.playing && LO.el === a) { LO.playing = true; loUI(); loMediaState(); } });
+  return a;
+}
+function loStep() {
+  if (!LO) return;
+  const t = LO.tape[LO.pos];
+  if (!t) return loFinish();
+  if (t.t === "q") {
+    LO.pos++;
+    if (LO.o.checks && !LO.checked.has(t.st)) { LO.checked.add(t.st); LO.playing = false; loMediaState(); return loCheck(t.st); }
+    return loStep();
+  }
+  const a = LO.el; LO.internal = true;
+  a.src = t.t === "s" ? loSilence(t.ms) : AUDIO_BASE + t.src;
+  LO.internal = false;
+  if (t.t === "a") { window.__loLast = t.src; loUI(); loMeta(); }
+  try { const p = a.play(); if (p && p.catch) p.catch(e => { if (!LO) return; if (e && e.name === "NotAllowedError") { LO.playing = false; loUI(); loMediaState(); } else if (t.t === "a") { LO.pos++; setTimeout(loStep, 250); } }); } catch (e) {}
+}
+function loStart(o) {
+  const B = loBuild(o); if (!B.tape.length) { toast("Nothing to play yet — study some words first"); return; }
+  if (curAudio) try { curAudio.pause(); } catch (e) {}
+  if (typeof rdStopPlay === "function") rdStopPlay();
+  LO = { o, items: B.items, tape: B.tape, pos: 0, playing: true, el: loAudioEl(), checked: new Set(), shown: new Set(), fails: 0, t0: Date.now() };
+  go(loPlayer);
+  loStep();   // still inside the Start tap → allowed on iOS
+  loMediaHandlers();
+}
+const loCurItem = () => { if (!LO) return null; for (let p = Math.min(LO.pos, LO.tape.length - 1); p >= 0; p--) { const t = LO.tape[p]; if (t && t.t === "a") return LO.items[t.n]; } const f = LO.tape.find(t => t.t === "a"); return f ? LO.items[f.n] : null; };
+const loCurN = () => { const it = loCurItem(); return it ? LO.items.indexOf(it) : 0; };
+function loJump(dir) {
+  if (!LO) return;
+  const n = loCurN(), target = dir < 0 ? (LO.tape[LO.pos] && LO.tape[LO.pos].t === "a" && LO.el.currentTime > 1.5 ? n : n - 1) : n + 1;
+  let p = LO.tape.findIndex(t => t.t === "a" && t.n >= Math.max(0, target) && t.r === 0);
+  if (dir < 0) { p = LO.tape.findIndex(t => t.t === "a" && t.n === Math.max(0, target) && t.r === 0); if (p < 0) p = 0; }
+  if (p < 0) return loFinish();
+  LO.pos = p; LO.playing = true; sfx.click && sfx.click(); loStep(); loMediaState();
+}
+function loToggle() {
+  if (!LO) return;
+  if (LO.playing) { LO.playing = false; LO.internal = true; try { LO.el.pause(); } catch (e) {} LO.internal = false; }
+  else { LO.playing = true; if (LO.el.src && !LO.el.ended && LO.tape[LO.pos]) { const p = LO.el.play(); if (p && p.catch) p.catch(() => {}); } else loStep(); }
+  loUI(); loMediaState();
+}
+function loStop(toHome = true) {
+  if (LO) { LO.playing = false; LO.internal = true; try { LO.el.pause(); LO.el.removeAttribute("src"); LO.el.load(); } catch (e) {} }
+  LO = null;
+  if ("mediaSession" in navigator) { try { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = "none"; } catch (e) {} }
+  if (toHome) go(loHome);
+}
+function loMeta() {
+  if (!("mediaSession" in navigator) || !LO || typeof MediaMetadata === "undefined") return;
+  const it = loCurItem(); if (!it) return;
+  try { navigator.mediaSession.metadata = new MediaMetadata({ title: it.title, artist: `${it.sub} · Listening-only`, album: "JLPT Vocab Quest",
+    artwork: [{ src: "icons/icon-192.png", sizes: "192x192", type: "image/png" }, { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" }] }); } catch (e) {}
+  loMediaState();
+}
+function loMediaState() { if ("mediaSession" in navigator) try { navigator.mediaSession.playbackState = LO ? (LO.playing ? "playing" : "paused") : "none"; } catch (e) {} }
+function loMediaHandlers() {
+  if (!("mediaSession" in navigator)) return;
+  const set = (k, f) => { try { navigator.mediaSession.setActionHandler(k, f); } catch (e) {} };
+  set("play", () => { if (LO && !LO.playing) loToggle(); }); set("pause", () => { if (LO && LO.playing) loToggle(); });
+  set("previoustrack", () => loJump(-1)); set("nexttrack", () => loJump(1)); set("stop", () => loStop(curView === loPlayer));
+}
+/* ---------- screens ---------- */
+function loHome(back) {
+  const o = loOpts(), nUn = RD_DATA.filter(s => !(s.id in rdDoneMap())).length, nEx = ALL_IDS.filter(id => S.cards[id] && WORDS[id] && ex(id).length).length;
+  const seg = (id, key, opts) => `<span class="seg" id="${id}" role="radiogroup" aria-label="${key}">${opts.map(([v, t]) => `<button role="radio" aria-checked="${String(o[key]) === String(v)}" class="${String(o[key]) === String(v) ? "on" : ""}" data-v="${v}">${t}</button>`).join("")}</span>`;
+  const sw = (k, label, desc) => `<div class="row"><span style="text-align:left">${label}<br><small class="muted">${desc}</small></span><button class="switch ${o[k] ? "on" : ""}" data-lo="${k}" role="switch" aria-checked="${!!o[k]}" aria-label="${label}"></button></div>`;
+  view.innerHTML = topbar("🎧 Listening-only") + `<div class="largetitle">Listening-only</div>
+    <p class="subtitle">Hands-free audio: stories and example sentences, one after another. Text stays hidden unless you reveal it.</p>
+    <div class="panel loopts">
+      <div class="row"><span style="text-align:left">What to play</span>${seg("loSrc", "src", [["stories", "Stories"], ["sentences", "Sentences"], ["mix", "Mix"]])}</div>
+      <div class="row" id="loScopeRow"><span style="text-align:left">Stories<br><small class="muted">${nUn} unread of ${RD_DATA.length}</small></span>${seg("loScope", "scope", [["unread", "Unread first"], ["all", "All"]])}</div>
+      <div class="row"><span style="text-align:left">Play each clip</span>${seg("loRep", "rep", [[1, "Once"], [2, "Twice"]])}</div>
+      <div class="row"><span style="text-align:left">Pause between clips</span>${seg("loGap", "gap", [["short", "Short"], ["normal", "Normal"], ["long", "Long"]])}</div>
+      ${sw("text", "👁 Show Japanese text", "Off = audio only (tap “Show text” any time)")}
+      ${sw("en", "🔤 Show English", "Translation under the text when it's shown")}
+      ${sw("checks", "❓ Comprehension check", "After each story, one question (practice only)")}
+    </div>
+    <div class="btnrow"><button class="btn" id="loGo">▶ Start listening</button></div>
+    <p class="muted lonote">Uses the sentence & story recordings (they're cached for offline after the first play). ${nEx ? `${nEx} of your words have example sentences.` : "Study some words to unlock example sentences."} On iPhone, audio starts only when you tap Start; it keeps going with the screen locked, and the lock screen shows play / pause / skip.</p>`;
+  bindBack(back || home);
+  const save1 = (k, v) => { const x = loOpts(); x[k] = v; S.lo = x; save(); };
+  [["#loSrc", "src"], ["#loScope", "scope"], ["#loRep", "rep"], ["#loGap", "gap"]].forEach(([id, k]) => { const el = $(id); el.onclick = e => { const b = e.target.closest("button"); if (!b) return; save1(k, k === "rep" ? +b.dataset.v : b.dataset.v); el.querySelectorAll("button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); $("#loScopeRow").hidden = loOpts().src === "sentences"; }; });
+  $("#loScopeRow").hidden = o.src === "sentences";
+  view.querySelectorAll("[data-lo]").forEach(b => b.onclick = () => { const k = b.dataset.lo, v = !loOpts()[k]; save1(k, v); b.classList.toggle("on", v); b.setAttribute("aria-checked", v); });
+  $("#loGo").onclick = () => loStart(loOpts());
+}
+function loPlayer() {
+  if (!LO) return loHome();
+  view.innerHTML = topbar("🎧 Listening-only", `<span class="muted" id="loCount"></span>`) + `<div class="sprog"><div id="loProg" style="width:0"></div></div>
+    <div class="card loplayer" id="loCard"><div class="qtype" id="loSub"></div><h2 class="lotitle" id="loTitle"></h2>
+      <div class="lotext" id="loText"></div>
+      <button class="btn ghost small" id="loReveal">👁 Show text</button>
+      <div class="loctl"><button class="loc" id="loPrev" aria-label="Previous">⏮</button><button class="loc big" id="loPlay" aria-label="Pause">⏸</button><button class="loc" id="loNext" aria-label="Next">⏭</button></div>
+      <div class="btnrow"><button class="btn sec" id="loStopBtn">⏹ Stop</button></div>
+      <div id="loQ"></div></div>`;
+  $("#backBtn").onclick = () => { sfx.click(); loStop(true); };
+  $("#loPrev").onclick = () => loJump(-1); $("#loNext").onclick = () => loJump(1); $("#loPlay").onclick = loToggle; $("#loStopBtn").onclick = () => loStop(true);
+  $("#loReveal").onclick = () => { const it = loCurItem(); if (!it) return; LO.shown.has(it) ? LO.shown.delete(it) : LO.shown.add(it); loUI(); };
+  cleanup = () => { if (LO && curView !== loPlayer) loStop(false); };
+  loUI();
+}
+function loUI() {
+  if (!LO || !$("#loCard")) return;
+  const it = loCurItem(), n = loCurN(), tot = LO.items.filter(x => x.kind !== "end").length, done = LO.items.slice(0, n).filter(x => x.kind !== "end").length;
+  $("#loCount").textContent = `${Math.min(tot, done + 1)} / ${tot}`; $("#loProg").style.width = (done / Math.max(1, tot) * 100) + "%";
+  $("#loSub").textContent = it ? it.sub : ""; $("#loTitle").textContent = it ? it.title : "";
+  const show = it && (LO.o.text || LO.shown.has(it));
+  $("#loText").innerHTML = show ? `<p class="jp lojp">${it.kind === "ex" ? hlSentence(it.jp, it.hl) : esc(it.jp)}</p>${LO.o.en || LO.shown.has(it) ? `<p class="muted loen">${esc(it.en)}</p>` : ""}` : `<p class="muted lohid">🎧 Audio only</p>`;
+  const rv = $("#loReveal"); rv.hidden = !!LO.o.text; rv.textContent = show ? "🙈 Hide text" : "👁 Show text";
+  const pb = $("#loPlay"); pb.textContent = LO.playing ? "⏸" : "▶"; pb.setAttribute("aria-label", LO.playing ? "Pause" : "Play");
+}
+function loCheck(stId) {
+  const st = RD[stId]; if (!st || !$("#loQ")) { LO.playing = true; return loStep(); }
+  const q = st.q[(st.n + LO.checked.size) % st.q.length], opts = shuffle(q.o.map((o, i) => ({ o, ok: i === 0 })));
+  $("#loQ").innerHTML = `<div class="loq"><div class="qtype">❓ ${esc(st.en)} — quick check</div><p class="jp loqq">${rdRuby(rdPlain(q.q))}</p><p class="muted">${esc(q.qe)}</p>
+    <div class="choices">${opts.map((x, i) => `<button class="choice jp" data-i="${i}"><span class="k">${i + 1}</span>${rdRuby(x.o)}</button>`).join("")}</div><div class="feedback" id="loFb"></div></div>`;
+  $("#loPlay").textContent = "▶";
+  const bs = [...document.querySelectorAll("#loQ .choice")];
+  bs.forEach((b, i) => b.onclick = () => {
+    if (b.disabled) return; const ok = opts[i].ok; bs.forEach((x, j) => { x.disabled = true; if (opts[j].ok) x.classList.add("right"); }); if (!ok) b.classList.add("wrong");
+    ok ? sfx.good() : sfx.bad();
+    $("#loFb").innerHTML = `<div style="color:${ok ? "var(--good)" : "var(--bad)"}">${ok ? "✔ Right" : "✘ Not quite"}</div><div class="btnrow"><button class="btn" id="loCont">Continue ▶</button></div>`;
+    $("#loCont").onclick = () => { $("#loQ").innerHTML = ""; LO.playing = true; loStep(); loUI(); };
+  });
+}
+function loFinish() {
+  if (!LO) return;
+  const mins = Math.max(1, Math.round((Date.now() - LO.t0) / 60000)), n = LO.items.filter(x => x.kind !== "end").length;
+  LO.playing = false; loMediaState();
+  const L = nlog("loLog"), d = todayStr(); L[d] = (L[d] || 0) + n; nlPrune && nlPrune("loLog"); save();
+  if ($("#loCard")) $("#loCard").innerHTML = `<div class="qtype">Listening done</div><div class="big">🎧</div><p>${n} clips · about ${mins} min${LO.fails ? ` · ${LO.fails} couldn't load (offline?)` : ""}</p>
+    <div class="btnrow"><button class="btn sec" id="loAgain">Again</button><button class="btn" id="loDone">Done</button></div>`;
+  const o = LO.o; LO = null;
+  const ag = $("#loAgain"); if (ag) ag.onclick = () => loStart(o);
+  const dn = $("#loDone"); if (dn) dn.onclick = () => go(loHome);
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -9731,7 +9937,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "0705947303f0";
+const BUILD = "5a16dc8bd0c3";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -9781,7 +9987,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
