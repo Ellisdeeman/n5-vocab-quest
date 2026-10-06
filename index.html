@@ -1108,6 +1108,25 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 [data-theme=dark] .rtag.r3{color:var(--accent)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .rtag.r3{color:var(--accent)}}
 .mkverdict.pass{color:var(--label)}
+/* Batch 5: produce-ladder + corrective feedback */
+.ladder{background:var(--fill);border-radius:12px;padding:10px 12px;margin:8px 0;text-align:left}
+.ladrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ladlbl{font-size:.85rem;font-weight:600;color:var(--label2);margin-right:2px}
+.ladr{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--card);border:2px solid var(--border);font-size:1rem;opacity:.55}
+.ladr.past{opacity:1;border-color:var(--good)}.ladr.cur{opacity:1;border-color:var(--accent);box-shadow:0 0 0 2px var(--accentT)}.ladr.na{border-style:dashed;opacity:.3}
+.ladtxt{font-size:.9rem;margin-top:6px;color:var(--label)}.ladtxt small{font-size:.8rem}
+.ladmini{display:inline-block;font-size:.72rem;font-weight:600;color:var(--label2);background:var(--fill);border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:middle;white-space:nowrap}
+.cfnote{background:var(--fill);border-left:3px solid var(--orange);border-radius:10px;padding:8px 10px;margin:8px 0;text-align:left;font-size:.9rem;color:var(--label);line-height:1.45}
+.cftip{margin-top:4px;font-size:.85rem;color:var(--label2)}.cfk{font-size:1.15rem;font-weight:600}
+.clzcard .clz{font-size:1.35rem;line-height:1.7;margin:10px 0 4px;word-break:break-word}.clzen{font-size:.95rem;margin-bottom:4px}.clzhint{font-size:.8rem}
+.clzk{display:block;font-size:.75rem;color:var(--label2);font-weight:400}
+.lspk .prompt.en{font-size:1.5rem}.lspk .sub{margin:6px 0}
+.confpanel{text-align:left}.confrow{padding:6px 0;border-bottom:1px solid var(--sep);font-size:1rem}.confrow:last-child{border-bottom:none}.confx{color:var(--label2);margin:0 4px}
+.cfch .choice{font-size:1.3rem}
+.lspk .spkmic{font-size:2.4rem}
+.leechbtns .btn.sec{background:var(--card)}
+.ladhelp{margin-top:6px;font-size:.85rem}.ladhelp summary{cursor:pointer;color:var(--accent);font-weight:600;min-height:44px;display:flex;align-items:center}
+.ladtab{width:100%;border-collapse:collapse;margin:4px 0;font-size:.82rem}.ladtab th,.ladtab td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--sep)}.ladtab th{color:var(--label2);font-weight:600}
+.ladhelp p{margin:6px 0 0;font-size:.8rem}
 </style>
 </head>
 <body>
@@ -2109,7 +2128,7 @@ function wordModal(w, focusNote) {
   const md = document.createElement("div"); md.className = "modal";
   md.innerHTML = `<div class="box wordinfo" style="max-height:92vh;overflow:auto"><div class="prompt jp">${esc(w.jp)}</div><div class="jp" style="font-size:1.3rem">${esc(w.kana)}</div><div class="muted">${esc(ROMA(w.kana))}</div>
   <p style="font-size:1.1rem;margin:8px 0">${esc(w.en)}</p><div><span class="tag">${LNAME(w.lvl)}</span><span class="tag">${POS_NAMES[w.pos] || "word"}</span><span class="tag">${esc((LV[w.lvl].sets.find(s => s.ids.includes(w.id)) || {}).name || "")}</span>${isLeech(w.id) ? `<span class="tag">🧛 leech</span>` : ""}</div>
-  <p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}${c.lapses ? " · lapses " + c.lapses : ""}</p>${c.f ? `<p class="muted fsrsline" style="font-size:.85rem">📖 ${trackText(c.f)}${c.L ? `<br>🎧 ${trackText(c.L)}` : ""}</p>` : ""}
+  <p class="muted">Box ${c.box}/${MAX_BOX} · ✔ ${c.ok} · ✘ ${c.bad}${c.lapses ? " · lapses " + c.lapses : ""}</p>${c.f ? `<p class="muted fsrsline" style="font-size:.85rem">📖 ${trackText(c.f)}${c.L ? `<br>🎧 ${trackText(c.L)}` : ""}</p>` : ""}${ladderHTML(w)}
   ${exampleHTML(w.id, 2) || `<p class="muted" style="font-size:.85rem">No example sentence available for this word.</p>`}
   <div style="text-align:left;margin-top:12px"><label class="muted" style="font-size:.85rem">💡 Mnemonic note (saved on this device)</label><textarea class="notebox" id="mdNote" placeholder="e.g. 会う (au) — 'Ow! I bumped into someone I MEET'">${esc(S.notes[w.id] || "")}</textarea></div>
   <div class="btnrow">${canAudio() ? `<button class="btn sec" id="mdSpeak">🔈 Listen</button>` : ""}<button class="btn" id="mdClose">Close</button></div></div>`;
@@ -2161,7 +2180,7 @@ function renderMC(mode, w, onAnswer, opts = {}) {
     const ok = opt[i].id === w.id;
     btns.forEach((b, j) => { b.disabled = true; if (opt[j].id === w.id) b.classList.add("right"); });
     if (!ok) btns[i].classList.add("wrong");
-    host.querySelector("#fb").innerHTML = revealHTML(w, ok);
+    host.querySelector("#fb").innerHTML = revealHTML(w, ok, ok ? "" : cfPickHTML(w, opt[i], mode));
     if ((mode === "reverse" || mode === "listen") && canSpeak()) speak(w);
     onAnswer(ok, btns[i]);
     if (!ok && S.retypeMC && !opts.noRetype) wordRetype(host, w);
@@ -2292,7 +2311,7 @@ function renderTyping(w, onAnswer, opts = {}) {
     inp.classList.add(ok ? "ok" : "no");
     host.querySelectorAll(".btnrow button").forEach(b => b.disabled = true);
     let extra = !ok && !given ? IDK_NOTE : "";
-    if (!ok && given) { const g = normAns(given), close = [...acc].some(a => lev(a, g) <= 1 && a.length >= 4); extra = `<div class="muted" style="font-size:.9rem">You typed: <b class="jp">${esc(romajiToKana(given, true))}</b>${close ? " — so close! (one letter off)" : ""}</div>`; }
+    if (!ok && given) { const g = normAns(given), close = [...acc].some(a => lev(a, g) <= 1 && a.length >= 4); extra = `<div class="muted" style="font-size:.9rem">You typed: <b class="jp">${esc(romajiToKana(given, true))}</b>${close ? " — so close! (one letter off)" : ""}</div>` + cfTypedHTML(w, given); }
     if (ok && !forms(w.kana).some(f => normAns(f) === normAns(given)) && !forms(w.jp).some(f => normAns(f) === normAns(given))) extra = `<div class="muted" style="font-size:.9rem">Accepted (same meaning). Target word shown below.</div>`;
     if (ok) { const g = toHira(romajiToKana(given.replace(/\s+/g, ""), false)); QT.slip = !forms(w.kana, true).concat(forms(w.jp, true)).some(f => toHira(f) === g); }   // accepted only via tolerance → at most Good
     host.querySelector("#fb").innerHTML = revealHTML(w, ok, extra, !ok && !given);
@@ -2372,17 +2391,20 @@ function runSession(cfg) {
     else { id = pickNext(cfg.pool); mode = cfg.mode; if (id == null) { progress(); return capView(false, cfg.back); } }
     const w = WORDS[id];
     if (!w) { if (finite) { cfg.onItemDone(true, id, mode, true); return next(); } return; }   // word from a level that isn't loaded
-    if (mode === "mixed") mode = mixedMode(w, !S.cards[id]);
+    const auto = ladderOn(), wasMixed = mode === "mixed";
+    if (mode === "mixed") mode = auto ? ladderMode(w) : mixedMode(w, !S.cards[id]);   // Auto: produce-ladder rung (app24.js)
     if (mode === "reading" && !w.hasKanji) mode = "meaning";
     if (mode === "listen" && !canAudio()) mode = "meaning";
-    if (finite || cfg.mode === "mixed") mode = trackMode(w, mode, () => { let m; do m = mixedMode(w, false); while (m === "listen"); return m; });   // ask a due word in the track that is due
+    if (finite || cfg.mode === "mixed") mode = trackMode(w, mode, () => { if (auto) return ladderMode(w); let m; do m = mixedMode(w, false); while (m === "listen"); return m; });   // ask a due word in the track that is due
     if (mode === "reading" && !w.hasKanji) mode = "meaning";
-    cur = { w, mode };
+    if (auto && wasMixed && mode === "listen" && ladderListenType(w)) mode = "ltypeL";   // strong listening track → listen & type
+    cur = { w, mode, lad: auto && wasMixed }; window.__n5cur = cur;
+    cur_lspk = null;
     const onAnswer = (ok, el, hints = 0, info = {}) => {
       answered = true; total++; if (ok) right++;
-      grade(w.id, ok);
+      if (!(info && info.nograde)) grade(w.id, ok, mode === "ltype" ? { listen: false } : mode === "speak" && cur_lspk ? { rating: cur_lspk.rating, listen: false } : {});
       if (!finite && !ok) requeue(w.id);
-      comboHit(ok, el, mode === "typing" ? (hints ? 8 : 15) : 10, !!(info && info.idk));
+      comboHit(ok, el, mode === "typing" || mode === "ltype" || mode === "ltypeL" || mode === "speak" ? (hints ? 8 : 15) : 10, !!(info && info.idk));
       if (cfg.onItemDone) cfg.onItemDone(ok, w.id, mode);
       progress();
       const fb = $("#fb"); const nb = document.createElement("div"); nb.className = "btnrow"; nb.innerHTML = `<button class="btn" id="nextBtn">Next →</button>`; fb.appendChild(nb);
@@ -2390,8 +2412,11 @@ function runSession(cfg) {
       if (ok && S.autoAdvance) advancing = setTimeout(next, ex(w.id).length ? 2600 : 1400);
     };
     q = mode === "typing" ? renderTyping(w, onAnswer, { peekNote: cfg.peekNote })
-      : (mode === "listen" && S.listenType) ? renderTyping(w, onAnswer, { listen: true, peekNote: cfg.peekNote })
+      : (mode === "ltype" || mode === "ltypeL" || (mode === "listen" && S.listenType)) ? renderTyping(w, onAnswer, { listen: true, peekNote: cfg.peekNote })
+      : mode === "cloze" ? renderCloze(w, onAnswer, { peekNote: cfg.peekNote })
+      : mode === "speak" ? renderSpeakQ(w, onAnswer, { peekNote: cfg.peekNote })
       : renderMC(mode, w, onAnswer, { peekNote: cfg.peekNote });
+    if (cur.lad) { const qt = document.querySelector("#qhost .qtype"); if (qt) qt.insertAdjacentHTML("beforeend", ` ${ladderHTML(w, true)}`); }
     ntUpd();
   };
   const nextKana = it => {   // kana item inside a mixed (path) session
@@ -2491,7 +2516,7 @@ function buildDaily() {
   const items = [];
   news.forEach((id, k) => { items.push({ id, mode: "meaning", isNew: 1 }); if (revItems.length) items.push(revItems.shift()); });
   items.push(...revItems);
-  shuffle(news).forEach(id => items.push({ id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
+  shuffle(news).forEach(id => items.push({ id, mode: ladderOn() ? "mixed" : Math.random() < 0.5 ? "typing" : "reverse" }));
   const kj = kanjiForSession(activeLevels(), activeLevels());
   if (kj.rev.length || kj.fresh.length) { const rv = shuffle(kj.rev.map(c => ({ j: 1, id: c, rev: 1 }))); items.splice(0, 0, ...rv); kj.fresh.forEach(c => items.push({ j: 1, id: c, mode: "learn" })); shuffle(kj.fresh).forEach(c => items.push({ j: 1, id: c, mode: "k2m" })); }
   return { date: todayStr(), levels: activeLevels().join(","), kanjiNew: kj.fresh.length, kanjiRev: kj.rev.length, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length + extra.length };
@@ -2899,9 +2924,9 @@ function leechView() {
   const ids = leechIds().sort((a, b) => card(b).bad - card(a).bad);
   view.innerHTML = topbar("🧛 Leeches", `<span class="muted">${ids.length} words</span>`) +
     `<p class="muted" style="margin:4px 0 10px">A word becomes a leech after 4+ misses or 2+ lapses (forgotten after being learned). Get it right 4 times in a row to tame it. Write a mnemonic — it's shown whenever the word is reviewed.</p>
-    ${ids.length ? `<div class="btnrow" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button><button class="btn sec" id="detention">📝 Detention</button></div><div id="llist"></div>`
-      : `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>No leeches right now — nice! Words you keep missing will show up here.</p></div>`}`;
-  bindBack();
+    ${ids.length ? `<div class="btnrow leechbtns" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button><button class="btn sec" id="detention">📝 Detention</button></div><div id="llist"></div>`
+      : `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>No leeches right now — nice! Words you keep missing will show up here.</p></div>`}${confSectionHTML()}`;
+  bindBack(); bindConfSection(leechView);
   if (!ids.length) return;
   $("#llist").innerHTML = ids.map(id => { const w = WORDS[id], c = card(id); return `<div class="leechrow"><div class="row" style="border:none;padding:0 0 6px" data-id="${id}"><span><b class="jp" style="font-size:1.5rem">${esc(w.jp)}</b> <span class="muted jp">${w.hasKanji ? esc(w.kana) : ""}</span> ${S.romaji ? `<span class="muted" style="font-size:.8rem">${esc(ROMA(w.kana))}</span>` : ""}</span><span style="text-align:right">${esc(w.en)}<br><small class="muted">✘ ${c.bad} misses · ${c.lapses || 0} lapses · run ${c.run || 0}/4</small></span></div>
     <textarea class="notebox" data-lnote="${id}" placeholder="💡 Mnemonic for ${esc(w.jp)}…">${esc(S.notes[id] || "")}</textarea></div>`; }).join("");
@@ -2944,6 +2969,7 @@ function settings(page = false) {
     ${sw("speech", "🗣️ Pronunciation audio", audioOK === false ? (HAS_SPEECH ? "Audio files unavailable here — using device speech" + (jaVoice ? " (" + esc(jaVoice.name) + ")" : "") : "No audio available") : "Recorded neural-voice audio (falls back to device speech)")}
     ${sw("autoSpeak", "▶️ Auto-play audio", "Speak each Japanese prompt automatically")}
     ${sw("autoAdvance", "⏭️ Auto-advance", "Go to the next question after a correct answer")}
+    ${ladderSettingsHTML()}
     ${canAudio() ? sw("listenType", "✍️ Listening: type what you hear", "Instead of picking the meaning") : ""}
     ${sw("retype", "✍️ Retype after a miss", "Typing exercises: after a miss or 🤷, type the right answer once before Next (doesn't change your score)")}
     ${sw("retypeMC", "✍️ Also in multiple choice", "After a wrong pick or 🤷, type the reading once")}
@@ -2996,7 +3022,7 @@ function settings(page = false) {
   segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; }); segPick("#musVolSeg", b => { S.musicVol = b.dataset.mv; if (typeof kmTick === "function") kmTick(); });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
-  bindAudioLessonSettings(md); bindBackupSettings(md);
+  bindAudioLessonSettings(md); bindBackupSettings(md); bindLadderSettings(md);
   md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); dropUntouched(); save(); updateDueBadge(); toast("Kanji progress reset"); } };
   md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
   if (page) { const c = md.querySelector("#closeS"); if (c) c.parentNode.remove(); return; }
@@ -3911,7 +3937,7 @@ function buildPath() {
   kj.fresh.forEach(c => { items.push({ j: 1, id: c, mode: "learn" }); });
   news.forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: "k2r", isNew: 1 } : { id: it.id, mode: "meaning", isNew: 1 }));
   shuffle(kj.fresh).forEach(c => items.push({ j: 1, id: c, mode: "k2m" }));
-  shuffle(news.slice()).forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: Math.random() < 0.5 ? "r2k" : "type" } : { id: it.id, mode: Math.random() < 0.5 ? "typing" : "reverse" }));
+  shuffle(news.slice()).forEach(it => items.push(it.k ? { k: 1, id: it.id, mode: Math.random() < 0.5 ? "r2k" : "type" } : { id: it.id, mode: ladderOn() ? "mixed" : Math.random() < 0.5 ? "typing" : "reverse" }));
   return { date: todayStr(), levels: "path", stage: ps.cur, items, pos: 0, retried: [], correct: 0, done: false, newCount: news.length, reviewCount: reviews.length, kanjiNew: kj.fresh.length, kanjiRev: kj.rev.length };
 }
 function pathHTML() {
@@ -4749,7 +4775,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -7596,6 +7622,7 @@ function grRenderDrill(id, i, onAnswer, step = "") {
       if (!ok) btns[j].classList.add("wrong");
       const bl = host.querySelector("#gblank"); if (bl) { bl.textContent = d.a; bl.classList.add("filled"); }
       host.querySelector("#fb").innerHTML = fbHTML(ok, ok || d.k === "p" ? "" : `<div class="jp">${esc(d.a)}</div>`); bindLink();
+      if (!ok && d.k === "p") host.querySelector("#fb").insertAdjacentHTML("afterbegin", cfParticleHTML(opts[j], d.a, d));
       onAnswer(ok, btns[j]);
     };
     btns.forEach((b, j) => b.onclick = () => choose(j));
@@ -8861,6 +8888,352 @@ function spkFinish() {
   $("#spkBack").onclick = () => go(back);
   SPK = null;
 }
+/* ======================================================================
+   Batch 5 · #2 Produce-ladder  ·  #8 Corrective feedback + Confusables
+   ====================================================================== */
+
+/* ---------- Produce-ladder ----------
+   Each vocab word climbs through output modes as its memory gets stronger.
+   The rung comes from the word's MAIN FSRS track (c.f — reading/meaning) and its
+   correct-answer count (c.ok):
+
+     rung  mode                      needs main-track stability  and correct answers
+      1    Recognize (multiple choice)        —  (new words start here)
+      2    Recall: type the reading         ≥ 2 days                ≥ 2
+      3    Listen & type                    ≥ 7 days                ≥ 3   (only with audio)
+      4    Speak  (optional, Settings)      ≥ 15 days               ≥ 4   (only with speech recognition)
+      5    Use it: fill the gap in a        ≥ 30 days               ≥ 5   (only when an example
+           real example sentence                                          sentence contains the word)
+
+   A word in relearning (lapsed) drops one rung until it recovers. Unavailable rungs are
+   skipped downwards (e.g. no audio → rung 3 questions are asked at rung 2).
+   Rung 3 (listen & type) is graded on the MAIN track — it's a harder way to review the
+   same memory. The separate listening track (c.L) keeps its own schedule: when it is
+   due it's asked as listening multiple choice while L-stability < 7 days, then as
+   listen & type.
+   Speaking misses never change the schedule (same rule as Speaking practice).
+   Manual mode = the old random mix of question types. */
+const LADDER = [
+  { ic: "👆", t: "Recognize", d: "multiple choice" },
+  { ic: "⌨️", t: "Recall", d: "type the reading" },
+  { ic: "🎧", t: "Listen & type", d: "type what you hear" },
+  { ic: "🎤", t: "Speak", d: "say it aloud" },
+  { ic: "🧩", t: "Use it", d: "fill the gap in a sentence" }];
+const LADDER_S = [0, 2, 7, 15, 30], LADDER_OK = [0, 2, 3, 4, 5], LADDER_LS = 7;
+const ladderOn = () => S.modeAuto !== "manual";
+const ladderSpeakOK = () => !!(S.ladderSpeak && typeof spkSR === "function" && spkSR() && S.spkMode !== "rec");
+function clozeEx(id) {   // first example sentence that literally contains the word's surface form
+  const xs = ex(id);
+  for (const x of xs) if (x && x[2] && x[0] && x[0].includes(x[2]) && x[0].length <= 48 && x[0].length > x[2].length + 1) return x;
+  return null;
+}
+function ladderRaw(id) {
+  const c = S.cards[id]; if (!c || !c.f) return 1;
+  const s = +c.f.s || 0, k = +c.ok || 0; let n = 0;
+  for (let i = 1; i < 5; i++) if (s >= LADDER_S[i] && k >= LADDER_OK[i]) n = i;
+  if (c.f.st === 3) n = Math.max(0, n - 1);
+  return n + 1;
+}
+function ladderAvail(r, id) {
+  if (r === 3) return canAudio();
+  if (r === 4) return ladderSpeakOK();
+  if (r === 5) return !!clozeEx(id);
+  return true;
+}
+function ladderStep(id) { let r = ladderRaw(id); while (r > 1 && !ladderAvail(r, id)) r--; return r; }
+function ladderMode(w) {
+  const r = ladderStep(w.id);
+  if (r === 2) return "typing";
+  if (r === 3) return "ltype";
+  if (r === 4) return "speak";
+  if (r === 5) return "cloze";
+  const m = ["meaning", "reverse"]; if (w.hasKanji) m.push("reading");
+  return m[rand(m.length)];
+}
+const ladderListenType = w => { const c = S.cards[w.id]; return !!(c && c.L && (+c.L.s || 0) >= LADDER_LS); };
+function ladderHTML(w, compact = false) {
+  const r = ladderStep(w.id), raw = ladderRaw(w.id), c = S.cards[w.id];
+  const dots = LADDER.map((L, i) => { const k = i + 1, av = ladderAvail(k, w.id);
+    return `<span class="ladr ${k < r ? "past" : k === r ? "cur" : ""} ${av ? "" : "na"}" title="${L.t}${av ? "" : " (not available here)"}">${L.ic}</span>`; }).join("");
+  if (compact) return `<span class="ladmini" aria-label="Ladder rung ${r} of 5">🪜 ${r}/5</span>`;
+  let next = "";
+  if (raw < 5 && c && c.f) { const s = LADDER_S[raw], k = LADDER_OK[raw];
+    next = `Next rung at ${s} d stability${(+c.ok || 0) < k ? ` and ${k} correct answers` : ""} (now ${fmtDays((+c.f.s || 0) * F_DAY)})`; }
+  else if (!c || !c.f) next = "New word — starts with multiple choice";
+  else next = "Top rung reached";
+  return `<div class="ladder" aria-label="Produce-ladder: rung ${r} of 5, ${LADDER[r - 1].t}"><div class="ladrow"><span class="ladlbl">🪜 Ladder</span>${dots}</div>
+    <div class="ladtxt"><b>${r}/5 · ${LADDER[r - 1].t}</b> — ${LADDER[r - 1].d}${ladderOn() ? "" : " · <i>Manual mode is on</i>"}<br><small class="muted">${next}${raw !== r ? ` · rung ${raw} skipped (${raw === 3 ? "no audio" : raw === 4 ? "speaking off" : "no example sentence"})` : ""}</small></div>${ladderHelpHTML()}</div>`;
+}
+function ladderHelpHTML() {
+  return `<details class="ladhelp"><summary>How the ladder works</summary><table class="ladtab"><tr><th>Rung</th><th>Asked as</th><th>Unlocks at</th></tr>${LADDER.map((L, i) => `<tr><td>${L.ic} ${i + 1}</td><td>${L.t}</td><td>${i ? `stability ≥ ${LADDER_S[i]} d · ${LADDER_OK[i]}+ correct` : "new words"}</td></tr>`).join("")}</table>
+    <p class="muted">Stability is the FSRS estimate of how long you'd remember the word (main reading/meaning track). A lapse drops a word one rung. Listen &amp; type needs audio; Speak is optional (Settings) and its misses never change the schedule; Use it needs an example sentence containing the word — missing rungs are skipped downwards.</p></details>`;
+}
+function ladderSettingsHTML() {
+  return `<div class="row ladrowset"><span style="text-align:left">🪜 Question mode<br><small class="muted">Auto: each word climbs a ladder — multiple choice → type the reading → listen &amp; type → (speak) → use it in a sentence, based on how well you know it. Manual: random mix.</small></span><span class="seg" id="modeSeg" role="radiogroup" aria-label="Question mode">${[["auto", "Auto (ladder)"], ["manual", "Manual"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.modeAuto || "auto") === k}" class="${(S.modeAuto || "auto") === k ? "on" : ""}" data-v="${k}">${t}</button>`).join("")}</span></div>
+    ${typeof spkSR === "function" && spkSR() ? `<div class="row"><span style="text-align:left">🎤 Speaking rung in the ladder<br><small class="muted">Strong words are sometimes asked aloud (tap the mic; never starts on its own)</small></span><button class="switch ${S.ladderSpeak ? "on" : ""}" id="ladSpk" role="switch" aria-checked="${!!S.ladderSpeak}" aria-label="Speaking rung in the ladder"></button></div>` : ""}`;
+}
+function bindLadderSettings(md) {
+  const sg = md.querySelector("#modeSeg");
+  if (sg) sg.onclick = e => { const b = e.target.closest("button"); if (!b) return; S.modeAuto = b.dataset.v; save(); sg.querySelectorAll("button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); sfx.good(); };
+  const ls = md.querySelector("#ladSpk");
+  if (ls) ls.onclick = () => { S.ladderSpeak = !S.ladderSpeak; ls.classList.toggle("on", S.ladderSpeak); ls.setAttribute("aria-checked", S.ladderSpeak); save(); };
+}
+
+/* rung 5 · Use it: cloze in a real example sentence */
+function renderCloze(w, onAnswer, opts = {}) {
+  const x = clozeEx(w.id), host = opts.host || $("#qhost");
+  const i = x[0].indexOf(x[2]), pre = x[0].slice(0, i), post = x[0].slice(i + x[2].length);
+  const opt = shuffle([w].concat(distractors(w, 3, c => c.jp, "reverse")));
+  const dict = x[2] !== w.jp && !forms(w.jp, true).includes(x[2]) && x[2] !== w.kana.replace(/ \(する\)$/, "");
+  host.innerHTML = `<div class="card clzcard"><div class="qtype">🧩 Use it — which word fills the gap?</div>
+    ${S.notes[w.id] && opts.peekNote ? `<button class="btn ghost small" id="peek" style="margin-top:6px">💡 peek at note</button>` : ""}
+    <div class="clz jp">${esc(pre)}<span class="gblank" id="clzBlank">＿＿</span>${esc(post)}</div>
+    <div class="muted clzen">${esc(x[1])}</div>${dict ? `<div class="muted clzhint">Choices are in dictionary form</div>` : ""}
+    <div class="choices">${opt.map((o, k) => `<button class="choice jp" data-i="${k}"><span class="k">${k + 1}</span>${esc(o.jp)}${o.hasKanji ? `<small class="clzk">${esc(o.kana)}</small>` : ""}</button>`).join("")}</div>
+    ${IDK_BTN}<div class="feedback" id="fb"></div></div>`;
+  qStart(w.id, "mc"); markNew(w.id);
+  const pk = host.querySelector("#peek"); if (pk) pk.onclick = () => { pk.outerHTML = noteHTML(w.id); };
+  let done = false; const btns = [...host.querySelectorAll(".choice")];
+  const fill = () => { const b = host.querySelector("#clzBlank"); if (b) { b.textContent = x[2]; b.classList.add("filled"); } };
+  const sayS = () => { if (!S.speech) return; try { if (canAudio()) playSentence(sentenceAudioPath(x), x[0]); else if (canSpeak()) speakText(x[0], true, 0.85); } catch (e) {} };
+  const choose = k => {
+    if (done || !btns[k]) return; done = true;
+    const ok = opt[k].id === w.id;
+    btns.forEach((b, j) => { b.disabled = true; if (opt[j].id === w.id) b.classList.add("right"); });
+    if (!ok) btns[k].classList.add("wrong");
+    fill();
+    host.querySelector("#fb").innerHTML = revealHTML(w, ok, ok ? "" : cfPickHTML(w, opt[k], "reverse"));
+    sayS(); onAnswer(ok, btns[k]);
+  };
+  const idk = () => { if (done) return; done = true; btns.forEach((b, j) => { b.disabled = true; if (opt[j].id === w.id) b.classList.add("right"); }); fill();
+    host.querySelector("#fb").innerHTML = revealHTML(w, false, "", true); onAnswer(false, null, 0, { idk: true }); };
+  btns.forEach((b, k) => b.onclick = () => choose(k));
+  const ib = host.querySelector(".idk"); if (ib) ib.onclick = idk;
+  return { choose, idk };
+}
+
+/* rung 4 · Speak (inline, inside any session). Mic only after a tap. A miss never reschedules. */
+function renderSpeakQ(w, onAnswer, opts = {}) {
+  const host = opts.host || $("#qhost"); let tries = 0, hinted = false, done = false, busy = false;
+  host.innerHTML = `<div class="card lspk"><div class="qtype">🎤 Say it in Japanese</div>
+    ${S.notes[w.id] && opts.peekNote ? `<button class="btn ghost small" id="peek" style="margin-top:6px">💡 peek at note</button>` : ""}
+    <div class="prompt en">${esc(w.en)}</div><div class="sub" id="lsHint">${w.hasKanji ? `<span class="jp">${esc(w.jp)}</span> · ` : ""}<button class="btn ghost small" id="lsShow">Show reading</button></div>
+    <button class="spkmic" id="lsMic" aria-label="Tap to speak">🎤</button><div class="spkstatus" id="lsStatus">Tap the mic, then say the word</div>
+    <div class="btnrow"><button class="btn ghost small" id="lsType">⌨️ Type instead</button><button class="btn ghost small" id="lsGive">Show answer</button></div>
+    <div class="feedback" id="fb"></div></div>`;
+  markNew(w.id);
+  const st = (t, c = "") => { const s = host.querySelector("#lsStatus"); if (s) { s.textContent = t; s.className = "spkstatus " + c; } };
+  const pk = host.querySelector("#peek"); if (pk) pk.onclick = () => { pk.outerHTML = noteHTML(w.id); };
+  host.querySelector("#lsShow").onclick = e => { hinted = true; e.currentTarget.outerHTML = `<span class="jp">${esc(w.kana)}</span>`; };
+  const toTyping = () => { if (done) return; done = true; renderTyping(w, onAnswer, opts); };
+  host.querySelector("#lsType").onclick = toTyping;
+  const giveUp = () => { if (done) return; done = true; host.querySelector("#lsMic").disabled = true;
+    if (typeof spkCount === "function") spkCount("miss");
+    host.querySelector("#fb").innerHTML = revealHTML(w, false, `<div class="muted" style="font-size:.9rem">Speaking misses don't change the schedule.</div>`);
+    if (canSpeak()) speak(w, true); onAnswer(false, null, 0, { nograde: true }); };
+  host.querySelector("#lsGive").onclick = giveUp;
+  const listen = () => {
+    const C = spkSR(); if (!C) return toTyping();
+    const r = new C(); let alts = [], err = null, ended = false; busy = true;
+    r.lang = "ja-JP"; r.maxAlternatives = 5; r.interimResults = false; r.continuous = false;
+    r.onresult = e => { for (let i = 0; i < e.results.length; i++) { const res = e.results[i]; for (let j = 0; j < res.length; j++) if (res[j] && res[j].transcript) alts.push(res[j].transcript); } };
+    r.onerror = e => { err = e.error || "error"; };
+    r.onend = () => { if (ended) return; ended = true; busy = false; clearTimeout(tmo); const mic = host.querySelector("#lsMic"); if (!mic || done) return; mic.classList.remove("on");
+      if (err === "not-allowed" || err === "service-not-allowed") { st("Microphone blocked — switching to typing", "bad"); return setTimeout(toTyping, 900); }
+      if (!alts.length) { st(err && err !== "no-speech" && err !== "aborted" ? "Speech recognition failed — try again or type instead" : "Didn't catch that — tap the mic and try again", "bad"); return; }
+      const m = spkMatch(alts, w), heard = [...new Set(alts)].slice(0, 3).map(a => `「${esc(a)}」`).join(" ");
+      if (m.ok) { done = true; mic.disabled = true; if (typeof spkCount === "function") spkCount("ok");
+        cur_lspk = { rating: hinted || tries ? 2 : 3 };
+        host.querySelector("#fb").innerHTML = revealHTML(w, true, `<div class="spkheard">Heard: <span class="jp">${heard}</span></div>`); st("");
+        if (canSpeak()) speak(w, true); onAnswer(true, mic); }
+      else { tries++; st(tries >= 2 ? "Not quite — one more try, or show the answer" : "Not quite — try again", "bad");
+        host.querySelector("#fb").innerHTML = `<div class="spkheard">Heard: <span class="jp">${heard}</span></div>`; if (tries >= 3) giveUp(); }
+    };
+    let tmo = setTimeout(() => { try { r.stop(); } catch (e) {} }, 8000);
+    try { r.start(); } catch (e) { busy = false; st("Couldn't start the mic — type instead", "bad"); return; }
+    host.querySelector("#lsMic").classList.add("on"); st("Listening… say the word", "on");
+  };
+  host.querySelector("#lsMic").onclick = () => { if (done || busy) return; spkAskFirst(listen); };
+  return {};
+}
+let cur_lspk = null;   // rating for a speaking answer (Good, or Hard after a hint / retry)
+
+/* ---------- #8 Corrective feedback ---------- */
+const CF_LOOK = ["未末", "土士", "人入八", "千干", "大犬太天", "白百自", "休体", "左右石", "午牛年", "夫天", "目自日白", "力刀", "待持特時", "間問聞門", "買貫員貝", "鳥島", "田由甲申", "王玉主", "母毎海", "今令", "会合", "雨両", "校交", "読話語", "雪雲電", "見貝", "木本未", "東車", "外夕", "少小", "牛午", "名各", "肉内", "週調", "近遠", "書昼晝", "高京", "早草"];
+const cfLookPair = (a, b) => CF_LOOK.some(g => g.includes(a) && g.includes(b));
+const CF_SMALL = { "ゃ": "や", "ゅ": "ゆ", "ょ": "よ", "ぁ": "あ", "ぃ": "い", "ぅ": "う", "ぇ": "え", "ぉ": "お" };
+const cfH = s => toHira(String(s || "").replace(/ \(する\)$/, "").trim());
+function cfMora(s) { const out = []; for (const ch of s) { if (CF_SMALL[ch] && out.length) out[out.length - 1] += ch; else out.push(ch); } return out; }
+function cfVowel(m) { if (m === "ー") return ""; const r = ROMA(m) || ""; const v = r.slice(-1); return "aiueo".includes(v) ? v : ""; }
+function cfLongStrip(s) {
+  const ms = cfMora(s); let out = "", pv = "";
+  for (const m of ms) {
+    const v = cfVowel(m);
+    if (m === "ー") continue;
+    if (pv && ((m === "あ" && pv === "a") || (m === "い" && (pv === "i" || pv === "e")) || (m === "う" && (pv === "u" || pv === "o")) || (m === "え" && pv === "e") || (m === "お" && pv === "o"))) { continue; }
+    out += m; pv = v;
+  }
+  return out;
+}
+const cfDak = s => s.normalize("NFD").replace(/[\u3099\u309a]/g, "").normalize("NFC");
+function cfFirstDiff(a, b) { const A = [...a], B = [...b]; for (let i = 0; i < Math.max(A.length, B.length); i++) if (A[i] !== B[i]) return [A[i] || "", B[i] || ""]; return ["", ""]; }
+/* g = what the learner gave (kana), t = the answer's kana → one-line pattern explanation or "" */
+function cfPattern(g, t) {
+  g = cfH(g); t = cfH(t); if (!g || !t || g === t) return "";
+  const lv = s => [...s].length - [...cfLongStrip(s)].length;
+  if (cfLongStrip(g) === cfLongStrip(t)) return lv(g) < lv(t)
+    ? `Long vowel missing — <span class="jp">${esc(t)}</span> holds a vowel for two beats; <span class="jp">${esc(g)}</span> doesn't. Vowel length changes the word (おばさん aunt · おばあさん grandmother).`
+    : `Extra long vowel — <span class="jp">${esc(t)}</span> has a short vowel where you stretched it (<span class="jp">${esc(g)}</span>). Vowel length changes the word (おじさん uncle · おじいさん grandfather).`;
+  if (g.replace(/っ/g, "") === t.replace(/っ/g, "")) return (g.match(/っ/g) || []).length < (t.match(/っ/g) || []).length
+    ? `Small っ missing — <span class="jp">${esc(t)}</span> has a one-beat pause (っ doubles the next consonant: きって = kit-te).`
+    : `Extra small っ — <span class="jp">${esc(t)}</span> has no pause; っ would double the next consonant.`;
+  if (g.replace(/っ/g, "つ") === t.replace(/っ/g, "つ")) return `Small っ vs big つ — small っ is a silent pause that doubles the next consonant; big つ is the sound “tsu”.`;
+  const big = s => s.replace(/[ゃゅょぁぃぅぇぉ]/g, c => CF_SMALL[c]);
+  if (big(g) === big(t)) { const [a, b] = cfFirstDiff(g, t); const sm = CF_SMALL[a] ? a : b, bg = CF_SMALL[sm] || "";
+    return `Small ${esc(sm)} vs big ${esc(bg)} — a small ${esc(sm)} merges with the kana before it into one sound (きょ = kyo); a big ${esc(bg)} is its own beat (きよ = ki-yo).`; }
+  if (cfDak(g) === cfDak(t)) { const [a, b] = cfFirstDiff(g, t);
+    return `Dakuten ゛/゜ — <span class="jp">${esc(b)}</span> (${esc(ROMA(b))}) vs <span class="jp">${esc(a)}</span> (${esc(ROMA(a))}): the little marks change the consonant.`; }
+  if (g.replace(/[をお]/g, "お").replace(/[ぢじ]/g, "じ").replace(/[づず]/g, "ず") === t.replace(/[をお]/g, "お").replace(/[ぢじ]/g, "じ").replace(/[づず]/g, "ず"))
+    return `Same sound, different kana — check the spelling: <span class="jp">${esc(t)}</span>.`;
+  return "";
+}
+function cfKanjiNote(a, b) {   // a = answer jp, b = confused jp
+  if (!a || !b || a === b) return "";
+  const A = [...a], B = [...b]; if (A.length !== B.length) return "";
+  const diff = A.map((c, i) => [c, B[i]]).filter(([x, y]) => x !== y);
+  if (diff.length !== 1) return "";
+  const [x, y] = diff[0]; if (!/[\u4e00-\u9fff]/.test(x) || !/[\u4e00-\u9fff]/.test(y)) return "";
+  return cfLookPair(x, y) ? `Look-alike kanji — <span class="jp cfk">${esc(x)}</span> (in ${esc(a)}) vs <span class="jp cfk">${esc(y)}</span> (in ${esc(b)}): look closely at the strokes.` : "";
+}
+let CF_IDX = null, CF_N = 0;
+function cfIndex() {
+  if (CF_IDX && CF_N === WORDS.length) return CF_IDX;
+  CF_IDX = new Map(); CF_N = WORDS.length;
+  const add = (k, id) => { if (!k) return; const a = CF_IDX.get(k); if (a) { if (!a.includes(id)) a.push(id); } else CF_IDX.set(k, [id]); };
+  WORDS.forEach((w, id) => { if (!w) return; add(cfH(w.kana), id); String(w.jp).split(/;\s*/).forEach(j => add(cfH(j), id)); });
+  return CF_IDX;
+}
+const cfFind = (given, w) => (cfIndex().get(cfH(given)) || []).filter(id => id !== w.id && WORDS[id] && cfH(WORDS[id].kana) !== cfH(w.kana));
+const cfWord = x => { const j = String(x.jp).split(/;\s*/)[0], k = String(x.kana).replace(/ \(する\)$/, ""); return `<span class="jp">${x.hasKanji && j !== k ? `${esc(k)} ${esc(j)}` : esc(j)}</span> (${esc(String(x.en).split(/[;,]\s*/).slice(0, 2).join(", "))})`; };
+function cfLog(a, b) {   // a = the right word, b = what it was confused with (word id or "p:は>が")
+  if (a == null || b == null || a === b) return;
+  const L = S.confuse || (S.confuse = {}), k = typeof b === "string" && b.startsWith("p:") ? b : `${a}>${b}`;
+  const e = L[k] || (L[k] = { n: 0, c: 0, t: 0 }); e.n++; e.t = Date.now();
+  const keys = Object.keys(L); if (keys.length > 400) keys.sort((x, y) => L[x].t - L[y].t).slice(0, keys.length - 400).forEach(x => delete L[x]);
+}
+const cfBox = inner => `<div class="cfnote">💡 ${inner}</div>`;
+/* MC miss: o = the picked word */
+function cfPickHTML(w, o, mode) {
+  if (!o || o.id === w.id) return "";
+  cfLog(w.id, o.id);
+  const what = mode === "meaning" ? `You picked “${esc(o.en)}” — that's ${cfWord(o)}` : `You picked ${cfWord(o)}`;
+  const tips = [cfPattern(o.kana, w.kana), cfKanjiNote(w.jp, o.jp)].filter(Boolean);
+  return cfBox(`${what} — the answer was ${cfWord(w)}.${tips.map(t => `<div class="cftip">${t}</div>`).join("")}`);
+}
+/* typing miss */
+function cfTypedHTML(w, given) {
+  const g = romajiToKana(given, true), hits = cfFind(g, w), tips = [];
+  if (hits.length) { cfLog(w.id, hits[0]); }
+  const p = cfPattern(g, w.kana); if (p) tips.push(p);
+  if (hits.length) { const o = WORDS[hits[0]], k = cfKanjiNote(w.jp, o.jp); if (k) tips.push(k);
+    return cfBox(`You wrote ${hits.slice(0, 2).map(i => cfWord(WORDS[i])).join(" / ")} — the answer was ${cfWord(w)}.${tips.map(t => `<div class="cftip">${t}</div>`).join("")}`); }
+  return tips.length ? cfBox(tips.join("<br>")) : "";
+}
+/* grammar particle drills: one-line rules for common mix-ups */
+const CF_PR = {
+  "が|は": "は marks the topic (“as for…”); が marks the subject — new information, question words (だれが), and with すき・わかる・ある・いる.",
+  "で|に": "に = destination, time, or where something exists (いる/ある); で = where an action happens, or the means (バスで, にほんごで).",
+  "に|へ": "へ stresses direction (toward); に marks the destination — both work with いく/くる, but only に for times and existence.",
+  "で|へ": "へ = direction of movement; で = place where the action takes place.",
+  "が|を": "を marks the direct object of an action; が marks the subject — and the object of すき/きらい/じょうず/わかる/ほしい/できる.",
+  "に|を": "を = what the action is done to (or the route: みちをあるく); に = target, recipient or destination (あう・のる・なる take に).",
+  "と|や": "と lists everything (A and B, complete); や gives examples (A, B, and so on).",
+  "から|まで": "から = from (starting point); まで = until / as far as (end point).",
+  "は|も": "も means “too / also”; は sets the topic, often in contrast.",
+  "か|ね": "か makes a question; ね asks for agreement (“…, right?”).",
+  "ね|よ": "ね seeks agreement; よ tells the listener something new or emphasises.",
+  "か|よ": "か makes a question; よ asserts information the listener may not know.",
+  "と|に": "と = together with someone, or quoting; に = target, destination or time.",
+  "で|を": "で = place of the action or the means; を = the object, or the space you move through (こうえんをさんぽする).",
+  "の|は": "の links nouns (わたしのほん = my book); は marks the topic of the sentence.",
+  "が|の": "の links two nouns (A の B); が marks the subject of a verb or adjective.",
+  "に|は": "に marks time/place/target; は marks the topic (には = “as for at/to…”).",
+  "で|と": "で = place or means; と = together with (ともだちと).",
+  "から|に": "から = from / because; に = to / at."
+};
+function cfParticleHTML(picked, ans, d) {
+  if (!picked || picked === ans) return "";
+  const k = [picked, ans].sort().join("|"); cfLog("p", `p:${ans}>${picked}`);
+  const rule = CF_PR[k];
+  return cfBox(`You chose <b class="jp">${esc(picked)}</b> — the answer is <b class="jp">${esc(ans)}</b>.${rule ? `<div class="cftip">${esc(rule)}</div>` : ""}`);
+}
+
+/* ---------- Confusables (Leeches page) ---------- */
+function confPairs(max = 10) {
+  const L = S.confuse || {}, agg = new Map();
+  for (const k in L) { if (k.startsWith("p:")) continue; const [a, b] = k.split(">").map(Number); if (!WORDS[a] || !WORDS[b]) continue;
+    const key = Math.min(a, b) + "|" + Math.max(a, b), e = L[k], s = Math.max(0, (+e.n || 0) - (+e.c || 0));
+    const g = agg.get(key) || { a: Math.min(a, b), b: Math.max(a, b), n: 0, t: 0, keys: [] }; g.n += s; g.t = Math.max(g.t, +e.t || 0); g.keys.push(k); agg.set(key, g); }
+  return [...agg.values()].filter(g => g.n > 0).sort((x, y) => y.n - x.n || y.t - x.t).slice(0, max);
+}
+function confParticles(max = 5) {
+  const L = S.confuse || {};
+  return Object.keys(L).filter(k => k.startsWith("p:")).map(k => { const [ans, pk] = k.slice(2).split(">"); return { ans, pk, n: Math.max(0, (+L[k].n || 0) - (+L[k].c || 0)), t: +L[k].t || 0 }; })
+    .filter(x => x.n > 0).sort((x, y) => y.n - x.n || y.t - x.t).slice(0, max);
+}
+function confSectionHTML() {
+  const P = confPairs(8), Q = confParticles(4);
+  return `<h3 class="sectionh" style="margin:18px 0 6px">🔀 Confusables</h3>
+    <p class="muted" style="margin:0 0 8px;font-size:.9rem">Pairs you've mixed up — when you pick or type another word instead of the answer.</p>
+    ${P.length ? `<div class="panel confpanel">${P.map(g => { const A = WORDS[g.a], B = WORDS[g.b]; return `<div class="confrow">${cfWord(A)} <span class="confx">⇄</span> ${cfWord(B)} <span class="tag">×${g.n}</span></div>`; }).join("")}</div>
+      <div class="btnrow" style="justify-content:flex-start"><button class="btn" id="confDrill">🔀 Confusables drill</button></div>`
+      : `<div class="panel" style="text-align:center"><p class="muted" style="margin:6px 0">No confused pairs yet — they'll appear here as you practise.</p></div>`}
+    ${Q.length ? `<div class="panel confpanel"><b>Particle mix-ups</b>${Q.map(x => `<div class="confrow"><span class="jp">${esc(x.pk)}</span> → <b class="jp">${esc(x.ans)}</b> <span class="tag">×${x.n}</span>${CF_PR[[x.pk, x.ans].sort().join("|")] ? `<div class="muted cftip">${esc(CF_PR[[x.pk, x.ans].sort().join("|")])}</div>` : ""}</div>`).join("")}</div>` : ""}`;
+}
+function bindConfSection(back) { const b = $("#confDrill"); if (b) b.onclick = () => { sfx.click(); go(() => confDrill(back || leechView)); }; }
+/* practice drill: each pair is asked both ways (meaning → pick the word; with audio also listen → pick).
+   Ungraded (doesn't touch the SRS); getting both directions of a pair right tames it by one. */
+let CF_KEY = null;
+function confDrill(back = leechView) {
+  const P = confPairs(8); if (!P.length) { toast("No confusables yet"); return back(); }
+  const items = [];
+  P.forEach(g => { items.push({ g, x: g.a, y: g.b, k: "m" }, { g, x: g.b, y: g.a, k: canAudio() ? "l" : "m" }); });
+  const Q = shuffle(items); let pos = 0, right = 0; const res = new Map();
+  const onKey = e => { if (!/INPUT|TEXTAREA/.test((e.target || {}).tagName || "") && CF_KEY) CF_KEY(e); };
+  view.innerHTML = topbar("🔀 Confusables", `<span class="muted" id="cfProg"></span>`) + `<div id="qhost"></div>`; bindBack(back);
+  addEventListener("keydown", onKey); cleanup = () => { removeEventListener("keydown", onKey); CF_KEY = null; };
+  const show = () => {
+    if (pos >= Q.length) {
+      let tamed = 0; res.forEach((v, key) => { if (v.ok === 2) { tamed++; const g = P.find(p => p.a + "|" + p.b === key); if (g) { const L = S.confuse; for (const k of g.keys) if (L[k] && (+L[k].c || 0) < (+L[k].n || 0)) { L[k].c = (+L[k].c || 0) + 1; break; } } } });
+      save(); addXP(Math.min(20, right));
+      $("#qhost").innerHTML = `<div class="card"><div class="qtype">Confusables done</div><div class="big">🔀</div><p>${right} / ${Q.length} right${tamed ? ` · ${tamed} pair${tamed === 1 ? "" : "s"} tamed` : ""}</p><p class="muted" style="font-size:.85rem">Practice only — your review schedule isn't changed.</p>
+        <div class="btnrow"><button class="btn sec" id="cfAgain">Again</button><button class="btn" id="cfDone">Done</button></div></div>`;
+      $("#cfAgain").onclick = () => confDrill(back); $("#cfDone").onclick = () => go(back); return;
+    }
+    const it = Q[pos], X = WORDS[it.x], Y = WORDS[it.y], opts = shuffle([X, Y]); window.__cfX = X.id;
+    $("#cfProg").textContent = `${pos + 1} / ${Q.length}`;
+    $("#qhost").innerHTML = `<div class="card"><div class="qtype">${it.k === "l" ? "🎧 Which word do you hear?" : "Which word means…"}</div>
+      ${it.k === "l" ? `<button class="bigspk" id="cfSay" aria-label="Play again">🔈</button>` : `<div class="prompt en">${esc(X.en)}</div>`}
+      <div class="choices cfch">${opts.map((o, i) => `<button class="choice jp" data-i="${i}"><span class="k">${i + 1}</span>${esc(String(o.jp).split(/;\s*/)[0])}${o.hasKanji ? `<small class="clzk">${esc(o.kana)}</small>` : ""}</button>`).join("")}</div><div class="feedback" id="fb"></div></div>`;
+    const say = () => speak(X, true);
+    if (it.k === "l") { $("#cfSay").onclick = say; setTimeout(say, 200); }
+    let done = false; const btns = [...document.querySelectorAll("#qhost .choice")];
+    const choose = i => {
+      if (done || !btns[i]) return; done = true; const ok = opts[i].id === X.id; if (ok) right++;
+      const key = it.g.a + "|" + it.g.b, r = res.get(key) || { ok: 0 }; if (ok) r.ok++; res.set(key, r);
+      btns.forEach((b, j) => { b.disabled = true; if (opts[j].id === X.id) b.classList.add("right"); }); if (!ok) btns[i].classList.add("wrong");
+      ok ? sfx.good() : sfx.bad();
+      const tips = [cfPattern(Y.kana, X.kana), cfKanjiNote(X.jp, Y.jp)].filter(Boolean);
+      $("#fb").innerHTML = `<div style="color:${ok ? "var(--good)" : "var(--bad)"}">${ok ? "✔" : "✘"} ${cfWord(X)}</div><div class="muted">vs ${cfWord(Y)}</div>${tips.map(t => cfBox(t)).join("")}
+        <div class="btnrow"><button class="btn" id="cfNext">Next →</button></div>`;
+      if (it.k !== "l" && canSpeak()) speak(X);
+      $("#cfNext").onclick = () => { pos++; show(); };
+    };
+    btns.forEach((b, i) => b.onclick = () => choose(i));
+    CF_KEY = e => { if (/^[12]$/.test(e.key)) choose(+e.key - 1); else if (done && e.key === "Enter") { const n = $("#cfNext"); if (n) n.click(); } };
+  };
+  show();
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -8889,7 +9262,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "190d31bec403";
+const BUILD = "a7d711e5e80b";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -8939,7 +9312,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

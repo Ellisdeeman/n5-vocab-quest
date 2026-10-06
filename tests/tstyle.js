@@ -81,6 +81,21 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await p.evaluate(()=>{window.__err=null;__N5.S().spkMode='rec';__N5.go(()=>__N5.spkSession(__spkIds,'Speaking · N5',__N5.home));});await p.waitForSelector('#spkCard');await check('speaking record mode');
   await p.evaluate(()=>{window.__alts=[__N5.WORDS[__spkIds[0]].jp.split(/[;；]/)[0]];__N5.S().spkMode='auto';__N5.go(()=>__N5.spkSession(__spkIds.slice(0,1),'Speaking · N5',__N5.home));});await p.waitForSelector('#spkMic');
   await tap('#spkMic');await p.waitForSelector('#spkFb .grok');await tap('#spkNext');await p.waitForSelector('#spkDone');await check('speaking done');
+  // produce-ladder + corrective feedback (batch 5)
+  await p.evaluate(()=>{window.__lad=(id,s,ok)=>{const S=__N5.S(),D=864e5,now=Date.now();S.cards[id]={box:3,due:now-1000,ok,bad:0,f:{st:2,sp:null,s,d:5,lr:now-s*D,due:now-1000}};const it=[{id,mode:'mixed'}];let k=0;
+   __N5.go(()=>__N5.runSession({title:'Ladder',items:true,back:__N5.home,progress:()=>({done:k,total:1}),nextItem:()=>it[k]||null,onItemDone:()=>{k++;},onFinish:()=>__N5.go(__N5.home)}));};});
+  await p.evaluate(()=>__lad(4,40,6));await p.waitForSelector('.clzcard');await check('ladder cloze');
+  {const wi=await p.evaluate(()=>[...document.querySelectorAll('#qhost .choice')].findIndex(b=>!b.textContent.replace(/^\d/,'').startsWith(__N5.WORDS[4].jp)));await tap(`#qhost .choice[data-i="${wi}"]`);await p.waitForSelector('#fb .cfnote');await check('ladder cloze miss note');}
+  await p.evaluate(()=>__lad(3,9,4));await p.waitForSelector('#typein');await check('ladder listen & type');
+  await p.evaluate(()=>{__N5.S().ladderSpeak=true;__N5.S().spkMicOk=true;__lad(6,16,6);});await p.waitForSelector('.lspk');await check('ladder speak');
+  await p.evaluate(()=>{window.__alts=['ぜんぜんちがう'];});await tap('#lsMic');await p.waitForTimeout(400);await check('ladder speak miss');await p.evaluate(()=>{__N5.S().ladderSpeak=false;});
+  await p.evaluate(()=>__N5.go(()=>__N5.quiz('typing',[229],'Typing')));await p.waitForSelector('#typein');await p.fill('#typein','kiru');await p.keyboard.press('Enter');await p.waitForSelector('#fb .cfnote');await check('typing miss: other word note');
+  await p.evaluate(()=>__N5.go(()=>__N5.quiz('typing',[128],'Typing')));await p.waitForSelector('#typein');await p.fill('#typein','obasan');await p.keyboard.press('Enter');await p.waitForSelector('#fb .cfnote');await check('typing miss: long vowel note');
+  await p.evaluate(()=>{__N5.go(__N5.home);__N5.wordModal(__N5.WORDS[3]);});await p.waitForSelector('.modal .ladder');await p.evaluate(()=>document.querySelector('.modal .ladder').scrollIntoView({block:'center'}));await check('word detail ladder');
+  await p.evaluate(()=>{document.querySelector('.modal').remove();const S=__N5.S();S.confuse={'229>208':{n:3,c:0,t:Date.now()},'128>127':{n:2,c:0,t:Date.now()},'p:は>が':{n:1,c:0,t:Date.now()}};__N5.go(__N5.leechView);});await p.waitForSelector('#confDrill');await p.waitForTimeout(300);await check('leeches confusables');
+  await tap('#confDrill');await p.waitForSelector('#qhost .cfch');await check('confusables drill');await tap('#qhost .cfch .choice');await p.waitForSelector('#cfNext');await check('confusables drill answer');
+  await p.evaluate(()=>{__N5.go(__N5.settingsView);});await p.waitForSelector('#modeSeg');await p.evaluate(()=>document.querySelector('#modeSeg').scrollIntoView({block:'center'}));await check('settings question mode');
+  await p.evaluate(()=>__N5.go(__N5.home));
   await p.evaluate(()=>__N5.go(__N5.dueView));await p.waitForSelector('[data-review="all"]');
   await tap('.tabbar [data-tab="levels"]');await check('levels');
   await p.evaluate(()=>__N5.openLevel('n5'));await p.waitForTimeout(1200);await check('level N5');
