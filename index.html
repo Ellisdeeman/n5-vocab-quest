@@ -8876,6 +8876,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Pimsleur words: <b>unofficial, compiled from learner notes; not affiliated with Pimsleur</b> — word lists only (word, reading, meaning, lesson), cross-checked from ${PIMS.meta.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a>`).join(", ")}; the ${PIMS.pm.length} words not in the JLPT lists use the same NanamiNeural TTS. Pimsleur is a trademark of its owner.<br>
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
   Grammar: ${GR_DATA.length} N5 points — explanations, example sentences and drills are original, written for this app (no textbook text); example and drill audio use the same NanamiNeural TTS.<br>
+  Speaking practice: uses your browser's speech recognition (Web Speech API, ja-JP — on iPhone/iPad Apple's, in Chrome Google's service) only while the mic button is lit; or Record &amp; compare, where recordings stay on this device. Only a correct answer counts (as a Good review, Hard with the hint or a retry); misses never change a word's schedule and are only counted in Stats.<br>
   Reading & Mock JLPT N5: ${RD_DATA.length} graded stories and every mock-test question are original, written for this app — nothing is taken from real JLPT tests; narration and listening audio use NanamiNeural plus <b>ja-JP-KeitaNeural</b> for male speakers (via edge-tts).<br>
   Scheduling: <a href="https://github.com/open-spaced-repetition/py-fsrs" target="_blank" rel="noopener">FSRS-5</a> (Free Spaced Repetition Scheduler, MIT, Open Spaced Repetition — default parameters), ported to plain JavaScript.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
@@ -8888,7 +8889,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "9a148951b90a";
+const BUILD = "190d31bec403";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
