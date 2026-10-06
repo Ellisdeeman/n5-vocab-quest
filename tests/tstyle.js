@@ -33,6 +33,7 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
    ok(`${tag}: no horizontal overflow`,a.sw<=a.W&&!a.over.length,`scrollWidth ${a.sw} ${JSON.stringify(a.over)}`);
    ok(`${tag}: text contrast AA`,!a.bad.length,JSON.stringify(a.bad,null,1));
    ok(`${tag}: tap targets ≥44 (primary ≥54)`,!a.small.length&&!a.prim.length,JSON.stringify({small:a.small,prim:a.prim}));};
+  if(process.env.ONLY!=='pn'){
   await check('home');
   await tap('[data-m="meaning"]');await p.waitForSelector('#qhost .choice');await check('quiz');
   await tap('#qhost .choice');await check('quiz answered');
@@ -185,5 +186,20 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await p.evaluate(()=>{__N5.FOPT_STATE.busy=false;__N5.FOPT_STATE.last={ok:true,samples:812,items:140,total:1300,before:{logloss:.412,rmse:.061},after:{logloss:.379,rmse:.019},w:__N5.FSRS_DEF.slice()};__N5.go(__N5.settingsView);});await p.waitForSelector('#foptApply');await p.evaluate(()=>document.querySelector('#foptRes').scrollIntoView({block:'center'}));await check('settings optimizer result');
   await p.evaluate(()=>{const S=__N5.S();__N5.FOPT_STATE.last=null;S.fsrsW=__N5.FSRS_DEF.slice();S.fsrsOpt={at:Date.now(),samples:812,before:{logloss:.412,rmse:.061},after:{logloss:.379,rmse:.019},prev:null};__N5.go(__N5.settingsView);});await p.waitForSelector('#foptRevert');await p.evaluate(()=>document.querySelector('#foptBox').scrollIntoView({block:'center'}));await check('settings optimizer applied');
   await p.evaluate(()=>{const S=__N5.S();delete S.fsrsW;delete S.fsrsOpt;});
+  } // ONLY=pn skips to the reminders screens
+  // batch 7: review reminders card — install guide, needs Gist sync, ready, on (status + warnings), help open
+  await p.route('https://raw.githubusercontent.com/**',r=>r.fulfill({json:{v:1,dev:{}}}));
+  await p.route('https://api.github.com/repos/**/runs**',r=>r.fulfill({json:{workflow_runs:[{run_started_at:new Date(Date.now()-5*60e3).toISOString()}]}}));
+  const pnShow=async(f,n,sel='#pnSec')=>{await p.evaluate(f);await p.evaluate(()=>__N5.go(__N5.settingsView));await p.waitForSelector(sel);await p.waitForTimeout(250);await p.evaluate(s=>document.querySelector(s).scrollIntoView({block:'center'}),sel);await check(n);};
+  const savedTok=await p.evaluate(()=>__N5.SY.token);
+  await pnShow(()=>{window.__pmSave=window.PushManager;delete window.PushManager;Object.defineProperty(navigator,'userAgent',{get:()=>'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X)',configurable:true});},'reminders install guide','#pnInstall');
+  await pnShow(()=>{delete navigator.userAgent;if(!window.PushManager)window.PushManager=window.__pmSave||function(){};if(!window.Notification)window.Notification={permission:'default'};if(!('serviceWorker' in navigator))Object.defineProperty(navigator,'serviceWorker',{value:{ready:new Promise(()=>{}),addEventListener(){}},configurable:true});__N5.SY.token='';},'reminders needs gist sync','#pnNeedSync');
+  await pnShow(s=>{__N5.SY.token=s||'ghp_x';},'reminders ready','#pnOnBtn');
+  await p.evaluate(s=>{__N5.SY.token=s||'ghp_x';},savedTok);
+  await pnShow(()=>{Object.assign(__N5.PN,{on:true,sub:{endpoint:'https://web.push.apple.com/x'},login:'friend',upAt:Date.now()-120e3,err:'network'});},'reminders on','#pnStatus');
+  await p.waitForTimeout(500);await p.evaluate(()=>{document.querySelector('#pnStatus').innerHTML+='<br><b class="pnwarn">⚠️ This device stopped accepting notifications (the subscription expired or was removed). Tap “Re-enable”.</b>';document.querySelector('#pnReBtn').hidden=false;document.querySelector('#pnStatus').scrollIntoView({block:'start'});});await check('reminders status warnings');
+  await p.evaluate(()=>document.querySelector('#pnRep').scrollIntoView({block:'center'}));await check('reminders controls');
+  await p.evaluate(()=>{const d=document.querySelector('.pnhelp');d.open=true;d.scrollIntoView({block:'center'});});await check('reminders help');
+  await p.evaluate(s=>{Object.assign(__N5.PN,{on:false,sub:null,login:'',upAt:0,err:''});__N5.SY.token=s;},savedTok);
   await ctx.close();}
  await b.close();console.log('SUMMARY',BR,R.filter(Boolean).length,'/',R.length);process.exit(R.every(Boolean)?0:1);})();
