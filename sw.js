@@ -2,13 +2,21 @@
    - audio/*: cache-first (cached after first play or via "Download all audio"), serves Range requests from cache
    - data/nX.json, data/kanji-nX.json and data/kanji-nX-s.json (stroke paths) ?v=<hash>: cache-first per version (old versions of the same file are dropped); offline falls back to any cached version
    - HTML/navigation: network-first with a 4 s timeout → cached copy (never hangs on a slow network, never pins a stale index.html) */
-const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v23", DATA_CACHE = "n5vq-data-v1";
+const AUDIO_REV = 2;   // 2 = Keita/Nanami voice switch (2026-10-06)
+const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v24", DATA_CACHE = "n5vq-data-v1";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k !== AUDIO_CACHE && k !== PAGE_CACHE && k !== DATA_CACHE) await caches.delete(k);
   try {   // v4 stored N5 audio at audio/w|s|h/…; it now lives under audio/n5/ — drop the orphaned copies
     const ac = await caches.open(AUDIO_CACHE);
     for (const r of await ac.keys()) if (/\/audio\/[wsh]\/[^/]+\.mp3$/.test(new URL(r.url).pathname)) await ac.delete(r);
+    // AUDIO_REV changes whenever existing audio files are re-generated in place (same paths, new voice): drop every cached
+    // mp3 once so cache-first never serves the old recordings (offline "Download all audio" must be run again).
+    const mark = new URL("__audio-rev-" + AUDIO_REV, self.registration.scope).href;
+    if (!(await ac.match(mark))) {
+      for (const r of await ac.keys()) await ac.delete(r);
+      await ac.put(mark, new Response("", { headers: { "Content-Type": "text/plain" } }));
+    }
   } catch (e) {}
   await self.clients.claim();
 })()));
@@ -29,7 +37,7 @@ self.addEventListener("fetch", e => {
       const cache = await caches.open(AUDIO_CACHE), key = url.origin + url.pathname;
       let hit = await cache.match(key);
       if (!hit) {
-        const r = await fetch(key);               // full file (no Range) so it can be cached
+        const r = await fetch(key, { cache: "no-cache" });   // full file (no Range) so it can be cached; revalidate so a stale HTTP-cached copy is never pinned
         if (!r.ok) return r;
         await cache.put(key, r.clone());
         hit = r;
