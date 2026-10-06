@@ -45,3 +45,6 @@ pm/w/<index>.mp3 — the 73 "Pimsleur set" words (Pimsleur Japanese lesson words
 edge-tts 7.2.8, voice ja-JP-NanamiNeural (rate -10%), encoded like the level audio (MP3 mono 24 kHz 40 kbps, silence trimmed).
 The word lists are unofficial, compiled from learner notes (see data/pimsleur-ja.json → meta.sources); not affiliated with Pimsleur.
 No Pimsleur course audio is included.
+
+Grammar (gr/): lesson example sentences (gr/<point>-<n>.mp3) and drill sentences (gr/<point>-d<n>.mp3) were synthesized
+with ja-JP-NanamiNeural via edge-tts from sentences written for this app; gr/manifest.json lists the text of each file.
