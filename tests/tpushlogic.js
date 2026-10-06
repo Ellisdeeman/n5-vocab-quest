@@ -31,11 +31,15 @@ r = decide(at("2026-10-06T13:00:00-04:00"), cfg({ qs: "13:00", qe: "15:00" }), 3
 const t = at("2026-10-06T15:00:00Z");   // 11:00 NY, 00:00 Tokyo next day
 ok("timezone: same instant is daytime in New York", !!decide(t, cfg(), 30, {}).send);
 ok("…and quiet hours in Tokyo", !decide(t, cfg({ tz: "Asia/Tokyo" }), 30, {}).send);
-ok("local(): date + minutes in zone", JSON.stringify(local(t, "Asia/Tokyo")) === JSON.stringify({ day: "2026-10-07", min: 0 }));
+ok("local(): date + minutes in zone", JSON.stringify(local(t, "Asia/Tokyo")) === JSON.stringify({ day: "2026-10-07", min: 0, wd: 3 }));
 ok("bad timezone falls back to UTC", local(t, "Not/AZone").min === 15 * 60);
 ok("quiet() spans midnight", quiet(23 * 60 + 59, "23:00", "08:00") && quiet(7 * 60 + 59, "23:00", "08:00") && !quiet(8 * 60, "23:00", "08:00"));
 // --- evening nudge
-r = decide(at("2026-10-06T19:10:00-04:00"), cfg(), 3, {}); ok("evening nudge when 0 < due < threshold", r.send && r.send.kind === "nudge" && /Evening check-in: 3 reviews due/.test(r.send.body));
+r = decide(at("2026-10-06T19:10:00-04:00"), cfg(), 3, {}); ok("weekRpt Sunday takes the evening slot", (() => { const t = at("2026-10-11T19:10:00-04:00");
+  const r = decide(t, cfg({ weekRpt: true }), 3, {}); return r.send && r.send.kind === "week" && /Weekly report ready/.test(r.send.body); })());
+ok("weekRpt off → ordinary nudge on Sunday", (() => { const t = at("2026-10-11T19:10:00-04:00");
+  const r = decide(t, cfg({ weekRpt: false }), 3, {}); return r.send && r.send.kind === "nudge"; })());
+ok("evening nudge when 0 < due < threshold", r.send && r.send.kind === "nudge" && /Evening check-in: 3 reviews due/.test(r.send.body));
 st = r.st;
 r = decide(at("2026-10-06T19:40:00-04:00"), cfg(), 4, st); ok("nudge only once per day", !r.send);
 r = decide(at("2026-10-07T19:01:00-04:00"), cfg(), 1, st); ok("next day: nudge again (singular text)", r.send && /1 review due/.test(r.send.body));
