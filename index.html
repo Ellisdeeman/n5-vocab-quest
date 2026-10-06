@@ -1127,6 +1127,8 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .ladhelp{margin-top:6px;font-size:.85rem}.ladhelp summary{cursor:pointer;color:var(--accent);font-weight:600;min-height:44px;display:flex;align-items:center}
 .ladtab{width:100%;border-collapse:collapse;margin:4px 0;font-size:.82rem}.ladtab th,.ladtab td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--sep)}.ladtab th{color:var(--label2);font-weight:600}
 .ladhelp p{margin:6px 0 0;font-size:.8rem}
+/* Batch 6: reading known % (known = solid, seen = light) */
+.rdbar{position:relative}.rdbar i.rdseen{position:absolute;left:0;top:0;opacity:.35}.rdbar i.rdknown{position:relative}
 </style>
 </head>
 <body>
@@ -1921,7 +1923,7 @@ function revLogAdd(lv, trk, ok) {
    union per day, so two devices together still respect the cap. */
 const NEW_PRESETS = [5, 10, 15, 20, 30], KJ_PRESETS = [3, 5, 10, 20];
 const limV = (v, d) => v === "off" ? Infinity : (v == null || v === "" || isNaN(+v)) ? d : Math.max(1, Math.min(500, Math.round(+v)));
-const newLimitV = () => limV(S.newLimit, 15), kjLimitV = () => limV(S.kjLimit, 10);
+const newLimitV = () => (typeof paceOn === "function" && paceOn()) ? paceLimit() : limV(S.newLimit, 15), kjLimitV = () => limV(S.kjLimit, 10);
 function nlog(k) {
   if (!S[k] || typeof S[k] !== "object" || Array.isArray(S[k])) S[k] = {};
   return S[k];
@@ -2503,7 +2505,7 @@ function kanjiForSession(revLevels, newLevels) {
   return { rev: rev.slice(0, 30), fresh };
 }
 function buildDaily() {
-  const now = Date.now(), target = S.dailyTarget || 20, nNew = Math.max(0, Math.min(40, S.newPerDay | 0));
+  const now = Date.now(), target = S.dailyTarget || 20, nNew = newPerSessionV();
   const due = ALL_IDS.filter(id => S.cards[id] && card(id).due <= now).sort((a, b) => card(a).box - card(b).box || card(a).due - card(b).due);
   const reviews = due.slice(0, Math.max(target - nNew, Math.ceil(target / 2)));
   const used = new Set(reviews);
@@ -2598,6 +2600,7 @@ function home() {
   ${smartHTML(D)}
   ${levelPickerHTML()}
   ${D ? dailyHeroHTML(D, true) : `<div class="hero"><div class="ic">📅</div><div><h2>Today's session</h2><p>Loading your path…</p></div><button class="btn" disabled>Start ▶</button></div>`}
+  ${paceHomeHTML()}
   ${D ? flHomeHTML() : ""}
   ${audioLessonHTML()}
   ${goalPanelHTML()}
@@ -2646,7 +2649,7 @@ function home() {
   map.onclick = e => { if (e.target.dataset.id) wordModal(WORDS[+e.target.dataset.id]); };
   bindLevelPicker(); bindGoalPanel();
   if (D) bindDailyBtn(D, home, "path");
-  bindFlHome(); bindSmart(D);
+  bindFlHome(); bindSmart(D); bindPaceHome();
   bindAudioLesson();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
@@ -2989,7 +2992,8 @@ function settings(page = false) {
     <div class="row"><span>字 New kanji per session</span><span class="seg" id="kjPer">${[0, 2, 3, 5].map(v => `<button class="${(S.kanjiPerDay == null ? 3 : S.kanjiPerDay) === v ? "on" : ""}" data-v="${v}">${v}</button>`).join("")}</span></div>
     ${audioLessonSettingsHTML()}
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
-    ${limitRowHTML("newLim", "🚦 Daily new words limit", "Most unseen words introduced per day (all levels, every mode & game). After that: reviews only until midnight. Kana don't count; Pimsleur \"Mark lesson done\" doesn't count.", S.newLimit, NEW_PRESETS, 15)}
+    ${paceSettingsHTML()}
+    ${limitRowHTML("newLim", "🚦 Daily new words limit", "Most unseen words introduced per day (all levels, every mode & game) — the maximum when Auto pace is on. After that: reviews only until midnight. Kana don't count; Pimsleur \"Mark lesson done\" doesn't count.", S.newLimit, NEW_PRESETS, 15)}
     ${limitRowHTML("kjLim", "🚦 Daily new kanji limit", "Kanji have their own daily limit (separate from words)", S.kjLimit, KJ_PRESETS, 10)}
     ${limitRowHTML("grLim", "🚦 Daily new grammar limit", "New N5 grammar points per day — grammar has its own review track", S.grLimit, GR_PRESETS, 2)}
     ${backupSettingsHTML()}
@@ -3022,7 +3026,7 @@ function settings(page = false) {
   segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; }); segPick("#musVolSeg", b => { S.musicVol = b.dataset.mv; if (typeof kmTick === "function") kmTick(); });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
-  bindAudioLessonSettings(md); bindBackupSettings(md); bindLadderSettings(md);
+  bindAudioLessonSettings(md); bindBackupSettings(md); bindLadderSettings(md); bindPaceSettings(md);
   md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); dropUntouched(); save(); updateDueBadge(); toast("Kanji progress reset"); } };
   md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
   if (page) { const c = md.querySelector("#closeS"); if (c) c.parentNode.remove(); return; }
@@ -3910,7 +3914,7 @@ function ensurePathLevels(then) {   // async: load what the path needs, then re-
 }
 function newKanaForPath(n, exclude) { return kanaPathOrder().filter(id => !KS.cards[id] && !exclude.has("k:" + id)).slice(0, n); }
 function buildPath() {
-  const target = S.dailyTarget || 20, nNew = Math.max(0, Math.min(40, S.newPerDay | 0)), ps = pathState();
+  const target = S.dailyTarget || 20, nNew = newPerSessionV(), ps = pathState();
   // 1) due reviews from all stages (kana + every level), weakest first; capped so a backlog doesn't make an endless session
   const kd = kanaDueScan().ids.map(id => ({ k: 1, id, rev: 1 }));
   const vd = dueScan().ids.filter(id => WORDS[id]).map(id => ({ id, mode: "mixed", rev: 1 }));
@@ -7942,6 +7946,380 @@ const RD_DATA = [
 ];
 /* function words / endings: tap shows a short note instead of a dictionary entry */
 const RD_GLOSS = { "は": "topic particle (wa)", "が": "subject particle; “but” between clauses", "を": "object particle (o)", "に": "particle: time / destination / location of existence", "へ": "direction particle (e)", "で": "particle: place of action / means; て-form of です", "と": "“and” / “with” / quoting (と言いました)", "も": "“also, too”", "の": "possessive / linking particle", "から": "“from”; “because”", "まで": "“until, as far as”", "や": "“and (among others)”", "より": "“than”", "か": "question particle", "ね": "“isn't it?” (seeking agreement)", "よ": "“you know” (telling news)", "ぐらい": "“about, around”", "です": "polite “is / am / are”", "でした": "polite past “was”", "ます": "polite verb ending", "ません": "polite negative", "ました": "polite past", "ありません": "polite negative (“isn't”)", "ありませんでした": "polite past negative", "います": "polite ～ている (ongoing / state)", "いました": "polite past ～ている", "ください": "“please (do)” after the て-form", "これ": "“this (thing)”", "その": "“that ～”", "この": "“this ～”", "そこ": "“there”", "どこ": "“where”", "何": "“what”", "だれ": "“who”", "いつ": "“when”", "どう": "“how”", "いくら": "“how much”", "やって": "どうやって = “how, by what means”", "どれ": "“which one”", "どの": "“which ～”", "し": "し = stem of する (do)", "して": "て-form of する (do)", "します": "polite “do”", "しました": "polite past of する (do)", "たい": "“want to” (after a verb stem)", "な": "な-adjective link before a noun", "ありがとう": "“thank you”", "ございます": "polite “there is” (ありがとうございます)", "ございました": "polite past (ありがとうございました)", "こんにちは": "“hello”", "「": "quote mark", "」": "quote mark", "、": "comma", "。": "full stop" };
+/* ================= Reading · Batch 6: 24 more original stories (r17–r40) =================
+   Same markup as app21d.js. Optional 3rd element per sentence = speaker for narration audio:
+   "F" = a female character's line (voice ja-JP-NanamiNeural), otherwise ja-JP-KeitaNeural narration.
+   Tier 4 = N4 preview: plain forms, ～ので, ～たら, ～と思う, ～てしまう (glossed). */
+RD_TIERS[4] = { name: "N4 preview", stars: "★★★★", note: "Plain forms, ので / たら / と思う — a step toward N4" };
+RD_DATA.push(
+{ id: "r17", tier: 1, t: "私[わたし]の 犬[いぬ]", en: "My Dog", s: [
+  ["私[わたし]/は/犬[いぬ]/が/好[す]き/です/。", "I like dogs."],
+  ["家[いえ]/に/白[しろ]い@白い/犬[いぬ]/が/います@居る/。", "There is a white dog at my house."],
+  ["名前[なまえ]/は/#シロ/です/。", "Its name is Shiro."],
+  ["#シロ/は/とても/元気[げんき]/です/。", "Shiro is very lively."],
+  ["毎朝[まいあさ]/、/#シロ/と/公園[こうえん]/を/散歩[さんぽ]します@散歩/。", "Every morning I take a walk in the park with Shiro."],
+  ["公園[こうえん]/に/は/犬[いぬ]/が/たくさん/います@居る/。", "There are lots of dogs in the park."],
+  ["夜[よる]/、/#シロ/は/私[わたし]/の/部屋[へや]/で/寝[ね]ます@寝る/。", "At night Shiro sleeps in my room."]],
+  q: [
+  { q: "犬[いぬ]/の/名前[なまえ]/は/何[なん]/です/か/。", qe: "What is the dog's name?", o: ["シロ", "クロ", "ハナ", "タロウ"], k: ["犬", "名前"] },
+  { q: "毎朝[まいあさ]/、/何[なに]/を/します/か/。", qe: "What does this person do every morning?", o: ["公園[こうえん]を 散歩[さんぽ]します", "学校[がっこう]へ 行[い]きます", "犬[いぬ]と 泳[およ]ぎます", "部屋[へや]で 寝[ね]ます"], k: ["散歩", "公園"] },
+  { q: "#シロ/は/夜[よる]/どこ/で/寝[ね]ます@寝る/か/。", qe: "Where does Shiro sleep at night?", o: ["私[わたし]の 部屋[へや]", "公園[こうえん]", "台所[だいどころ]", "玄関[げんかん]"], k: ["部屋", "寝る"] }] },
+
+{ id: "r18", tier: 1, t: "駅[えき]の 前[まえ]の 喫茶店[きっさてん]", en: "The Café in Front of the Station", s: [
+  ["駅[えき]/の/前[まえ]/に/小[ちい]さい@小さい/喫茶店[きっさてん]/が/あります@有る/。", "There is a small café in front of the station."],
+  ["私[わたし]/は/毎週[まいしゅう]/土曜日[どようび]/に/そこ/へ/行[い]きます@行く/。", "I go there every Saturday."],
+  ["喫茶店[きっさてん]/の/コーヒー/は/おいしい/です/。", "The café's coffee is delicious."],
+  ["ケーキ/も/あります@有る/が/、/少[すこ]し/高[たか]い@高い/です/。", "They have cake too, but it's a little expensive."],
+  ["私[わたし]/は/いつも/窓[まど]/の/近[ちか]く/に/座[すわ]ります@座る/。", "I always sit near the window."],
+  ["そこ/で/コーヒー/を/飲[の]んで@飲む/、/本[ほん]/を/読[よ]みます@読む/。", "There I drink coffee and read a book."],
+  ["店[みせ]/の/人[ひと]/は/とても/親切[しんせつ]/です/。", "The people at the shop are very kind."]],
+  x: { "親切": ["しんせつ", "kind"], "ケーキ": ["ケーキ", "cake"] },
+  q: [
+  { q: "喫茶店[きっさてん]/は/どこ/に/あります@有る/か/。", qe: "Where is the café?", o: ["駅[えき]の 前[まえ]", "学校[がっこう]の 隣[となり]", "公園[こうえん]の 中[なか]", "銀行[ぎんこう]の 後[うし]ろ"], k: ["駅", "喫茶店"] },
+  { q: "いつ/喫茶店[きっさてん]/へ/行[い]きます@行く/か/。", qe: "When does this person go to the café?", o: ["毎週[まいしゅう] 土曜日[どようび]", "毎朝[まいあさ]", "毎晩[まいばん]", "日曜日[にちようび]の 夜[よる]"], k: ["毎週", "土曜日"] },
+  { q: "喫茶店[きっさてん]/で/何[なに]/を/します/か/。", qe: "What does this person do at the café?", o: ["コーヒーを 飲[の]んで、本[ほん]を 読[よ]みます", "ケーキを 作[つく]ります", "友達[ともだち]と 話[はな]します", "宿題[しゅくだい]を します"], k: ["コーヒー", "読む"] }] },
+
+{ id: "r19", tier: 1, t: "デパートで 買[か]い物[もの]", en: "Shopping at the Department Store", s: [
+  ["今日[きょう]/は/日曜日[にちようび]/です/。", "Today is Sunday."],
+  ["母[はは]/と/デパート/へ/行[い]きます@行く/。", "I'm going to the department store with my mother."],
+  ["デパート/は/とても/大[おお]きい@大きい/です/。", "The department store is very big."],
+  ["母[はは]/は/新[あたら]しい@新しい/靴[くつ]/が/欲[ほ]しい@欲しい/です/。", "My mother wants new shoes."],
+  ["私[わたし]/は/青[あお]い@青い/シャツ/を/買[か]います@買う/。", "I buy a blue shirt."],
+  ["シャツ/は/三千円[さんぜんえん]/です/。", "The shirt is 3,000 yen."],
+  ["それから/、/レストラン/で/昼[ひる]ご飯[ごはん]@昼御飯/を/食[た]べます@食べる/。", "Then we eat lunch at a restaurant."]],
+  x: { "三千円": ["さんぜんえん", "3,000 yen"] },
+  q: [
+  { q: "だれ/と/デパート/へ/行[い]きます@行く/か/。", qe: "Who does this person go to the department store with?", o: ["お母[かあ]さん", "お父[とう]さん", "友達[ともだち]", "妹[いもうと]"], k: ["デパート", "行く"] },
+  { q: "私[わたし]/は/何[なに]/を/買[か]います@買う/か/。", qe: "What does this person buy?", o: ["青[あお]い シャツ", "新[あたら]しい 靴[くつ]", "白[しろ]い 帽子[ぼうし]", "黒[くろ]い かばん"], k: ["シャツ", "買う"] },
+  { q: "シャツ/は/いくら/です/か/。", qe: "How much is the shirt?", o: ["三千円[さんぜんえん]", "三百円[さんびゃくえん]", "四千円[よんせんえん]", "千円[せんえん]"], k: ["シャツ"] },
+  { q: "昼[ひる]ご飯[ごはん]@昼御飯/は/どこ/で/食[た]べます@食べる/か/。", qe: "Where do they eat lunch?", o: ["レストラン", "家[いえ]", "デパートの 前[まえ]", "公園[こうえん]"], k: ["レストラン", "食べる"] }] },
+
+{ id: "r20", tier: 1, t: "私[わたし]の 町[まち]", en: "My Town", s: [
+  ["私[わたし]/の/町[まち]/は/小[ちい]さい@小さい/です/が/、/静[しず]か/です/。", "My town is small, but it's quiet."],
+  ["町[まち]/に/は/川[かわ]/が/あります@有る/。", "There is a river in the town."],
+  ["川[かわ]/の/近[ちか]く/に/公園[こうえん]/と/図書館[としょかん]/が/あります@有る/。", "Near the river there are a park and a library."],
+  ["駅[えき]/は/少[すこ]し/遠[とお]い@遠い/です/。", "The station is a little far."],
+  ["駅[えき]/まで/バス/で/十分[じゅっぷん]/ぐらい/です/。", "It's about ten minutes to the station by bus."],
+  ["町[まち]/の/人[ひと]/は/みんな/親切[しんせつ]/です/。", "The people in the town are all kind."],
+  ["私[わたし]/は/この/町[まち]/が/大好[だいす]き/です/。", "I love this town."]],
+  x: { "親切": ["しんせつ", "kind"], "十分": ["じゅっぷん", "ten minutes"], "川": ["かわ", "river"] },
+  q: [
+  { q: "町[まち]/は/どんな/町[まち]/です/か/。", qe: "What kind of town is it?", o: ["小[ちい]さくて 静[しず]かな 町[まち]", "大[おお]きくて にぎやかな 町[まち]", "古[ふる]くて 暗[くら]い 町[まち]", "新[あたら]しくて 有名[ゆうめい]な 町[まち]"], k: ["町", "静か"] },
+  { q: "川[かわ]/の/近[ちか]く/に/何[なに]/が/あります@有る/か/。", qe: "What is near the river?", o: ["公園[こうえん]と 図書館[としょかん]", "駅[えき]と 銀行[ぎんこう]", "学校[がっこう]と 病院[びょういん]", "店[みせ]と 喫茶店[きっさてん]"], k: ["公園", "図書館"] },
+  { q: "駅[えき]/まで/何[なん]/で/行[い]きます@行く/か/。", qe: "How does this person get to the station?", o: ["バス", "電車[でんしゃ]", "自転車[じてんしゃ]", "タクシー"], k: ["駅", "バス"] }] },
+
+{ id: "r21", tier: 1, t: "私[わたし]の 一日[いちにち]", en: "My Day", s: [
+  ["私[わたし]/は/毎朝[まいあさ]/六時[ろくじ]/に/起[お]きます@起きる/。", "I get up at six every morning."],
+  ["シャワー/を/浴[あ]びます@浴びる/。", "I take a shower."],
+  ["パン/と/卵[たまご]/を/食[た]べます@食べる/。", "I eat bread and eggs."],
+  ["八時[はちじ]/に/電車[でんしゃ]/で/会社[かいしゃ]/へ/行[い]きます@行く/。", "At eight I go to the office by train."],
+  ["昼[ひる]/は/会社[かいしゃ]/の/食堂[しょくどう]/で/食[た]べます@食べる/。", "At noon I eat in the company cafeteria."],
+  ["夜[よる]/は/家[いえ]/で/テレビ/を/見[み]ます@見る/。", "In the evening I watch TV at home."],
+  ["十一時[じゅういちじ]/に/寝[ね]ます@寝る/。", "I go to bed at eleven."]],
+  x: { "六時": ["ろくじ", "six o'clock"], "八時": ["はちじ", "eight o'clock"], "十一時": ["じゅういちじ", "eleven o'clock"], "一日": ["いちにち", "a day, one day"] },
+  q: [
+  { q: "何時[なんじ]/に/起[お]きます@起きる/か/。", qe: "What time does this person get up?", o: ["六時[ろくじ]", "七時[しちじ]", "八時[はちじ]", "五時[ごじ]"], k: ["起きる"] },
+  { q: "何[なん]/で/会社[かいしゃ]/へ/行[い]きます@行く/か/。", qe: "How does this person go to the office?", o: ["電車[でんしゃ]", "バス", "車[くるま]", "自転車[じてんしゃ]"], k: ["電車", "会社"] },
+  { q: "昼[ひる]/は/どこ/で/食[た]べます@食べる/か/。", qe: "Where does this person eat at noon?", o: ["会社[かいしゃ]の 食堂[しょくどう]", "家[いえ]", "レストラン", "公園[こうえん]"], k: ["食堂"] },
+  { q: "夜[よる]/、/何[なに]/を/します/か/。", qe: "What does this person do in the evening?", o: ["テレビを 見[み]ます", "本[ほん]を 読[よ]みます", "料理[りょうり]を 作[つく]ります", "散歩[さんぽ]します"], k: ["テレビ", "見る"] }] },
+
+{ id: "r22", tier: 1, t: "好[す]きな 食[た]べ物[もの]", en: "Favorite Foods", s: [
+  ["私[わたし]/は/魚[さかな]/が/好[す]き/です/。", "I like fish."],
+  ["肉[にく]/も/好[す]き/です/が/、/野菜[やさい]/は/あまり/好[す]き/じゃ/ありません/。", "I like meat too, but I don't really like vegetables."],
+  ["姉[あね]/は/野菜[やさい]/が/大好[だいす]き/です/。", "My older sister loves vegetables."],
+  ["姉[あね]/は/毎日[まいにち]/サラダ/を/食[た]べます@食べる/。", "My sister eats salad every day."],
+  ["私[わたし]/の/家[いえ]/で/は/、/父[ちち]/が/料理[りょうり]/を/します/。", "At my house, my father does the cooking."],
+  ["父[ちち]/の/カレー/は/とても/おいしい/です/。", "My father's curry is very good."]],
+  x: { "じゃ": ["じゃ", "= では (じゃありません = is not)"], "サラダ": ["サラダ", "salad"], "カレー": ["カレー", "curry"] },
+  q: [
+  { q: "私[わたし]/は/何[なに]/が/好[す]き/です/か/。", qe: "What does this person like?", o: ["魚[さかな]", "野菜[やさい]", "果物[くだもの]", "お菓子[かし]"], k: ["魚", "好き"] },
+  { q: "お姉[ねえ]さん/は/毎日[まいにち]/何[なに]/を/食[た]べます@食べる/か/。", qe: "What does the sister eat every day?", o: ["サラダ", "カレー", "魚[さかな]", "パン"], k: ["毎日", "食べる"] },
+  { q: "だれ/が/料理[りょうり]/を/します/か/。", qe: "Who does the cooking?", o: ["お父[とう]さん", "お母[かあ]さん", "お姉[ねえ]さん", "私[わたし]"], k: ["料理"] }] },
+
+{ id: "r23", tier: 2, t: "初[はじ]めての すし", en: "My First Sushi", s: [
+  ["先週[せんしゅう]/、/友達[ともだち]/の/#ケンさん/と/すし屋[すしや]/へ/行[い]きました@行く/。", "Last week I went to a sushi restaurant with my friend Ken."],
+  ["私[わたし]/は/初[はじ]めて/すし/を/食[た]べました@食べる/。", "I ate sushi for the first time."],
+  ["店[みせ]/の/人[ひと]/が/前[まえ]/で/すし/を/作[つく]りました@作る/。", "The chef made the sushi right in front of us."],
+  ["魚[さかな]/は/とても/新[あたら]しくて@新しい/、/おいしかった@おいしい/です/。", "The fish was very fresh and delicious."],
+  ["でも/、/わさび/は/辛[から]かった@辛い/です/。", "But the wasabi was hot."],
+  ["#ケンさん/は/「/また/来[き]ましょう@来る/」/と/言[い]いました@言う/。", "Ken said, \"Let's come again.\""],
+  ["私[わたし]/も/また/行[い]きたい@行く/です/。", "I want to go again too."]],
+  x: { "すし屋": ["すしや", "sushi restaurant"], "すし": ["すし", "sushi"], "わさび": ["わさび", "wasabi (hot green paste)"] },
+  q: [
+  { q: "だれ/と/すし屋[すしや]/へ/行[い]きました@行く/か/。", qe: "Who did this person go to the sushi restaurant with?", o: ["友達[ともだち]の ケンさん", "家族[かぞく]", "会社[かいしゃ]の 人[ひと]", "先生[せんせい]"], k: ["友達"] },
+  { q: "魚[さかな]/は/どう/でした/か/。", qe: "How was the fish?", o: ["新[あたら]しくて おいしかったです", "古[ふる]くて まずかったです", "とても 辛[から]かったです", "高[たか]くて 小[ちい]さかったです"], k: ["魚", "新しい"] },
+  { q: "何[なに]/が/辛[から]かった@辛い/です/か/。", qe: "What was hot?", o: ["わさび", "魚[さかな]", "お茶[ちゃ]", "ご飯[はん]"], k: ["辛い"] },
+  { q: "#ケンさん/は/何[なん]/と/言[い]いました@言う/か/。", qe: "What did Ken say?", o: ["また 来[き]ましょう", "もう 帰[かえ]りましょう", "高[たか]いですね", "辛[から]いですね"], k: ["言う"] }] },
+
+{ id: "r24", tier: 2, t: "雪[ゆき]の 日[ひ]", en: "A Snowy Day", s: [
+  ["きのう/の/夜[よる]/、/雪[ゆき]/が/たくさん/降[ふ]りました@降る/。", "Last night it snowed a lot."],
+  ["朝[あさ]/、/窓[まど]/を/開[あ]けて@開ける/、/外[そと]/を/見[み]ました@見る/。", "In the morning I opened the window and looked outside."],
+  ["町[まち]/は/全部[ぜんぶ]/白[しろ]かった@白い/です/。", "The whole town was white."],
+  ["母[はは]/が/言[い]いました@言う/。", "My mother said:"],
+  ["「/今日[きょう]/は/寒[さむ]い@寒い/から/、/コート/を/着[き]て@着る/ね/。/」", "\"It's cold today, so wear your coat, OK?\"", "F"],
+  ["私[わたし]/は/弟[おとうと]/と/公園[こうえん]/で/遊[あそ]びました@遊ぶ/。", "I played in the park with my little brother."],
+  ["雪[ゆき]/で/大[おお]きい@大きい/雪[ゆき]だるま/を/作[つく]りました@作る/。", "We made a big snowman out of snow."],
+  ["家[いえ]/に/帰[かえ]って@帰る/、/熱[あつ]い@熱い/お茶[ちゃ]/を/飲[の]みました@飲む/。", "We went home and drank hot tea."]],
+  x: { "雪だるま": ["ゆきだるま", "snowman"] },
+  q: [
+  { q: "きのう/の/夜[よる]/、/何[なに]/が/降[ふ]りました@降る/か/。", qe: "What fell last night?", o: ["雪[ゆき]", "雨[あめ]", "石[いし]", "水[みず]"], k: ["雪", "降る"] },
+  { q: "お母[かあ]さん/は/何[なん]/と/言[い]いました@言う/か/。", qe: "What did the mother say?", o: ["コートを 着[き]てね", "早[はや]く 寝[ね]てね", "窓[まど]を 閉[し]めてね", "弟[おとうと]と 遊[あそ]んでね"], k: ["着る"] },
+  { q: "公園[こうえん]/で/何[なに]/を/作[つく]りました@作る/か/。", qe: "What did they make in the park?", o: ["大[おお]きい 雪[ゆき]だるま", "小[ちい]さい 家[いえ]", "雪[ゆき]の 山[やま]", "雪[ゆき]の 犬[いぬ]"], k: ["作る", "大きい"] }] },
+
+{ id: "r25", tier: 2, t: "電車[でんしゃ]の 中[なか]で", en: "On the Train", s: [
+  ["朝[あさ]/の/電車[でんしゃ]/は/人[ひと]/が/多[おお]かった@多い/です/。", "The morning train was crowded."],
+  ["私[わたし]/の/前[まえ]/に/おばあさん/が/立[た]って@立つ/いました/。", "An elderly woman was standing in front of me."],
+  ["私[わたし]/は/立[た]って@立つ/、/「/どうぞ/」/と/言[い]いました@言う/。", "I stood up and said, \"Please, have a seat.\""],
+  ["おばあさん/は/座[すわ]って@座る/、/少[すこ]し/私[わたし]/と/話[はな]しました@話す/。", "She sat down and talked with me a little."],
+  ["おばあさん/は/駅[えき]/の/近[ちか]く/に/住[す]んで@住む/います/。", "She lives near the station."],
+  ["おばあさん/が/言[い]いました@言う/。", "She said:"],
+  ["「/ありがとう/。/私[わたし]/の/孫[まご]/も/学生[がくせい]/です/よ/。/」", "\"Thank you. My grandchild is a student too.\"", "F"],
+  ["次[つぎ]/の/駅[えき]/で/、/おばあさん/は/降[お]りました@降りる/。", "She got off at the next station."]],
+  x: { "孫": ["まご", "grandchild"] },
+  q: [
+  { q: "電車[でんしゃ]/は/どう/でした/か/。", qe: "What was the train like?", o: ["人[ひと]が 多[おお]かったです", "人[ひと]が 少[すく]なかったです", "とても 静[しず]かでした", "とても 寒[さむ]かったです"], k: ["多い", "電車"] },
+  { q: "おばあさん/は/電車[でんしゃ]/で/何[なに]/を/しました/か/。", qe: "What did the woman do on the train?", o: ["座[すわ]って、話[はな]しました", "ずっと 立[た]って いました", "本[ほん]を 読[よ]みました", "寝[ね]ました"], k: ["座る"] },
+  { q: "おばあさん/は/どこ/に/住[す]んで@住む/います/か/。", qe: "Where does the woman live?", o: ["駅[えき]の 近[ちか]く", "学校[がっこう]の 前[まえ]", "山[やま]の 上[うえ]", "海[うみ]の 近[ちか]く"], k: ["住む", "駅"] },
+  { q: "おばあさん/の/孫[まご]/は/何[なん]/です/か/。", qe: "What is the woman's grandchild?", o: ["学生[がくせい]", "先生[せんせい]", "医者[いしゃ]", "警官[けいかん]"], k: ["学生"] }] },
+
+{ id: "r26", tier: 2, t: "父[ちち]への プレゼント", en: "A Present for Dad", s: [
+  ["来週[らいしゅう]/は/父[ちち]/の/誕生日[たんじょうび]/です/。", "Next week is my father's birthday."],
+  ["私[わたし]/は/父[ちち]/に/プレゼント/を/買[か]いたかった@買う/です/。", "I wanted to buy my father a present."],
+  ["土曜日[どようび]/に/兄[あに]/と/デパート/へ/行[い]きました@行く/。", "On Saturday I went to the department store with my older brother."],
+  ["兄[あに]/は/「/ネクタイ/は/どう/」/と/聞[き]きました@聞く/。", "My brother asked, \"How about a tie?\""],
+  ["でも/、/父[ちち]/は/ネクタイ/を/たくさん/持[も]って@持つ/います/。", "But Dad already has lots of ties."],
+  ["父[ちち]/の/傘[かさ]/は/とても/古[ふる]い@古い/です/。", "Dad's umbrella is very old."],
+  ["それで/、/新[あたら]しい@新しい/傘[かさ]/を/買[か]いました@買う/。", "So we bought a new umbrella."]],
+  x: { "プレゼント": ["プレゼント", "present, gift"], "それで": ["それで", "so, and so"] },
+  q: [
+  { q: "来週[らいしゅう]/は/だれ/の/誕生日[たんじょうび]/です/か/。", qe: "Whose birthday is next week?", o: ["お父[とう]さん", "お兄[にい]さん", "お母[かあ]さん", "私[わたし]"], k: ["誕生日", "来週"] },
+  { q: "だれ/と/デパート/へ/行[い]きました@行く/か/。", qe: "Who did this person go to the department store with?", o: ["お兄[にい]さん", "お父[とう]さん", "友達[ともだち]", "一人[ひとり]で 行[い]きました"], k: ["デパート"] },
+  { q: "どうして/ネクタイ/を/買[か]いません@買う/でした/か/。", qe: "Why didn't they buy a tie?", o: ["お父[とう]さんは ネクタイを たくさん 持[も]って いますから", "ネクタイは 高[たか]いですから", "デパートに ありませんでしたから", "お父[とう]さんは ネクタイが 嫌[きら]いですから"], k: ["持つ"] },
+  { q: "何[なに]/を/買[か]いました@買う/か/。", qe: "What did they buy?", o: ["新[あたら]しい 傘[かさ]", "新[あたら]しい ネクタイ", "古[ふる]い 時計[とけい]", "黒[くろ]い 靴[くつ]"], k: ["傘", "新しい"] }] },
+
+{ id: "r27", tier: 2, t: "週末[しゅうまつ]の 約束[やくそく]", en: "Weekend Plans", s: [
+  ["金曜日[きんようび]/の/夕方[ゆうがた]/、/#トムさん/と/#ゆみさん/が/話[はな]して@話す/います/。", "On Friday evening, Tom and Yumi are talking."],
+  ["「/#ゆみさん/、/週末[しゅうまつ]/は/何[なに]/を/します/か/。/」", "\"Yumi, what are you doing this weekend?\""],
+  ["「/土曜日[どようび]/は/映画[えいが]/を/見[み]に@見る/行[い]きます@行く/。/」", "\"On Saturday I'm going to see a movie.\"", "F"],
+  ["「/いい/です/ね/。/私[わたし]/も/行[い]きたい@行く/です/。/」", "\"Sounds good. I want to go too.\""],
+  ["「/じゃあ/、/一緒[いっしょ]/に/行[い]きましょう@行く/。/」", "\"Then let's go together.\"", "F"],
+  ["「/何時[なんじ]/に/会[あ]いましょう@会う/か/。/」", "\"What time shall we meet?\""],
+  ["「/一時[いちじ]/に/駅[えき]/の/前[まえ]/で/会[あ]いましょう@会う/。/」", "\"Let's meet in front of the station at one.\"", "F"],
+  ["「/わかりました@分かる/。/楽[たの]しみ/です/。/」", "\"Got it. I'm looking forward to it.\""]],
+  x: { "いい": ["いい", "good"], "何時": ["なんじ", "what time"], "週末": ["しゅうまつ", "weekend"], "じゃあ": ["じゃあ", "well then"], "一時": ["いちじ", "one o'clock"], "楽しみ": ["たのしみ", "something to look forward to"], "約束": ["やくそく", "promise, plans to meet"] },
+  q: [
+  { q: "#ゆみさん/は/土曜日[どようび]/に/何[なに]/を/します/か/。", qe: "What is Yumi doing on Saturday?", o: ["映画[えいが]を 見[み]に 行[い]きます", "買[か]い物[もの]を します", "友達[ともだち]の 家[いえ]へ 行[い]きます", "家[いえ]で 休[やす]みます"], k: ["映画", "見る"] },
+  { q: "二人[ふたり]/は/何時[なんじ]/に/会[あ]います@会う/か/。", qe: "What time will the two meet?", o: ["一時[いちじ]", "二時[にじ]", "十時[じゅうじ]", "七時[しちじ]"], k: ["会う"] },
+  { q: "どこ/で/会[あ]います@会う/か/。", qe: "Where will they meet?", o: ["駅[えき]の 前[まえ]", "映画館[えいがかん]の 中[なか]", "トムさんの 家[いえ]", "学校[がっこう]"], k: ["駅"] }] },
+
+{ id: "r28", tier: 2, t: "財布[さいふ]を なくした 日[ひ]", en: "The Day I Lost My Wallet", s: [
+  ["きのう/、/学校[がっこう]/から/帰[かえ]る@帰る/時[とき]/、/財布[さいふ]/を/なくしました/。", "Yesterday, on my way home from school, I lost my wallet."],
+  ["財布[さいふ]/の/中[なか]/に/は/お金[かね]/と/学生証[がくせいしょう]/が/ありました@有る/。", "There was money and my student ID in it."],
+  ["私[わたし]/は/とても/困[こま]りました@困る/。", "I was really in trouble."],
+  ["駅[えき]/の/近[ちか]く/の/交番[こうばん]/へ/行[い]きました@行く/。", "I went to the police box near the station."],
+  ["お巡[まわ]りさん/は/「/名前[なまえ]/と/電話[でんわ]/番号[ばんごう]/を/書[か]いて@書く/ください/」/と/言[い]いました@言う/。", "The officer said, \"Please write your name and phone number.\""],
+  ["次[つぎ]/の/日[ひ]/、/交番[こうばん]/から/電話[でんわ]/が/ありました@有る/。", "The next day, the police box called me."],
+  ["財布[さいふ]/は/公園[こうえん]/の/椅子[いす]/の/上[うえ]/に/ありました@有る/。", "The wallet had been on a bench in the park."],
+  ["お金[かね]/も/全部[ぜんぶ]/ありました@有る/。/よかった/です/。", "All the money was there too. What a relief."]],
+  x: { "時": ["とき", "when, at the time"], "お巡りさん": ["おまわりさん", "police officer"], "日": ["ひ", "day"], "なくしました": ["なくしました", "lost (なくす)"], "学生証": ["がくせいしょう", "student ID card"], "よかった": ["よかった", "was good — “what a relief”"] },
+  q: [
+  { q: "何[なに]/を/なくしました/か/。", qe: "What did this person lose?", o: ["財布[さいふ]", "かばん", "傘[かさ]", "時計[とけい]"], k: ["財布"] },
+  { q: "どこ/へ/行[い]きました@行く/か/。", qe: "Where did this person go?", o: ["駅[えき]の 近[ちか]くの 交番[こうばん]", "学校[がっこう]", "銀行[ぎんこう]", "病院[びょういん]"], k: ["交番"] },
+  { q: "財布[さいふ]/は/どこ/に/ありました@有る/か/。", qe: "Where was the wallet?", o: ["公園[こうえん]の 椅子[いす]の 上[うえ]", "駅[えき]の 中[なか]", "学校[がっこう]の 教室[きょうしつ]", "電車[でんしゃ]の 中[なか]"], k: ["公園", "椅子"] }] },
+
+{ id: "r29", tier: 2, t: "料理[りょうり]教室[きょうしつ]", en: "Cooking Class", s: [
+  ["先月[せんげつ]/から/、/毎週[まいしゅう]/水曜日[すいようび]/に/料理[りょうり]/教室[きょうしつ]/へ/行[い]って@行く/います/。", "Since last month I've been going to a cooking class every Wednesday."],
+  ["先生[せんせい]/は/親切[しんせつ]/な/女[おんな]/の/人[ひと]/です/。", "The teacher is a kind woman."],
+  ["今日[きょう]/は/卵[たまご]/の/料理[りょうり]/を/習[なら]いました@習う/。", "Today we learned an egg dish."],
+  ["先生[せんせい]/が/言[い]いました@言う/。", "The teacher said:"],
+  ["「/まず/、/卵[たまご]/を/三[みっ]つ/割[わ]って/ください/。/」", "\"First, please crack three eggs.\"", "F"],
+  ["「/それから/、/砂糖[さとう]/と/塩[しお]/を/少[すこ]し/入[い]れて@入れる/ください/。/」", "\"Then add a little sugar and salt.\"", "F"],
+  ["私[わたし]/の/卵[たまご]/料理[りょうり]/は/少[すこ]し/甘[あま]かった@甘い/です/。", "My egg dish was a little sweet."],
+  ["家[いえ]/で/も/家族[かぞく]/に/作[つく]りたい@作る/です/。", "I want to make it for my family at home too."]],
+  x: { "親切": ["しんせつ", "kind"], "まず": ["まず", "first (of all)"], "割って": ["わって", "crack, break (割る)"] },
+  q: [
+  { q: "いつ/料理[りょうり]/教室[きょうしつ]/へ/行[い]きます@行く/か/。", qe: "When does this person go to the cooking class?", o: ["毎週[まいしゅう] 水曜日[すいようび]", "毎週[まいしゅう] 木曜日[もくようび]", "毎日[まいにち]", "毎月[まいつき] 一日[ついたち]"], k: ["毎週", "料理"] },
+  { q: "今日[きょう]/は/何[なに]/を/習[なら]いました@習う/か/。", qe: "What did they learn today?", o: ["卵[たまご]の 料理[りょうり]", "魚[さかな]の 料理[りょうり]", "お菓子[かし]", "肉[にく]の 料理[りょうり]"], k: ["卵", "習う"] },
+  { q: "卵[たまご]/料理[りょうり]/は/どう/でした/か/。", qe: "How did the egg dish turn out?", o: ["少[すこ]し 甘[あま]かったです", "とても 辛[から]かったです", "まずかったです", "冷[つめ]たかったです"], k: ["甘い"] }] },
+
+{ id: "r30", tier: 3, t: "日本[にほん]へ 行[い]く 前[まえ]に", en: "Before Going to Japan", s: [
+  ["私[わたし]/は/来年[らいねん]/の/春[はる]/、/日本[にほん]/へ/行[い]きます@行く/。", "Next spring I'm going to Japan."],
+  ["日本[にほん]/の/大学[だいがく]/で/一年[いちねん]/勉強[べんきょう]します@勉強/。", "I'll study at a Japanese university for a year."],
+  ["それで/、/今[いま]/、/毎日[まいにち]/日本語[にほんご]/を/勉強[べんきょう]して@勉強/います/。", "So now I'm studying Japanese every day."],
+  ["漢字[かんじ]/は/難[むずか]しい@難しい/です/が/、/面白[おもしろ]い@面白い/です/。", "Kanji are difficult, but interesting."],
+  ["日本[にほん]/で/は/、/いろいろな@色々/所[ところ]/へ/行[い]きたい@行く/です/。", "In Japan I want to go to all kinds of places."],
+  ["京都[きょうと]/の/古[ふる]い@古い/お寺[てら]/が/見[み]たい@見る/です/。", "I want to see the old temples in Kyoto."],
+  ["日本[にほん]/の/友達[ともだち]/も/たくさん/作[つく]りたい@作る/です/。", "I also want to make lots of Japanese friends."],
+  ["少[すこ]し/心配[しんぱい]/です/が/、/とても/楽[たの]しみ/です/。", "I'm a little worried, but I'm really looking forward to it."]],
+  x: { "日本": ["にほん", "Japan"], "日本語": ["にほんご", "Japanese (language)"], "一年": ["いちねん", "one year"], "それで": ["それで", "so, and so"], "京都": ["きょうと", "Kyoto"], "お寺": ["おてら", "Buddhist temple"], "心配": ["しんぱい", "worry, worried"], "楽しみ": ["たのしみ", "something to look forward to"] },
+  q: [
+  { q: "いつ/日本[にほん]/へ/行[い]きます@行く/か/。", qe: "When is this person going to Japan?", o: ["来年[らいねん]の 春[はる]", "今年[ことし]の 夏[なつ]", "来月[らいげつ]", "来年[らいねん]の 秋[あき]"], k: ["来年", "春"] },
+  { q: "日本[にほん]/で/何[なに]/を/します/か/。", qe: "What will this person do in Japan?", o: ["大学[だいがく]で 勉強[べんきょう]します", "会社[かいしゃ]で 働[はたら]きます", "日本語[にほんご]を 教[おし]えます", "旅行[りょこう]だけ します"], k: ["大学", "勉強"] },
+  { q: "漢字[かんじ]/は/どう/です/か/。", qe: "What are kanji like for this person?", o: ["難[むずか]しいですが、面白[おもしろ]いです", "易[やさ]しくて、面白[おもしろ]いです", "難[むずか]しくて、つまらないです", "全然[ぜんぜん] わかりません"], k: ["漢字", "難しい"] },
+  { q: "京都[きょうと]/で/何[なに]/が/見[み]たい@見る/です/か/。", qe: "What does this person want to see in Kyoto?", o: ["古[ふる]い お寺[てら]", "新[あたら]しい 建物[たてもの]", "大[おお]きい 海[うみ]", "有名[ゆうめい]な 山[やま]"], k: ["古い", "見る"] }] },
+
+{ id: "r31", tier: 3, t: "雨[あめ]の 日曜日[にちようび]", en: "A Rainy Sunday", s: [
+  ["日曜日[にちようび]/に/クラス/の/みんな/と/海[うみ]/へ/行[い]く@行く/予定[よてい]/でした/。", "On Sunday I was supposed to go to the beach with everyone from my class."],
+  ["でも/、/朝[あさ]/から/強[つよ]い@強い/雨[あめ]/が/降[ふ]って@降る/いました/。", "But it had been raining hard since morning."],
+  ["先生[せんせい]/から/電話[でんわ]/が/ありました@有る/。", "Our teacher called."],
+  ["「/今日[きょう]/は/雨[あめ]/です/から/、/海[うみ]/は/来週[らいしゅう]/に/しましょう/。/」", "\"It's raining today, so let's do the beach next week.\"", "F"],
+  ["私[わたし]/は/少[すこ]し/残念[ざんねん]/でした/。", "I was a little disappointed."],
+  ["それで/、/午後[ごご]/は/友達[ともだち]/の/家[いえ]/で/ゲーム/を/しました/。", "So in the afternoon I played games at a friend's house."],
+  ["友達[ともだち]/の/お母[かあ]さん/が/ケーキ/を/作[つく]って@作る/くれました/。", "My friend's mother made us a cake."],
+  ["雨[あめ]/の/日[ひ]/も/楽[たの]しかった@楽しい/です/。", "The rainy day was fun too."]],
+  x: { "日": ["ひ", "day"], "予定": ["よてい", "plan"], "しましょう": ["しましょう", "let's do (する)"], "残念": ["ざんねん", "disappointing, a pity"], "それで": ["それで", "so, and so"], "ゲーム": ["ゲーム", "game"], "ケーキ": ["ケーキ", "cake"], "くれました": ["くれました", "did (for me / us) — くれる"] },
+  q: [
+  { q: "日曜日[にちようび]/に/どこ/へ/行[い]く@行く/予定[よてい]/でした/か/。", qe: "Where were they planning to go on Sunday?", o: ["海[うみ]", "山[やま]", "映画館[えいがかん]", "動物園[どうぶつえん]"], k: ["海"] },
+  { q: "どうして/海[うみ]/へ/行[い]きません@行く/でした/か/。", qe: "Why didn't they go to the beach?", o: ["雨[あめ]が 強[つよ]かったですから", "先生[せんせい]が 病気[びょうき]でしたから", "電車[でんしゃ]が 止[と]まりましたから", "寒[さむ]かったですから"], k: ["雨", "強い"] },
+  { q: "午後[ごご]/、/何[なに]/を/しました/か/。", qe: "What did this person do in the afternoon?", o: ["友達[ともだち]の 家[いえ]で ゲームを しました", "海[うみ]で 泳[およ]ぎました", "学校[がっこう]で 勉強[べんきょう]しました", "家[いえ]で 寝[ね]ました"], k: ["午後", "友達"] },
+  { q: "だれ/が/ケーキ/を/作[つく]りました@作る/か/。", qe: "Who made the cake?", o: ["友達[ともだち]の お母[かあ]さん", "私[わたし]", "先生[せんせい]", "友達[ともだち]"], k: ["作る"] }] },
+
+{ id: "r32", tier: 3, t: "図書館[としょかん]の アルバイト", en: "My Library Job", s: [
+  ["私[わたし]/は/大学[だいがく]/の/図書館[としょかん]/で/アルバイト/を/して/います/。", "I have a part-time job at the university library."],
+  ["月曜日[げつようび]/と/木曜日[もくようび]/の/夕方[ゆうがた]/、/三時間[さんじかん]/働[はたら]きます@働く/。", "I work three hours on Monday and Thursday evenings."],
+  ["仕事[しごと]/は/本[ほん]/を/棚[たな]/に/並[なら]べる@並べる/こと/です/。", "My job is putting books on the shelves."],
+  ["図書館[としょかん]/は/静[しず]か/です/から/、/大[おお]きい@大きい/声[こえ]/で/話[はな]して@話す/は/いけません/。", "The library is quiet, so you mustn't talk loudly."],
+  ["時々[ときどき]/、/留学生[りゅうがくせい]/が/本[ほん]/の/場所[ばしょ]/を/聞[き]きます@聞く/。", "Sometimes international students ask where books are."],
+  ["英語[えいご]/で/説明[せつめい]します/。/少[すこ]し/難[むずか]しい@難しい/です/。", "I explain in English. It's a little difficult."],
+  ["でも/、/新[あたら]しい@新しい/本[ほん]/を/一番[いちばん]/早[はや]く@早い/見[み]る@見る/こと/が/できます/。", "But I get to see the new books first."],
+  ["だから/、/この/仕事[しごと]/が/好[す]き/です/。", "That's why I like this job."]],
+  x: { "アルバイト": ["アルバイト", "part-time job"], "三時間": ["さんじかん", "three hours"], "棚": ["たな", "shelf"], "こと": ["こと", "thing; ～こと = doing ～"], "いけません": ["いけません", "must not (～てはいけません)"], "場所": ["ばしょ", "place, location"], "説明します": ["せつめいします", "explain"], "できます": ["できます", "can (～ことができます)"], "だから": ["だから", "so, that's why"] },
+  q: [
+  { q: "どこ/で/アルバイト/を/して/います/か/。", qe: "Where does this person work part-time?", o: ["大学[だいがく]の 図書館[としょかん]", "駅[えき]の 本屋[ほんや]", "喫茶店[きっさてん]", "レストラン"], k: ["図書館"] },
+  { q: "いつ/働[はたら]きます@働く/か/。", qe: "When does this person work?", o: ["月曜日[げつようび]と 木曜日[もくようび]の 夕方[ゆうがた]", "火曜日[かようび]と 金曜日[きんようび]の 朝[あさ]", "毎日[まいにち]", "土曜日[どようび]と 日曜日[にちようび]"], k: ["働く", "月曜日"] },
+  { q: "図書館[としょかん]/で/何[なに]/を/して/は/いけません/か/。", qe: "What must you not do in the library?", o: ["大[おお]きい 声[こえ]で 話[はな]すこと", "本[ほん]を 読[よ]むこと", "静[しず]かに 勉強[べんきょう]すること", "本[ほん]を 借[か]りること"], k: ["声", "話す"] },
+  { q: "どうして/この/仕事[しごと]/が/好[す]き/です/か/。", qe: "Why does this person like the job?", o: ["新[あたら]しい 本[ほん]を 一番[いちばん] 早[はや]く 見[み]られますから", "お金[かね]を たくさん もらえますから", "英語[えいご]を 話[はな]しませんから", "仕事[しごと]が 易[やさ]しいですから"], k: ["仕事", "好き"] }] },
+
+{ id: "r33", tier: 3, t: "おじいさんの 畑[はたけ]", en: "Grandpa's Vegetable Garden", s: [
+  ["夏休[なつやす]み/に/、/田舎[いなか]/の/おじいさん/の/家[いえ]/へ/行[い]きました@行く/。", "During summer vacation I went to my grandfather's house in the countryside."],
+  ["おじいさん/は/家[いえ]/の/後[うし]ろ/で/野菜[やさい]/を/作[つく]って@作る/います/。", "My grandfather grows vegetables behind his house."],
+  ["毎朝[まいあさ]/五時[ごじ]/に/起[お]きて@起きる/、/畑[はたけ]/へ/行[い]きます@行く/。", "Every morning he gets up at five and goes to the field."],
+  ["私[わたし]/も/一緒[いっしょ]/に/トマト/と/きゅうり/を/取[と]りました@取る/。", "I picked tomatoes and cucumbers with him."],
+  ["畑[はたけ]/の/トマト/は/甘[あま]くて@甘い/、/とても/おいしかった@おいしい/です/。", "The tomatoes from the field were sweet and very tasty."],
+  ["昼[ひる]/は/暑[あつ]い@暑い/から/、/家[いえ]/で/昼寝[ひるね]/を/しました/。", "It was hot at midday, so I took a nap in the house."],
+  ["夜[よる]/は/空[そら]/に/星[ほし]/が/たくさん/ありました@有る/。", "At night there were lots of stars in the sky."],
+  ["来年[らいねん]/の/夏[なつ]/も/また/行[い]きたい@行く/です/。", "I want to go again next summer."]],
+  x: { "田舎": ["いなか", "the countryside"], "五時": ["ごじ", "five o'clock"], "畑": ["はたけ", "vegetable field"], "トマト": ["トマト", "tomato"], "きゅうり": ["きゅうり", "cucumber"], "昼寝": ["ひるね", "nap"], "星": ["ほし", "star"] },
+  q: [
+  { q: "夏休[なつやす]み/に/どこ/へ/行[い]きました@行く/か/。", qe: "Where did this person go during summer vacation?", o: ["田舎[いなか]の おじいさんの 家[いえ]", "海[うみ]の 近[ちか]くの ホテル", "外国[がいこく]", "友達[ともだち]の 家[いえ]"], k: ["夏休み"] },
+  { q: "おじいさん/は/毎朝[まいあさ]/何時[なんじ]/に/起[お]きます@起きる/か/。", qe: "What time does the grandfather get up every morning?", o: ["五時[ごじ]", "六時[ろくじ]", "七時[しちじ]", "四時[よじ]"], k: ["毎朝", "起きる"] },
+  { q: "トマト/は/どう/でした/か/。", qe: "How were the tomatoes?", o: ["甘[あま]くて おいしかったです", "すっぱかったです", "小[ちい]さくて 高[たか]かったです", "冷[つめ]たかったです"], k: ["甘い"] },
+  { q: "夜[よる]/、/空[そら]/に/何[なに]/が/ありました@有る/か/。", qe: "What was in the sky at night?", o: ["たくさんの 星[ほし]", "大[おお]きい 月[つき]", "黒[くろ]い 雲[くも]", "雪[ゆき]"], k: ["夜", "空"] }] },
+
+{ id: "r34", tier: 3, t: "引[ひ]っ越[こ]しの 手伝[てつだ]い", en: "Helping a Friend Move", s: [
+  ["土曜日[どようび]/、/友達[ともだち]/の/#みかさん/が/引[ひ]っ越[こ]しました/。", "On Saturday my friend Mika moved."],
+  ["私[わたし]/は/朝[あさ]/九時[くじ]/に/#みかさん/の/古[ふる]い@古い/アパート/へ/行[い]きました@行く/。", "I went to Mika's old apartment at nine in the morning."],
+  ["部屋[へや]/に/は/箱[はこ]/が/たくさん/ありました@有る/。", "There were lots of boxes in the room."],
+  ["「/重[おも]い@重い/箱[はこ]/は/二人[ふたり]/で/持[も]ちましょう@持つ/。/」", "\"Let's carry the heavy boxes together.\"", "F"],
+  ["私[わたし]たち/は/箱[はこ]/を/車[くるま]/に/入[い]れました@入れる/。", "We put the boxes in the car."],
+  ["新[あたら]しい@新しい/アパート/は/駅[えき]/から/近[ちか]くて@近い/、/明[あか]るい@明るい/です/。", "The new apartment is close to the station and bright."],
+  ["「/今日[きょう]/は/ありがとう/。/晩[ばん]ご飯[はん]@晩御飯/は/私[わたし]/が/払[はら]います/ね/。/」", "\"Thanks for today. I'll pay for dinner, OK?\"", "F"],
+  ["二人[ふたり]/で/近[ちか]く/の/店[みせ]/で/ラーメン/を/食[た]べました@食べる/。", "The two of us ate ramen at a shop nearby."]],
+  x: { "引っ越しました": ["ひっこしました", "moved house (引っ越す)"], "九時": ["くじ", "nine o'clock"], "私たち": ["わたしたち", "we"], "払います": ["はらいます", "pay (払う)"], "ラーメン": ["ラーメン", "ramen"], "引っ越し": ["ひっこし", "moving house"], "手伝い": ["てつだい", "help"] },
+  q: [
+  { q: "#みかさん/は/土曜日[どようび]/に/何[なに]/を/しました/か/。", qe: "What did Mika do on Saturday?", o: ["引[ひ]っ越[こ]しました", "旅行[りょこう]しました", "買[か]い物[もの]を しました", "料理[りょうり]を 作[つく]りました"], k: ["土曜日"] },
+  { q: "重[おも]い@重い/箱[はこ]/は/どう/しました/か/。", qe: "What did they do with the heavy boxes?", o: ["二人[ふたり]で 持[も]ちました", "一人[ひとり]で 持[も]ちました", "部屋[へや]に 置[お]きました", "店[みせ]の 人[ひと]が 持[も]ちました"], k: ["重い", "持つ"] },
+  { q: "新[あたら]しい@新しい/アパート/は/どう/です/か/。", qe: "What is the new apartment like?", o: ["駅[えき]から 近[ちか]くて、明[あか]るいです", "駅[えき]から 遠[とお]くて、暗[くら]いです", "古[ふる]くて、狭[せま]いです", "広[ひろ]くて、高[たか]いです"], k: ["近い", "明るい"] },
+  { q: "晩[ばん]ご飯[はん]@晩御飯/に/何[なに]/を/食[た]べました@食べる/か/。", qe: "What did they eat for dinner?", o: ["ラーメン", "すし", "カレー", "パン"], k: ["食べる"] }] },
+
+{ id: "r35", tier: 3, t: "新[あたら]しい 会社[かいしゃ]の 一週間[いっしゅうかん]", en: "My First Week at a New Company", s: [
+  ["月曜日[げつようび]/。/今日[きょう]/から/新[あたら]しい@新しい/会社[かいしゃ]/で/働[はたら]きます@働く/。", "Monday. Starting today I work at a new company."],
+  ["会社[かいしゃ]/の/人[ひと]/は/みんな/親切[しんせつ]/でした/が/、/とても/疲[つか]れました@疲れる/。", "Everyone at the company was kind, but I was very tired."],
+  ["火曜日[かようび]/。/仕事[しごと]/で/わからない@分かる/こと/が/たくさん/ありました@有る/。", "Tuesday. There were lots of things at work I didn't understand."],
+  ["隣[となり]/の/#田中[たなか]さん/が/いろいろ/教[おし]えて@教える/くれました/。", "Mr. Tanaka next to me taught me all sorts of things."],
+  ["水曜日[すいようび]/。/昼[ひる]/、/#田中[たなか]さん/と/近[ちか]く/の/食堂[しょくどう]/へ/行[い]きました@行く/。", "Wednesday. At lunchtime I went to a nearby diner with Mr. Tanaka."],
+  ["#田中[たなか]さん/は/「/ここ/の/カレー/は/安[やす]くて@安い/おいしい/です/よ/」/と/言[い]いました@言う/。", "Mr. Tanaka said, \"The curry here is cheap and good.\""],
+  ["木曜日[もくようび]/。/今日[きょう]/は/一人[ひとり]/で/仕事[しごと]/が/できました/。", "Thursday. Today I could do the work by myself."],
+  ["少[すこ]し/うれしかった/です/。", "I was a little happy."]],
+  x: { "親切": ["しんせつ", "kind"], "わからない": ["わからない", "don't understand (plain of わかりません)"], "こと": ["こと", "thing, matter"], "くれました": ["くれました", "did (for me) — くれる"], "カレー": ["カレー", "curry"], "できました": ["できました", "could do, managed (できる)"], "うれしかった": ["うれしかった", "was happy (うれしい)"], "一週間": ["いっしゅうかん", "one week"], },
+  q: [
+  { q: "月曜日[げつようび]/は/どう/でした/か/。", qe: "How was Monday?", o: ["会社[かいしゃ]の 人[ひと]は 親切[しんせつ]でしたが、疲[つか]れました", "仕事[しごと]が なくて、暇[ひま]でした", "田中[たなか]さんと 食堂[しょくどう]へ 行[い]きました", "一人[ひとり]で 仕事[しごと]が できました"], k: ["疲れる"] },
+  { q: "だれ/が/仕事[しごと]/を/教[おし]えて@教える/くれました/か/。", qe: "Who taught this person the work?", o: ["隣[となり]の 田中[たなか]さん", "会社[かいしゃ]の 社長[しゃちょう]", "友達[ともだち]", "食堂[しょくどう]の 人[ひと]"], k: ["教える", "隣"] },
+  { q: "食堂[しょくどう]/の/カレー/は/どう/です/か/。", qe: "What is the diner's curry like?", o: ["安[やす]くて おいしいです", "高[たか]いですが おいしいです", "安[やす]いですが まずいです", "とても 辛[から]いです"], k: ["安い"] },
+  { q: "木曜日[もくようび]/に/何[なに]/が/できました/か/。", qe: "What could this person do on Thursday?", o: ["一人[ひとり]で 仕事[しごと]が できました", "早[はや]く 帰[かえ]りました", "田中[たなか]さんに 会[あ]いました", "会社[かいしゃ]を 休[やす]みました"], k: ["仕事"] }] },
+
+{ id: "r36", tier: 4, t: "駅[えき]で 会[あ]った 人[ひと]", en: "The Person I Met at the Station", s: [
+  ["先週[せんしゅう]/の/金曜日[きんようび]/、/駅[えき]/で/困[こま]って@困る/いる/外国人[がいこくじん]/を/見[み]た@見る/。", "Last Friday I saw a foreigner at the station who looked lost."],
+  ["地図[ちず]/を/持[も]って@持つ/いた/が/、/道[みち]/が/わからない/ようだった/。", "He had a map, but he didn't seem to know the way."],
+  ["私[わたし]/は/英語[えいご]/で/「/大丈夫[だいじょうぶ]/です/か/」/と/聞[き]いた@聞く/。", "I asked him in English, \"Are you OK?\""],
+  ["その/人[ひと]/は/ホテル/へ/行[い]きたい@行く/と/言[い]った@言う/。", "He said he wanted to go to his hotel."],
+  ["ホテル/は/近[ちか]かった@近い/ので/、/一緒[いっしょ]/に/歩[ある]いて@歩く/行[い]った@行く/。", "The hotel was close, so we walked there together."],
+  ["その/人[ひと]/は/カナダ/から/来[き]た@来る/そうだ/。", "Apparently he came from Canada."],
+  ["ホテル/に/着[つ]いたら/、/お礼[れい]/に/カナダ/の/お菓子[かし]/を/くれた/。", "When we got to the hotel, he gave me some Canadian sweets as thanks."],
+  ["英語[えいご]/が/通[つう]じて/、/うれしかった/。", "I was happy my English got through."],
+  ["これから/も/、/困[こま]って@困る/いる/人[ひと]/が/いたら/、/助[たす]けたい/と/思[おも]う/。", "From now on too, if I see someone in trouble, I want to help."]],
+  x: { "いる": ["いる", "plain ～ている (is …ing)"], "いた": ["いた", "plain past ～ていた (was …ing)"], "わからない": ["わからない", "don't know (plain of わかりません)"], "ようだった": ["ようだった", "seemed (～ようだ)"], "ので": ["ので", "because, so (N4)"], "カナダ": ["カナダ", "Canada"], "そうだ": ["そうだ", "I hear that…, apparently (～そうだ)"], "着いたら": ["ついたら", "when (we) arrived (着く + たら)"], "お礼": ["おれい", "thanks, a thank-you gift"], "くれた": ["くれた", "gave (to me) — くれる"], "通じて": ["つうじて", "got through, was understood (通じる)"], "うれしかった": ["うれしかった", "was happy (うれしい)"], "これから": ["これから", "from now on"], "いたら": ["いたら", "if there is (someone) — いる + たら"], "助けたい": ["たすけたい", "want to help (助ける)"], "思う": ["おもう", "think (～と思う)"], "もらいました": ["もらいました", "received (もらう)"] },
+  q: [
+  { q: "その/人[ひと]/は/どこ/へ/行[い]きたかった@行く/です/か/。", qe: "Where did the man want to go?", o: ["ホテル", "駅[えき]", "空港[くうこう]", "銀行[ぎんこう]"], k: ["行く"] },
+  { q: "どうして/一緒[いっしょ]/に/歩[ある]いて@歩く/行[い]きました@行く/か/。", qe: "Why did they walk there together?", o: ["ホテルが 近[ちか]かったですから", "タクシーが 高[たか]かったですから", "雨[あめ]が 降[ふ]って いましたから", "バスが 来[き]ませんでしたから"], k: ["歩く", "近い"] },
+  { q: "その/人[ひと]/は/どこ/から/来[き]ました@来る/か/。", qe: "Where did the man come from?", o: ["カナダ", "アメリカ", "イギリス", "中国[ちゅうごく]"], k: ["来る"] },
+  { q: "ホテル/で/何[なに]/を/もらいました/か/。", qe: "What did this person receive at the hotel?", o: ["カナダの お菓子[かし]", "お金[かね]", "地図[ちず]", "本[ほん]"], k: ["お菓子"] }] },
+
+{ id: "r37", tier: 4, t: "私[わたし]の 夢[ゆめ]", en: "My Dream", s: [
+  ["私[わたし]/の/夢[ゆめ]/は/医者[いしゃ]/に/なる/こと/だ/。", "My dream is to become a doctor."],
+  ["小[ちい]さい@小さい/時[とき]/、/よく/病気[びょうき]/に/なって/、/病院[びょういん]/へ/行[い]った@行く/。", "When I was little, I often got sick and went to the hospital."],
+  ["その/時[とき]/の/お医者[いしゃ]さん@医者/は/いつも/優[やさ]しかった/。", "The doctor back then was always kind."],
+  ["それで/、/私[わたし]/も/あの/先生[せんせい]/の/ような/医者[いしゃ]/に/なりたい/と/思[おも]った/。", "So I thought I wanted to become a doctor like that."],
+  ["医者[いしゃ]/に/なる/ため/に/は/、/たくさん/勉強[べんきょう]しなければならない/。", "To become a doctor, you have to study a lot."],
+  ["今[いま]/は/毎晩[まいばん]/、/寝[ね]る@寝る/前[まえ]/に/二時間[にじかん]/勉強[べんきょう]して@勉強/いる/。", "Now I study for two hours every night before bed."],
+  ["数学[すうがく]/は/得意[とくい]/だ/が/、/英語[えいご]/は/まだ/苦手[にがて]/だ/。", "I'm good at math, but I'm still weak at English."],
+  ["大変[たいへん]/だ/けれど/、/夢[ゆめ]/の/ため/に/頑張[がんば]りたい/。", "It's hard, but I want to do my best for my dream."]],
+  x: { "時": ["とき", "when, at the time"], "夢": ["ゆめ", "dream"], "なる": ["なる", "become"], "こと": ["こと", "～こと = (the act of) doing ～"], "だ": ["だ", "plain form of です"], "なって": ["なって", "became, got (なる)"], "優しかった": ["やさしかった", "was kind, gentle (優しい)"], "それで": ["それで", "so, and so"], "ような": ["ような", "like ～ (～のような)"], "なりたい": ["なりたい", "want to become (なる)"], "思った": ["おもった", "thought (思う)"], "ため": ["ため", "for (the sake of), in order to"], "勉強しなければならない": ["べんきょうしなければならない", "must study (～なければならない)"], "いる": ["いる", "plain ～ている (is …ing)"], "二時間": ["にじかん", "two hours"], "数学": ["すうがく", "math"], "得意": ["とくい", "good at, strong in"], "苦手": ["にがて", "weak at, not good with"], "けれど": ["けれど", "but, although"], "頑張りたい": ["がんばりたい", "want to do my best (頑張る)"], "何時間": ["なんじかん", "how many hours"] },
+  q: [
+  { q: "夢[ゆめ]/は/何[なん]/です/か/。", qe: "What is this person's dream?", o: ["医者[いしゃ]に なること", "先生[せんせい]に なること", "歌手[かしゅ]に なること", "社長[しゃちょう]に なること"], k: ["医者"] },
+  { q: "小[ちい]さい@小さい/時[とき]/、/よく/どこ/へ/行[い]きました@行く/か/。", qe: "Where did this person often go as a child?", o: ["病院[びょういん]", "学校[がっこう]", "公園[こうえん]", "図書館[としょかん]"], k: ["病院", "病気"] },
+  { q: "毎晩[まいばん]/何時間[なんじかん]/勉強[べんきょう]します@勉強/か/。", qe: "How many hours does this person study every night?", o: ["二時間[にじかん]", "一時間[いちじかん]", "三時間[さんじかん]", "四時間[よじかん]"], k: ["毎晩", "勉強"] },
+  { q: "何[なに]/が/まだ/苦手[にがて]/です/か/。", qe: "What is this person still weak at?", o: ["英語[えいご]", "数学[すうがく]", "漢字[かんじ]", "体育[たいいく]"], k: ["英語"] }] },
+
+{ id: "r38", tier: 4, t: "アルバイトを 休[やす]む 電話[でんわ]", en: "Calling in Sick", s: [
+  ["朝[あさ]/起[お]きたら/、/熱[ねつ]/が/あった/。", "When I woke up this morning, I had a fever."],
+  ["今日[きょう]/は/午後[ごご]/から/アルバイト/が/ある/。", "I have my part-time job from the afternoon today."],
+  ["私[わたし]/は/すぐ/店長[てんちょう]/に/電話[でんわ]/を/かけた/。", "I called the manager right away."],
+  ["「/もしもし/、/#山田[やまだ]/です/。/熱[ねつ]/が/ある/ので/、/今日[きょう]/は/休[やす]ませて/ください/。/」", "\"Hello, this is Yamada. I have a fever, so may I take today off?\""],
+  ["「/それ/は/大変[たいへん]/です/ね/。/今日[きょう]/は/ゆっくり/休[やす]んで@休む/ください/。/」", "\"That's too bad. Get plenty of rest today.\"", "F"],
+  ["「/ありがとう/ございます/。/明日[あした]/は/行[い]ける/と/思[おも]います/。/」", "\"Thank you. I think I can come tomorrow.\""],
+  ["「/無理[むり]/を/しないで/ね/。/お大事[だいじ]に/。/」", "\"Don't push yourself. Take care.\"", "F"],
+  ["電話[でんわ]/の/後[あと]/、/薬[くすり]/を/飲[の]んで@飲む/、/一日中[いちにちじゅう]/寝[ね]た@寝る/。", "After the call, I took some medicine and slept all day."]],
+  x: { "起きたら": ["おきたら", "when (I) got up (起きる + たら)"], "熱": ["ねつ", "fever"], "あった": ["あった", "there was / had (plain past of ある)"], "アルバイト": ["アルバイト", "part-time job"], "ある": ["ある", "there is / have (plain)"], "すぐ": ["すぐ", "right away"], "店長": ["てんちょう", "store manager"], "かけた": ["かけた", "made (a call) — 電話をかける"], "もしもし": ["もしもし", "hello (on the phone)"], "ので": ["ので", "because, so (N4)"], "休ませて": ["やすませて", "let me rest (休ませてください = may I take the day off)"], "ゆっくり": ["ゆっくり", "slowly; (rest) well"], "行ける": ["いける", "can go (potential of 行く)"], "思います": ["おもいます", "think (～と思います)"], "無理": ["むり", "overdoing it, impossible"], "しないで": ["しないで", "don't (do) — ～ないで"], "お大事に": ["おだいじに", "take care (to someone sick)"], "一日中": ["いちにちじゅう", "all day long"], "寝た": ["ねた", "slept (plain past of 寝る)"], "起きた": ["おきた", "got up (plain past of 起きる)"], "かけました": ["かけました", "made (a call) — 電話をかける"] },
+  q: [
+  { q: "朝[あさ]/起[お]きた/時[とき]/、/どう/でした/か/。", qe: "How was this person when they woke up?", o: ["熱[ねつ]が ありました", "とても 元気[げんき]でした", "お腹[なか]が すいて いました", "頭[あたま]が よかったです"], k: ["朝"] },
+  { q: "だれ/に/電話[でんわ]/を/かけました/か/。", qe: "Who did this person call?", o: ["アルバイトの 店長[てんちょう]", "お医者[いしゃ]さん", "お母[かあ]さん", "友達[ともだち]"], k: ["電話"] },
+  { q: "店長[てんちょう]/は/何[なん]/と/言[い]いました@言う/か/。", qe: "What did the manager say?", o: ["ゆっくり 休[やす]んで ください", "早[はや]く 来[き]て ください", "病院[びょういん]へ 行[い]って ください", "明日[あした]も 休[やす]んで ください"], k: ["休む"] },
+  { q: "電話[でんわ]/の/後[あと]/、/何[なに]/を/しました/か/。", qe: "What did this person do after the call?", o: ["薬[くすり]を 飲[の]んで、寝[ね]ました", "病院[びょういん]へ 行[い]きました", "アルバイトへ 行[い]きました", "友達[ともだち]に 会[あ]いました"], k: ["薬", "寝る"] }] },
+
+{ id: "r39", tier: 4, t: "スマホを 忘[わす]れた 日[ひ]", en: "The Day I Forgot My Phone", s: [
+  ["今朝[けさ]/、/急[いそ]いで/家[いえ]/を/出[で]た@出る/ので/、/スマホ/を/忘[わす]れて@忘れる/しまった/。", "This morning I left home in a hurry, so I forgot my phone."],
+  ["電車[でんしゃ]/の/中[なか]/で/、/いつも/は/スマホ/で/ニュース/を/読[よ]む@読む/。", "On the train I usually read the news on my phone."],
+  ["でも/今日[きょう]/は/何[なに]/も/できない/ので/、/窓[まど]/の/外[そと]/を/見[み]て@見る/いた/。", "But today I couldn't do anything, so I looked out the window."],
+  ["春[はる]/なので/、/川[かわ]/の/そば/に/花[はな]/が/たくさん/咲[さ]いて@咲く/いた/。", "It's spring, so lots of flowers were blooming by the river."],
+  ["いつも/の/道[みち]/なのに/、/知[し]らない@知る/店[みせ]/が/あった/。", "Even though it was my usual route, there was a shop I didn't know."],
+  ["昼休[ひるやす]み/に/は/、/会社[かいしゃ]/の/人[ひと]/と/たくさん/話[はな]した@話す/。", "At lunch break I talked a lot with people from work."],
+  ["スマホ/が/ない/と/不便[ふべん]/だ/けれど/、/たまに/は/いい/と/思[おも]った/。", "Not having a phone is inconvenient, but I thought it's nice once in a while."]],
+  x: { "いい": ["いい", "good"], "急いで": ["いそいで", "in a hurry (急ぐ)"], "ので": ["ので", "because, so (N4)"], "スマホ": ["スマホ", "smartphone"], "しまった": ["しまった", "～てしまった: did (by mistake / regret)"], "ニュース": ["ニュース", "news"], "できない": ["できない", "can't (plain of できません)"], "いた": ["いた", "plain past ～ていた (was …ing)"], "なので": ["なので", "because it's ～ (noun + なので)"], "川": ["かわ", "river"], "そば": ["そば", "beside, near"], "なのに": ["なのに", "even though it's ～"], "あった": ["あった", "there was (plain past of ある)"], "昼休み": ["ひるやすみ", "lunch break"], "ない": ["ない", "not have, there isn't (plain)"], "不便": ["ふべん", "inconvenient"], "だ": ["だ", "plain form of です"], "けれど": ["けれど", "but, although"], "たまに": ["たまに", "once in a while"], "思った": ["おもった", "thought (思う)"] },
+  q: [
+  { q: "何[なに]/を/忘[わす]れました@忘れる/か/。", qe: "What did this person forget?", o: ["スマホ", "財布[さいふ]", "傘[かさ]", "かばん"], k: ["忘れる"] },
+  { q: "いつも/電車[でんしゃ]/の/中[なか]/で/何[なに]/を/します/か/。", qe: "What does this person usually do on the train?", o: ["スマホで ニュースを 読[よ]みます", "本[ほん]を 読[よ]みます", "寝[ね]ます", "音楽[おんがく]を 聞[き]きます"], k: ["電車", "読む"] },
+  { q: "川[かわ]/の/そば/に/何[なに]/が/ありました@有る/か/。", qe: "What was by the river?", o: ["たくさんの 花[はな]", "新[あたら]しい 店[みせ]", "大[おお]きい 木[き]", "古[ふる]い 橋[はし]"], k: ["花"] },
+  { q: "昼休[ひるやす]み/に/何[なに]/を/しました/か/。", qe: "What did this person do at lunch break?", o: ["会社[かいしゃ]の 人[ひと]と たくさん 話[はな]しました", "スマホを 買[か]いました", "一人[ひとり]で 寝[ね]ました", "ニュースを 読[よ]みました"], k: ["話す"] }] },
+
+{ id: "r40", tier: 4, t: "おばあちゃんの 手紙[てがみ]", en: "Grandma's Letter", s: [
+  ["先週[せんしゅう]/、/おばあちゃん/から/手紙[てがみ]/が/届[とど]いた/。", "Last week a letter arrived from my grandma."],
+  ["おばあちゃん/は/パソコン/が/使[つか]えない/ので/、/いつも/手紙[てがみ]/を/書[か]いて@書く/くれる/。", "Grandma can't use a computer, so she always writes me letters."],
+  ["手紙[てがみ]/に/は/こう/書[か]いて@書く/あった/。", "This is what the letter said:"],
+  ["「/元気[げんき]/です/か/。/こちら/は/もう/寒[さむ]く@寒い/なりました/。/」", "\"How are you? It has already turned cold here.\"", "F"],
+  ["「/庭[にわ]/の/柿[かき]/が/たくさん/なった/ので/、/少[すこ]し/送[おく]ります/。/」", "\"The persimmons in the garden came in big, so I'm sending you some.\"", "F"],
+  ["「/勉強[べんきょう]/も/大切[たいせつ]/です/が/、/体[からだ]/に/気[き]をつけて/ね/。/」", "\"Studying is important, but take care of your health.\"", "F"],
+  ["次[つぎ]/の/日[ひ]/、/柿[かき]/が/いっぱい/入[はい]った@入る/箱[はこ]/が/届[とど]いた/。", "The next day, a box full of persimmons arrived."],
+  ["今度[こんど]/の/休[やす]み/に/は/、/おばあちゃん/に/会[あ]いに@会う/行[い]こう/と/思[おも]う/。", "Next vacation, I think I'll go and see Grandma."]],
+  x: { "日": ["ひ", "day"], "おばあちゃん": ["おばあちゃん", "grandma"], "届いた": ["とどいた", "arrived, was delivered (届く)"], "パソコン": ["パソコン", "computer"], "使えない": ["つかえない", "can't use (potential of 使う)"], "ので": ["ので", "because, so (N4)"], "くれる": ["くれる", "does (for me)"], "こう": ["こう", "like this"], "あった": ["あった", "書いてあった = was written"], "なりました": ["なりました", "became, has turned (なる)"], "柿": ["かき", "persimmon"], "なった": ["なった", "grew, bore fruit (なる)"], "送ります": ["おくります", "send (送る)"], "気をつけて": ["きをつけて", "take care, be careful"], "いっぱい": ["いっぱい", "full"], "今度": ["こんど", "next (time)"], "行こう": ["いこう", "let's go / I'll go (volitional of 行く)"], "思う": ["おもう", "think (～と思う)"], "送りました": ["おくりました", "sent (送る)"] },
+  q: [
+  { q: "だれ/から/手紙[てがみ]/が/来[き]ました@来る/か/。", qe: "Who was the letter from?", o: ["おばあちゃん", "お母[かあ]さん", "友達[ともだち]", "先生[せんせい]"], k: ["手紙"] },
+  { q: "おばあちゃん/は/どうして/手紙[てがみ]/を/書[か]きます@書く/か/。", qe: "Why does Grandma write letters?", o: ["パソコンが 使[つか]えませんから", "手紙[てがみ]が 好[す]きですから", "電話[でんわ]が 高[たか]いですから", "字[じ]が きれいですから"], k: ["書く", "手紙"] },
+  { q: "おばあちゃん/は/何[なに]/を/送[おく]りました/か/。", qe: "What did Grandma send?", o: ["柿[かき]", "りんご", "お菓子[かし]", "野菜[やさい]"], k: ["庭"] },
+  { q: "今度[こんど]/の/休[やす]み/に/何[なに]/を/します/か/。", qe: "What will this person do next vacation?", o: ["おばあちゃんに 会[あ]いに 行[い]きます", "柿[かき]を 送[おく]ります", "手紙[てがみ]を 書[か]きます", "家[いえ]で 勉強[べんきょう]します"], k: ["会う", "休み"] }] }
+);
+/* order by tier (stable), so story numbers run Starter → N4 preview */
+RD_DATA.sort((a, b) => a.tier - b.tier);
 /* ================= Reading: graded N5 stories (app21d data) =================
    S.rdDone = { storyId: best correct answers } (synced: max) · S.rdDay = {"YYYY-MM-DD": [storyIds]} (synced: union)
    S.rdFuri = furigana on (default) / false · S.rdEn = show English under each sentence.
@@ -7978,6 +8356,7 @@ const rdSentenceText = s => s.split("/").map(t => rdStrip(t.replace(/^#/, "").sp
 const rdTokHTML = (str, st, si) => str.split("/").map((tk, ti) => { const t = rdToken(tk, st), p = /^[、。「」]$/.test(t.surf);
   return p ? `<span class="rdp">${esc(t.surf)}</span>` : `<button class="rdw ${t.id != null ? "lk" : ""}" data-s="${si}" data-t="${ti}">${rdRuby(t.raw)}</button>`; }).join("");
 function rdWordIds(st) { const ids = new Set(); st.s.forEach(([s]) => s.split("/").forEach(tk => { const t = rdToken(tk, st); if (t.id != null) ids.add(t.id); })); return [...ids]; }
+const rdKnownPct = st => { const ids = rdWordIds(st); return ids.length ? Math.round(ids.filter(id => rdInReview(id)).length / ids.length * 100) : 0; };   // words already in review
 const rdSeenPct = st => { const ids = rdWordIds(st); return ids.length ? Math.round(ids.filter(id => S.cards[id]).length / ids.length * 100) : 0; };
 const rdAudio = (id, i) => `rd/${id}-${i + 1}.mp3`;
 const rdDoneMap = () => isMap(S.rdDone) ? S.rdDone : {};
@@ -7994,12 +8373,12 @@ function readingHome() {
   view.innerHTML = topbar("読 Reading") + `<div class="largetitle">Reading</div>
     <p class="subtitle" id="rdSub">${nDone} of ${RD_DATA.length} stories read · tap any word for its meaning</p>${hero}
     <div class="panel rdopts"><div class="row"><span>ふりがな Furigana<br><small class="muted">Readings above kanji in stories</small></span><button class="switch ${furi ? "on" : ""}" id="rdFuriSw" role="switch" aria-checked="${furi}" aria-label="Furigana"></button></div></div>
-    ${[1, 2, 3].map(tier => `<div class="sechead">${RD_TIERS[tier].stars} ${RD_TIERS[tier].name} <small class="muted">· ${RD_TIERS[tier].note}</small></div>
-      <div class="rdlist">${RD_DATA.filter(s => s.tier === tier).map(s => { const pct = rdSeenPct(s), best = done[s.id];
+    ${Object.keys(RD_TIERS).map(Number).map(tier => `<div class="sechead">${RD_TIERS[tier].stars} ${RD_TIERS[tier].name} <small class="muted">· ${RD_TIERS[tier].note}</small></div>
+      <div class="rdlist">${RD_DATA.filter(s => s.tier === tier).map(s => { const pct = rdSeenPct(s), kn = rdKnownPct(s), best = done[s.id];
         return `<button class="rdcard" data-rd="${s.id}"><span class="rdn">${s.n}</span><span class="grow"><b class="jp">${rdRuby(s.t, furi)}</b><small>${esc(s.en)} · ${s.s.length} sentences</small>
-          <span class="rdbar" aria-label="${pct}% of words seen"><i style="width:${pct}%"></i></span><small class="rdpct">${pct}% of words seen</small></span>
+          <span class="rdbar" aria-label="${kn}% of words known, ${pct}% seen"><i class="rdseen" style="width:${pct}%"></i><i class="rdknown" style="width:${kn}%"></i></span><small class="rdpct"><b>${kn}% known</b> · ${pct}% seen</small></span>
           ${best != null ? `<span class="grst st-known">✓ ${best}/${s.q.length}</span>` : `<span class="grst">New</span>`}</button>`; }).join("")}</div>`).join("")}
-    <p class="muted grcredit">Stories and questions are original, written for this app with N5 grammar and vocabulary. Narration: Microsoft neural TTS voice ja-JP-NanamiNeural via edge-tts.</p>`;
+    <p class="muted grcredit">Stories and questions are original, written for this app with N5 grammar and vocabulary. Narration: Microsoft neural TTS voices via edge-tts (ja-JP-KeitaNeural; ja-JP-NanamiNeural for female characters' lines).</p>`;
   bindBack(home);
   const nb = $("#rdNextBtn"); if (nb) nb.onclick = () => { sfx.click(); go(() => rdStory(nx.id, readingHome)); };
   $("#rdFuriSw").onclick = e => { S.rdFuri = S.rdFuri === false; save(); go(readingHome); };
@@ -9234,6 +9613,96 @@ function confDrill(back = leechView) {
   };
   show();
 }
+/* ======================================================================
+   Batch 6 · #4 Auto pace — adjusts today's new-word count within your bounds
+   ======================================================================
+   max = the manual "Daily new words limit" (Off → 30), min = Settings "at least" (default 5).
+   Inputs (computed once per day, then frozen so the number doesn't jump around mid-day):
+     • accuracy: true reviews (cards already in review) over the last 7 days, from S.revLog — needs ≥ 20 reviews
+     • load: FSRS forecast — reviews coming due over the next 7 days (words incl. listening track + kanji),
+       × your measured seconds per item (time log, default 8 s) → minutes per day, vs the daily goal minutes
+   accuracy factor  aF = clamp((acc − 80%) / 10%, 0, 1)    → ≥ 90%: full · 85%: half · ≤ 80%: minimum
+   load factor      lF = clamp((1 − load/goal) / 0.5, 0, 1) → reviews ≤ half the goal: full · ≥ the whole goal: minimum
+   today's new words = round(min + (max − min) × aF × lF)   (target zone: 85–90% recall with a manageable review load)
+   With too little review history aF = 1 (you get your max). The daily cap logic (newLeft / capReached) uses this number. */
+const PACE_MIN_PRESETS = [0, 3, 5, 10];
+const paceOn = () => S.autoPace !== false;
+const paceMaxV = () => { const v = limV(S.newLimit, 15); return v === Infinity ? 30 : v; };
+const paceMinV = () => Math.min(paceMaxV(), S.paceMin == null ? 5 : Math.max(0, +S.paceMin || 0));
+function paceAcc(days = 7) {
+  const L = S.revLog || {}; let n = 0, ok = 0;
+  for (let i = 0; i < days; i++) { const d = L[daysAgo(i)]; if (!d) continue; for (const k in d) { if (k.endsWith("+")) ok += +d[k] || 0; else n += +d[k] || 0; } }
+  return { n, ok, acc: n ? ok / n : null };
+}
+function paceForecast(days = 7) {
+  const now = Date.now(), end = now + days * 864e5; let due = 0;
+  const add = f => { if (f && f.due && f.due <= end) due++; };
+  for (const id in S.cards) { const c = S.cards[id]; if (!c) continue; if (c.f) { add(c.f); add(c.L); } else if (c.due && c.due <= end) due++; }
+  if (typeof JS === "object" && JS && JS.cards) for (const k in JS.cards) { const c = JS.cards[k]; if (c && c.f) add(c.f); else if (c && c.due && c.due <= end) due++; }
+  let sec = 0, items = 0; const T = (typeof TS === "object" && TS && TS.days) || {};
+  for (let i = 1; i <= 7; i++) { const d = T[daysAgo(i)]; if (d) { sec += +d.sec || 0; items += +d.items || 0; } }
+  const spi = items >= 30 ? Math.max(4, Math.min(30, sec / items)) : 8;
+  return { perDay: due / days, spi, min: due / days * spi / 60 };
+}
+function paceCompute() {
+  const max = paceMaxV(), min = paceMinV(), A = paceAcc(), F = paceForecast(), goal = (typeof TS === "object" && TS && +TS.goalMin) || 15;
+  const enough = A.n >= 20;
+  const aF = enough ? Math.max(0, Math.min(1, (A.acc - 0.80) / 0.10)) : 1;
+  const lF = Math.max(0, Math.min(1, (1 - F.min / goal) / 0.5));
+  const n = Math.round(min + (max - min) * aF * lF);
+  return { d: todayStr(), k: `${min}|${max}|${goal}`, n, max, min, acc: enough ? Math.round(A.acc * 100) : null, nRev: A.n, load: Math.round(F.min * 10) / 10, perDay: Math.round(F.perDay), goal, aF: Math.round(aF * 100) / 100, lF: Math.round(lF * 100) / 100 };
+}
+function paceToday() {
+  const P = S.pace, k = `${paceMinV()}|${paceMaxV()}|${(typeof TS === "object" && TS && +TS.goalMin) || 15}`;
+  if (P && P.d === todayStr() && P.k === k && typeof P.n === "number") return P;
+  S.pace = paceCompute(); try { save(); } catch (e) {}
+  return S.pace;
+}
+const paceLimit = () => paceToday().n;
+/* new words per daily / path session: the paced number (the cap still trims it) */
+const newPerSessionV = () => paceOn() ? Math.min(40, paceLimit()) : Math.max(0, Math.min(40, S.newPerDay | 0));
+function paceWhy(P) {
+  const bits = [];
+  if (P.acc == null) bits.push(`not enough recent reviews to adjust yet (${P.nRev}/20) — using your max`);
+  else bits.push(`you're at ${P.acc}% accuracy`);
+  bits.push(`reviews ≈ ${P.load < 1 ? "<1" : Math.round(P.load)} min/day this week (goal ${P.goal} min)`);
+  let tip = "";
+  if (P.acc != null && P.acc < 85) tip = "Below the 85–90% sweet spot, so fewer new words until reviews feel easier.";
+  else if (P.lF < 1) tip = "Your review load is growing, so fewer new words keeps the daily goal manageable.";
+  else if (P.n >= P.max) tip = `That's your max — raise the daily limit in Settings to go faster.`;
+  return { line: bits.join(" · "), tip };
+}
+function paceHomeHTML() {
+  if (!paceOn()) return "";
+  const P = paceToday(), W = paceWhy(P), left = newLeft();
+  return `<div class="pacenote" id="paceNote"><span class="paceic">🧭</span><div><b>Today: ${P.n} new word${P.n === 1 ? "" : "s"}</b>${P.acc != null ? ` — you're at ${P.acc}% accuracy` : ""}
+    <div class="muted pacesub">${esc(W.line)}${left < P.n ? ` · ${left} left` : ""}${W.tip ? `<br>${esc(W.tip)}` : ""}</div></div>
+    <button class="btn ghost small" id="paceInfo" aria-label="About auto pace">ⓘ</button></div>`;
+}
+function bindPaceHome() {
+  const b = $("#paceInfo"); if (!b) return;
+  b.onclick = () => { const P = paceToday(), md = document.createElement("div"); md.className = "modal";
+    md.innerHTML = `<div class="box paceinfo" style="text-align:left"><h2 style="margin-top:0">🧭 Auto pace</h2>
+      <p>Each morning the app picks today's new-word count between <b>${P.min}</b> and <b>${P.max}</b> (your daily limit).</p>
+      <ul><li>Recent accuracy ${P.acc != null ? `<b>${P.acc}%</b> over ${P.nRev} reviews (7 days)` : `— only ${P.nRev} reviews in 7 days`}: ≥ 90% → full pace, 85% → half, ≤ 80% → minimum.</li>
+      <li>Coming reviews: <b>~${P.perDay}/day</b> for the next 7 days ≈ <b>${P.load} min/day</b> vs your <b>${P.goal}-min</b> goal: up to half the goal → full pace, the whole goal → minimum.</li></ul>
+      <p>Today: <b>${P.n}</b> new words. Turn it off or change the bounds in Settings.</p>
+      <div class="btnrow"><button class="btn" id="paceOk">OK</button></div></div>`;
+    document.body.appendChild(md); md.onclick = e => { if (e.target === md || e.target.id === "paceOk") md.remove(); }; };
+}
+function paceSettingsHTML() {
+  const P = paceOn() ? paceToday() : null;
+  return `<div class="row"><span style="text-align:left">🧭 Auto pace<br><small class="muted">Adjusts today's new words to keep recent accuracy around 85–90% and the coming week's reviews within your daily goal. The daily limit below is the maximum.${P ? ` Today: ${P.n}.` : ""}</small></span><button class="switch ${paceOn() ? "on" : ""}" id="paceSw" role="switch" aria-checked="${paceOn()}" aria-label="Auto pace"></button></div>
+    <div class="row" id="paceMinRow" ${paceOn() ? "" : "hidden"}><span style="text-align:left">🧭 Auto pace minimum<br><small class="muted">New words per day even when accuracy dips</small></span><span class="seg" id="paceMinSeg" role="radiogroup" aria-label="Auto pace minimum">${PACE_MIN_PRESETS.map(v => `<button role="radio" aria-checked="${paceMinV() === v || (S.paceMin == null && v === 5)}" class="${(S.paceMin == null ? 5 : +S.paceMin) === v ? "on" : ""}" data-v="${v}">${v}</button>`).join("")}</span></div>`;
+}
+function bindPaceSettings(md) {
+  const sw = md.querySelector("#paceSw"), row = md.querySelector("#paceMinRow"), sg = md.querySelector("#paceMinSeg");
+  const drop = () => { const dm = dailies(); for (const k in dm) if (dm[k].pos === 0 && !dm[k].done) delete dm[k]; };
+  if (sw) sw.onclick = () => { S.autoPace = !paceOn(); sw.classList.toggle("on", paceOn()); sw.setAttribute("aria-checked", paceOn()); if (row) row.hidden = !paceOn(); delete S.pace; drop(); save(); };
+  if (sg) sg.onclick = e => { const b = e.target.closest("button"); if (!b) return; S.paceMin = +b.dataset.v; delete S.pace; drop(); save(); sg.querySelectorAll("button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); sfx.good(); };
+}
+/* placeholder: listening-only mode (filled in next step) */
+function loHome(back) { return readingHome(); }
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -9262,7 +9731,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "a7d711e5e80b";
+const BUILD = "0705947303f0";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
