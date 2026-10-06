@@ -1142,6 +1142,15 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .loq{margin-top:12px;text-align:left}.loqq{font-size:1.15rem;margin:6px 0}
 .lorow .btn.sec{background:var(--card)}
 .rdcard .rdpct b{font-size:inherit}
+/* Batch 7: review reminders card */
+.pnsec .pnstatus{font-size:.85rem;line-height:1.5;margin:4px 0 8px}
+.pnstep{display:flex;align-items:center;gap:10px}.pnstep b{min-width:2.4em;text-align:center;font-size:1.15rem}.pnstep .btn{min-width:44px;min-height:44px;padding:0 12px;font-size:1.3rem}
+.pntime{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pntime input[type=time]{font:inherit;min-height:44px;padding:4px 8px;border-radius:10px;border:1px solid var(--sep);background:var(--card);color:var(--label)}
+.pntime input:disabled{opacity:.55}
+.pnwarn{color:var(--bad)}.pnrow{flex-wrap:wrap;gap:8px}.pnrow .seg{flex-wrap:wrap}
+.pnsteps{padding-left:22px;margin:6px 0;text-align:left}.pnsteps li{margin:5px 0}.pnmsg{text-align:left}.pnbtns{flex-wrap:wrap}
+.pnqrow{justify-content:flex-start;flex-wrap:nowrap;padding:0 0 12px;border-bottom:.5px solid var(--sep)}.pnqrow input[type=time]{min-width:0;flex:1 1 0}.row.pnqhead{border-bottom:none;padding-bottom:6px}
 </style>
 </head>
 <body>
@@ -3011,6 +3020,7 @@ function settings(page = false) {
     ${limitRowHTML("kjLim", "🚦 Daily new kanji limit", "Kanji have their own daily limit (separate from words)", S.kjLimit, KJ_PRESETS, 10)}
     ${limitRowHTML("grLim", "🚦 Daily new grammar limit", "New N5 grammar points per day — grammar has its own review track", S.grLimit, GR_PRESETS, 2)}
     ${backupSettingsHTML()}
+    ${pnSettingsHTML()}
     <div class="row"><span>🗑️ Reset vocabulary progress<br><small class="muted">Clears SRS for all levels, XP, streak, bests, notes (kana kept)</small></span><button class="btn small danger" id="resetBtn">Reset</button></div>
     <div class="row"><span>🗑️ Reset kana progress<br><small class="muted">Clears only the Kana level's progress & row unlocks</small></span><button class="btn small danger" id="resetKana">Reset</button></div>
     <div class="row"><span>🗑️ Reset kanji progress<br><small class="muted">Clears only kanji SRS (all levels)</small></span><button class="btn small danger" id="resetKanji">Reset</button></div>
@@ -3040,7 +3050,7 @@ function settings(page = false) {
   segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; }); segPick("#musVolSeg", b => { S.musicVol = b.dataset.mv; if (typeof kmTick === "function") kmTick(); });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
-  bindAudioLessonSettings(md); bindBackupSettings(md); bindLadderSettings(md); bindPaceSettings(md);
+  bindAudioLessonSettings(md); bindBackupSettings(md); bindPnSettings(md); bindLadderSettings(md); bindPaceSettings(md);
   md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); dropUntouched(); save(); updateDueBadge(); toast("Kanji progress reset"); } };
   md.querySelector("#resetKana").onclick = () => { if (confirm("Reset all kana progress?")) { KS = kanaDefault(); ksave(); toast("Kana progress reset"); } };
   if (page) { const c = md.querySelector("#closeS"); if (c) c.parentNode.remove(); return; }
@@ -9914,6 +9924,208 @@ function loFinish() {
   const ag = $("#loAgain"); if (ag) ag.onclick = () => loStart(o);
   const dn = $("#loDone"); if (dn) dn.onclick = () => go(loHome);
 }
+/* ================= Review reminders (Web Push) =================
+   The app is static, so reminders come from a scheduled GitHub Actions job in the public app repo (push/run.js, every
+   ~10 min). Data path — no new account, no server token in this bundle:
+   • This device subscribes to Web Push (VAPID key below) and writes two small files into ONE public gist in the user's
+     own GitHub account, using the Gist-sync token they already entered: n5vq-due.json (when each review becomes due over
+     the next 7 days — the same items as Home's due count) and n5vq-push-<device>.json (subscription + settings).
+     Both are encrypted (ECIES P-256 → AES-GCM) for the server key PN_DATA_PUB; only the Actions secret can read them.
+   • Any device that syncs refreshes the due timeline, so studying on the computer also counts.
+   • The job decides (threshold + repeat interval, evening nudge, quiet hours — push/decide.js) and keeps per-device state
+     (hashed keys + times) on the push-state branch, which the Settings status line reads.
+   Device-only settings (never synced or exported): PN_KEY. */
+const PN_KEY = "jlptVocabQuest.push.v1", PN_REPO = "Ellisdeeman/n5-vocab-quest";
+const PN_VAPID = "BLDbefMDHjS3ii7DjUhV1ymzpMTQacPwW7boitrQ2Yp2pgVojBi4x2OK409kAqZKnlUclMEcBTLLp1G-mPTdqqA";
+let PN_DATA_PUB = "BM4Ga6s9sDdzULTMZmFzElYo8S4vql9fR66u1jwWe07XzVU33JO8Pm8GxCn04qEAnT2aQVhFdWV_vhJh_RB78oo";
+const PN_DESC = "JLPT Quest review reminders (encrypted)", PN_TL = "n5vq-due.json", PN_REPS = [[30, "30 min"], [60, "1 h"], [120, "2 h"], [180, "3 h"], [0, "Once"]];
+const pnDef = () => ({ dev: "", on: false, sub: null, had: false, thr: 10, rep: 60, nudge: true, nudgeAt: "19:00", quiet: true, qs: "23:00", qe: "08:00", gistId: "", login: "", test: 0, upAt: 0, err: "", look: 0 });
+let PN = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem(PN_KEY)) || {}; } catch (e) {} return Object.assign(pnDef(), o); })();
+const pnSave = () => { try { localStorage.setItem(PN_KEY, JSON.stringify(PN)); } catch (e) {} };
+function pnB64(buf) { const a = new Uint8Array(buf); let s = ""; for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+const pnUnB64 = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+if (!PN.dev) { const a = new Uint8Array(9); crypto.getRandomValues(a); PN.dev = pnB64(a); pnSave(); }
+const pnHasPush = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && !!(window.crypto && crypto.subtle);
+const pnIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const pnStandalone = () => navigator.standalone === true || !!(window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+const pnTz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch (e) { return "UTC"; } };
+/* every review item, counted exactly like Home's due total (totalDue): words, kana, kanji, grammar */
+function pnTimeline(now = Date.now()) {
+  const H = now + 7 * 864e5, add = []; let n = 0;
+  const f = d => { d = +d; if (!isFinite(d)) return; if (d <= now) n++; else if (d <= H) add.push(Math.ceil((d - now) / 60e3)); };
+  for (const k in S.cards) f(S.cards[k].due);
+  for (const id in KS.cards) if (KITEMS[id]) f(KS.cards[id].due);
+  for (const c in JS.cards) f(JS.cards[c].due);
+  if (typeof gcards === "function" && typeof GR !== "undefined") { const G = gcards(); for (const id in G) if (GR[id]) f(G[id].due); }
+  add.sort((a, b) => a - b);
+  return { v: 1, upd: now, t0: now, now: n, add: add.slice(0, 4000) };
+}
+const pnCfg = () => ({ thr: PN.thr, rep: PN.rep, nudge: PN.nudge, nudgeAt: PN.nudgeAt, qs: PN.quiet ? PN.qs : "00:00", qe: PN.quiet ? PN.qe : "00:00", tz: pnTz() });
+const pnDevice = () => ({ v: 1, dev: PN.dev, on: PN.on, sub: PN.sub, cfg: pnCfg(), test: PN.test || 0, upd: Date.now(), ua: pnIOS() ? "ios" : "other" });
+async function pnEncrypt(obj) {
+  const C = crypto.subtle, srv = await C.importKey("raw", pnUnB64(PN_DATA_PUB), { name: "ECDH", namedCurve: "P-256" }, false, []);
+  const eph = await C.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
+  const bits = await C.deriveBits({ name: "ECDH", public: srv }, eph.privateKey, 256);
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const hk = await C.importKey("raw", bits, "HKDF", false, ["deriveKey"]);
+  const key = await C.deriveKey({ name: "HKDF", hash: "SHA-256", salt, info: new TextEncoder().encode("n5vq-push-v1") }, hk, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+  const ct = await C.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(JSON.stringify(obj)));
+  return { v: 1, epk: pnB64(await C.exportKey("raw", eph.publicKey)), salt: pnB64(salt), iv: pnB64(iv), ct: pnB64(ct) };
+}
+const pnSha = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 20);
+const PN_README = "Encrypted review-reminder data for JLPT Vocab Quest (https://ellisdeeman.github.io/n5-vocab-quest/). Written by the app with your gist-sync token; only the app's reminder server can decrypt it. Delete this gist to stop reminders from all devices.";
+async function pnGist(create) {
+  if (PN.gistId) return PN.gistId;
+  for (let page = 1; page <= 5; page++) {
+    const list = await gh(`/gists?per_page=100&page=${page}`);
+    const hit = list.find(g => g.description === PN_DESC || (g.files && g.files[PN_TL]));
+    if (hit) { PN.gistId = hit.id; PN.login = (hit.owner && hit.owner.login) || PN.login; pnSave(); return hit.id; }
+    if (list.length < 100) break;
+  }
+  PN.look = Date.now(); pnSave();
+  if (!create) return "";
+  const g = await gh("/gists", { method: "POST", body: JSON.stringify({ description: PN_DESC, public: true, files: { [PN_TL]: { content: JSON.stringify(await pnEncrypt(pnTimeline())) }, "README.md": { content: PN_README } } }) });
+  PN.gistId = g.id; PN.login = (g.owner && g.owner.login) || ""; pnSave(); return g.id;
+}
+let pnBusy = null, pnLastUp = 0;
+/* write the due timeline (+ this device's file when reminders are on / just turned off) */
+function pnUpload(why = "sync") {
+  if (!SY.token || (!pnHasPush() && !PN.gistId)) return Promise.resolve(false);
+  if (pnBusy) return pnBusy.then(() => pnUpload(why));
+  const forced = /^(on|off|cfg|test)$/.test(why);
+  if (!forced && Date.now() - pnLastUp < 60e3) return Promise.resolve(false);
+  pnBusy = (async () => {
+    try {
+      let id = await pnGist(PN.on && forced); if (!id) return false;
+      const df = `n5vq-push-${PN.dev}.json`, files = { [PN_TL]: { content: JSON.stringify(await pnEncrypt(pnTimeline())) } };
+      if (PN.on && PN.sub) files[df] = { content: JSON.stringify(await pnEncrypt(pnDevice())) };
+      else if (PN.had) files[df] = null;
+      const body = JSON.stringify({ files });
+      if (why === "hide") {   // the page may be frozen right after this: keepalive lets the request finish
+        const r = await fetch("https://api.github.com/gists/" + encodeURIComponent(id), { method: "PATCH", keepalive: body.length < 60000, headers: { Accept: "application/vnd.github+json", Authorization: "Bearer " + SY.token, "Content-Type": "application/json" }, body });
+        if (!r.ok) throw Object.assign(new Error("http"), { code: "http " + r.status });
+      } else {
+        try { await gh(`/gists/${encodeURIComponent(id)}`, { method: "PATCH", body }); }
+        catch (e) {
+          if (e.code !== "notfound") throw e;   // gist deleted on GitHub → start a new one
+          PN.gistId = ""; PN.had = false; pnSave(); id = await pnGist(PN.on); if (!id) return false;
+          if (files[df] === null) delete files[df];
+          await gh(`/gists/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ files }) });
+        }
+      }
+      PN.had = !!(PN.on && PN.sub); PN.upAt = pnLastUp = Date.now(); PN.err = ""; pnSave(); return true;
+    } catch (e) { PN.err = (e && e.code) || "network"; pnSave(); return false; }
+    finally { pnBusy = null; }
+  })();
+  return pnBusy;
+}
+/* after every successful gist sync: refresh the timeline (also from devices without reminders, once their gist is known) */
+const pnSyncOrig = syncNow;
+syncNow = function (reason) {
+  const p = pnSyncOrig(reason);
+  Promise.resolve(p).then(r => { if (r && r.ok && (PN.on || PN.gistId || Date.now() - (PN.look || 0) > 864e5)) pnUpload("sync"); }).catch(() => {});
+  return p;
+};
+function pnBadge() { try { if (!PN.on || !navigator.setAppBadge) return; const n = totalDue(); (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {} }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && PN.on && SY.token) { pnBadge(); pnUpload("hide"); } });
+/* notification tap → Review all due (fresh launch: ?go=due; running app: message from the service worker) */
+function pnGoDue() { if (typeof studyScreen !== "undefined" && studyScreen) return; try { startDueReview("all", dueView); } catch (e) { go(dueView); } }
+if (/[?&]go=due\b/.test(location.search)) { try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {} addEventListener("load", () => setTimeout(pnGoDue, 400)); }
+if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.go === "due") pnGoDue(); });
+async function pnEnable() {
+  if (!pnHasPush()) return pnRender();
+  let perm = Notification.permission;
+  try { if (perm !== "granted") perm = await Notification.requestPermission(); } catch (e) { perm = "denied"; }   // must be the first await of the tap (iOS)
+  if (perm !== "granted") { toast(perm === "denied" ? "Notifications are blocked for this app" : "Notifications weren't allowed"); return pnRender(); }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (sub && sub.options && sub.options.applicationServerKey && pnB64(sub.options.applicationServerKey) !== PN_VAPID) { await sub.unsubscribe(); sub = null; }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pnUnB64(PN_VAPID) });
+    PN.sub = sub.toJSON(); PN.on = true; PN.err = ""; pnSave();
+  } catch (e) { PN.err = "subscribe"; pnSave(); toast("Couldn't turn on notifications on this device"); return pnRender(); }
+  const ok = await pnUpload("on"); pnRender();
+  toast(ok ? "🔔 Review reminders on" : "Reminders on — the upload will retry at the next sync");
+}
+async function pnDisable() {
+  PN.on = false; pnSave();
+  try { const reg = await navigator.serviceWorker.getRegistration(); const sub = reg && await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) {}
+  PN.sub = null; pnSave(); await pnUpload("off");
+  try { if (navigator.clearAppBadge) navigator.clearAppBadge().catch(() => {}); } catch (e) {}
+  pnRender(); toast("Review reminders off on this device");
+}
+async function pnTest() { PN.test = Date.now(); pnSave(); const ok = await pnUpload("test"); toast(ok ? "Test queued — it arrives with the next server check (usually within 10–15 min)" : "Couldn't reach GitHub — try again"); pnRender(); }
+let pnCfgT = 0;
+const pnCfgChanged = () => { pnSave(); clearTimeout(pnCfgT); pnCfgT = setTimeout(() => pnUpload("cfg"), 1200); };
+const pnAgo = t => !t ? "—" : (Date.now() - t < 90e3 ? "just now" : Date.now() - t < 3600e3 ? `${Math.round((Date.now() - t) / 60e3)} min ago` : Date.now() - t < 864e5 ? `${Math.round((Date.now() - t) / 3600e3)} h ago` : new Date(t).toLocaleDateString());
+async function pnStatus() {
+  const o = {};
+  try { const r = await fetch(`https://raw.githubusercontent.com/${PN_REPO}/push-state/state.json?t=${Date.now()}`, { cache: "no-store" }); const s = await r.json(); if (PN.login) o.st = (s.dev || {})[await pnSha(PN.login + ":" + PN.dev)] || null; } catch (e) {}
+  try { const r = await fetch(`https://api.github.com/repos/${PN_REPO}/actions/workflows/push.yml/runs?per_page=1`, { cache: "no-store" }); const j = await r.json(); const w = j.workflow_runs && j.workflow_runs[0]; if (w) o.run = Date.parse(w.run_started_at || w.created_at); } catch (e) {}
+  try { const r = await fetch("push/users.json", { cache: "no-store" }); const j = await r.json(); o.reg = (j.users || []).some(u => String(u).toLowerCase() === String(PN.login).toLowerCase()); } catch (e) {}
+  if (o.st && PN.sub) o.gone = !!o.st.gone && o.st.gone === await pnSha(PN.sub.endpoint);
+  return o;
+}
+const pnKind = { threshold: "reminder", repeat: "reminder", nudge: "evening check-in", test: "test" };
+async function pnStatusUI() {
+  if (!$("#pnStatus") || !PN.on) return;
+  const o = await pnStatus(); window.__pnStatus = o;
+  const el = $("#pnStatus"); if (!el) return;
+  const bits = [];
+  if (o.gone) bits.push(`<b class="pnwarn">⚠️ This device stopped accepting notifications (the subscription expired or was removed). Tap “Re-enable”.</b>`);
+  if (PN.login && o.reg === false) bits.push(`<span class="pnwarn">Reminders come from the app owner's server — ask Ellis to add your GitHub username <b>${esc(PN.login)}</b> to push/users.json.</span>`);
+  bits.push(`Last push: ${o.st && o.st.lastAt ? `${pnAgo(o.st.lastAt)} (${pnKind[o.st.lastKind] || "reminder"}, ${o.st.lastN} due)` : "none yet"}`);
+  bits.push(`Last server check: ${o.run ? pnAgo(o.run) : "—"} · next within ~10–15 min`);
+  if (PN.upAt || PN.err) bits.push(`Due times uploaded ${pnAgo(PN.upAt)}${PN.err ? ` · last upload failed (${esc(PN.err)})` : ""}`);
+  el.innerHTML = bits.join("<br>");
+  const re = $("#pnReBtn"); if (re) re.hidden = !o.gone;
+}
+function pnSettingsHTML() { return `<div class="bksec pnsec" id="pnSec">${pnInnerHTML()}</div>`; }
+function pnInnerHTML() {
+  const head = `<h3 class="bkh">🔔 Review reminders</h3>`;
+  if (!pnHasPush()) {
+    if (pnIOS() && !pnStandalone()) return head + `<div class="pnmsg" id="pnInstall"><p><b>On iPhone, notifications only work in the Home Screen app.</b></p>
+      <ol class="pnsteps"><li>In Safari, tap the <b>Share</b> button (square with an arrow).</li><li>Choose <b>Add to Home Screen</b> → <b>Add</b>.</li><li>Open <b>JLPT Quest</b> from your Home Screen and come back to Settings.</li></ol><p class="muted">Needs iOS 16.4 or later. Turn on Gist sync to bring your progress along.</p></div>`;
+    return head + `<p class="muted pnmsg" id="pnNoPush">This browser can't receive push notifications.${pnIOS() ? " Update to iOS 16.4 or later." : ""}</p>`;
+  }
+  if (!SY.token) return head + `<div class="pnmsg" id="pnNeedSync"><p>Reminders are delivered through <b>your own GitHub gist</b>, so turn on <b>Gist sync</b> first (above, about 2 minutes — a free GitHub account and a token with the “gist” scope).</p><div class="btnrow"><button class="btn sec" id="pnToSync">Set up Gist sync ↑</button></div></div>`;
+  if (!PN.on) {
+    const denied = Notification.permission === "denied";
+    return head + `<p class="muted">Get a notification when <b>${PN.thr}+ reviews</b> are due (${PN.rep ? `then every ${PN.rep < 60 ? PN.rep + " min" : PN.rep / 60 === 1 ? "hour" : PN.rep / 60 + " hours"} until you study them below that` : "once each time you go over"}), plus an optional evening check-in.</p>
+      ${denied ? `<p class="pnwarn" id="pnDenied">Notifications are blocked. iPhone: <b>Settings → Notifications → JLPT Quest → Allow Notifications</b>, then come back.</p>` : ""}
+      <div class="btnrow"><button class="btn" id="pnOnBtn">🔔 Enable notifications</button></div>${PN.err === "subscribe" ? `<p class="pnwarn">Couldn't subscribe this device — try again.</p>` : ""}`;
+  }
+  const opt = (v, cur, t) => `<button class="${v === cur ? "on" : ""}" data-v="${v}" role="radio" aria-checked="${v === cur}">${t}</button>`;
+  return head + `<p class="muted pnstatus" id="pnStatus" aria-live="polite">Checking status…</p>
+    <div class="row"><span>Remind me at<br><small class="muted">reviews due</small></span><span class="pnstep"><button class="btn small sec" id="pnThrDn" aria-label="Fewer">−</button><b id="pnThr">${PN.thr}</b><button class="btn small sec" id="pnThrUp" aria-label="More">+</button></span></div>
+    <div class="row pnrow"><span>Repeat while at or above it<br><small class="muted">until you study below ${PN.thr}</small></span><div class="seg" id="pnRep" role="radiogroup" aria-label="Repeat">${PN_REPS.map(([v, t]) => opt(v, PN.rep, t)).join("")}</div></div>
+    <div class="row"><span>🌙 Evening check-in<br><small class="muted">once a day if anything (but fewer than ${PN.thr}) is due</small></span><span class="pntime"><input type="time" id="pnNudgeAt" value="${esc(PN.nudgeAt)}" aria-label="Evening check-in time" ${PN.nudge ? "" : "disabled"}><button class="switch ${PN.nudge ? "on" : ""}" id="pnNudge" role="switch" aria-checked="${PN.nudge}" aria-label="Evening check-in"></button></span></div>
+    <div class="row pnqhead"><span>🤫 Quiet hours<br><small class="muted">no notifications in this window</small></span><button class="switch ${PN.quiet ? "on" : ""}" id="pnQuiet" role="switch" aria-checked="${PN.quiet}" aria-label="Quiet hours"></button></div>
+    <div class="pntime pnqrow"><input type="time" id="pnQs" value="${esc(PN.qs)}" aria-label="Quiet hours start" ${PN.quiet ? "" : "disabled"}><span class="muted">–</span><input type="time" id="pnQe" value="${esc(PN.qe)}" aria-label="Quiet hours end" ${PN.quiet ? "" : "disabled"}></div>
+    <div class="btnrow pnbtns"><button class="btn sec" id="pnTestBtn">Send test notification</button><button class="btn sec" id="pnReBtn" hidden>Re-enable</button><button class="btn ghost" id="pnOffBtn">Turn off</button></div>
+    <details class="tokhelp pnhelp"><summary>How reminders work</summary>
+      <p>A free GitHub Actions job checks about every 10 minutes (GitHub sometimes runs it late), so a reminder can arrive up to ~15–20 minutes after reviews become due. A test notification arrives with the next check.</p>
+      <p>Sound: notifications use your iPhone's standard sound — change it in <b>Settings → Notifications → JLPT Quest → Sounds</b> (Focus modes can hold them back).</p>
+      <p>Privacy: your due times and this device's push address are stored <b>encrypted</b> in a public gist “${esc(PN_DESC)}” in your GitHub account (only the reminder server can read it). Delete that gist to stop reminders everywhere.</p>
+      <p>Due counts update when this device syncs (after a session, or when you leave the app). Studying on another device counts once it syncs too.</p></details>`;
+}
+function pnRender() { const s = $("#pnSec"); if (!s) return; s.innerHTML = pnInnerHTML(); bindPnSettings(s); }
+function bindPnSettings(root) {
+  const q = s => root.querySelector(s) || document.querySelector(s);
+  const b = (s, f) => { const e = root.querySelector(s); if (e) e.onclick = f; };
+  b("#pnToSync", () => { const x = q("#syncBox") || q("#bkSec"); if (x) { x.scrollIntoView({ behavior: "smooth", block: "center" }); const i = q("#tokIn"); if (i) setTimeout(() => i.focus(), 400); } });
+  b("#pnOnBtn", () => { sfx.click(); pnEnable(); });
+  b("#pnReBtn", () => { sfx.click(); pnEnable(); });
+  b("#pnOffBtn", () => { sfx.click(); pnDisable(); });
+  b("#pnTestBtn", () => { sfx.click(); pnTest(); });
+  const thr = d => { const st = d < 0 ? (PN.thr > 50 ? 10 : PN.thr > 20 ? 5 : 1) : (PN.thr >= 50 ? 10 : PN.thr >= 20 ? 5 : 1); PN.thr = Math.max(1, Math.min(300, PN.thr + d * st)); pnCfgChanged(); pnRender(); };
+  b("#pnThrDn", () => thr(-1)); b("#pnThrUp", () => thr(1));
+  const rep = root.querySelector("#pnRep"); if (rep) rep.onclick = e => { const x = e.target.closest("button[data-v]"); if (!x) return; PN.rep = +x.dataset.v; pnCfgChanged(); pnRender(); };
+  b("#pnNudge", () => { PN.nudge = !PN.nudge; pnCfgChanged(); pnRender(); });
+  b("#pnQuiet", () => { PN.quiet = !PN.quiet; pnCfgChanged(); pnRender(); });
+  [["#pnNudgeAt", "nudgeAt"], ["#pnQs", "qs"], ["#pnQe", "qe"]].forEach(([s, k]) => { const e = root.querySelector(s); if (e) e.onchange = () => { if (/^\d\d:\d\d$/.test(e.value)) { PN[k] = e.value; pnCfgChanged(); } }; });
+  if (PN.on && root.querySelector("#pnStatus")) pnStatusUI();
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -9942,7 +10154,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "7538ad03aa7a";
+const BUILD = "c5d95ce76c2e";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -9992,7 +10204,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
