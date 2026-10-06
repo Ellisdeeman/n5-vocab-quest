@@ -1068,7 +1068,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .mktimer{font-variant-numeric:tabular-nums;font-weight:800;background:var(--fill);border-radius:10px;padding:4px 9px;min-width:3.6em;text-align:center}.mktimer.low{background:var(--red);color:#fff}.mkcount{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
 .mkq{text-align:left}.mkq .qtype{text-align:left}.mkins{font-size:.88rem;color:var(--label2);margin:4px 0 12px;line-height:1.5}
 .mkpass{background:var(--fill);border-radius:12px;padding:12px 14px;font-size:1rem;line-height:1.85;margin-bottom:12px;max-height:46vh;overflow:auto;white-space:normal}
-.mkbl{font-weight:700;color:var(--label2)}.mkbl.cur{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);border-radius:6px;padding:0 2px}
+.mkbl{font-weight:700;color:var(--label2)}.mkbl.cur{color:var(--label);box-shadow:inset 0 0 0 2px var(--accent);border-radius:6px;padding:0 2px}
 .mkstem{font-size:1.15rem;line-height:1.9;margin:6px 0 14px}.mku{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}.mkblank{white-space:nowrap;color:var(--accent)}
 .mkslot{display:inline-block;min-width:2.6em;border-bottom:2px solid var(--label3);height:1.4em;vertical-align:bottom;margin:0 2px;text-align:center;font-size:.9rem;color:var(--accent)}.mkslot.star{border-color:var(--accent)}
 .mkscene{font-size:1.05rem;line-height:1.6}.mksceneen{font-size:.82rem;margin-top:2px}
@@ -1076,8 +1076,8 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .choice.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--bg2));box-shadow:0 0 0 2px var(--accent) inset}
 .mkopts .choice{text-align:left;justify-content:flex-start}.mkspk{font-weight:800;font-size:1.1rem}
 .mknav{justify-content:space-between}.mknav .btn{flex:1 1 0;min-width:0}
-.mkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:8px;margin:14px 0}.mkgrid button{height:42px;border-radius:10px;border:1px solid var(--sep);background:var(--bg2);color:var(--label);font:inherit;font-weight:700;cursor:pointer}
-.mkgrid button.on{background:var(--accent);color:#fff;border-color:var(--accent)}.mkgrid button.cur{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent)}
+.mkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px;margin:14px 0}.mkgrid button{height:44px;border-radius:10px;border:1px solid var(--sep);background:var(--bg2);color:var(--label);font:inherit;font-weight:700;cursor:pointer}
+.mkgrid button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.mkgrid button.cur{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent)}
 .mkintro .big{font-size:3rem;margin:6px 0}
 .mkres{text-align:center}.mktotal{margin:6px 0 2px}.mktotal b{font-size:3.4rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}.mktotal span{font-size:1.2rem;color:var(--label2)}
 .mkverdict{display:inline-block;border-radius:999px;padding:6px 14px;font-weight:700;margin-bottom:14px;font-size:.9rem}.mkverdict.pass{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}.mkverdict.fail{background:color-mix(in srgb,var(--orange) 18%,transparent);color:var(--label)}
@@ -7897,10 +7897,10 @@ const RD_GLOSS = { "は": "topic particle (wa)", "が": "subject particle; “bu
    Comprehension answers grade the questions' key words like a multiple-choice quiz (Good, Hard when slow, Again when
    wrong) — but only words already in review; everything else keeps its schedule. */
 const RD = {}; RD_DATA.forEach((s, i) => { s.n = i + 1; RD[s.id] = s; });
-const RD_HARD_MS = 20000;
+let RD_HARD_MS = 20000;
 const RD_MAP = (() => {   // N5 lookups: written form, and kana → word only when that kana belongs to one entry
   const jp = {}, kc = {};
-  LV.n5.ids.forEach(id => { const w = WORDS[id]; if (!(w.jp in jp)) jp[w.jp] = id; const k = w.kana.replace(/\s*\(.*\)$/, ""); (kc[k] = kc[k] || []).push(id); });
+  LV.n5.ids.forEach(id => { const w = WORDS[id]; for (const f of [w.jp, ...w.jp.split(/;\s*/)]) if (f && !(f in jp)) jp[f] = id; const k = w.kana.replace(/\s*\(.*\)$/, ""); (kc[k] = kc[k] || []).push(id); });
   const kana = {}; for (const k in kc) if (kc[k].every(id => WORDS[id].jp === WORDS[kc[k][0]].jp)) kana[k] = kc[k][0];
   return { jp, kana };
 })();
@@ -7932,7 +7932,7 @@ const rdDoneMap = () => isMap(S.rdDone) ? S.rdDone : {};
 const rdToday = () => isMap(S.rdDay) && Array.isArray(S.rdDay[todayStr()]) ? S.rdDay[todayStr()] : [];
 const rdNext = () => RD_DATA.find(s => !(s.id in rdDoneMap())) || null;
 const rdWanted = () => (S.levels || ["n5"]).includes("n5") || Object.keys(rdDoneMap()).length > 0;
-const rdInReview = id => { const c = S.cards[id]; return !!(c && c.f && c.f.st === 2); };
+const rdInReview = id => { const c = S.cards[id]; return !!(c && c.f && c.f.st >= 2); };   // review or relearning (not Seen / first-time learning)
 
 /* ---------- Story list ---------- */
 function readingHome() {
@@ -8346,7 +8346,7 @@ function mkPool(part) {
 }
 /* expand a picked pool entry into one or more exam items */
 function mkExpand(part, e, R) {
-  const P = MK_PART[part], base = { part, b: P.b };
+  const P = MK_PART[part], base = { part, b: P.b, pk: e.key };   // pk = bank entry (a passage can yield several items)
   const mc = (key, stem, opts, extra = {}) => { const o = mkShuf(opts, R); return Object.assign({}, base, { key, stem, opts: o, a: o.indexOf(opts[0]) }, extra); };
   if (e.s) return [mc(e.key, mkFmt(e.s), e.o, { w: e.w })];
   if (e.g2) { const [pre, pcs, post, star] = e.g2, slots = pcs.map((_, i) => i === star ? `<span class="mkslot star">★</span>` : `<span class="mkslot"></span>`).join(" ");
@@ -8364,7 +8364,7 @@ function mkExpand(part, e, R) {
 /* build one full test: per part, least-used items first (across saved attempts), ties broken by the seed */
 function mkBuild(seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0) {
   const R = mkRng(seed), used = {};
-  mkHist().forEach(a => (a.keys || []).forEach(k => used[k] = (used[k] || 0) + 1));
+  mkHist().forEach(a => (a.keys || []).forEach(k => used[k] = (used[k] || 0) + 1));   // keys = bank entries used by that attempt
   const secs = MK_SECS.map(k => {
     const F = MK_FORMAT[k], items = [];
     for (const [part, n] of F.parts) {
@@ -8509,7 +8509,7 @@ function mkSave() {
   for (const m of sc.miss) if (m.w) { const id = m.w in RD_MAP.jp ? RD_MAP.jp[m.w] : RD_MAP.kana[m.w]; if (id != null && rdInReview(id) && !again.includes(id)) { grade(id, false, { rating: 1, quiet: true, listen: false }); again.push(id); } }
   const it = (s, i) => ex.secs[s].items[i];
   const att = { t: Date.now(), dur: MK.spent.reduce((a, b) => a + b, 0), seed: ex.seed, lkr: sc.lkr, lis: sc.lis, total: sc.total, pass: sc.pass, B: sc.B, parts: sc.parts, again,
-    keys: ex.secs.flatMap(s => s.items.map(x => x.key)),
+    keys: [...new Set(ex.secs.flatMap(s => s.items.map(x => x.pk)))],
     miss: sc.miss.map(m => { const x = it(m.s, m.i); return { p: m.p, q: (x.stem || "").replace(/<[^>]+>/g, "").slice(0, 200), pass: x.pass ? x.pass.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "").slice(0, 600) : "", c: m.c, a: m.a, sc: x.script || null, sp: !!x.spoken, o: x.spoken ? x.opts : null }; }) };
   if (!Array.isArray(S.mock)) S.mock = [];
   S.mock.push(att); if (S.mock.length > 30) S.mock = S.mock.slice(-30);
@@ -8579,7 +8579,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "45bef2df2e26";
+const BUILD = "f01d0797e0fb";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -8629,7 +8629,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {

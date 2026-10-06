@@ -20,7 +20,7 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   const px=parseFloat(cs.fontSize),bold=+cs.fontWeight>=700,large=px>=24||(bold&&px>=18.66);const need=large?3:4.5;
   if(cr<need)bad.push(`${(el.id?'#'+el.id:el.tagName.toLowerCase()+'.'+[...el.classList].join('.'))} "${el.textContent.trim().slice(0,24)}" ${cr.toFixed(2)}<${need} (${cs.color} on rgb(${bg.slice(0,3).map(Math.round)}))`);}
  // tap targets: visible buttons in the main view / tab bar at least 44px tall (primary .btn 54)
- const small=[...document.querySelectorAll('#view button, .tabbar button, .modal button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&r.height&&getComputedStyle(b).visibility!=='hidden'&&r.height+(b.matches('.switch')?14:0)<43.5&&!b.closest('.seg,.gseg,.kjgrid,.kgrid,#map,.dots,.ex,.kjex')&&!b.matches('.mini,.kjtile,.kcell')}).map(b=>(b.id||b.className||b.textContent.trim().slice(0,12))+':'+Math.round(b.getBoundingClientRect().height));
+ const small=[...document.querySelectorAll('#view button, .tabbar button, .modal button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&r.height&&getComputedStyle(b).visibility!=='hidden'&&r.height+(b.matches('.switch')?14:0)<43.5&&!b.closest('.seg,.gseg,.kjgrid,.kgrid,#map,.dots,.ex,.kjex,.rdjp')&&!b.matches('.mini,.kjtile,.kcell')}).map(b=>(b.id||b.className||b.textContent.trim().slice(0,12))+':'+Math.round(b.getBoundingClientRect().height));
  const prim=[...document.querySelectorAll('.btn:not(.small)')].filter(b=>b.getBoundingClientRect().height&&b.getBoundingClientRect().height<53.5).map(b=>(b.id||b.textContent.trim().slice(0,12))+':'+Math.round(b.getBoundingClientRect().height));
  return {sw:document.documentElement.scrollWidth,W,over:[...new Set(over)].slice(0,8),bad:[...new Set(bad)].slice(0,12),small:small.slice(0,8),prim:prim.slice(0,6)};};
 (async()=>{const b=BR==='webkit'?await pw.webkit.launch():await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
@@ -48,6 +48,24 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await p.waitForSelector('#grPool');await check('grammar order');
   await tap('#grPool .grtile');await tap('#giveBtn');await check('grammar order answered');
   await tap('#nextBtn');await p.waitForSelector('#grFinish');await check('grammar finish');
+  // reading + mock JLPT (batch 3)
+  await p.evaluate(()=>__N5.go(__N5.readingHome));await p.waitForSelector('.rdcard');await check('reading hub');
+  await p.evaluate(()=>__N5.go(()=>__N5.rdStory('r03',__N5.readingHome)));await p.waitForSelector('#rdStory');await check('reading story');
+  await tap('#rdEn');await check('reading story + English');
+  await tap('.rdw.lk');await p.waitForSelector('#rdSheet');await check('reading word sheet');await tap('#rdClose');
+  await tap('#rdQuizBtn');await p.waitForSelector('.rdq');await check('reading quiz');
+  await tap('#qhost .choice');await check('reading quiz answered');
+  await p.evaluate(()=>__N5.go(__N5.mockHome));await p.waitForSelector('#mkStart');await check('mock home');
+  await tap('#mkStart');await p.waitForSelector('#mkGo');await check('mock section intro');
+  await tap('#mkGo');await p.waitForSelector('#mkQ');await tap('.mkopts .choice');await check('mock vocab question');
+  await tap('#mkGrid');await p.waitForSelector('#mkGridM');await check('mock palette');await tap('#mkGridClose');
+  await p.evaluate(()=>__N5.mkSetLeft(0));await p.waitForSelector('#mkIntro[data-sec="g"]');await tap('#mkGo');await p.waitForSelector('#mkQ');
+  {const i=await p.evaluate(()=>__N5.MK.ex.secs[1].items.findIndex(x=>x.part==='g2'));await tap('#mkGrid');await p.tap(`#mkGridM .mkgrid button >> nth=${i}`);await p.waitForTimeout(300);await check('mock ★ composition');}
+  {const i=await p.evaluate(()=>__N5.MK.ex.secs[1].items.findIndex(x=>x.part==='tg'));await tap('#mkGrid');await p.tap(`#mkGridM .mkgrid button >> nth=${i}`);await p.waitForTimeout(300);await check('mock text grammar');}
+  await p.evaluate(()=>__N5.mkSetLeft(0));await p.waitForSelector('#mkIntro[data-sec="l"]');await tap('#mkGo');await p.waitForSelector('#mkQ');await check('mock listening');
+  await p.evaluate(()=>__N5.mkSetLeft(0));await p.waitForSelector('#mkRes');await p.waitForTimeout(400);await check('mock results');
+  await tap('#mkReview');await check('mock mistakes');
+  await tap('#mkBack');await p.waitForSelector('.mkhrow');await check('mock history');
   await p.evaluate(()=>__N5.go(__N5.dueView));await p.waitForSelector('[data-review="all"]');
   await tap('.tabbar [data-tab="levels"]');await check('levels');
   await p.evaluate(()=>__N5.openLevel('n5'));await p.waitForTimeout(1200);await check('level N5');
