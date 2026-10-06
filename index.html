@@ -1150,7 +1150,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .pntime input:disabled{opacity:.55}
 .pnwarn{color:var(--bad)}.pnrow{flex-wrap:wrap;gap:8px}.pnrow .seg{flex-wrap:wrap}
 .pnsteps{padding-left:22px;margin:6px 0;text-align:left}.pnsteps li{margin:5px 0}.pnmsg{text-align:left}.pnbtns{flex-wrap:wrap}
-.pnqrow{justify-content:flex-start;padding:0 0 12px}
+.pnqrow{justify-content:flex-start;flex-wrap:nowrap;padding:0 0 12px;border-bottom:.5px solid var(--sep)}.pnqrow input[type=time]{min-width:0;flex:1 1 0;max-width:9.5em}.row.pnqhead{border-bottom:none;padding-bottom:6px}
 </style>
 </head>
 <body>
@@ -10100,7 +10100,7 @@ function pnInnerHTML() {
     <div class="row"><span>Remind me at<br><small class="muted">reviews due</small></span><span class="pnstep"><button class="btn small sec" id="pnThrDn" aria-label="Fewer">−</button><b id="pnThr">${PN.thr}</b><button class="btn small sec" id="pnThrUp" aria-label="More">+</button></span></div>
     <div class="row pnrow"><span>Repeat while at or above it<br><small class="muted">until you study below ${PN.thr}</small></span><div class="seg" id="pnRep" role="radiogroup" aria-label="Repeat">${PN_REPS.map(([v, t]) => opt(v, PN.rep, t)).join("")}</div></div>
     <div class="row"><span>🌙 Evening check-in<br><small class="muted">once a day if anything (but fewer than ${PN.thr}) is due</small></span><span class="pntime"><input type="time" id="pnNudgeAt" value="${esc(PN.nudgeAt)}" aria-label="Evening check-in time" ${PN.nudge ? "" : "disabled"}><button class="switch ${PN.nudge ? "on" : ""}" id="pnNudge" role="switch" aria-checked="${PN.nudge}" aria-label="Evening check-in"></button></span></div>
-    <div class="row"><span>🤫 Quiet hours<br><small class="muted">no notifications in this window</small></span><button class="switch ${PN.quiet ? "on" : ""}" id="pnQuiet" role="switch" aria-checked="${PN.quiet}" aria-label="Quiet hours"></button></div>
+    <div class="row pnqhead"><span>🤫 Quiet hours<br><small class="muted">no notifications in this window</small></span><button class="switch ${PN.quiet ? "on" : ""}" id="pnQuiet" role="switch" aria-checked="${PN.quiet}" aria-label="Quiet hours"></button></div>
     <div class="pntime pnqrow"><span class="muted">from</span><input type="time" id="pnQs" value="${esc(PN.qs)}" aria-label="Quiet hours start" ${PN.quiet ? "" : "disabled"}><span class="muted">to</span><input type="time" id="pnQe" value="${esc(PN.qe)}" aria-label="Quiet hours end" ${PN.quiet ? "" : "disabled"}></div>
     <div class="btnrow pnbtns"><button class="btn sec" id="pnTestBtn">Send test notification</button><button class="btn sec" id="pnReBtn" hidden>Re-enable</button><button class="btn ghost" id="pnOffBtn">Turn off</button></div>
     <details class="tokhelp pnhelp"><summary>How reminders work</summary>
@@ -10154,7 +10154,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "e40cb132975c";
+const BUILD = "84cbce0c6ff4";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });

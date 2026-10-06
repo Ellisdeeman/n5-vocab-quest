@@ -55,20 +55,22 @@ ok("ECIES box round-trips", C.decrypt(box, K.priv).x === "テスト");
 let bad = false; try { C.decrypt(Object.assign({}, box, { ct: box.ct.slice(0, -4) + "AAAA" }), K.priv); } catch (e) { bad = true; } ok("tampered box rejected", bad);
 // --- end-to-end DRY run of run.js against a mock gist API
 (async () => {
-  const files = {}, base = { url: "" };
+  const files = {}, base = { url: "", fail: false, auth: 0, lists: 0 };
   const dev = id => ({ v: 1, dev: id, on: true, sub: { endpoint: "https://push.example/" + id, keys: { p256dh: "x", auth: "y" } }, cfg: cfg(), test: 0, upd: 1 });
   const T0 = at("2026-10-06T14:00:00-04:00");
   files["n5vq-due.json"] = C.encrypt({ v: 1, upd: T0, t0: T0, now: 8, add: [30, 40, 50] }, K.pub);   // 8 now, 11 by 14:50
   files["n5vq-push-devAAAAAA.json"] = C.encrypt(dev("devAAAAAA"), K.pub);
   files["n5vq-push-devBBBBBB.json"] = C.encrypt(Object.assign(dev("devBBBBBB"), { test: 123 }), K.pub);
   const srv = http.createServer((q, s) => {
-    if (q.url.startsWith("/users/tester/gists")) { s.setHeader("Content-Type", "application/json"); return s.end(JSON.stringify([{ id: "g1", updated_at: "2026-10-06T18:00:00Z", owner: { login: "tester" }, files: Object.fromEntries(Object.keys(files).map(f => [f, { raw_url: base.url + "/raw/" + f }])) }])); }
-    const m = /^\/raw\/(.+)$/.exec(q.url); if (m && files[m[1]]) return s.end(JSON.stringify(files[m[1]]));
+    if (q.headers.authorization) base.auth++;
+    if (q.url.startsWith("/users/tester/gists")) { base.lists++; if (base.fail) { s.statusCode = 403; return s.end('{"message":"API rate limit exceeded"}'); }
+      s.setHeader("Content-Type", "application/json"); return s.end(JSON.stringify([{ id: "zzOther", updated_at: "2026-10-06T19:00:00Z", owner: { login: "tester" }, files: { "notes.md": {} } }, { id: "g1", updated_at: "2026-10-06T18:00:00Z", owner: { login: "tester" }, files: Object.fromEntries(Object.keys(files).map(f => [f, { raw_url: "unused" }])) }])); }
+    const m = /^\/tester\/g1\/raw\/([^?]+)/.exec(q.url); if (m && files[decodeURIComponent(m[1])]) return s.end(JSON.stringify(files[decodeURIComponent(m[1])]));
     s.statusCode = 404; s.end("{}");
   }).listen(0);
   base.url = "http://127.0.0.1:" + srv.address().port;
   const stf = path.join(os.tmpdir(), "pushstate-" + process.pid + ".json"); try { fs.unlinkSync(stf); } catch (e) {}
-  const run = iso => new Promise(res => { require("child_process").execFile("node", [P + "/run.js", stf], { env: Object.assign({}, process.env, { DRY: "1", GH_API: base.url, USERS: "tester", PUSH_DATA_KEY: K.priv, NOW: String(at(iso)) }) }, (e, out) => res(out || String(e))); });
+  const run = iso => new Promise(res => { require("child_process").execFile("node", [P + "/run.js", stf], { env: Object.assign({}, process.env, { DRY: "1", GH_API: base.url, GH_RAW: base.url, GITHUB_TOKEN: "should-not-be-sent", USERS: "tester", PUSH_DATA_KEY: K.priv, NOW: String(at(iso)) }) }, (e, out) => res(out || String(e))); });
   let o = await run("2026-10-06T14:20:00-04:00");
   ok("run 1 (8 due < 10): only the test push for device B", /DRY send test/.test(o) && !/DRY send threshold/.test(o) && /"devices":2/.test(o), o);
   o = await run("2026-10-06T14:55:00-04:00");
@@ -78,13 +80,17 @@ let bad = false; try { C.decrypt(Object.assign({}, box, { ct: box.ct.slice(0, -4
   o = await run("2026-10-06T15:52:00-04:00");
   ok("run 4 (~1 h later, still above): hourly repeat", (o.match(/DRY send repeat 11/g) || []).length === 2, o);
   const S1 = JSON.parse(fs.readFileSync(stf, "utf8"));
-  ok("state file holds hashed keys only (no usernames / endpoints)", Object.keys(S1.dev).length === 2 && !/tester|push\.example|dev[AB]/.test(JSON.stringify(S1)), JSON.stringify(S1));
+  ok("device state holds hashed keys only (no usernames / endpoints)", Object.keys(S1.dev).length === 2 && !/tester|push\.example|dev[AB]/.test(JSON.stringify(S1.dev)), JSON.stringify(S1.dev));
+  ok("remembers the public reminders gist (id + file names, never endpoints)", S1.g.tester && S1.g.tester.id === "g1" && S1.g.tester.files.length === 3 && !/push\.example/.test(JSON.stringify(S1)), JSON.stringify(S1.g));
+  ok("gists read anonymously (no token sent, works with the Actions token unable to read gists)", base.auth === 0 && base.lists === 4, JSON.stringify(base));
   files["n5vq-due.json"] = C.encrypt({ v: 1, upd: at("2026-10-06T16:00:00-04:00"), t0: at("2026-10-06T16:00:00-04:00"), now: 2, add: [] }, K.pub);   // he studied
   o = await run("2026-10-06T16:05:00-04:00"); ok("after studying below: nothing sent, re-armed", !/DRY send/.test(o) && JSON.parse(fs.readFileSync(stf, "utf8")).dev[Object.keys(S1.dev)[0]].thrAt === null, o);
   o = await run("2026-10-06T19:05:00-04:00"); ok("evening nudge (2 due) once per device", (o.match(/DRY send nudge 2/g) || []).length === 2, o);
   o = await run("2026-10-06T19:25:00-04:00"); ok("no second nudge", !/DRY send/.test(o), o);
   files["n5vq-push-devAAAAAA.json"] = C.encrypt(Object.assign(dev("devAAAAAA"), { on: false }), K.pub);
   o = await run("2026-10-07T19:05:00-04:00"); ok("disabled device skipped", (o.match(/DRY send nudge/g) || []).length === 1 && /"devices":1/.test(o), o);
+  base.fail = true; files["n5vq-push-devBBBBBB.json"] = C.encrypt(Object.assign(dev("devBBBBBB"), { test: 456 }), K.pub);
+  o = await run("2026-10-07T19:30:00-04:00"); ok("gist list rate-limited (403) → remembered gist read from the raw host: test push still sent", /using remembered gist/.test(o) && /DRY send test/.test(o) && /"devices":1/.test(o), o);
   srv.close(); try { fs.unlinkSync(stf); } catch (e) {}
   console.log("SUMMARY tpushlogic " + R.filter(x => x).length + "/" + R.length);
   process.exit(R.every(x => x) ? 0 : 1);

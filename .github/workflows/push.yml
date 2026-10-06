@@ -40,7 +40,6 @@ jobs:
           VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           PUSH_DATA_KEY: ${{ secrets.PUSH_DATA_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}
           TEST_SUB: ${{ github.event.inputs.test_sub }}
         run: node push/run.js state.json
       - name: Save state

@@ -1,6 +1,6 @@
 /* Scheduled review-reminder sender (GitHub Actions, see .github/workflows/push.yml).
    node push/run.js <state.json>
-   env: VAPID_PUBLIC, VAPID_PRIVATE, VAPID_SUBJECT, PUSH_DATA_KEY (secrets) · GITHUB_TOKEN (read public gists) ·
+   env: VAPID_PUBLIC, VAPID_PRIVATE, VAPID_SUBJECT, PUSH_DATA_KEY (secrets) · (no token needed: public gists are read anonymously) ·
         TEST_SUB (optional PushSubscription JSON: send one test push to it and exit) · DRY=1 (decide, don't send)
    For every GitHub user in push/users.json: find their public "JLPT Quest review reminders" gist (created by the app with
    the user's own gist-sync token), decrypt the due timeline + each device file, decide (decide.js) and send Web Push.
@@ -15,11 +15,13 @@ const TL_FILE = "n5vq-due.json", DEV_RE = /^n5vq-push-([A-Za-z0-9_-]{6,40})\.jso
 const APP_URL = "https://ellisdeeman.github.io/n5-vocab-quest/";
 const h = s => crypto.createHash("sha256").update(s).digest("hex").slice(0, 20);
 const log = (...a) => console.log(...a);
-async function gh(url) {
-  const r = await fetch(url.startsWith("http") ? url : (E.GH_API || "https://api.github.com") + url, { headers: Object.assign({ Accept: "application/vnd.github+json", "User-Agent": "n5vq-push" }, E.GITHUB_TOKEN ? { Authorization: "Bearer " + E.GITHUB_TOKEN } : {}) });
+async function gh(url) {   // gists are read WITHOUT a token: the Actions GITHUB_TOKEN can't use the gists API (403)
+  const api = !url.startsWith("http");
+  const r = await fetch(api ? (E.GH_API || "https://api.github.com") + url : url, { headers: api ? { Accept: "application/vnd.github+json", "User-Agent": "n5vq-push" } : { "User-Agent": "n5vq-push" } });
   if (!r.ok) throw new Error(`${r.status} ${url}`);
   return r;
 }
+const RAW = E.GH_RAW || "https://gist.githubusercontent.com";
 async function send(sub, payload) {
   if (E.DRY) { log("DRY send", payload.kind, payload.n); return { statusCode: 0, dry: true }; }
   return webpush.sendNotification(sub, JSON.stringify(payload), { TTL: 4 * 3600, urgency: "high", vapidDetails: { subject: E.VAPID_SUBJECT || APP_URL, publicKey: E.VAPID_PUBLIC, privateKey: E.VAPID_PRIVATE } });
@@ -32,18 +34,26 @@ async function main() {
     log("test push → HTTP", r.statusCode, "endpoint host", new URL(sub.endpoint).host); return;
   }
   const stFile = process.argv[2] || "state.json";
-  let S = { v: 1, dev: {} }; try { S = Object.assign(S, JSON.parse(fs.readFileSync(stFile, "utf8"))); } catch (e) {}
-  const before = JSON.stringify(S.dev);
+  let S = { v: 1, dev: {}, g: {} }; try { S = Object.assign(S, JSON.parse(fs.readFileSync(stFile, "utf8"))); } catch (e) {}
+  S.g = S.g || {};
+  const snap = () => JSON.stringify([S.dev, S.g]), before = snap();
   const users = E.USERS ? E.USERS.split(",") : JSON.parse(fs.readFileSync(path.join(__dirname, "users.json"), "utf8")).users || [];
   const sum = { users: users.length, gists: 0, devices: 0, sent: 0, gone: 0, errors: 0 };
   for (const u of users) {
-    let gists; try { gists = await (await gh(`/users/${encodeURIComponent(u)}/gists?per_page=100`)).json(); } catch (e) { log("list", u, e.message); sum.errors++; continue; }
-    const g = gists.filter(x => x.files && Object.keys(x.files).some(f => f === TL_FILE || DEV_RE.test(f))).sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))[0];
+    // find the user's reminders gist (unauthenticated list, 60/h per runner IP); if that fails (rate limit), use the
+    // gist id + file names remembered from the last good listing and read the files from the raw host (no API quota)
+    const lk = u.toLowerCase(); let g = null;
+    try {
+      const gists = await (await gh(`/users/${encodeURIComponent(u)}/gists?per_page=100`)).json();
+      const hit = gists.filter(x => x.files && Object.keys(x.files).some(f => f === TL_FILE || DEV_RE.test(f))).sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))[0];
+      if (hit) { g = { id: hit.id, owner: (hit.owner && hit.owner.login) || u, files: Object.keys(hit.files).filter(f => f === TL_FILE || DEV_RE.test(f)).sort() }; S.g[lk] = g; }
+      else delete S.g[lk];
+    } catch (e) { log("list", u, e.message, S.g[lk] ? "→ using remembered gist" : ""); sum.errors++; g = S.g[lk] || null; }
     if (!g) continue; sum.gists++;
-    const owner = (g.owner && g.owner.login) || u;
-    const read = async f => decrypt(JSON.parse(await (await gh(g.files[f].raw_url)).text()), E.PUSH_DATA_KEY);
-    let tl = null; if (g.files[TL_FILE]) try { tl = await read(TL_FILE); } catch (e) { log("timeline", owner, e.message); sum.errors++; }
-    for (const f of Object.keys(g.files)) {
+    const owner = g.owner;
+    const read = async f => decrypt(JSON.parse(await (await gh(`${RAW}/${encodeURIComponent(owner)}/${g.id}/raw/${encodeURIComponent(f)}?t=${NOW}`)).text()), E.PUSH_DATA_KEY);
+    let tl = null; if (g.files.includes(TL_FILE)) try { tl = await read(TL_FILE); } catch (e) { log("timeline", owner, e.message); sum.errors++; }
+    for (const f of g.files) {
       const m = DEV_RE.exec(f); if (!m) continue;
       let d; try { d = await read(f); } catch (e) { log("device file", e.message); sum.errors++; continue; }
       if (!d || d.on === false || !d.sub || !d.sub.endpoint) continue;
@@ -69,7 +79,7 @@ async function main() {
       S.dev[key] = st;
     }
   }
-  const changed = JSON.stringify(S.dev) !== before;
+  const changed = snap() !== before;
   if (changed) { S.upd = NOW; fs.writeFileSync(stFile, JSON.stringify(S, null, 1) + "\n"); }
   log(JSON.stringify(Object.assign(sum, { changed })));
   if (E.GITHUB_OUTPUT) fs.appendFileSync(E.GITHUB_OUTPUT, `changed=${changed ? 1 : 0}\n`);
