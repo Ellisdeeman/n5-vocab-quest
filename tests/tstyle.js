@@ -20,7 +20,7 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   const px=parseFloat(cs.fontSize),bold=+cs.fontWeight>=700,large=px>=24||(bold&&px>=18.66);const need=large?3:4.5;
   if(cr<need)bad.push(`${(el.id?'#'+el.id:el.tagName.toLowerCase()+'.'+[...el.classList].join('.'))} "${el.textContent.trim().slice(0,24)}" ${cr.toFixed(2)}<${need} (${cs.color} on rgb(${bg.slice(0,3).map(Math.round)}))`);}
  // tap targets: visible buttons in the main view / tab bar at least 44px tall (primary .btn 54)
- const small=[...document.querySelectorAll('#view button, .tabbar button, .modal button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&r.height&&getComputedStyle(b).visibility!=='hidden'&&r.height+(b.matches('.switch')?14:0)<43.5&&!b.closest('.seg,.gseg,.kjgrid,.kgrid,#map,.dots,.ex,.kjex,.rdjp')&&!b.matches('.mini,.kjtile,.kcell')}).map(b=>(b.id||b.className||b.textContent.trim().slice(0,12))+':'+Math.round(b.getBoundingClientRect().height));
+ const small=[...document.querySelectorAll('#view button, .tabbar button, .modal button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&r.height&&getComputedStyle(b).visibility!=='hidden'&&r.height+(b.matches('.switch')?14:0)<43.5&&!b.closest('.seg,.gseg,.kjgrid,.kgrid,#map,.dots,.ex,.kjex,.rdjp')&&!b.matches('.mini,.kjtile,.kcell,.played,.toss')}).map(b=>(b.id||b.className||b.textContent.trim().slice(0,12))+':'+Math.round(b.getBoundingClientRect().height));
  const prim=[...document.querySelectorAll('.btn:not(.small)')].filter(b=>b.getBoundingClientRect().height&&b.getBoundingClientRect().height<53.5).map(b=>(b.id||b.textContent.trim().slice(0,12))+':'+Math.round(b.getBoundingClientRect().height));
  return {sw:document.documentElement.scrollWidth,W,over:[...new Set(over)].slice(0,8),bad:[...new Set(bad)].slice(0,12),small:small.slice(0,8),prim:prim.slice(0,6)};};
 (async()=>{const b=BR==='webkit'?await pw.webkit.launch():await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
@@ -94,6 +94,17 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   await p.evaluate(()=>{__N5.go(__N5.home);__N5.wordModal(__N5.WORDS[3]);});await p.waitForSelector('.modal .ladder');await p.evaluate(()=>document.querySelector('.modal .ladder').scrollIntoView({block:'center'}));await check('word detail ladder');
   await p.evaluate(()=>{document.querySelector('.modal').remove();const S=__N5.S();S.confuse={'229>208':{n:3,c:0,t:Date.now()},'128>127':{n:2,c:0,t:Date.now()},'p:は>が':{n:1,c:0,t:Date.now()}};__N5.go(__N5.leechView);});await p.waitForSelector('#confDrill');await p.waitForTimeout(300);await check('leeches confusables');
   await tap('#confDrill');await p.waitForSelector('#qhost .cfch');await check('confusables drill');await tap('#qhost .cfch .choice');await p.waitForSelector('#cfNext');await check('confusables drill answer');
+  // batch 6: auto pace note/info/settings, reading hub (N4 preview tier), listening-only setup/player/reveal/check/done
+  await p.evaluate(()=>{document.querySelectorAll('.modal').forEach(m=>m.remove());const S=__N5.S(),now=Date.now(),D=864e5;S.revLog=S.revLog||{};for(let i=0;i<7;i++){const d=new Date(now-i*D).toLocaleDateString('en-CA');S.revLog[d]={n5f:20,'n5f+':17};}delete S.pace;__N5.go(__N5.home);document.querySelector('#paceNote').scrollIntoView({block:'center'});});await check('home pace note');
+  await tap('#paceInfo');await p.waitForSelector('.paceinfo');await check('pace info');await tap('#paceOk');
+  await p.evaluate(()=>{__N5.go(__N5.settingsView);document.querySelector('#paceSw').scrollIntoView({block:'center'});});await check('pace settings');
+  await p.evaluate(()=>{__N5.go(__N5.readingHome);[...document.querySelectorAll('.sechead')].pop().scrollIntoView();});await check('reading hub N4 preview');
+  await p.evaluate(()=>{HTMLMediaElement.prototype.play=function(){this.dispatchEvent(new Event('play'));return Promise.resolve();};__N5.go(__N5.loHome);});await p.waitForSelector('#loGo');await check('listening setup');
+  await tap('[data-lo="checks"]');await tap('#loGo');await p.waitForSelector('#loCard');await check('listening player');
+  await tap('#loReveal');await check('listening reveal');await tap('#loPlay');await check('listening paused');
+  await p.evaluate(()=>{const L=__N5.LO;L.playing=true;L.pos=L.tape.findIndex(t=>t.t==='q')-1;__N5.LO_EL.dispatchEvent(new Event('ended'));});await p.waitForSelector('#loQ .choice');await check('listening check');
+  await tap('#loQ .choice');await check('listening check answered');
+  await p.evaluate(()=>{const L=__N5.LO;L.playing=true;L.pos=L.tape.length-1;__N5.LO_EL.dispatchEvent(new Event('ended'));});await p.waitForSelector('#loDone');await check('listening done');await tap('#loDone');
   await p.evaluate(()=>{__N5.go(__N5.settingsView);});await p.waitForSelector('#modeSeg');await p.evaluate(()=>document.querySelector('#modeSeg').scrollIntoView({block:'center'}));await check('settings question mode');
   await p.evaluate(()=>__N5.go(__N5.home));
   await p.evaluate(()=>__N5.go(__N5.dueView));await p.waitForSelector('[data-review="all"]');
