@@ -1189,6 +1189,11 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .cjrate{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .cjrate .btn{min-height:48px;width:100%;margin:0}.cjguide p{margin:8px 0;line-height:1.45}.cjhrow{padding:8px 0;border-bottom:.5px solid var(--sep);font-size:.92rem}
 .cjhrow:last-child{border-bottom:none}.cjforms .cjrow{position:relative}.cjguideb{flex-shrink:0}
+/* Batch 9.1 — English meaning of the conjugated form */
+.cjen{margin:6px 0 4px;font-size:1rem;color:var(--label)}.cjen b{font-weight:650}
+.cjcellmain{flex:1;display:flex;flex-direction:column;min-width:0}.cjcellmain .cjans{flex:none}
+.cjcellen{font-size:.84rem;color:var(--label2);line-height:1.3}
+.cjhen{font-size:.86rem;color:var(--label2)}
 </style>
 </head>
 <body>
@@ -10397,7 +10402,7 @@ function cjKana(w) {
 function cjGroup(w) {
   const k = cjKana(w), jp = w.jp || "";
   if (!k) return null;
-  if (k === "する" || jp === "する") return "suru";
+  if (k === "する" || jp === "する" || (w.pos === "v" && k.length > 2 && k.endsWith("する"))) return "suru"; // incl. コピーする
   if (k === "くる" || jp === "来る") return "kuru";
   if (k === "いく" || jp === "行く" || k === "ゆく") return "iku"; // special te/ta
   if (w.pos === "ai") return "ai";
@@ -10410,7 +10415,7 @@ function cjGroup(w) {
   return "u";
 }
 function cjStemMasu(k, g) {
-  if (g === "suru") return "し";
+  if (g === "suru") return k.slice(0, -2) + "し";
   if (g === "kuru") return "き";
   if (g === "iku") return "いき";
   if (g === "ru") return k.slice(0, -1);
@@ -10418,7 +10423,7 @@ function cjStemMasu(k, g) {
   return mid ? k.slice(0, -1) + mid : null;
 }
 function cjNaiStem(k, g) {
-  if (g === "suru") return "し";
+  if (g === "suru") return k.slice(0, -2) + "し";
   if (g === "kuru") return "こ";
   if (g === "iku") return "いか";
   if (g === "ru") return k.slice(0, -1);
@@ -10428,7 +10433,7 @@ function cjNaiStem(k, g) {
   return mid ? k.slice(0, -1) + mid : null;
 }
 function cjTe(k, g) {
-  if (g === "suru") return "して";
+  if (g === "suru") return k.slice(0, -2) + "して";
   if (g === "kuru") return "きて";
   if (g === "iku") return "いって";
   if (g === "ru") return k.slice(0, -1) + "て";
@@ -10436,7 +10441,7 @@ function cjTe(k, g) {
   return suf ? k.slice(0, -1) + suf : null;
 }
 function cjTa(k, g) {
-  if (g === "suru") return "した";
+  if (g === "suru") return k.slice(0, -2) + "した";
   if (g === "kuru") return "きた";
   if (g === "iku") return "いった";
   if (g === "ru") return k.slice(0, -1) + "た";
@@ -10514,11 +10519,13 @@ function cjFormsFor(w) {
 }
 function cjEligibleWord(w) {
   if (!w) return false;
-  if (w.pos === "ai" || w.pos === "na") return !!cjKana(w);
+  if (w.pos === "ai" || w.pos === "na") return !!cjKana(w) && cjKana(w) !== "ない"; // ない (there isn't) has no useful くない form
   if (w.pos !== "v") return false;
   const k = cjKana(w); if (!k || k.length < 2) return false;
   // skip nouns mis-tagged as verbs (no verb-like ending)
   if (!/[うくぐすつぬぶむる]$/.test(k) && k !== "する" && k !== "くる") return false;
+  // nouns mis-tagged as verbs: all-kanji headword with no okurigana (授業, 洗濯, 旅行)
+  if (/^[\u4e00-\u9fff々]+$/.test(String(w.jp || "").split(/[;；]/)[0].trim())) return false;
   return !!cjGroup(w) && cjFormsFor(w).some(f => cjConjugate(w, f.id));
 }
 /* cloze frames: neutral time/place frames that fit any verb or adjective, so the blank never forces a nonsense
@@ -10526,7 +10533,7 @@ function cjEligibleWord(w) {
 const CJ_CLOZE = {
   masu: [["まいにち ___。", "I {v} every day."], ["あした ___。", "I'll {v} tomorrow."]],
   masen: [["きょうは ___。", "I won't {v} today."], ["あまり ___。", "I don't {v} much."]],
-  mashita: [["きのう ___。", "I {v} (past) yesterday."], ["せんしゅう ___。", "I {v} (past) last week."]],
+  mashita: [["きのう ___。", "I {p} yesterday."], ["せんしゅう ___。", "I {p} last week."]],
   masendeshita: [["きのうは ___。", "I didn't {v} yesterday."], ["けさは ___。", "I didn't {v} this morning."]],
   te: [["ちょっと ___ ください。", "Please {v} a little / for a moment."], ["すぐ ___ ください。", "Please {v} right away."]],
   tai: [["あした ___。", "I want to {v} tomorrow."], ["いつか ___。", "Someday I want to {v}."]],
@@ -10541,8 +10548,10 @@ const CJ_CLOZE = {
 function cjGloss(w) { return String((w && w.en) || "").split(/[;,(]/)[0].replace(/^to\s+/, "").trim() || "…"; }
 function cjCloze(formId, w) {
   const L = CJ_CLOZE[formId] || []; if (!L.length) return { s: "___。", en: "" };
-  const [s, en] = L[Math.floor(Math.random() * L.length)], g = cjGloss(w);
-  return { s, en: en.replace("{v}", g).replace("{a}", g) };
+  const [s, en] = L[Math.floor(Math.random() * L.length)];
+  const base = typeof cjEnBase === "function" ? (cjEnBase(w).split(/\s*\/\s*/)[0] || cjGloss(w)) : cjGloss(w);
+  const past = typeof cjEnPast === "function" ? cjEnPast(base) : base + " (past)";
+  return { s, en: en.replace("{v}", base).replace("{p}", past).replace("{a}", base) };
 }
 /* MC distractors: other conjugations of the same word + near-miss common errors */
 function cjDistractors(w, formId, n = 3) {
@@ -10631,6 +10640,164 @@ const CJ_PACKS = [
   { id: "ai", t: "い-adjectives", match: w => cjGroup(w) === "ai" },
   { id: "na", t: "な-adjectives", match: w => cjGroup(w) === "na" }
 ];
+/* audio file name per (word, form); words whose forms were re-recorded get a version suffix so old SW-cached clips aren't reused */
+const CJ_AUDIO_V = { "コピーする": 2 };
+function cjAudioName(w, fid) { const k = cjKana(w); return k ? `${k}-${fid}${CJ_AUDIO_V[k] ? "-v" + CJ_AUDIO_V[k] : ""}.mp3` : ""; }
+/* Batch 9.1 — English meaning of each CONJUGATED form (会いました · met (polite past)).
+   cjEn(w, formId) builds it from the word's primary gloss with a real English inflector (irregular past table,
+   phrasal / multi-word glosses, "be …" glosses, adjectives), plus per-word overrides where the dictionary gloss is awkward. */
+const CJ_EN_IRR = {
+  arise: "arose", awake: "awoke", be: "was", bear: "bore", beat: "beat", become: "became", begin: "began", bend: "bent",
+  bet: "bet", bind: "bound", bite: "bit", bleed: "bled", blow: "blew", break: "broke", breed: "bred", bring: "brought",
+  build: "built", burn: "burned", burst: "burst", buy: "bought", catch: "caught", choose: "chose", cling: "clung",
+  come: "came", cost: "cost", creep: "crept", cut: "cut", deal: "dealt", dig: "dug", do: "did", draw: "drew",
+  dream: "dreamed", drink: "drank", drive: "drove", eat: "ate", fall: "fell", feed: "fed", feel: "felt", fight: "fought",
+  find: "found", flee: "fled", fling: "flung", fly: "flew", forbid: "forbade", forget: "forgot", forgive: "forgave",
+  freeze: "froze", get: "got", give: "gave", go: "went", grind: "ground", grow: "grew", hang: "hung", have: "had",
+  hear: "heard", hide: "hid", hit: "hit", hold: "held", hurt: "hurt", keep: "kept", kneel: "knelt", know: "knew",
+  lay: "laid", lead: "led", lean: "leaned", leave: "left", lend: "lent", let: "let", lie: "lay", light: "lit",
+  lose: "lost", make: "made", mean: "meant", meet: "met", mistake: "mistook", overcome: "overcame", oversleep: "overslept",
+  pay: "paid", put: "put", quit: "quit", read: "read", rid: "rid", ride: "rode", ring: "rang", rise: "rose", run: "ran",
+  say: "said", see: "saw", seek: "sought", sell: "sold", send: "sent", set: "set", sew: "sewed", shake: "shook",
+  shine: "shone", shoot: "shot", show: "showed", shrink: "shrank", shut: "shut", sing: "sang", sink: "sank", sit: "sat",
+  sleep: "slept", slide: "slid", sling: "slung", speak: "spoke", speed: "sped", spend: "spent", spin: "spun",
+  spit: "spat", split: "split", spread: "spread", spring: "sprang", stand: "stood", steal: "stole", stick: "stuck",
+  sting: "stung", stink: "stank", strike: "struck", string: "strung", swear: "swore", sweep: "swept", swim: "swam",
+  swing: "swung", take: "took", teach: "taught", tear: "tore", tell: "told", think: "thought", throw: "threw",
+  understand: "understood", undertake: "undertook", upset: "upset", wake: "woke", wear: "wore", weave: "wove",
+  weep: "wept", win: "won", wind: "wound", withdraw: "withdrew", wring: "wrung", write: "wrote", can: "could"
+};
+/* regular verbs that double the final consonant (stop → stopped) */
+const CJ_EN_DBL = new Set(["stop", "drop", "plan", "shop", "hop", "chat", "rob", "rub", "grab", "hug", "jog", "nod", "beg",
+  "admit", "prefer", "refer", "regret", "permit", "omit", "occur", "control", "ship", "slip", "trip",
+  "tip", "wrap", "clap", "step", "skip", "dip", "drip", "tap", "pat", "pin", "plug", "fit", "knit", "stir", "trim", "ban"]);
+function cjEnPastWord(v) {
+  const lv = v.toLowerCase();
+  if (CJ_EN_IRR[lv]) return CJ_EN_IRR[lv];
+  if (CJ_EN_DBL.has(lv)) return lv + lv.slice(-1) + "ed";
+  if (/e$/.test(lv)) return lv + "d";
+  if (/[^aeiou]y$/.test(lv)) return lv.slice(0, -1) + "ied";
+  return lv + "ed";
+}
+/* past of a verb phrase: inflect only the head verb ("take a shower" → "took a shower", "get up" → "got up") */
+function cjEnPast(phrase) { const m = String(phrase).match(/^(\S+)(.*)$/); return m ? cjEnPastWord(m[1]) + m[2] : phrase; }
+const cjEnAlts = s => String(s).split(/\s*\/\s*/).filter(Boolean);
+const cjEnMap = (s, fn) => cjEnAlts(s).map(fn).join(" / ");
+/* primary gloss: first sense, drop "to ", drop dictionary-style notes in parentheses */
+function cjEnGloss(w) {
+  let s = String((w && w.en) || "").split(";")[0];
+  s = s.replace(/\((?:[^)]*(?:e\.g\.|v\.t\.|v\.i\.|in reference|humble|something|stretch out)[^)]*)\)/gi, " ");
+  let depth = 0, cut = s.length;               // first comma outside parentheses
+  for (let i = 0; i < s.length; i++) { const ch = s[i]; if (ch === "(") depth++; else if (ch === ")") depth--; else if (ch === "," && !depth) { cut = i; break; } }
+  s = s.slice(0, cut).replace(/^\s*\([^)]*\)\s*/, "").replace(/^\s*to\s+/i, "").replace(/\s+/g, " ").trim();
+  return s;
+}
+/* base-meaning overrides (by jp) where the first dictionary sense reads badly once inflected */
+const CJ_EN_BASE = {
+  "浴びる": "take a shower", "上げる": "raise / give", "覚える": "remember / memorize", "返す": "give back", "帰る": "go home",
+  "かかる": "take (time, money)", "掛ける": "hang / put on (glasses)", "かける": "call (on the phone)", "かぶる": "put on (a hat)",
+  "聞く": "listen / ask", "着る": "wear / put on (a top)", "消す": "turn off / erase", "困る": "be in trouble", "差す": "put up (an umbrella)",
+  "閉まる": "close (by itself)", "締める": "fasten / tie", "吸う": "smoke / breathe in", "住む": "live (in)", "出す": "take out / hand in",
+  "頼む": "ask (a favor) / order", "着く": "arrive", "出る": "leave / go out", "止まる": "stop", "取る": "take", "撮る": "take (a photo)",
+  "鳴く": "cry / chirp (animals)", "無くす": "lose", "並べる": "line up (things)", "乗る": "ride / get on", "はく": "put on (shoes, pants)",
+  "始まる": "begin", "貼る": "stick / paste", "弾く": "play (piano, guitar)", "降る": "fall (rain, snow)", "休む": "rest / take time off",
+  "呼ぶ": "call / invite", "渡る": "cross", "居る": "be here (people, animals)", "要る": "need", "開く": "open (by itself)", "開ける": "open",
+  "知る": "know", "置く": "put / place", "持つ": "hold / have", "やる": "do", "つける": "turn on", "曇る": "become cloudy",
+  "押す": "push / press", "吹く": "blow (wind)", "晴れる": "be sunny", "引く": "pull", "勤める": "work (for)", "鳴る": "ring", "違う": "be different",
+  "入る": "enter / go in", "なる": "become", "見る": "see / watch", "起きる": "get up / wake up", "曲る": "turn", "磨く": "brush (teeth)",
+  "生まれる": "be born", "消える": "disappear / go out (light)", "疲れる": "get tired", "コピーする": "copy",
+  /* adjectives / な-adjectives */
+  "明るい": "bright", "暑い": "hot (weather)", "熱い": "hot (to the touch)", "厚い": "thick", "甘い": "sweet", "痛い": "painful",
+  "辛い": "spicy", "高い": "expensive / tall", "太い": "thick / fat", "低い": "low / short", "近い": "near", "遅い": "slow / late",
+  "早い": "early", "速い": "fast", "薄い": "thin / weak", "広い": "spacious / wide", "狭い": "small (space) / narrow", "古い": "old",
+  "重い": "heavy", "軽い": "light", "冷たい": "cold (to the touch)", "寒い": "cold (weather)", "涼しい": "cool", "うるさい": "noisy",
+  "美味しい": "delicious", "汚い": "dirty", "暗い": "dark", "黒い": "black", "悪い": "bad", "危ない": "dangerous",
+  "つまらない": "boring", "楽しい": "fun", "小さい": "small", "大きい": "big", "強い": "strong", "弱い": "weak", "長い": "long",
+  "短い": "short", "易しい": "easy", "安い": "cheap", "難しい": "difficult", "面白い": "interesting / funny", "忙しい": "busy",
+  "温い": "lukewarm", "丸い; 円い": "round", "細い": "thin / slender", "可愛い": "cute", "白い": "white",
+  "綺麗": "pretty / clean", "結構": "fine / enough", "元気": "well / energetic", "上手": "good at (it)", "下手": "bad at (it)",
+  "丈夫": "sturdy / healthy", "大丈夫": "OK / all right", "沢山": "a lot", "にぎやか": "lively", "りっぱ": "splendid",
+  "本当": "true", "まっすぐ": "straight", "色々": "various", "同じ": "the same", "大人": "an adult", "黄色": "yellow",
+  "静か": "quiet", "大切": "important", "便利": "convenient", "有名": "famous"
+};
+/* full per-form overrides where English grammar differs (existence verbs, potential, "want", likes/dislikes, quantities) */
+const CJ_EN_FULL = {
+  "在る": { masu: "there is / will be (things)", masen: "there isn't (things)", mashita: "there was (things)", masendeshita: "there wasn't (things)", te: "there is, and…", tai: "want to be (rare)", dict: "there is" },
+  "有る": { masu: "have / there is", masen: "don't have / there isn't", mashita: "had / there was", masendeshita: "didn't have / there wasn't", te: "have, and… / there is, and…", tai: "want to have (rare)", dict: "have / there is" },
+  "居る": { masu: "is here / will be here (people, animals)", masen: "isn't here", mashita: "was here", masendeshita: "wasn't here", te: "is here, and… / please stay", tai: "want to stay / be here", dict: "is here / stay" },
+  "できる": { masu: "can do / will be able to", masen: "can't do", mashita: "could do / was able to", masendeshita: "couldn't do", te: "can do, and… / is done, and…", tai: "want to be able to (rare)", dict: "can do" },
+  "欲しい": { ai_neg: "don't want", ai_past: "wanted", ai_pastneg: "didn't want" },
+  "まずい": { ai_neg: "doesn't taste bad", ai_past: "tasted bad", ai_pastneg: "didn't taste bad" },
+  "多い": { ai_neg: "not many / not a lot", ai_past: "there were a lot", ai_pastneg: "there weren't many" },
+  "少ない": { ai_neg: "not few (quite a lot)", ai_past: "there were few", ai_pastneg: "there weren't few" },
+  "いい; よい": { ai_neg: "not good", ai_past: "was good", ai_pastneg: "wasn't good" },
+  "好き": { na_neg: "don't like", na_past: "liked", na_pastneg: "didn't like" },
+  "大好き": { na_neg: "don't love", na_past: "loved", na_pastneg: "didn't love" },
+  "嫌い": { na_neg: "don't dislike", na_past: "disliked", na_pastneg: "didn't dislike" },
+  "嫌": { na_neg: "don't mind / not unpleasant", na_past: "hated it / was unpleasant", na_pastneg: "didn't mind / wasn't unpleasant" },
+  "知る": { masu: "know / will find out", masen: "don't know", mashita: "found out / learned", masendeshita: "didn't know", te: "know, and… (知っています = know)", tai: "want to know", dict: "know / find out" },
+  "分かる": { masu: "understand / will understand", masen: "don't understand", mashita: "understood / got it", masendeshita: "didn't understand", te: "understand, and…", tai: "want to understand", dict: "understand" }
+};
+const CJ_EN_TAG = { masu: "polite", masen: "polite", mashita: "polite past", masendeshita: "polite past", dict: "plain" };
+/* verbs that don't take a volitional "please …" / "want to …" (things that just happen) */
+const CJ_EN_NOVOL = new Set(["死ぬ", "疲れる", "曇る", "咲く", "降る", "閉まる", "開く", "要る", "始まる", "消える", "無くす", "かかる",
+  "鳴く", "生まれる", "晴れる", "違う", "困る", "吹く", "できる", "分かる"]);
+/* English for one verb alternative in a given form */
+function cjEnVerbForm(v, fid) {
+  const be = v.match(/^be\s+(.+)$/);
+  if (be) {
+    const x = be[1];
+    return { masu: `is ${x} / will be ${x}`, masen: `isn't ${x} / won't be ${x}`, mashita: `was ${x}`, masendeshita: `wasn't ${x}`,
+      te: `is ${x}, and…`, tai: `want to be ${x}`, dict: `is ${x}` }[fid];
+  }
+  return { masu: `${v} / will ${v}`, masen: `don't ${v} / won't ${v}`, mashita: cjEnPast(v), masendeshita: `didn't ${v}`,
+    te: `${v} and…`, tai: `want to ${v}`, dict: v }[fid];
+}
+/* several meanings ("listen / ask"): keep them all but compact, so a table cell stays one or two lines */
+function cjEnVerbMulti(alts, fid, w) {
+  const novol = CJ_EN_NOVOL.has(w.jp) && !["死ぬ", "分かる", "生まれる"].includes(w.jp);
+  if (alts.length === 1 || alts.some(a => /^be\s/.test(a))) {
+    const out = cjEnVerbForm(alts[0], fid);
+    return fid === "tai" && novol ? out + " (unusual)" : out;
+  }
+  const J = alts.join(" / ");
+  if (fid === "masu") return `${J} (now or future)`;
+  if (fid === "masen") return `don't ${J} (now or future)`;
+  if (fid === "mashita") return alts.map(cjEnPast).join(" / ");
+  if (fid === "masendeshita") return `didn't ${J}`;
+  if (fid === "tai") return `want to ${J}` + (novol ? " (unusual)" : "");
+  return J;
+}
+function cjEnBase(w) { return CJ_EN_BASE[w.jp] || cjEnGloss(w); }
+function cjEnFallback(w, fid) {
+  const f = CJ_FORM[fid], g = cjEnGloss(w) || String(w.en || "").split(/[;,]/)[0].trim();
+  return `${(f && f.hint) || fid} of ‘${/^(to |\w+ing)/.test(g) || w.pos !== "v" ? g : "to " + g}’`;
+}
+/* the meaning line for a conjugated form; tag included ("met (polite past)") */
+function cjEn(w, fid) {
+  if (!w || !CJ_FORM[fid]) return "";
+  const full = CJ_EN_FULL[w.jp] && CJ_EN_FULL[w.jp][fid];
+  const tag = CJ_EN_TAG[fid] ? ` (${CJ_EN_TAG[fid]})` : "";
+  if (full) return full + tag;
+  const base = cjEnBase(w);
+  if (!base || base.split(" ").length > 6 || /[()]/.test(base.split(" ")[0])) return cjEnFallback(w, fid);
+  const cat = CJ_FORM[fid].cat;
+  if (cat === "verb") {
+    const alts = cjEnAlts(base);
+    if (fid === "te") {
+      const first = alts[0];
+      const please = /^be\s/.test(first) || CJ_EN_NOVOL.has(w.jp) ? "" : ` / please ${first} (with ください)`;
+      return cjEnVerbForm(first, "te") + please;
+    }
+    const out = cjEnVerbMulti(alts, fid, w);
+    return / \(now or future\)$/.test(out) ? out.replace(/ \(now or future\)$/, " (polite, now or future)") : out + tag;
+  }
+  /* adjectives: prefix once ("not expensive / tall") */
+  if (fid === "ai_neg" || fid === "na_neg") return `not ${base}`;
+  if (fid === "ai_past" || fid === "na_past") return `was ${base}`;
+  if (fid === "ai_pastneg" || fid === "na_pastneg") return `wasn't ${base}`;
+  return cjEnFallback(w, fid);
+}
 /* ================= Conjugation — ConjuGato-style practice (Batch 9) =================
    Completely separate FSRS track (S.ccards "wordId:formId"). Does NOT feed totalDue,
    pnTimeline, vocab goals, or vocab new-word caps. Default practice = Reveal (think/speak
@@ -10660,7 +10827,8 @@ function cjDueScan(ids) {
   const now = Date.now(), C = ccards(), out = []; let next = Infinity;
   const set = ids ? new Set(ids) : null;
   for (const id in C) {
-    if (!cjParse(id) || (set && !set.has(id))) continue;
+    const P = cjParse(id); if (!P || (set && !set.has(id))) continue;
+    if (!WORDS[P.wid] || !cjEligibleWord(WORDS[P.wid])) continue;
     const d = C[id].due; if (d <= now) out.push(id); else if (d < next) next = d;
   }
   out.sort((a, b) => C[a].due - C[b].due);
@@ -10762,8 +10930,8 @@ function cjStatus(id) {
 }
 const CJ_ST = { new: "New", due: "Due", learning: "Learning", known: "Known" };
 function cjAudioPath(w, fid) {
-  const k = cjKana(w); if (!k) return "";
-  return `audio/cj/${encodeURIComponent(k)}-${fid}.mp3`;
+  const n = cjAudioName(w, fid); if (!n) return "";
+  return `audio/cj/${encodeURIComponent(n)}`;
 }
 function cjSpeakForm(w, fid) {
   const a = cjConjugate(w, fid); if (!a) return;
@@ -10842,7 +11010,8 @@ function conjHome() {
     <div class="panel cjhist">${cjHist().slice(0, 12).map(h => {
       const p = cjParse(h.id), w = p && WORDS[p.wid], f = p && CJ_FORM[p.fid];
       if (!w || !f) return "";
-      return `<div class="cjhrow"><span class="jp">${esc(w.jp)}</span> → ${esc(f.label)}
+      const a = (cjConjugate(w, f.id) || [])[0] || "";
+      return `<div class="cjhrow"><span class="jp">${esc(w.jp)}</span> → <span class="jp">${esc(a)}</span> <span class="cjhen">${esc(cjEn(w, f.id))}</span>
         <span class="muted">${["", "Again", "Hard", "Good", "Easy"][h.r] || ""} · ${h.mode === "type" ? "type" : "reveal"}</span></div>`;
     }).join("") || `<p class="muted">Your practice history shows up here.</p>`}</div>
     <div class="btnrow"><button class="btn ghost" id="cjGram">← Grammar</button>
@@ -10954,7 +11123,7 @@ function cjTableView(wid) {
       const id = cjId(wid, f.id), st = cjStatus(id);
       const hi = irr || (f.id === "te" && g === "iku") || ((f.id.startsWith("ai_")) && (cjKana(w) === "いい" || cjKana(w) === "よい"));
       return `<button class="cjcell ${hi ? "cjirr" : ""}" data-f="${f.id}"><span class="muted">${esc(f.label)}</span>
-        <span class="jp cjans">${esc(ans)}</span><span class="grst st-${st}">${CJ_ST[st]}</span></button>`;
+        <span class="cjcellmain"><span class="jp cjans">${esc(ans)}</span><span class="cjcellen">${esc(cjEn(w, f.id))}</span></span><span class="grst st-${st}">${CJ_ST[st]}</span></button>`;
     }).join("")}</div>
     <div class="btnrow"><button class="btn" id="cjPrThis">Practice this verb</button>
       <button class="btn ghost" id="cjBack">Browse</button></div>`;
@@ -11084,6 +11253,7 @@ function cjRenderReveal(id, onRate) {
     const fb = $("#fb"); fb.hidden = false;
     const rule = cjRule(w, f.id), G = cjGuide(f.id);
     fb.innerHTML = `<div class="jp cjansbig">${esc(accepted[0])}</div>
+      <div class="cjen"><span class="jp">${esc(accepted[0])}</span> · <b>${esc(cjEn(w, f.id))}</b></div>
       ${accepted[1] ? `<div class="muted">also: ${esc(accepted[1])}</div>` : ""}
       <button class="mini" id="cjSayAns">🔈 Hear it</button>
       ${rule ? `<p class="cjrule">${esc(rule)}</p>` : ""}
@@ -11132,6 +11302,7 @@ function cjRenderType(id, onAnswer, mode) {
     const rule = !ok ? cjRule(w, f.id) : "";
     return `<div class="${ok ? "grok" : "grbad"}">${ok ? "✅ Correct!" : "❌ Not quite"}</div>
       <div class="jp">${esc(accepted[0])}</div>${accepted[1] ? `<div class="muted">also: ${esc(accepted[1])}</div>` : ""}
+      <div class="cjen"><span class="jp">${esc(accepted[0])}</span> · <b>${esc(cjEn(w, f.id))}</b></div>
       ${rule ? `<p class="cjrule">${esc(rule)}</p>` : ""}${extra}
       <button class="mini" id="cjSayAns" aria-label="Play answer">🔈 Hear it</button>
       <button class="btn ghost small" id="cjOpenG">📖 Guide</button>`;
@@ -11235,7 +11406,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "640607a5a477";
+const BUILD = "d2235cddfb56";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -11285,7 +11456,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
