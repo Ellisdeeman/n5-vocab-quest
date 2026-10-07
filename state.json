@@ -3,10 +3,10 @@
  "dev": {
   "71828c9bf8346c453bbf": {
    "thrAt": null,
-   "nudgeDay": "2026-10-06",
-   "lastAt": 1791334415536,
-   "lastKind": "threshold",
-   "lastN": 13,
+   "nudgeDay": "2026-10-07",
+   "lastAt": 1791414640320,
+   "lastKind": "nudge",
+   "lastN": 3,
    "test": 1791328911016,
    "ep": "45a38e1758e71eb8fd85"
   }
@@ -21,7 +21,7 @@
    ]
   }
  },
- "upd": 1791413523315,
+ "upd": 1791414640320,
  "duo": {
   "d3b678a925b177ccdf94": {
    "at": 1791413523315,
