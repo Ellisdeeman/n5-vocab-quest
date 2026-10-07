@@ -2,11 +2,11 @@
  "v": 1,
  "dev": {
   "71828c9bf8346c453bbf": {
-   "thrAt": null,
+   "thrAt": 1791334415536,
    "nudgeDay": "2026-10-06",
-   "lastAt": 1791332436889,
-   "lastKind": "nudge",
-   "lastN": 2,
+   "lastAt": 1791334415536,
+   "lastKind": "threshold",
+   "lastN": 13,
    "test": 1791328911016,
    "ep": "45a38e1758e71eb8fd85"
   }
@@ -21,5 +21,5 @@
    ]
   }
  },
- "upd": 1791332436889
+ "upd": 1791334415536
 }
