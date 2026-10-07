@@ -1195,6 +1195,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .cjcellen{font-size:.84rem;color:var(--label2);line-height:1.3}
 .cjhen{font-size:.86rem;color:var(--label2)}
 .cjcell>.muted:first-child{flex:0 0 5.4em;font-size:.84rem;line-height:1.25}
+.cjhrow{display:flex;gap:10px;align-items:center}.cjhmain{flex:1;display:flex;flex-direction:column;min-width:0}.cjhmeta{font-size:.8rem;text-align:right;flex-shrink:0;line-height:1.3}
 </style>
 </head>
 <body>
@@ -11022,8 +11023,8 @@ function conjHome() {
       const p = cjParse(h.id), w = p && WORDS[p.wid], f = p && CJ_FORM[p.fid];
       if (!w || !f) return "";
       const a = (cjConjugate(w, f.id) || [])[0] || "";
-      return `<div class="cjhrow"><span class="jp">${esc(w.jp)}</span> → <span class="jp">${esc(cjJpForm(w, a))}</span> <span class="cjhen">${esc(cjEn(w, f.id))}</span>
-        <span class="muted">${["", "Again", "Hard", "Good", "Easy"][h.r] || ""} · ${h.mode === "type" ? "type" : "reveal"}</span></div>`;
+      return `<div class="cjhrow"><div class="cjhmain"><span class="jp">${esc(w.jp)} → ${esc(cjJpForm(w, a))}</span><span class="cjhen">${esc(cjEn(w, f.id))}</span></div>
+        <span class="muted cjhmeta">${["", "Again", "Hard", "Good", "Easy"][h.r] || ""}<br>${h.mode === "type" ? "type" : "reveal"}</span></div>`;
     }).join("") || `<p class="muted">Your practice history shows up here.</p>`}</div>
     <div class="btnrow"><button class="btn ghost" id="cjGram">← Grammar</button>
       <button class="btn ghost" id="cjSet">Daily limit</button></div>`;
@@ -11417,7 +11418,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "4d7efae6aaa4";
+const BUILD = "848fba9f9bc8";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
