@@ -1196,6 +1196,24 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .cjhen{font-size:.86rem;color:var(--label2)}
 .cjcell>.muted:first-child{flex:0 0 5.4em;font-size:.84rem;line-height:1.25}
 .cjhrow{display:flex;gap:10px;align-items:center}.cjhmain{flex:1;display:flex;flex-direction:column;min-width:0}.cjhmeta{font-size:.8rem;text-align:right;flex-shrink:0;line-height:1.3}
+
+/* Batch 10: Daily Reading */
+.drtile-home .ic{--c:var(--teal,var(--green))}.drok{color:var(--good);font-weight:800}
+.hqwide{grid-column:1/-1}
+.hqdr{width:100%;background:var(--fill);border:0;border-radius:12px;padding:10px 12px;color:var(--label);font:inherit;text-align:left;cursor:pointer;align-items:center;min-height:44px}
+.hqdr>div{flex:1}.hqdr.done{background:var(--goodT,var(--fill))}.hqgo{font-size:1.3rem;color:var(--label3,var(--label2));line-height:1}
+.drtheme{font-size:.78rem;font-weight:700;letter-spacing:.02em;color:var(--label2);margin:12px 6px 2px}.drtheme:first-child{margin-top:4px}
+.rdw.drt{background:linear-gradient(transparent 62%,var(--accentT) 62%);text-decoration-color:var(--accent)}
+.drenbtn{display:inline-block;background:none;border:0;padding:2px 0;margin:0;min-height:28px;color:var(--accent);font:inherit;font-size:.82rem;cursor:pointer}
+.drsent.showen .drenbtn{color:var(--label2)}
+.drhid{display:none;align-items:center;gap:10px;padding:4px 0}
+.drlisten .drsent:not(.peek) .rdjp,.drlisten .drsent:not(.peek) .drenbtn,.drlisten .drsent:not(.peek) .rden{display:none}
+.drlisten .drsent:not(.peek) .drhid{display:flex}
+.drprompt{line-height:2.1}.drprompt mark{background:var(--mark);border-radius:4px;padding:0 2px;color:inherit}
+.drfbs{font-size:1.1rem;line-height:2;margin:10px 0 0;text-align:left}.drfbe{margin:0 0 8px;font-size:.88rem;text-align:left}
+.drparts{font-size:.84rem;margin:6px 0}.drparts .chip{margin:3px 2px}
+.drnw{white-space:nowrap}
+.drstory .rdtools{display:grid;grid-template-columns:1fr 1fr;gap:8px}.drstory .rdtools .btn{width:100%;justify-content:center}
 </style>
 </head>
 <body>
@@ -2680,6 +2698,7 @@ function home() {
       return `<button class="mode grtile-home" data-m="grammar"><div class="ic">文</div><h3>Grammar ${gd ? `<span class="badge">${gd}</span>` : ""}</h3><p>${gl ? `${gl}/${GR_DATA.length} N5 points` : `${GR_DATA.length} N5 points`} · lessons & drills</p></button>`; })()}
     ${(() => { const rd = RD_DATA.filter(x => x.id in rdDoneMap()).length;
       return `<button class="mode rdtile-home" data-m="reading-stories"><div class="ic">読</div><h3>Reading</h3><p>${rd ? `${rd}/${RD_DATA.length} stories read` : `${RD_DATA.length} graded N5 stories`} · tap words</p></button>`; })()}
+    ${drHomeTileHTML()}
     ${conjHomeTileHTML()}
     ${weekReportCardHTML()}
     <button class="mode lotile-home" data-m="listen-only"><div class="ic">🎧</div><h3>Listening-only</h3><p>Hands-free stories & sentences · audio first</p></button>
@@ -2724,7 +2743,7 @@ function home() {
   bindAudioLesson(); bindHomeQuick();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, conjugation: conjHome, "week-report": weekReportView, "reading-stories": readingHome, mock: mockHome, "listen-only": () => loHome(home) };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, conjugation: conjHome, "week-report": weekReportView, "reading-stories": readingHome, "daily-reading": () => drView(home), mock: mockHome, "listen-only": () => loHome(home) };
     go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
@@ -2826,7 +2845,7 @@ function levelPage(l) {
       <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${SETS.filter(setUnlocked).length} unlocked</p></button>
       <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing</p></button>
       <button class="mode spktile" data-m="speak"><div class="ic">🎤</div><h3>Speaking</h3><p>Say the word out loud</p></button>
-      ${l === "n5" ? `<button class="mode rdtile-home" data-m="reading-stories"><div class="ic">読</div><h3>Reading</h3><p>${RD_DATA.length} graded stories</p></button><button class="mode mktile-home" data-m="mock"><div class="ic">📝</div><h3>Mock JLPT N5</h3><p>Timed practice test</p></button>` : ""}
+      ${l === "n5" ? `${drHomeTileHTML()}<button class="mode rdtile-home" data-m="reading-stories"><div class="ic">読</div><h3>Reading</h3><p>${RD_DATA.length} graded stories</p></button><button class="mode mktile-home" data-m="mock"><div class="ic">📝</div><h3>Mock JLPT N5</h3><p>Timed practice test</p></button>` : ""}
       <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
     </div>
     <div class="sechead" id="gamesHead">Games · ${LNAME(l)}</div>${gameTilesHTML(l)}`;
@@ -2836,7 +2855,7 @@ function levelPage(l) {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { speak: () => spkStart(ALL_IDS, `Speaking · ${LNAME(l)}`, me), "reading-stories": readingHome, mock: mockHome, speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: async () => { const g = viewGen; if (S.flKanji !== false && KJL[l]) await loadKanji(l); if (g !== viewGen) return; flashcards(LV[l].ids.concat(flKanjiPool(l)), `🃏 Flashcards · ${LNAME(l)}`, me, { kjAble: !!KJL[l], rebuild: () => LV[l].ids.concat(flKanjiPool(l)) }); } };
+    const special = { speak: () => spkStart(ALL_IDS, `Speaking · ${LNAME(l)}`, me), "reading-stories": readingHome, "daily-reading": () => drView(me), mock: mockHome, speed: () => speed(me), match: () => match(ALL_IDS, me), browse, sets: setsView, leeches: leechView, mixed: () => quiz("mixed", unlockedIds(), "🎲 Mixed quiz", me), flash: async () => { const g = viewGen; if (S.flKanji !== false && KJL[l]) await loadKanji(l); if (g !== viewGen) return; flashcards(LV[l].ids.concat(flKanjiPool(l)), `🃏 Flashcards · ${LNAME(l)}`, me, { kjAble: !!KJL[l], rebuild: () => LV[l].ids.concat(flKanjiPool(l)) }); } };
     go(() => special[m] ? special[m]() : quiz(m, ALL_IDS, undefined, me));
   });
   bindGameTiles(view, l, me);
@@ -3536,6 +3555,7 @@ function allAudioPaths(levels = ["n5"]) {
   if (levels.includes("n5")) {   // N5 grammar examples + drill sentences, graded-reading narration, mock-test listening
     if (typeof GR_DATA !== "undefined") GR_DATA.forEach(g => { g.ex.forEach((e, i) => p.add(grAudio(g.id, i))); g.d.forEach((d, i) => { if (grDrillSentence(d)) p.add(grAudio(g.id, i, true)); }); });
     if (typeof RD_DATA !== "undefined") RD_DATA.forEach(st => st.s.forEach((x, i) => p.add(rdAudio(st.id, i))));
+    if (typeof DR !== "undefined") DR.forEach(s => p.add(drAudio(s)));   // Daily Reading sentences
     if (typeof MK_BANK !== "undefined") ["lt", "lp", "lu", "lq"].forEach(k => MK_BANK[k].forEach(it => p.add(`mk/${it.id}.mp3`)));
   }
   return [...p];
@@ -4850,7 +4870,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -7053,6 +7073,10 @@ function smartPlan(D) {
       line: `${rest.length} step${rest.length === 1 ? "" : "s"}${nw ? ` · ${nw} new word${nw === 1 ? "" : "s"}` : ""}${nk ? ` · ${nk} new kanji` : ""} · ${lim}`,
       run: () => go(() => dailySession(home, "path")) };
   }
+  if (drWanted() && !drDoneToday()) {   // Batch 10: reviews + today's lesson done → a short read with today's words
+    const R = drCur();
+    return { k: "dread", label: "Daily Reading", line: `Reviews done ✓ → ${R.s.length} sentences with ${R.tg.length} of today's words · about ${drMins(R)} min + 2–3 questions`, run: () => go(() => drView(home)) };
+  }
   const gn = grWanted() && grNextNew();   // new grammar comes after today's new words, before free practice
   if (gn && newLeftG() > 0) {
     const lim = grLimitV() === Infinity ? "no daily limit" : `${newLeftG()} of ${grLimitV()} new grammar left today`;
@@ -7067,7 +7091,7 @@ function smartPlan(D) {
   const cur = pathState().cur, l = gamesFor(cur).includes("kanaatro") ? cur : (activeLevels().find(x => x !== "kana") || "n5");
   return { k: "game", label: "Play Kanaatro", line: `Daily goal met 🎉 — nothing due. Relax with a round of Kanaatro (${LNAME(l)})`, run: () => gOpen(l, "kanaatro", home) };
 }
-const SMART_IC = { due: "⏰", new: "🌱", grammar: "文", reading: "読", practice: "🎯", game: "🃏" };
+const SMART_IC = { due: "⏰", new: "🌱", dread: "📖", grammar: "文", reading: "読", practice: "🎯", game: "🃏" };
 function smartHTML(D) {
   if (!D) return `<div class="smartbox" id="smartBox"><button class="btn smartbtn" id="smartStart" disabled><span class="smic" aria-hidden="true">▶</span><span>Start</span></button><p class="smartline" id="smartLine">Getting today's plan ready…</p></div>`;
   const p = smartPlan(D);
@@ -10205,6 +10229,7 @@ function homeQuickHTML() {
       <div class="hqcell"><span class="hqic">🎯</span><div><b>${esc(goalLine)}</b></div></div>
       <div class="hqcell"><span class="hqic">🌱</span><div><b>${esc(newLine)}</b></div></div>
       <div class="hqcell"><span class="hqic">🔥</span><div><b>${st} day streak</b>${st ? "" : "<small class=\"muted\"> · study today to start</small>"}</div></div>
+      ${typeof drQuickHTML === "function" ? drQuickHTML() : ""}
     </div>
     <div class="btnrow hqbtns"><button class="btn" id="hqStart">${td ? "Start reviews" : "Review / practice"}</button>
       <button class="btn ghost" id="hqWeek">Weekly report</button></div>
@@ -10213,6 +10238,7 @@ function homeQuickHTML() {
 function bindHomeQuick(root = document) {
   const s = root.querySelector("#hqStart"); if (s) s.onclick = () => { sfx.click(); if (totalDue()) startDueReview("all", home); else dueOrPractice(); };
   const w = root.querySelector("#hqWeek"); if (w) w.onclick = () => { sfx.click(); go(weekReportView); };
+  if (typeof bindDrQuick === "function") bindDrQuick(root);
 }
 
 /* ---------- Weekly aggregates (read-only; never touches schedules) ---------- */
@@ -10286,7 +10312,7 @@ function weekReportData() {
     cur, prev, r0, r1, t0, t1, accDelta, cj: weekRevStats(cur, true), cjForms: typeof cjLearned === "function" ? cjLearned() : 0,
     learned: weekNewWords(cur), mastered: weekMasteredDelta(),
     streak: currentStreak(), hardest: weekHardest(),
-    kj: weekKanjiProg(), gr: weekGramProg(), n5: n5ReadyEstimate()
+    kj: weekKanjiProg(), gr: weekGramProg(), n5: n5ReadyEstimate(), dr: typeof drWeekCount === "function" ? drWeekCount(cur) : 0
   };
 }
 function weekPct(x) { return x == null ? "—" : Math.round(x * 100) + "%"; }
@@ -10321,6 +10347,7 @@ function weekReportView() {
       <div class="mode"><div class="ic">字</div><h3>${W.kj.seen}</h3><p>kanji seen · ${W.kj.due} due</p></div>
       <div class="mode"><div class="ic">文</div><h3>${W.gr.learned}/${W.gr.total || "—"}</h3><p>grammar points · ${W.gr.due} due</p></div>
       <div class="mode"><div class="ic">✏️</div><h3>${W.cjForms}</h3><p>conjugation forms · ${W.cj.a} reviews (separate track)</p></div>
+      <div class="mode"><div class="ic">📖</div><h3>${W.dr}/7</h3><p>days with Daily Reading done</p></div>
     </div>
     ${readyLine}
     <div class="sechead">Hardest words this stretch</div>
@@ -11390,6 +11417,1237 @@ function conjHomeTileHTML() {
     <h3>Conjugation ${due ? `<span class="badge">${due}</span>` : ""}</h3>
     <p>${known ? `${learned} forms · ${known} known verbs/adj` : "Practice forms of verbs you know"} · Reveal mode</p></button>`;
 }
+/* ================= Daily Reading sentence bank (Batch 10) — GENERATED by tools/dr_build.py from src/dr/bank.txt; do not edit =================
+   Hand-written N5 sentences (original, for this app). Markup as in app21d.js: tokens "/"-separated, 漢字[よみ] furigana, "@id,id" = N5 word ids
+   (index in the N5 list) the token stands for, "#" = a name. DR_S row: [id (md5 of text, also the audio name audio/dr/<id>.mp3), theme index, markup, English, [word ids]] */
+const DR_GLOSS = {"日本":["にほん","Japan"],"日本語":["にほんご","Japanese (language)"],"東京":["とうきょう","Tokyo"],"りんご":["りんご","apple"],"お願いします":["おねがいします","please (request)"],"すみません":["すみません","excuse me; sorry"],"ありがとうございます":["ありがとうございます","thank you"],"ごめんなさい":["ごめんなさい","I'm sorry"],"よろしく":["よろしく","please treat me well (greeting)"],"アメリカ":["アメリカ","America"],"中国":["ちゅうごく","China"],"塗る":["ぬる","to spread, to paint"],"急ぐ":["いそぐ","to hurry"],"遅れる":["おくれる","to be late"],"時":["とき","when, at the time of"],"祖父母":["そふぼ","grandparents"],"世話":["せわ","care, looking after"],"いらっしゃい":["いらっしゃい","welcome"],"お邪魔します":["おじゃまします","excuse me (for intruding), said when entering a home"],"くれる":["くれる","to give (to me)"],"いただきます":["いただきます","I'll gratefully receive (said before eating)"],"ゲーム":["ゲーム","game"],"言われる":["いわれる","to be told"],"壁":["かべ","wall"],"上がる":["あがる","to go up"],"音":["おと","sound, noise"],"とも":["とも","both, all (二人とも = both of them)"],"ありがとう":["ありがとう","thank you"],"ございます":["ございます","polite \"there is\" (in ありがとうございます)"],"おはようございます":["おはようございます","good morning"],"黒板":["こくばん","blackboard"],"調べる":["しらべる","to look up, to check"],"昼休み":["ひるやすみ","lunch break"],"日本人":["にほんじん","Japanese person"],"最後":["さいご","last, final"],"答え":["こたえ","answer"],"説明":["せつめい","explanation"],"点":["てん","point(s), score"],"頑張る":["がんばる","to do one's best"],"席":["せき","seat"],"皿":["さら","plate (一皿 = one plate)"],"いっぱい":["いっぱい","full"],"まず":["まず","first (of all)"],"ほう":["ほう","(the one) — ～のほうが = more ～ (in comparisons)"],"いらっしゃいませ":["いらっしゃいませ","welcome (in a shop)"],"なさる":["なさる","to do (polite)"],"ケーキ":["ケーキ","cake"],"こと":["こと","thing, matter (verb + ことができる = can do)"],"売り場":["うりば","sales section, counter"],"結局":["けっきょく","in the end, after all"],"帰り道":["かえりみち","the way home"],"寄る":["よる","to stop by"],"柔らかい":["やわらかい","soft"],"あげる":["あげる","to give"],"考える":["かんがえる","to think, to consider"],"見つける":["みつける","to find"],"カード":["カード","card"],"喜ぶ":["よろこぶ","to be glad, to be delighted"],"お寺":["おてら","temple"],"流れる":["ながれる","to flow"],"見える":["みえる","to be visible, can see"],"週末":["しゅうまつ","weekend"],"駅前":["えきまえ","in front of the station"],"目":["め","-th (二つ目 = second)"],"ございました":["ございました","polite past (ありがとうございました)"],"親切":["しんせつ","kind"],"機械":["きかい","machine"],"線":["せん","line, track (三番線 = track 3)"],"ホーム":["ホーム","(station) platform"],"一列":["いちれつ","one line, single file"],"東口":["ひがしぐち","east exit"],"西口":["にしぐち","west exit"],"振る":["ふる","to wave, to shake"],"バス停":["バスてい","bus stop"],"なかなか":["なかなか","(not) easily; quite"],"北海道":["ほっかいどう","Hokkaido"],"雲":["くも","cloud"],"空港":["くうこう","airport"],"もらう":["もらう","to receive"],"明かり":["あかり","light(s)"],"天気予報":["てんきよほう","weather forecast"],"によると":["によると","according to"],"急に":["きゅうに","suddenly"],"止む":["やむ","to stop (rain)"],"気温":["きおん","air temperature"],"桜":["さくら","cherry blossoms"],"過ごす":["すごす","to spend (time)"],"やすい":["やすい","easy to (after a verb stem)"],"真っ白":["まっしろ","pure white"],"温かい":["あたたかい","warm (food, drinks)"],"テニス":["テニス","tennis"],"日":["ひ","sun; day"],"調子":["ちょうし","condition"],"のど":["のど","throat"],"熱":["ねつ","fever"],"よう":["よう","seems (～ようです)"],"待合室":["まちあいしつ","waiting room"],"象":["ぞう","elephant"],"うさぎ":["うさぎ","rabbit"],"髪":["かみ","hair"],"祖父":["そふ","grandfather (my)"],"健康":["けんこう","health"],"ために":["ために","for (the sake of)"],"やめる":["やめる","to quit, to stop"],"空気":["くうき","air"],"ピアノ":["ピアノ","piano"],"昔":["むかし","the old days, long ago"],"カラオケ":["カラオケ","karaoke"],"特に":["とくに","especially"],"サッカー":["サッカー","soccer"],"ベンチ":["ベンチ","bench"],"集まる":["あつまる","to gather"],"途中":["とちゅう","on the way"],"帰り":["かえり","return, the way back"],"思う":["おもう","to think"],"動物園":["どうぶつえん","zoo"],"ライオン":["ライオン","lion"],"驚く":["おどろく","to be surprised"],"住所":["じゅうしょ","address"],"送る":["おくる","to send"],"旅行先":["りょこうさき","travel destination"],"返事":["へんじ","reply"],"数字":["すうじ","number, digit"],"鳴る":["なる","to ring, to sound"],"用事":["ようじ","errand, business"],"ビル":["ビル","building"],"お客さん":["おきゃくさん","customer, guest"],"会議":["かいぎ","meeting"],"書類":["しょるい","documents"],"ジュース":["ジュース","juice"],"聞こえる":["きこえる","to be audible, can hear"],"こんにちは":["こんにちは","hello"],"おかげさまで":["おかげさまで","thanks to you (I'm fine)"],"どういたしまして":["どういたしまして","you're welcome"],"市役所":["しやくしょ","city hall"],"受付":["うけつけ","reception (desk)"],"干す":["ほす","to dry, to hang out (laundry)"],"拭く":["ふく","to wipe"],"棚":["たな","shelf"],"ごみ":["ごみ","trash, garbage"],"気持ち":["きもち","feeling"],"地震":["じしん","earthquake"],"悲しい":["かなしい","sad"],"番組":["ばんぐみ","(TV) program"],"たら":["たら","when, if (after a verb)"],"始める":["はじめる","to begin (something)"],"ボール":["ボール","ball"],"描く":["かく","to draw"],"転ぶ":["ころぶ","to fall down"],"泣く":["なく","to cry"],"立たせる":["たたせる","to make (someone) stand, to help up"],"ながら":["ながら","while (doing)"],"小学校":["しょうがっこう","elementary school"],"ろうそく":["ろうそく","candle"],"立てる":["たてる","to stand (something) up"],"予定":["よてい","plan, schedule"],"歯医者":["はいしゃ","dentist"],"結婚式":["けっこんしき","wedding"],"大阪":["おおさか","Osaka"],"給料":["きゅうりょう","salary, pay"],"みかん":["みかん","mandarin orange"],"数える":["かぞえる","to count"],"という":["という","called, that says"],"最低":["さいてい","lowest"],"祖母":["そぼ","grandmother (my)"],"半年":["はんとし","half a year"],"形":["かたち","shape"],"センチ":["センチ","centimeter"],"届ける":["とどける","to deliver, to hand in"],"消しゴム":["けしゴム","eraser"],"パスポート":["パスポート","passport"],"呼ばれる":["よばれる","to be called"],"なさい":["なさい","do ～! (gentle command)"],"集める":["あつめる","to collect"],"怖い":["こわい","scary"],"信号":["しんごう","traffic light"],"止まれ":["とまれ","stop! (command)"],"はじめまして":["はじめまして","nice to meet you"],"申す":["もうす","to be called (humble)"],"韓国":["かんこく","(South) Korea"],"話せる":["はなせる","can speak"],"趣味":["しゅみ","hobby"],"フランス":["フランス","France"],"彼女":["かのじょ","she, her"],"外国語":["がいこくご","foreign language"],"ブック":["ブック","book (English)"],"足りる":["たりる","to be enough"],"スープ":["スープ","soup"],"寝られる":["ねられる","can sleep"],"録音":["ろくおん","recording"],"火":["ひ","fire"],"最近":["さいきん","recently"],"太る":["ふとる","to gain weight"],"体重":["たいじゅう","body weight"],"歩":["ほ","step(s)"],"やせる":["やせる","to lose weight"],"運動":["うんどう","exercise"],"長さ":["ながさ","length"],"通れる":["とおれる","can pass through"],"深い":["ふかい","deep"],"失礼":["しつれい","rudeness (失礼します = excuse me / I'll be going)"],"天気":["てんき","weather (お天気)"],"ご主人":["ごしゅじん","(someone's) husband"],"銀行員":["ぎんこういん","bank clerk"],"アルバイト":["アルバイト","part-time job"],"試験":["しけん","exam"],"不便":["ふべん","inconvenient"],"紺":["こん","navy blue"],"穴":["あな","hole"],"あく":["あく","to open (穴があく = get a hole)"],"読み方":["よみかた","way of reading, reading"],"間違える":["まちがえる","to make a mistake"],"字":["じ","character, letter"],"消せる":["けせる","can erase"],"市場":["いちば","market"],"桃":["もも","peach"],"大きさ":["おおきさ","size"],"止める":["とめる","to stop (something)"],"より":["より","than"],"メニュー":["メニュー","menu"],"人気":["にんき","popular(ity)"],"なければなりません":["なければなりません","must, have to"],"部屋代":["へやだい","room rent"],"払う":["はらう","to pay"],"びっくり":["びっくり","surprised"],"落ちる":["おちる","to fall; to fail (an exam)"],"飼う":["かう","to keep (a pet)"],"子犬":["こいぬ","puppy"],"母犬":["ははいぬ","mother dog"],"離れる":["はなれる","to leave, to be apart"],"いとこ":["いとこ","cousin"],"戻る":["もどる","to go back, to return"],"打つ":["うつ","to strike, to hit"],"役":["やく","use, role (役に立つ = to be useful)"],"校長先生":["こうちょうせんせい","school principal"],"か":["か","question particle (plain speech)"],"心配":["しんぱい","worry"],"富士山":["ふじさん","Mount Fuji"],"割る":["わる","to break, to crack"],"フライパン":["フライパン","frying pan"],"ねぎ":["ねぎ","green onion"],"レジ":["レジ","cash register"],"ポイントカード":["ポイントカード","loyalty card"],"指":["ゆび","finger"],"以下":["いか","below, under"],"番目":["ばんめ","-th (ordinal)"],"休み時間":["やすみじかん","break (between classes)"],"商事":["しょうじ","trading company"],"ご案内":["ごあんない","guidance (ご案内します = I'll guide you)"]};
+const DR_THEMES = [["morning","A school-day morning","朝"],["clothes","Getting dressed","服"],["family","My family","家族"],["visit","Visiting a friend's family","友達の家"],["room","My room","私の部屋"],["house","Our house","家"],["school","At school","学校"],["study","Studying Japanese","日本語の勉強"],["test","A test at school","テスト"],["library","At the library","図書館"],["cafeteria","Lunch at the cafeteria","食堂"],["cooking","Cooking dinner","料理"],["cafe","At a café","喫茶店"],["shopping","Shopping for clothes","買い物"],["groceries","At the greengrocer's","八百屋"],["presents","Buying a present","プレゼント"],["town","My town","私の町"],["directions","Asking the way","道"],["station","At the station","駅"],["commute","Getting to work","通勤"],["trip","A trip by plane","旅行"],["hotel","At the hotel","ホテル"],["weather","Today's weather","天気"],["seasons","The four seasons","季節"],["snow","A snowy day","雪の日"],["calendar","The calendar","カレンダー"],["cold","Catching a cold","風邪"],["body","The body","体"],["smoking","No smoking","たばこ"],["music","Music","音楽"],["photos","Taking photos","写真"],["sports","Sports","スポーツ"],["mountain","Climbing a mountain","山"],["movies","Going to the movies","映画"],["animals","Animals and pets","動物"],["letters","Writing a letter","手紙"],["phone","A phone call","電話"],["office","At the office","会社"],["party","A party","パーティー"],["greetings","Saying hello","あいさつ"],["questions","Question words","何"],["pointing","This, that, which","こそあど"],["chores","Housework","家事"],["tv","TV and news","テレビ"],["kids","Children in the park","公園の子供"],["birthday","Birthdays and age","誕生日"],["dates","Dates this month","日にち"],["counting","Counting things","数"],["time","Time words","時"],["lostwallet","A lost wallet","財布"],["borrow","Lending and borrowing","貸す・借りる"],["misc1","Little moments","いろいろ"],["likes","Likes and dislikes","好き・嫌い"],["colors","Colors","色"],["intro","Introducing myself","自己紹介"],["foreigners","Foreign friends","外国の友達"],["table","Setting the table","食卓"],["bath","Bath time","お風呂"],["grandpa","Grandpa's old things","祖父の物"],["skyweather","Clouds and wind","曇りの日"],["weight","Getting healthy","健康"],["sizes","Long and short","長さ"],["connect","And, but, so","つなぐ言葉"],["places","Places","所"],["neighbor","The neighbors","隣の人"],["schedule","My week","一週間"],["village","Grandma's village","村"],["city","Getting around the city","町の中"],["clothes2","What to wear to work","会社の服"],["kanjiclass","Kanji class","漢字の授業"],["market","At the market","市場"],["restaurant","At a restaurant","レストラン"],["dates2","Holidays and dates","休みの日"],["feelings","Surprises and feelings","気持ち"],["uncle","Uncle and aunt's home","おじさんの家"],["doorlock","Closing up for the night","戸締まり"],["rainyday","A sudden shower","夕立"],["whyq","Why?","どうして"],["phone2","Calling home","家に電話"],["past","Long ago","昔"],["kitchen2","In the kitchen","台所で"],["shoppinglist","Shopping list","買い物"],["counting2","Ten and zero","十とゼロ"],["yearlong","Through the year","一年中"],["formal","Formal speech","ていねいな言葉"],["colors2","Blue and white","青と白"]];
+const DR_S = [
+["b7f1fb8c",0,"私[わたし]@713/は/毎朝[まいあさ]@614/六時[ろくじ]@708,290/に/起[お]きます@104/。","I get up at six every morning.",[104,290,614,708,713]],
+["6afa8002",0,"起[お]きて@104/、/すぐに@333/窓[まど]@630/を/開[あ]けます@9/。","I get up and open the window right away.",[9,104,333,630]],
+["d3f3757f",0,"今朝[けさ]@234/は/とても@462/寒[さむ]かった@284/です/。","It was very cold this morning.",[234,284,462]],
+["ed1f363f",0,"顔[かお]@151/を/洗[あら]って@38/、/歯[は]@516/を/磨[みが]きます@634/。","I wash my face and brush my teeth.",[38,151,516,634]],
+["3c789cec",0,"それから@368/、/シャワー@312/を/浴[あ]びます@32/。","After that, I take a shower.",[32,312,368]],
+["44313be9",0,"石鹸[せっけん]@347/が/なかった@476/の/で/、/新[あたら]しい@20/の/を/出[だ]しました@382/。","There was no soap, so I took out a new one.",[20,347,382,476]],
+["e99b49dd",0,"朝御飯[あさごはん]@12/は/パン@551/と/卵[たまご]@393/です/。","Breakfast is bread and eggs.",[12,393,551]],
+["d13af89c",0,"パン@551/に/バター@532/を/塗[ぬ]って/食[た]べます@392/。","I spread butter on my bread and eat it.",[392,532,551]],
+["ab884740",0,"コーヒー@250/に/砂糖[さとう]@283/を/少[すこ]し@334/入[い]れます@72/。","I put a little sugar in my coffee.",[72,250,283,334]],
+["63c268cd",0,"父[ちち]@405/は/毎朝[まいあさ]@614/新聞[しんぶん]@326/を/読[よ]みます@689/。","My father reads the newspaper every morning.",[326,405,614,689]],
+["4c70c0e9",0,"母[はは]@541/は/台所[だいどころ]@376/で/お弁当[べんとう]@130/を/作[つく]って@417/います/。","My mother is making a boxed lunch in the kitchen.",[130,376,417,541]],
+["6f4179e3",0,"七時[しちじ]@299,290/半[はん]@548/に/家[いえ]@46/を/出[で]ます@435/。","I leave home at seven thirty.",[46,290,299,435,548]],
+["d992dc8c",0,"出[で]かける@427/前[まえ]@620/に/、/時計[とけい]@455/を/見[み]ます@647/。","Before I go out, I look at the clock.",[427,455,620,647]],
+["8b153c3c",0,"今日[きょう]@203/は/少[すこ]し@334/遅[おそ]く@113/起[お]きました@104/。","I got up a little late today.",[104,113,203,334]],
+["7d410a71",0,"急[いそ]がない/と/、/電車[でんしゃ]@439/に/遅[おく]れます/。","If I don't hurry, I'll be late for the train.",[439]],
+["5734cbb3",0,"玄関[げんかん]@239/で/靴[くつ]@220/を/はきます@523/。","I put on my shoes in the entryway.",[220,239,523]],
+["98e5283b",0,"ドア@443/を/閉[し]めて@307/、/鍵[かぎ]@153/を/かけます@157/。","I close the door and lock it.",[153,157,307,443]],
+["c339365b",0,"駅[えき]@91/まで/歩[ある]いて@41/十分[じゅっぷん]@313,589/ぐらい@226/です/。","It's about a ten-minute walk to the station.",[41,91,226,313,589]],
+["d60f8403",1,"今日[きょう]@203/は/白[しろ]い@324/ワイシャツ@709/を/着[き]ます@209/。","Today I'll wear a white business shirt.",[203,209,324,709]],
+["e098abd8",1,"兄[あに]@28/は/毎日[まいにち]@617/背広[せびろ]@348/を/着[き]て@209/、/会社[かいしゃ]@145/へ/行[い]きます@48/。","My older brother wears a suit to the office every day.",[28,48,145,209,348,617]],
+["482f5762",1,"兄[あに]@28/は/ネクタイ@507/を/締[し]める@308/の/が/下手[へた]@592/です/。","My older brother is bad at tying a necktie.",[28,308,507,592]],
+["ffc1cda0",1,"寒[さむ]い@284/の/で/、/セーター@346/を/着[き]ました@209/。","It's cold, so I put on a sweater.",[209,284,346]],
+["6a7595bd",1,"黒[くろ]い@232/ズボン@340/と/茶色[ちゃいろ]@406/の/靴下[くつした]@221/を/はきます@523/。","I put on black trousers and brown socks.",[221,232,340,406,523]],
+["24c479de",1,"妹[いもうと]@67/は/赤[あか]い@5/スカート@329/が/大好[だいす]き@374/です/。","My younger sister loves her red skirt.",[5,67,329,374]],
+["6be458e4",1,"外[そと]@363/は/暑[あつ]い@22/です/から/、/帽子[ぼうし]@600/を/かぶりましょう@173/。","It's hot outside, so let's wear hats.",[22,173,363,600]],
+["36055347",1,"父[ちち]@405/は/新聞[しんぶん]@326/を/読[よ]む@689/とき@453/、/眼鏡[めがね]@656/を/かけます@157/。","My father puts on his glasses when he reads the newspaper.",[157,326,405,453,656,689]],
+["5091ba2e",1,"この@263/コート@249/は/厚[あつ]くて@24/、/暖[あたた]かい@18/です/。","This coat is thick and warm.",[18,24,249,263]],
+["f801e9e4",1,"上着[うわぎ]@85/の/ポケット@603/に/ハンカチ@552/を/入[い]れました@72/。","I put a handkerchief in my jacket pocket.",[72,85,552,603]],
+["73a0b3b2",1,"シャツ@311/の/ボタン@607/が/一[ひと]つ@564/ありません@40/。","One button on my shirt is missing.",[40,311,564,607]],
+["61ddea13",1,"家[いえ]@46/に/帰[かえ]って@150/、/すぐに@333/上着[うわぎ]@85/を/脱[ぬ]ぎます@505/。","When I get home, I take off my jacket right away.",[46,85,150,333,505]],
+["2eb117d2",1,"洋服[ようふく]@683/が/たくさん@380/あります@40/が/、/着[き]る@209/物[もの]@662/が/ありません@40/。","I have lots of clothes, but nothing to wear.",[40,209,380,662,683]],
+["f4a41695",1,"この@263/青[あお]い@3/シャツ@311/は/薄[うす]くて@77/、/軽[かる]い@181/です/。","This blue shirt is thin and light.",[3,77,181,263,311]],
+["9f7d593b",1,"私[わたし]@713/の/帽子[ぼうし]@600/は/丸[まる]くて@631/、/黄色[きいろ]い@190/です/。","My hat is round and yellow.",[190,600,631,713]],
+["2d9b7c5a",2,"私[わたし]@713/の/家族[かぞく]@164/は/五人[ごにん]@242,504/です/。","There are five people in my family.",[164,242,504,713]],
+["8951b24b",2,"父[ちち]@405/と/母[はは]@541/と/兄[あに]@28/と/妹[いもうと]@67/が/います@70/。","I have a father, a mother, an older brother and a younger sister.",[28,67,70,405,541]],
+["15feca73",2,"父[ちち]@405/は/銀行[ぎんこう]@213/に/勤[つと]めて@419/います/。","My father works at a bank.",[213,405,419]],
+["3a4427c4",2,"母[はは]@541/は/料理[りょうり]@700/が/とても@462/上手[じょうず]@318/です/。","My mother is very good at cooking.",[318,462,541,700]],
+["23ba852f",2,"兄[あに]@28/は/二十歳[はたち]@533/で/、/大学[だいがく]@371/の/学生[がくせい]@155/です/。","My older brother is twenty and a university student.",[28,155,371,533]],
+["035b9993",2,"妹[いもうと]@67/は/まだ@625/十歳[じゅっさい]@313,274/です/。","My younger sister is still ten years old.",[67,274,313,625]],
+["830c4772",2,"姉[あね]@29/は/去年[きょねん]@206/結婚[けっこん]しました@237/。","My older sister got married last year.",[29,206,237]],
+["d12de06c",2,"姉[あね]@29/は/今[いま]@65/、/東京[とうきょう]/に/住[す]んで@341/います/。","My older sister lives in Tokyo now.",[29,65,341]],
+["59a74750",2,"弟[おとうと]@117/は/いません@70/が/、/犬[いぬ]@64/が/一匹[いっぴき]@56,557/います@70/。","I don't have a younger brother, but I have a dog.",[56,64,70,117,557]],
+["0ad245e6",2,"両親[りょうしん]@699/は/二人[ふたり]@583/とも/元気[げんき]@240/です/。","My parents are both well.",[240,583,699]],
+["5af86db4",2,"祖父母[そふぼ]/の/家[いえ]@46/は/遠[とお]い@451/村[むら]@653/に/あります@40/。","My grandparents' house is in a faraway village.",[40,46,451,653]],
+["3dbcc518",2,"おじいさん@110/は/八十歳[はちじゅっさい]@535,313,274/です/が/、/とても@462/元気[げんき]@240/です/。","My grandfather is eighty, but he is very healthy.",[110,240,274,313,462,535]],
+["d875a06a",2,"おばあさん@128/は/毎日[まいにち]@617/庭[にわ]@503/で/花[はな]@537/の/世話[せわ]/を/します@342/。","My grandmother looks after the flowers in the garden every day.",[128,342,503,537,617]],
+["f1b013d9",2,"おじさん@109/と/おばさん@127/は/町[まち]@626/で/八百屋[やおや]@666/を/して@342/います/。","My uncle and aunt run a greengrocer's in town.",[109,127,342,626,666]],
+["9857e09d",2,"私[わたし]@713/の/兄弟[きょうだい]@205/は/みんな@648/背[せい]@344/が/高[たか]い@378/です/。","My brothers and sisters are all tall.",[205,344,378,648,713]],
+["e592b41d",2,"でも@434/、/私[わたし]@713/だけ@379/背[せい]@344/が/低[ひく]い@560/です/。","But only I am short.",[344,379,434,560,713]],
+["204ffb3e",2,"日曜日[にちようび]@500/に/は/、/家族[かぞく]@164/みんな@648/で/晩御飯[ばんごはん]@554/を/食[た]べます@392/。","On Sundays the whole family eats dinner together.",[164,392,500,554,648]],
+["8f8798d7",2,"楽[たの]しい@387/家庭[かてい]@169/です/。","It's a happy home.",[169,387]],
+["db7b1ee3",3,"昨日[きのう]@199/、/友達[ともだち]@468/の/#山田[やまだ]/さん@286/の/家[いえ]@46/へ/行[い]きました@48/。","Yesterday I went to my friend Yamada's house.",[46,48,199,286,468]],
+["2a4c5d29",3,"#山田[やまだ]/さん@286/の/お父[とう]さん@116/は/医者[いしゃ]@52/です/。","Yamada's father is a doctor.",[52,116,286]],
+["22894c07",3,"お母[かあ]さん@101/は/英語[えいご]@89/の/先生[せんせい]@354/です/。","His mother is an English teacher.",[89,101,354]],
+["1cfea448",3,"#山田[やまだ]/さん@286/に/は/お兄[にい]さん@125/と/お姉[ねえ]さん@126/が/います@70/。","Yamada has an older brother and an older sister.",[70,125,126,286]],
+["7366d0b5",3,"お姉[ねえ]さん@126/は/とても@462/綺麗[きれい]@210/な/人[ひと]@563/です/。","His older sister is a very pretty person.",[126,210,462,563]],
+["70ceed60",3,"お兄[にい]さん@125/は/私[わたし]@713/より/三[みっ]つ@642/上[うえ]@75/です/。","His older brother is three years older than me.",[75,125,642,713]],
+["9baf40df",3,"「/いらっしゃい/。/どうぞ@447/、/入[はい]って@521/ください@217/。/」","\"Welcome. Please come in.\"",[217,447,521]],
+["cbd9cc3c",3,"「/お邪魔[じゃま]します/。/」/と/言[い]って@45/、/靴[くつ]@220/を/脱[ぬ]ぎました@505/。","I said \"Excuse me for intruding\" and took off my shoes.",[45,220,505]],
+["82abb5c6",3,"お母[かあ]さん@101/が/冷[つめ]たい@421/お茶[ちゃ]@114/を/出[だ]して@382/くれました/。","His mother brought out cold tea for us.",[101,114,382,421]],
+["f4788bbb",3,"「/お菓子[かし]@102/は/いかが@47/です/か/。/」","\"Would you like some sweets?\"",[47,102]],
+["1562648b",3,"「/ありがとうございます/。/いただきます/。/」","\"Thank you. I'll have some.\"",[]],
+["7083609d",3,"#山田[やまだ]/さん@286/の/家[いえ]@46/に/は/大[おお]きい@98/猫[ねこ]@508/が/います@70/。","There is a big cat at Yamada's house.",[46,70,98,286,508]],
+["0b4c6134",3,"猫[ねこ]@508/は/椅子[いす]@53/の/上[うえ]@75/で/寝[ね]て@509/いました/。","The cat was sleeping on a chair.",[53,75,508,509]],
+["cbf7f61b",3,"夕方[ゆうがた]@675/まで/二人[ふたり]@583/で/ゲーム/を/して@342/遊[あそ]びました@17/。","The two of us played games until the evening.",[17,342,583,675]],
+["48552a01",3,"帰[かえ]る@150/とき@453/、/「/また@624/来[き]て@229/ください@217/。/」/と/言[い]われました@45/。","When I left, I was told \"Please come again.\"",[45,150,217,229,453,624]],
+["59df88fb",4,"これ@267/は/私[わたし]@713/の/部屋[へや]@595/です/。","This is my room.",[267,595,713]],
+["aaef6f5e",4,"部屋[へや]@595/は/あまり@35/広[ひろ]く@574/ありません@40/。","The room isn't very big.",[35,40,574,595]],
+["73f5e74e",4,"でも@434/、/窓[まど]@630/が/大[おお]きい@98/の/で/明[あか]るい@6/です/。","But the window is big, so it's bright.",[6,98,434,630]],
+["a2fdc98d",4,"窓[まど]@630/の/前[まえ]@620/に/机[つくえ]@416/と/椅子[いす]@53/が/あります@40/。","There is a desk and a chair in front of the window.",[40,53,416,620,630]],
+["74dcbc52",4,"机[つくえ]@416/の/上[うえ]@75/に/本[ほん]@609/や/ノート@511/など@485/が/あります@40/。","On the desk there are books, notebooks and so on.",[40,75,416,485,511,609]],
+["23a5388b",4,"本棚[ほんだな]@611/に/は/辞書[じしょ]@296/が/三冊[さんさつ]@287,281/並[なら]んで@491/います/。","There are three dictionaries lined up on the bookshelf.",[281,287,296,491,611]],
+["127da23d",4,"ベッド@593/の/横[よこ]@685/に/小[ちい]さな@399/テーブル@426/が/あります@40/。","There is a small table beside the bed.",[40,399,426,593,685]],
+["f1401d98",4,"テーブル@426/の/上[うえ]@75/に/花瓶[かびん]@172/を/置[お]きました@105/。","I put a vase on the table.",[75,105,172,426]],
+["ea3b1a37",4,"花瓶[かびん]@172/に/は/黄色[きいろ]い@190/花[はな]@537/が/五本[ごほん]@242,610/入[はい]って@521/います/。","There are five yellow flowers in the vase.",[172,190,242,521,537,610]],
+["2b1bb55b",4,"壁[かべ]/に/カレンダー@183/を/貼[は]りました@545/。","I put a calendar up on the wall.",[183,545]],
+["eb515fc4",4,"冬[ふゆ]@586/は/ストーブ@337/を/つけます@418/。","In winter I turn on the heater.",[337,418,586]],
+["5645337c",4,"寝[ね]る@509/前[まえ]@620/に/電気[でんき]@438/を/消[け]します@235/。","I turn off the light before going to sleep.",[235,438,509,620]],
+["dc30efa7",4,"部屋[へや]@595/が/汚[きたな]い@195/の/で/、/今日[きょう]@203/は/掃除[そうじ]@358/を/します@342/。","My room is dirty, so I'll clean it today.",[195,203,342,358,595]],
+["34f9caf7",4,"掃除[そうじ]@358/の/後[あと]@26/、/部屋[へや]@595/は/とても@462/綺麗[きれい]@210/に/なりました@493/。","After cleaning, the room became very clean.",[26,210,358,462,493,595]],
+["92b37b56",4,"私[わたし]@713/は/この@263/部屋[へや]@595/が/大好[だいす]き@374/です/。","I really love this room.",[263,374,595,713]],
+["46a54dcc",5,"私[わたし]@713/の/家[いえ]@46/は/古[ふる]い@588/です/が/、/広[ひろ]い@574/です/。","My house is old, but it's spacious.",[46,574,588,713]],
+["5ee3666b",5,"家[いえ]@46/の/前[まえ]@620/に/小[ちい]さい@398/庭[にわ]@503/が/あります@40/。","There is a small garden in front of the house.",[40,46,398,503,620]],
+["b6d27278",5,"庭[にわ]@503/に/は/木[き]@188/が/二本[にほん]@495,610/と/池[いけ]@51/が/あります@40/。","In the garden there are two trees and a pond.",[40,51,188,495,503,610]],
+["0dfc809b",5,"池[いけ]@51/の/中[なか]@478/に/魚[さかな]@276/が/何匹[なんびき]@494,487/か/います@70/。","There are some fish in the pond.",[51,70,276,478,487,494]],
+["ea9892d0",5,"玄関[げんかん]@239/を/入[はい]る@521/と/、/長[なが]い@479/廊下[ろうか]@707/が/あります@40/。","When you enter the entryway, there is a long corridor.",[40,239,479,521,707]],
+["1e657991",5,"台所[だいどころ]@376/は/廊下[ろうか]@707/の/右[みぎ]@635/に/あります@40/。","The kitchen is on the right of the corridor.",[40,376,635,707]],
+["08a85e8f",5,"二階[にかい]@495,142/へ/は/階段[かいだん]@146/で/上[あ]がります/。","You go up the stairs to the second floor.",[142,146,495]],
+["2f1745a7",5,"私[わたし]@713/の/部屋[へや]@595/は/二階[にかい]@495,142/に/あります@40/。","My room is on the second floor.",[40,142,495,595,713]],
+["a246275e",5,"お手洗[てあら]い@115/は/一階[いっかい]@56,142/と/二階[にかい]@495,142/に/あります@40/。","There are toilets on the first and second floors.",[40,56,115,142,495]],
+["6a5f0e9b",5,"台所[だいどころ]@376/に/大[おお]きい@98/冷蔵庫[れいぞうこ]@703/が/あります@40/。","There is a big refrigerator in the kitchen.",[40,98,376,703]],
+["9f025d89",5,"冷蔵庫[れいぞうこ]@703/の/中[なか]@478/に/牛乳[ぎゅうにゅう]@202/と/野菜[やさい]@667/が/入[はい]って@521/います/。","There is milk and vegetables in the refrigerator.",[202,478,521,667,703]],
+["afc0ed02",5,"古[ふる]い@588/家[いえ]@46/な/の/で/、/戸[と]@441/を/開[あ]ける@9/と/音[おと]/が/します@342/。","It's an old house, so the door makes a noise when you open it.",[9,46,342,441,588]],
+["f9bace23",5,"私[わたし]@713/の/家[いえ]@46/の/隣[となり]@464/は/公園[こうえん]@244/です/。","Next to my house is a park.",[46,244,464,713]],
+["923ab85f",5,"家[いえ]@46/の/後[うし]ろ@76/に/高[たか]い@378/建物[たてもの]@386/が/あります@40/。","There is a tall building behind the house.",[40,46,76,378,386]],
+["2d90260c",5,"姉[あね]@29/は/アパート@30/に/一人[ひとり]@566/で/住[す]んで@341/います/。","My older sister lives alone in an apartment.",[29,30,341,566]],
+["652e7bfe",5,"姉[あね]@29/の/アパート@30/は/狭[せま]い@349/です/が/、/駅[えき]@91/に/近[ちか]くて@400/便利[べんり]@599/です/。","My sister's apartment is small, but it's close to the station and convenient.",[29,30,91,349,400,599]],
+["66d7dfd6",6,"私[わたし]@713/の/学校[がっこう]@167/は/駅[えき]@91/の/近[ちか]く@402/に/あります@40/。","My school is near the station.",[40,91,167,402,713]],
+["70b901c4",6,"学校[がっこう]@167/の/門[もん]@663/の/前[まえ]@620/で/友達[ともだち]@468/に/会[あ]いました@1/。","I met my friend in front of the school gate.",[1,167,468,620,663]],
+["66f49b6e",6,"教室[きょうしつ]@204/は/三階[さんがい]@287,142/に/あります@40/。","The classroom is on the third floor.",[40,142,204,287]],
+["98b356b3",6,"エレベーター@92/は/ありません@40/から/、/階段[かいだん]@146/を/使[つか]います@412/。","There's no elevator, so we use the stairs.",[40,92,146,412]],
+["fa43d0b2",6,"授業[じゅぎょう]@316/は/八時[はちじ]@535,290/半[はん]@548/に/始[はじ]まります@527/。","Class begins at eight thirty.",[290,316,527,535,548]],
+["177ce12b",6,"私[わたし]@713/の/クラス@227/に/は/学生[がくせい]@155/が/二十人[にじゅうにん]@495,313,504/います@70/。","There are twenty students in my class.",[70,155,227,313,495,504,713]],
+["bb5ff51a",6,"留学生[りゅうがくせい]@698/も/四人[よにん]@289,504/います@70/。","There are also four international students.",[70,289,504,698]],
+["f9b48b40",6,"先生[せんせい]@354/は/教室[きょうしつ]@204/に/入[はい]って@521/、/「/おはようございます/。/」/と/言[い]いました@45/。","The teacher came into the classroom and said \"Good morning.\"",[45,204,354,521]],
+["81076d51",6,"今日[きょう]@203/の/授業[じゅぎょう]@316/は/日本語[にほんご]/です/。","Today's class is Japanese.",[203,316]],
+["0204342f",6,"先生[せんせい]@354/は/黒板[こくばん]/に/漢字[かんじ]@187/を/書[か]きました@154/。","The teacher wrote kanji on the blackboard.",[154,187,354]],
+["ee6d29b8",6,"私[わたし]@713/は/鉛筆[えんぴつ]@94/で/ノート@511/に/書[か]きます@154/。","I write in my notebook with a pencil.",[94,154,511,713]],
+["54f0952b",6,"先生[せんせい]@354/の/話[はなし]@539/は/よく@684/分[わ]かりました@711/。","I understood the teacher's talk well.",[354,539,684,711]],
+["0491be76",6,"分[わ]からない@711/言葉[ことば]@261/は/辞書[じしょ]@296/で/調[しら]べます/。","I look up words I don't understand in the dictionary.",[261,296,711]],
+["a56f8bbd",6,"昼休[ひるやす]み/は/学校[がっこう]@167/の/食堂[しょくどう]@321/で/昼御飯[ひるごはん]@573/を/食[た]べます@392/。","At lunch break I eat lunch in the school cafeteria.",[167,321,392,573]],
+["f46eb2ec",6,"授業[じゅぎょう]@316/は/三時[さんじ]@287,290/に/終[お]わります@137/。","Classes end at three.",[137,287,290,316]],
+["6070e087",6,"学校[がっこう]@167/の/後[あと]@26/で/、/図書館[としょかん]@459/へ/行[い]きます@48/。","After school I go to the library.",[26,48,167,459]],
+["85d0ba0c",7,"私[わたし]@713/は/毎日[まいにち]@617/日本語[にほんご]/を/勉強[べんきょう]して@598/います/。","I study Japanese every day.",[598,617,713]],
+["24784f26",7,"平仮名[ひらがな]@571/と/片仮名[かたかな]@165/は/もう@657/覚[おぼ]えました@131/。","I've already memorized hiragana and katakana.",[131,165,571,657]],
+["747d2c19",7,"でも@434/、/漢字[かんじ]@187/は/まだ@625/難[むずか]しい@651/です/。","But kanji is still difficult.",[187,434,625,651]],
+["ca3423a5",7,"毎晩[まいばん]@619/、/新[あたら]しい@20/漢字[かんじ]@187/を/五[いつ]つ@62/ずつ@336/練習[れんしゅう]します@706/。","Every night I practice five new kanji at a time.",[20,62,187,336,619,706]],
+["454e3111",7,"新[あたら]しい@20/言葉[ことば]@261/は/ノート@511/に/書[か]いて@154/覚[おぼ]えます@131/。","I learn new words by writing them in my notebook.",[20,131,154,261,511]],
+["f410adbc",7,"時々[ときどき]@454/、/覚[おぼ]えた@131/言葉[ことば]@261/を/忘[わす]れます@712/。","Sometimes I forget words I've learned.",[131,261,454,712]],
+["00f641f5",7,"この@263/言葉[ことば]@261/の/意味[いみ]@66/が/分[わ]かりません@711/。","I don't understand the meaning of this word.",[66,261,263,711]],
+["9f65ef3b",7,"字引[じびき]@304/で/意味[いみ]@66/を/調[しら]べました/。","I looked up the meaning in a dictionary.",[66,304]],
+["cde9b716",7,"日本人[にほんじん]/の/友達[ともだち]@468/に/日本語[にほんご]/を/習[なら]って@490/います/。","I'm learning Japanese from a Japanese friend.",[468,490]],
+["b7b1033d",7,"私[わたし]@713/は/友達[ともだち]@468/に/英語[えいご]@89/を/教[おし]えます@111/。","I teach my friend English.",[89,111,468,713]],
+["6de94921",7,"日本語[にほんご]/の/文章[ぶんしょう]@590/を/読[よ]む@689/の/は/楽[たの]しい@387/です/。","Reading Japanese texts is fun.",[387,590,689]],
+["31594b83",7,"今日[きょう]@203/は/日本語[にほんご]/で/作文[さくぶん]@279/を/書[か]きました@154/。","Today I wrote a composition in Japanese.",[154,203,279]],
+["8002bdcc",7,"作文[さくぶん]@279/は/短[みじか]い@636/です/が/、/一時間[いちじかん]@56,294/かかりました@152/。","The composition is short, but it took an hour.",[56,152,279,294,636]],
+["1a8b0f36",7,"もっと@661/上手[じょうず]@318/に/話[はな]したい@540/です/。","I want to speak better.",[318,540,661]],
+["497d7af3",7,"毎日[まいにち]@617/少[すこ]し@334/ずつ@336/練習[れんしゅう]しましょう@706/。","Let's practice a little every day.",[334,336,617,706]],
+["1d5e64dd",8,"明日[あした]@15/、/漢字[かんじ]@187/の/テスト@431/が/あります@40/。","Tomorrow there's a kanji test.",[15,40,187,431]],
+["48e3142b",8,"今晩[こんばん]@272/は/遅[おそ]く@113/まで/勉強[べんきょう]します@598/。","Tonight I'll study until late.",[113,272,598]],
+["ebf1a555",8,"テスト@431/は/易[やさ]しかった@668/です/。","The test was easy.",[431,668]],
+["26768ad8",8,"でも@434/、/最後[さいご]/の/問題[もんだい]@664/は/難[むずか]しかった@651/です/。","But the last question was difficult.",[434,651,664]],
+["5cb7dd89",8,"問題[もんだい]@664/は/全部[ぜんぶ]@356/で/二十[にじゅう]@495,313/ありました@40/。","There were twenty questions in all.",[40,313,356,495,664]],
+["063d9319",8,"十五分[じゅうごふん]@313,242,589/で/全部[ぜんぶ]@356/の/問題[もんだい]@664/に/答[こた]えました@256/。","I answered all the questions in fifteen minutes.",[242,256,313,356,589,664]],
+["c48fc45a",8,"先生[せんせい]@354/、/質問[しつもん]@300/が/あります@40/。","Teacher, I have a question.",[40,300,354]],
+["6b6e6c43",8,"この@263/問題[もんだい]@664/の/答[こた]え/が/分[わ]かりません@711/。","I don't know the answer to this question.",[263,664,711]],
+["fd33de4c",8,"先生[せんせい]@354/は/ゆっくりと@681/説明[せつめい]して/くれました/。","The teacher explained it to me slowly.",[354,681]],
+["411128c0",8,"黒[くろ]い@232/ボールペン@601/で/名前[なまえ]@489/を/書[か]いて@154/ください@217/。","Please write your name with a black ball-point pen.",[154,217,232,489,601]],
+["f4618f91",8,"鉛筆[えんぴつ]@94/は/使[つか]わないで@412/ください@217/。","Please don't use pencils.",[94,217,412]],
+["b6dc9c68",8,"テスト@431/の/紙[かみ]@174/は/先生[せんせい]@354/に/出[だ]して@382/ください@217/。","Please hand your test paper in to the teacher.",[174,217,354,382,431]],
+["80ca4042",8,"次[つぎ]@414/の/ページ@591/を/見[み]て@647/ください@217/。","Please look at the next page.",[217,414,591,647]],
+["da9589cf",8,"私[わたし]@713/は/八十[はちじゅう]@535,313/点[てん]/でし/た/。","I got eighty points.",[313,535,713]],
+["201ac4b0",8,"次[つぎ]@414/の/テスト@431/は/もっと@661/頑張[がんば]ります/。","I'll try harder on the next test.",[414,431,661]],
+["81b69b64",9,"大学[だいがく]@371/の/図書館[としょかん]@459/は/とても@462/大[おお]きい@98/です/。","The university library is very big.",[98,371,459,462]],
+["0a05f6a2",9,"図書館[としょかん]@459/の/中[なか]@478/で/は/静[しず]か@297/に/して@342/ください@217/。","Please be quiet inside the library.",[217,297,342,459,478]],
+["d3d12577",9,"今日[きょう]@203/は/本[ほん]@609/を/三冊[さんさつ]@287,281/借[か]りました@179/。","Today I borrowed three books.",[179,203,281,287,609]],
+["42c4824a",9,"先週[せんしゅう]@353/借[か]りた@179/本[ほん]@609/を/返[かえ]しました@149/。","I returned the book I borrowed last week.",[149,179,353,609]],
+["f46e16c0",9,"本[ほん]@609/は/二週間[にしゅうかん]@495,315/借[か]りる@179/こと/が/できます@429/。","You can borrow books for two weeks.",[179,315,429,495,609]],
+["2fbacdec",9,"図書館[としょかん]@459/で/雑誌[ざっし]@282/や/新聞[しんぶん]@326/も/読[よ]めます@689/。","You can also read magazines and newspapers in the library.",[282,326,459,689]],
+["012c5be2",9,"この@263/本[ほん]@609/は/古[ふる]くて@588/、/ページ@591/が/黄色[きいろ]い@190/です/。","This book is old, and its pages are yellow.",[190,263,588,591,609]],
+["f2797106",9,"図書館[としょかん]@459/で/ノート@511/を/一枚[いちまい]@56,613/コピーしました@265/。","I made a copy of one page of my notebook at the library.",[56,265,459,511,613]],
+["a437617f",9,"コピー@265/は/一枚[いちまい]@56,613/十円[じゅうえん]@313,93/です/。","Copies are ten yen per sheet.",[56,93,265,313,613]],
+["dde3c17c",9,"友達[ともだち]@468/は/隣[となり]@464/の/席[せき]/で/宿題[しゅくだい]@317/を/して@342/いました/。","My friend was doing homework in the next seat.",[317,342,464,468]],
+["84be3a5f",9,"宿題[しゅくだい]@317/が/多[おお]くて@97/、/大変[たいへん]@377/です/。","There's a lot of homework, and it's hard.",[97,317,377]],
+["39995872",9,"図書館[としょかん]@459/は/夜[よる]@690/九時[くじ]@215,290/に/閉[し]まります@306/。","The library closes at nine at night.",[215,290,306,459,690]],
+["405a8eb8",10,"昼御飯[ひるごはん]@573/は/いつも@63/学校[がっこう]@167/の/食堂[しょくどう]@321/で/食[た]べます@392/。","I always eat lunch in the school cafeteria.",[63,167,321,392,573]],
+["0081b456",10,"食堂[しょくどう]@321/は/いつも@63/学生[がくせい]@155/が/大勢[おおぜい]@100/います@70/。","There are always lots of students in the cafeteria.",[63,70,100,155,321]],
+["e6e0e0fb",10,"今日[きょう]@203/は/カレー@182/を/食[た]べました@392/。","Today I ate curry.",[182,203,392]],
+["6c9142c6",10,"この@263/カレー@182/は/ちょっと@410/辛[から]い@177/です/。","This curry is a bit spicy.",[177,182,263,410]],
+["fd5dd064",10,"カレー@182/は/一[いち]@56/皿[さら]/四百円[よんひゃくえん]@289,568,93/です/。","Curry is four hundred yen a plate.",[56,93,182,289,568]],
+["03a0e3ae",10,"友達[ともだち]@468/は/豚肉[ぶたにく]@582/と/野菜[やさい]@667/の/料理[りょうり]@700/を/頼[たの]みました@388/。","My friend ordered a pork and vegetable dish.",[388,468,582,667,700]],
+["cedc899f",10,"食堂[しょくどう]@321/の/料理[りょうり]@700/は/安[やす]くて@669/美味[おい]しい@96/です/。","The cafeteria food is cheap and delicious.",[96,321,669,700]],
+["c9a10219",10,"水[みず]@637/は/コップ@259/で/飲[の]みます@514/。","I drink water from a glass.",[259,514,637]],
+["47d5c886",10,"私[わたし]@713/は/箸[はし]@526/で/食[た]べます@392/が/、/留学生[りゅうがくせい]@698/の/友達[ともだち]@468/は/フォーク@578/を/使[つか]います@412/。","I eat with chopsticks, but my international-student friend uses a fork.",[392,412,468,526,578,698,713]],
+["a719e2fc",10,"カレー@182/は/スプーン@338/で/食[た]べます@392/。","You eat curry with a spoon.",[182,338,392]],
+["32bab641",10,"ご飯[はん]@264/を/もう@657/少[すこ]し@334/食[た]べたい@392/です/。","I want to eat a bit more rice.",[264,334,392,657]],
+["ca0f53e1",10,"お腹[なか]@123/が/いっぱい/に/なりました@493/。","I'm full.",[123,493]],
+["c7a6f4ab",10,"食[た]べた@392/後[あと]@26/で/、/お皿[さら]@108/を/返[かえ]します@149/。","After eating, I return the plate.",[26,108,149,392]],
+["4480602b",11,"今日[きょう]@203/は/私[わたし]@713/が/晩御飯[ばんごはん]@554/を/作[つく]ります@417/。","Today I'll make dinner.",[203,417,554,713]],
+["df0ba940",11,"冷蔵庫[れいぞうこ]@703/に/鶏肉[とりにく]@471/と/卵[たまご]@393/が/あります@40/。","There's chicken and eggs in the refrigerator.",[40,393,471,703]],
+["0f827f29",11,"八百屋[やおや]@666/で/野菜[やさい]@667/を/買[か]って@148/きました/。","I went to the greengrocer's and bought vegetables.",[148,666,667]],
+["f7e2f843",11,"まず/、/ナイフ@477/で/野菜[やさい]@667/を/切[き]ります@208/。","First, I cut the vegetables with a knife.",[208,477,667]],
+["936d0a5f",11,"鶏肉[とりにく]@471/も/小[ちい]さく@398/切[き]ります@208/。","I cut the chicken small, too.",[208,398,471]],
+["af48bd2c",11,"塩[しお]@291/と/醤油[しょうゆ]@320/を/少[すこ]し@334/入[い]れます@72/。","I add a little salt and soy sauce.",[72,291,320,334]],
+["4eb59584",11,"砂糖[さとう]@283/を/入[い]れ@72/すぎた@331/の/で/、/甘[あま]く@34/なりました@493/。","I put in too much sugar, so it became sweet.",[34,72,283,331,493]],
+["4cfe14d9",11,"母[はは]@541/は/「/美味[おい]しい@96/よ/。/」/と/言[い]いました@45/。","My mother said, \"It's delicious.\"",[45,96,541]],
+["693e4795",11,"父[ちち]@405/は/牛肉[ぎゅうにく]@201/が/好[す]き@330/です/が/、/私[わたし]@713/は/魚[さかな]@276/の/ほう@163/が/好[す]き@330/です/。","My father likes beef, but I prefer fish.",[163,201,276,330,405,713]],
+["80779579",11,"ご飯[はん]@264/を/茶碗[ちゃわん]@407/に/入[い]れて@72/、/テーブル@426/に/並[なら]べます@492/。","I put rice in the bowls and line them up on the table.",[72,264,407,426,492]],
+["eea37c35",11,"晩御飯[ばんごはん]@554/の/後[あと]@26/で/、/お皿[さら]@108/を/洗[あら]います@38/。","After dinner, I wash the dishes.",[26,38,108,554]],
+["beadb752",11,"料理[りょうり]@700/は/大変[たいへん]@377/です/が/、/楽[たの]しい@387/です/。","Cooking is hard work, but it's fun.",[377,387,700]],
+["4f34f970",12,"駅[えき]@91/の/前[まえ]@620/に/小[ちい]さな@399/喫茶店[きっさてん]@196/が/あります@40/。","There's a small café in front of the station.",[40,91,196,399,620]],
+["26c47f40",12,"私[わたし]@713/は/土曜日[どようび]@469/の/午後[ごご]@252/、/よく@684/そこ@360/へ/行[い]きます@48/。","I often go there on Saturday afternoons.",[48,252,360,469,684,713]],
+["debece49",12,"店[みせ]@638/の/人[ひと]@563/が/「/いらっしゃいませ/。/」/と/言[い]いました@45/。","The shop staff said, \"Welcome.\"",[45,563,638]],
+["989a8244",12,"「/何[なに]@487/に/なさいます/か/。/」","\"What would you like?\"",[487]],
+["b3637665",12,"「/紅茶[こうちゃ]@246/を/一[ひと]つ@564/お願[ねが]いします/。/」","\"One black tea, please.\"",[246,564]],
+["c8462226",12,"友達[ともだち]@468/は/コーヒー@250/を/頼[たの]みました@388/。","My friend ordered coffee.",[250,388,468]],
+["9696c418",12,"この@263/コーヒー@250/は/少[すこ]し@334/温[ぬる]い@506/です/。","This coffee is a little lukewarm.",[250,263,334,506]],
+["45f6bb3b",12,"「/すみません@341/、/熱[あつ]い@23/の/を/もう@657/一杯[いっぱい]@56,519/ください@217/。/」","\"Excuse me, may I have another hot one?\"",[23,56,217,341,519,657]],
+["10824c23",12,"甘[あま]い@34/ケーキ/も/食[た]べました@392/。","We also ate some sweet cake.",[34,392]],
+["d0a20287",12,"カップ@168/も/お皿[さら]@108/も/とても@462/可愛[かわい]い@186/です/。","The cups and the plates are very cute.",[108,168,186,462]],
+["c2760016",12,"喫茶店[きっさてん]@196/で/一時間[いちじかん]@56,294/ぐらい@226/話[はな]しました@540/。","We talked at the café for about an hour.",[56,196,226,294,540]],
+["d9b0490b",12,"二人[ふたり]@583/で/千二百円[せんにひゃくえん]@351,495,568,93/でし/た/。","It was one thousand two hundred yen for the two of us.",[93,351,495,568,583]],
+["24256b5a",13,"日曜日[にちようび]@500/に/母[はは]@541/と/デパート@433/へ/買[か]い物[もの]@147/に/行[い]きました@48/。","On Sunday I went shopping at the department store with my mother.",[48,147,433,500,541]],
+["90f1d09f",13,"デパート@433/は/人[ひと]@563/が/多[おお]くて@97/、/とても@462/にぎやか@496/でし/た/。","The department store was crowded and very lively.",[97,433,462,496,563]],
+["7dc466ad",13,"洋服[ようふく]@683/の/売[う]り場[ば]/は/四階[よんかい]@289,142/です/。","The clothing section is on the fourth floor.",[142,289,683]],
+["f1d4abda",13,"エレベーター@92/で/四階[よんかい]@289,142/まで/上[あ]がりました/。","We went up to the fourth floor in the elevator.",[92,142,289]],
+["22528de9",13,"私[わたし]@713/は/新[あたら]しい@20/セーター@346/が/欲[ほ]しかった@604/です/。","I wanted a new sweater.",[20,346,604,713]],
+["e6e91c43",13,"「/すみません@341/、/その@364/緑[みどり]@643/の/セーター@346/を/見[み]せて@639/ください@217/。/」","\"Excuse me, please show me that green sweater.\"",[217,341,346,364,639,643]],
+["b2370daa",13,"「/これ@267/は/いくら@50/です/か/。/」","\"How much is this?\"",[50,267]],
+["9031e84b",13,"「/五千八百円[ごせんはっぴゃくえん]@242,351,535,568,93/です/。/」","\"It's five thousand eight hundred yen.\"",[93,242,351,535,568]],
+["926d9e8f",13,"ちょっと@410/高[たか]い@378/です/ね/。","It's a little expensive, isn't it?",[378,410]],
+["8a98dda4",13,"「/もう@657/少[すこ]し@334/安[やす]い@669/の/は/ありません@40/か/。/」","\"Don't you have a slightly cheaper one?\"",[40,334,657,669]],
+["b8195063",13,"店[みせ]@638/の/人[ひと]@563/は/茶色[ちゃいろ]@406/の/セーター@346/を/持[も]って@660/きました/。","The shop assistant brought a brown sweater.",[346,406,563,638,660]],
+["7851cbc1",13,"茶色[ちゃいろ]@406/の/は/三千円[さんぜんえん]@287,351,93/で/、/安[やす]かった@669/です/。","The brown one was three thousand yen, so it was cheap.",[93,287,351,406,669]],
+["40885761",13,"でも@434/、/色[いろ]@73/が/あまり@35/好[す]き@330/で/は/ありませんでした@40/。","But I didn't like the color much.",[35,40,73,330,434]],
+["32928df5",13,"結局[けっきょく]/、/緑[みどり]@643/の/を/買[か]いました@148/。","In the end, I bought the green one.",[148,643]],
+["238100b5",13,"財布[さいふ]@275/から/一万円[いちまんえん]@56,632,93/を/出[だ]しました@382/。","I took ten thousand yen out of my wallet.",[56,93,275,382,632]],
+["80a9596f",13,"母[はは]@541/は/黒[くろ]い@232/かばん@171/と/白[しろ]い@324/傘[かさ]@159/を/買[か]いました@148/。","My mother bought a black bag and a white umbrella.",[148,159,171,232,324,541]],
+["12845292",13,"デパート@433/の/八階[はっかい]@535,142/に/レストラン@705/が/あります@40/。","There are restaurants on the eighth floor of the department store.",[40,142,433,535,705]],
+["bb0f7029",14,"家[いえ]@46/の/近[ちか]く@402/に/古[ふる]い@588/八百屋[やおや]@666/が/あります@40/。","There's an old greengrocer's near my house.",[40,46,402,588,666]],
+["f3010b64",14,"八百屋[やおや]@666/の/おじさん@109/は/いつも@63/元気[げんき]@240/です/。","The man at the greengrocer's is always cheerful.",[63,109,240,666]],
+["7848ba5f",14,"今日[きょう]@203/は/野菜[やさい]@667/と/果物[くだもの]@218/を/買[か]いました@148/。","Today I bought vegetables and fruit.",[148,203,218,667]],
+["bc6cffbc",14,"りんご/を/五[いつ]つ@62/と/卵[たまご]@393/を/十個[じゅっこ]@313,241/買[か]いました@148/。","I bought five apples and ten eggs.",[62,148,241,313,393]],
+["747f5cc0",14,"りんご/は/一[ひと]つ@564/百二十円[ひゃくにじゅうえん]@568,495,313,93/です/。","Apples are one hundred twenty yen each.",[93,313,495,564,568]],
+["0cedafa3",14,"全部[ぜんぶ]@356/で/千円[せんえん]@351,93/ぐらい@226/でし/た/。","It was about a thousand yen in all.",[93,226,351,356]],
+["83b9b278",14,"魚[さかな]@276/屋[や]@665/で/魚[さかな]@276/も/二匹[にひき]@495,557/買[か]いました@148/。","I also bought two fish at the fish shop.",[148,276,495,557,665]],
+["2e8ec9e4",14,"肉[にく]@497/屋[や]@665/で/は/豚肉[ぶたにく]@582/を/三百[さんびゃく]グラム@287,568,228/買[か]いました@148/。","At the butcher's I bought three hundred grams of pork.",[148,228,287,497,568,582,665]],
+["47560d9f",14,"荷物[にもつ]@501/が/重[おも]く@133/なりました@493/。","My bags got heavy.",[133,493,501]],
+["3e7709c0",14,"帰[かえ]り道[みち]/で/パン@551/屋[や]@665/に/寄[よ]りました/。","On the way home I stopped by the bakery.",[551,665]],
+["336b2478",14,"パン@551/屋[や]@665/の/パン@551/は/柔[やわ]らかくて/美味[おい]しい@96/です/。","The bakery's bread is soft and delicious.",[96,551,665]],
+["9c8e3e9c",14,"その@364/パン@551/屋[や]@665/は/朝[あさ]@11/七時[しちじ]@299,290/から/売[う]って@83/います/。","That bakery sells from seven in the morning.",[11,83,290,299,364,551,665]],
+["96dd26b0",14,"お金[かね]@103/が/少[すく]なく@332/なった@493/の/で/、/銀行[ぎんこう]@213/へ/行[い]きます@48/。","I'm running low on money, so I'll go to the bank.",[48,103,213,332,493]],
+["5cc0445c",15,"来週[らいしゅう]@693/の/金曜日[きんようび]@214/は/母[はは]@541/の/誕生日[たんじょうび]@396/です/。","Next Friday is my mother's birthday.",[214,396,541,693]],
+["323cd59f",15,"母[はは]@541/に/何[なに]@487/を/あげましょう/か/。","What shall I give my mother?",[487,541]],
+["5b61f827",15,"兄[あに]@28/と/二人[ふたり]@583/で/考[かんが]えました/。","My older brother and I thought about it together.",[28,583]],
+["ac09f394",15,"母[はは]@541/は/花[はな]@537/が/好[す]き@330/です/から/、/花瓶[かびん]@172/を/買[か]いましょう@148/。","Mother likes flowers, so let's buy a vase.",[148,172,330,537,541]],
+["3ab1b957",15,"駅[えき]@91/の/近[ちか]く@402/の/店[みせ]@638/で/丸[まる]い@631/花瓶[かびん]@172/を/見[み]つけました/。","I found a round vase at a shop near the station.",[91,172,402,631,638]],
+["be4a55cf",15,"花瓶[かびん]@172/は/白[しろ]くて@324/、/とても@462/綺麗[きれい]@210/です/。","The vase is white and very pretty.",[172,210,324,462]],
+["53e71cca",15,"店[みせ]@638/の/人[ひと]@563/が/花瓶[かびん]@172/を/箱[はこ]@524/に/入[い]れて@72/くれました/。","The shop assistant put the vase in a box for me.",[72,172,524,563,638]],
+["2c9f1859",15,"カード/に/「/お母[かあ]さん@101/、/ありがとう/。/」/と/書[か]きました@154/。","On the card I wrote, \"Thank you, Mom.\"",[101,154]],
+["c811773b",15,"誕生日[たんじょうび]@396/の/夜[よる]@690/、/母[はは]@541/に/箱[はこ]@524/を/渡[わた]しました@715/。","On the night of her birthday, I handed the box to my mother.",[396,524,541,690,715]],
+["29bdd3fa",15,"母[はは]@541/は/とても@462/喜[よろこ]びました/。","My mother was very happy.",[462,541]],
+["c2cded07",16,"私[わたし]@713/の/町[まち]@626/は/あまり@35/大[おお]きく@98/ありません@40/が/、/便利[べんり]@599/です/。","My town isn't very big, but it's convenient.",[35,40,98,599,626,713]],
+["f88d0e98",16,"駅[えき]@91/の/前[まえ]@620/に/は/銀行[ぎんこう]@213/と/郵便局[ゆうびんきょく]@677/が/あります@39/。","In front of the station there's a bank and a post office.",[39,91,213,620,677]],
+["e93d46cc",16,"郵便局[ゆうびんきょく]@677/の/隣[となり]@464/に/小[ちい]さい@398/本[ほん]@609/屋[や]@665/が/あります@40/。","Next to the post office there's a small bookshop.",[40,398,464,609,665,677]],
+["6355d744",16,"駅[えき]@91/の/北[きた]@193/側[がわ]@185/に/大[おお]きい@98/公園[こうえん]@244/が/あります@39/。","There's a big park on the north side of the station.",[39,91,98,185,193,244]],
+["ea1d958a",16,"公園[こうえん]@244/の/向[む]こう@650/に/病院[びょういん]@569/が/あります@40/。","Beyond the park there's a hospital.",[40,244,569,650]],
+["6ea031d8",16,"駅[えき]@91/の/南[みなみ]@645/に/は/古[ふる]い@588/お寺[てら]@95/が/あります@40/。","South of the station there's an old temple.",[40,91,95,588,645]],
+["c5c8c338",16,"この@263/お寺[てら]@95/は/とても@462/有名[ゆうめい]@679/です/。","This temple is very famous.",[95,263,462,679]],
+["f7a6d6a2",16,"町[まち]@626/の/東[ひがし]@556/に/川[かわ]@184/が/流[なが]れて/います/。","A river flows on the east side of town.",[184,556,626]],
+["5ae6b2e2",16,"川[かわ]@184/に/は/古[ふる]い@588/橋[はし]@525/が/あります@40/。","There's an old bridge over the river.",[40,184,525,588]],
+["048c29a6",16,"町[まち]@626/の/西[にし]@498/に/は/高[たか]い@378/山[やま]@673/が/見[み]えます/。","You can see tall mountains to the west of the town.",[378,498,626,673]],
+["514c16f3",16,"夜[よる]@690/の/町[まち]@626/は/とても@462/静[しず]か@297/です/。","The town at night is very quiet.",[297,462,626,690]],
+["99c7f12e",16,"でも@434/、/週末[しゅうまつ]/の/駅前[えきまえ]/は/にぎやか@496/です/。","But the area in front of the station is lively on weekends.",[434,496]],
+["a532e0e3",16,"私[わたし]@713/は/この@263/町[まち]@626/が/大好[だいす]き@374/です/。","I love this town.",[263,374,626,713]],
+["0a1e08be",17,"「/すみません@341/、/郵便局[ゆうびんきょく]@677/は/どこ@456/です/か/。/」","\"Excuse me, where is the post office?\"",[341,456,677]],
+["5ded0737",17,"「/この@263/道[みち]@640/を/まっすぐ@628/行[い]って@48/ください@217/。/」","\"Please go straight along this road.\"",[48,217,263,628,640]],
+["9707753a",17,"「/二[ふた]つ@581/目[め]/の/角[かど]@170/を/右[みぎ]@635/に/曲[ま]がって@622/ください@217/。/」","\"Please turn right at the second corner.\"",[170,217,581,622,635]],
+["7668299c",17,"「/交差点[こうさてん]@245/を/渡[わた]る@716/と/、/左[ひだり]@562/側[がわ]@185/に/郵便局[ゆうびんきょく]@677/が/あります@40/。/」","\"When you cross the intersection, the post office is on the left.\"",[40,185,245,562,677,716]],
+["fa24fbe9",17,"「/ここ@251/から/遠[とお]い@451/です/か/。/」","\"Is it far from here?\"",[251,451]],
+["265ddeed",17,"「/いいえ@44/、/近[ちか]い@400/です/よ/。/歩[ある]いて@41/五分[ごふん]@242,589/ぐらい@226/です/。/」","\"No, it's close. It's about a five-minute walk.\"",[41,44,226,242,400,589]],
+["dedc3899",17,"「/ありがとう/ございました/。/」","\"Thank you very much.\"",[]],
+["ec7bd55a",17,"分[わ]からない@711/とき@453/は/、/交番[こうばん]@247/で/道[みち]@640/を/聞[き]きます@192/。","When I don't know the way, I ask at a police box.",[192,247,453,640,711]],
+["d419bf99",17,"交番[こうばん]@247/の/おまわりさん@132/は/とても@462/親切[しんせつ]/です/。","The police officer at the police box is very kind.",[132,247,462]],
+["89422ff4",17,"おまわりさん@132/は/地図[ちず]@404/を/見[み]せて@639/くれました/。","The police officer showed me a map.",[132,404,639]],
+["f88709fe",17,"銀行[ぎんこう]@213/の/角[かど]@170/を/左[ひだり]@562/に/曲[ま]がる@622/と/、/大使館[たいしかん]@372/が/あります@40/。","If you turn left at the bank's corner, there's the embassy.",[40,170,213,372,562,622]],
+["3e850ab0",17,"大使館[たいしかん]@372/の/入口[いりぐち]@69/は/門[もん]@663/の/横[よこ]@685/です/。","The embassy entrance is beside the gate.",[69,372,663,685]],
+["58492ee3",17,"この@263/辺[へん]@596/は/車[くるま]@230/が/多[おお]い@97/の/で/、/危[あぶ]ない@33/です/。","There are a lot of cars around here, so it's dangerous.",[33,97,230,263,596]],
+["2e5378de",17,"道[みち]@640/を/渡[わた]る@716/とき@453/は/、/右[みぎ]@635/と/左[ひだり]@562/を/よく@684/見[み]ましょう@647/。","When you cross the road, look carefully right and left.",[453,562,635,640,647,684,716]],
+["6b377689",18,"駅[えき]@91/は/いつも@63/人[ひと]@563/が/大勢[おおぜい]@100/います@70/。","There are always lots of people at the station.",[63,70,91,100,563]],
+["eebb15cb",18,"駅[えき]@91/の/入口[いりぐち]@69/で/友達[ともだち]@468/を/待[ま]ちました@627/。","I waited for my friend at the station entrance.",[69,91,468,627]],
+["f803db4a",18,"切符[きっぷ]@198/は/一枚[いちまい]@56,613/二百五十円[にひゃくごじゅうえん]@495,568,242,313,93/です/。","A ticket is two hundred fifty yen.",[56,93,198,242,313,495,568,613]],
+["e5d52e20",18,"機械[きかい]/で/切符[きっぷ]@198/を/買[か]いました@148/。","I bought a ticket from the machine.",[148,198]],
+["63743137",18,"ボタン@607/を/押[お]す@112/と/、/切符[きっぷ]@198/が/出[で]て@435/きます/。","When you press the button, the ticket comes out.",[112,198,435,607]],
+["3d0c07da",18,"電車[でんしゃ]@439/は/三番[さんばん]@287,550/線[せん]/から/出[で]ます@435/。","The train leaves from track three.",[287,435,439,550]],
+["6ac54e95",18,"ホーム/で/電車[でんしゃ]@439/を/待[ま]ちます@627/。","I wait for the train on the platform.",[439,627]],
+["78b2c5a3",18,"みんな@648/一列[いちれつ]/に/並[なら]んで@491/います/。","Everyone is lined up in a single line.",[491,648]],
+["6c9bbc35",18,"電車[でんしゃ]@439/が/ゆっくりと@681/止[と]まりました@467/。","The train came slowly to a stop.",[439,467,681]],
+["035bbf21",18,"電車[でんしゃ]@439/の/中[なか]@478/は/人[ひと]@563/が/多[おお]くて@97/、/座[すわ]る@343/こと/が/できませんでした@429/。","The train was crowded, and I couldn't sit down.",[97,343,429,439,478,563]],
+["8f3754fa",18,"次[つぎ]@414/の/駅[えき]@91/で/降[お]ります@136/。","I get off at the next station.",[91,136,414]],
+["5c16cdf3",18,"降[お]りる@136/人[ひと]@563/が/先[さき]@277/です/。","People getting off go first.",[136,277,563]],
+["e73571eb",18,"出口[でぐち]@430/は/東口[ひがしぐち]/と/西口[にしぐち]/が/あります@40/。","There are two exits, the east exit and the west exit.",[40,430]],
+["2d8f8306",18,"駅[えき]@91/の/出口[でぐち]@430/で/友達[ともだち]@468/が/手[て]@423/を/振[ふ]って/いました/。","My friend was waving at the station exit.",[91,423,430,468]],
+["6a6c8b5c",19,"父[ちち]@405/は/毎朝[まいあさ]@614/地下鉄[ちかてつ]@403/で/会社[かいしゃ]@145/へ/行[い]きます@48/。","My father goes to his office by subway every morning.",[48,145,403,405,614]],
+["29de6810",19,"家[いえ]@46/から/会社[かいしゃ]@145/まで/一時間[いちじかん]@56,294/かかります@152/。","It takes an hour from home to the office.",[46,56,145,152,294]],
+["161567aa",19,"母[はは]@541/は/自転車[じてんしゃ]@301/で/近[ちか]く@402/の/店[みせ]@638/へ/行[い]きます@48/。","My mother goes to the nearby shop by bicycle.",[48,301,402,541,638]],
+["82902ec5",19,"兄[あに]@28/は/自動車[じどうしゃ]@302/を/一台[いちだい]@56,370/持[も]って@660/います/。","My older brother owns one car.",[28,56,302,370,660]],
+["38982153",19,"兄[あに]@28/の/車[くるま]@230/は/古[ふる]い@588/です/が/、/丈夫[じょうぶ]@319/です/。","My brother's car is old, but sturdy.",[28,230,319,588]],
+["e19fcc1d",19,"雨[あめ]@36/の/日[ひ]/は/バス@531/に/乗[の]ります@515/。","On rainy days I take the bus.",[36,515,531]],
+["36ecf6db",19,"バス停[てい]/は/家[いえ]@46/の/前[まえ]@620/に/あります@40/。","The bus stop is in front of my house.",[40,46,620]],
+["ce12cefb",19,"バス@531/は/十分[じゅっぷん]@313,589/に/一台[いちだい]@56,370/来[き]ます@229/。","A bus comes every ten minutes.",[56,229,313,370,531,589]],
+["1e0fea6c",19,"今朝[けさ]@234/は/バス@531/が/なかなか/来[き]ませんでした@229/。","This morning the bus took a long time to come.",[229,234,531]],
+["61fc37ed",19,"遅[おそ]く@113/なった@493/の/で/、/タクシー@381/に/乗[の]りました@515/。","I was late, so I took a taxi.",[113,381,493,515]],
+["22008a8c",19,"タクシー@381/は/速[はや]くて@543/便利[べんり]@599/です/が/、/高[たか]い@378/です/。","Taxis are fast and convenient, but expensive.",[378,381,543,599]],
+["7433b90e",19,"会社[かいしゃ]@145/に/は/九時[くじ]@215,290/ちょうど@409/に/着[つ]きました@415/。","I arrived at the office at exactly nine.",[145,215,290,409,415]],
+["3eef7fc2",20,"夏休[なつやす]み@484/に/家族[かぞく]@164/と/旅行[りょこう]@701/を/しました@342/。","During the summer vacation I went on a trip with my family.",[164,342,484,701]],
+["cd3eab2a",20,"飛行機[ひこうき]@561/で/北海道[ほっかいどう]/へ/行[い]きました@48/。","We went to Hokkaido by plane.",[48,561]],
+["5c3679b8",20,"飛行機[ひこうき]@561/に/乗[の]る@515/の/は/初[はじ]めて@529/でし/た/。","It was my first time on a plane.",[515,529,561]],
+["50629d37",20,"飛行機[ひこうき]@561/は/空[そら]@366/を/高[たか]く@378/飛[と]びました@466/。","The plane flew high in the sky.",[366,378,466,561]],
+["00eb72ba",20,"窓[まど]@630/から/白[しろ]い@324/雲[くも]/が/見[み]えました/。","I could see white clouds from the window.",[324,630]],
+["23d08190",20,"空港[くうこう]/から/ホテル@608/まで/バス@531/で/四十分[よんじゅっぷん]@289,313,589/でし/た/。","It was forty minutes by bus from the airport to the hotel.",[289,313,531,589,608]],
+["1d4e10ac",20,"ホテル@608/は/とても@462/りっぱ@697/な/建物[たてもの]@386/でし/た/。","The hotel was a very splendid building.",[386,462,608,697]],
+["1443a8a4",20,"部屋[へや]@595/は/十二階[じゅうにかい]@313,495,142/で/、/海[うみ]@82/が/よく@684/見[み]えました/。","Our room was on the twelfth floor, and we could see the sea well.",[82,142,313,495,595,684]],
+["234c3c21",20,"荷物[にもつ]@501/を/部屋[へや]@595/に/置[お]いて@105/、/町[まち]@626/を/散歩[さんぽ]しました@288/。","We put our luggage in the room and strolled around the town.",[105,288,501,595,626]],
+["0dc85ad6",20,"北海道[ほっかいどう]/は/夏[なつ]@483/で/も/涼[すず]しい@335/です/。","Hokkaido is cool even in summer.",[335,483]],
+["db8ff6ad",20,"私[わたし]@713/たち@383/は/そこ@360/に/五日[いつか]@60/いました@70/。","We stayed there for five days.",[60,70,360,383,713]],
+["addccb06",20,"旅行[りょこう]@701/の/写真[しゃしん]@310/を/たくさん@380/撮[と]りました@473/。","I took lots of photos on the trip.",[310,380,473,701]],
+["8df7537a",20,"とても@462/楽[たの]しい@387/旅行[りょこう]@701/でし/た/。","It was a very enjoyable trip.",[387,462,701]],
+["45598ba8",21,"ホテル@608/の/人[ひと]@563/に/名前[なまえ]@489/を/言[い]いました@45/。","I told the hotel staff my name.",[45,489,563,608]],
+["5a7936d6",21,"「/お名前[なまえ]@95,489/を/ここ@251/に/書[か]いて@154/ください@217/。/」","\"Please write your name here.\"",[95,154,217,251,489]],
+["5d1b99fa",21,"部屋[へや]@595/の/番号[ばんごう]@553/は/八百五[はっぴゃくご]@535,568,242/です/。","The room number is 805.",[242,535,553,568,595]],
+["7a953017",21,"部屋[へや]@595/の/鍵[かぎ]@153/を/もらいました/。","I received the room key.",[153,595]],
+["647885c4",21,"エレベーター@92/で/八階[はっかい]@535,142/へ/上[あ]がりました/。","I went up to the eighth floor in the elevator.",[92,142,535]],
+["64addd10",21,"部屋[へや]@595/は/広[ひろ]くて@574/、/ベッド@593/が/二[ふた]つ@581/ありました@40/。","The room was spacious and had two beds.",[40,574,581,593,595]],
+["80636f0c",21,"窓[まど]@630/から/町[まち]@626/の/明[あ]かり/が/見[み]えました/。","I could see the lights of the town from the window.",[626,630]],
+["c0b98161",21,"お風呂[ふろ]@129/に/入[はい]って@521/、/早[はや]く@542/寝[ね]ました@509/。","I took a bath and went to bed early.",[129,509,521,542]],
+["ab04e972",21,"朝[あさ]@11/、/ホテル@608/の/レストラン@705/で/朝御飯[あさごはん]@12/を/食[た]べました@392/。","In the morning I had breakfast at the hotel restaurant.",[11,12,392,608,705]],
+["93f8e3af",21,"帰[かえ]る@150/とき@453/、/鍵[かぎ]@153/を/返[かえ]しました@149/。","When I left, I returned the key.",[149,150,153,453]],
+["f9893a47",22,"今日[きょう]@203/は/いい@43/天気[てんき]@437/です/。","It's nice weather today.",[43,203,437]],
+["4072e87d",22,"空[そら]@366/は/青[あお]くて@3/、/雲[くも]/が/一[ひと]つ@564/も/ありません@40/。","The sky is blue, and there isn't a single cloud.",[3,40,366,564]],
+["4686b880",22,"天気予報[てんきよほう]/に/よる@690/と/、/明日[あした]@15/は/曇[くも]り@223/です/。","According to the weather forecast, tomorrow will be cloudy.",[15,223,690]],
+["f4053e79",22,"午後[ごご]@252/から/雨[あめ]@36/が/降[ふ]る@587/でしょう/。","It will probably rain from the afternoon.",[36,252,587]],
+["b56ec50e",22,"傘[かさ]@159/を/持[も]って@660/出[で]かけましょう@427/。","Let's go out with an umbrella.",[159,427,660]],
+["e0286f15",22,"夕方[ゆうがた]@675/、/空[そら]@366/が/暗[くら]く@225/なりました@493/。","In the evening the sky became dark.",[225,366,493,675]],
+["aba30178",22,"急[きゅう]に/強[つよ]い@422/風[かぜ]@161/が/吹[ふ]きました@579/。","Suddenly a strong wind blew.",[161,422,579]],
+["eee9393d",22,"雨[あめ]@36/が/降[ふ]って@587/きた/の/で/、/傘[かさ]@159/を/差[さ]しました@280/。","It started raining, so I put up my umbrella.",[36,159,280,587]],
+["8064668b",22,"雨[あめ]@36/は/夜[よる]@690/まで/止[や]みませんでした/。","The rain didn't stop until night.",[36,690]],
+["a1daae90",22,"次[つぎ]@414/の/日[ひ]/は/よく@684/晴[は]れました@547/。","The next day was nice and sunny.",[414,547,684]],
+["2e43dccf",22,"晴[は]れ@546/の/日[ひ]/は/散歩[さんぽ]@288/に/行[い]きます@48/。","On sunny days I go for walks.",[48,288,546]],
+["755210fc",22,"今日[きょう]@203/は/朝[あさ]@11/から/曇[くも]って@224/います/。","It has been cloudy since this morning.",[11,203,224]],
+["e5705719",22,"今日[きょう]@203/の/気温[きおん]/は/二十五度[にじゅうごど]@495,313,242,442/です/。","Today's temperature is twenty-five degrees.",[203,242,313,442,495]],
+["6689cd16",23,"日本[にほん]/に/は/春[はる]@544/、/夏[なつ]@483/、/秋[あき]@7/、/冬[ふゆ]@586/が/あります@40/。","Japan has spring, summer, fall and winter.",[7,40,483,544,586]],
+["03101fa8",23,"春[はる]@544/は/暖[あたた]かくて@18/、/花[はな]@537/が/たくさん@380/咲[さ]きます@278/。","Spring is warm, and lots of flowers bloom.",[18,278,380,537,544]],
+["6ab119e1",23,"春[はる]@544/に/なる@493/と/、/公園[こうえん]@244/の/桜[さくら]/が/咲[さ]きます@278/。","When spring comes, the cherry blossoms in the park bloom.",[244,278,493,544]],
+["395292ec",23,"夏[なつ]@483/は/とても@462/暑[あつ]い@22/です/。","Summer is very hot.",[22,462,483]],
+["19a034f9",23,"夏[なつ]@483/は/海[うみ]@82/や/プール@577/で/泳[およ]ぎます@135/。","In summer I swim in the sea or in pools.",[82,135,483,577]],
+["474ab599",23,"秋[あき]@7/は/涼[すず]しくて@335/、/過[す]ごし/やすい@669/です/。","Fall is cool and pleasant.",[7,335,669]],
+["b8a58264",23,"秋[あき]@7/の/山[やま]@673/は/赤[あか]@4/や/黄色[きいろ]@189/に/なって@493/、/綺麗[きれい]@210/です/。","Mountains in the fall turn red and yellow and are beautiful.",[4,7,189,210,493,673]],
+["4a3a48af",23,"冬[ふゆ]@586/は/寒[さむ]くて@284/、/雪[ゆき]@680/が/降[ふ]ります@587/。","Winter is cold, and it snows.",[284,586,587,680]],
+["a67d24b8",23,"冬[ふゆ]@586/の/朝[あさ]@11/は/ベッド@593/から/出[で]たくない@435/です/。","On winter mornings I don't want to get out of bed.",[11,435,586,593]],
+["82a3bacd",23,"私[わたし]@713/は/一年[いちねん]@56,510/の/中[なか]@478/で/秋[あき]@7/が/一番[いちばん]@58/好[す]き@330/です/。","Of the whole year, I like fall best.",[7,56,58,330,478,510,713]],
+["69707325",23,"姉[あね]@29/は/冬[ふゆ]@586/が/嫌[きら]い@207/です/。","My older sister dislikes winter.",[29,207,586]],
+["eb081c82",23,"今年[ことし]@260/の/夏[なつ]@483/は/去年[きょねん]@206/より/暑[あつ]い@22/です/。","This summer is hotter than last year.",[22,206,260,483]],
+["7fb01d7a",23,"来年[らいねん]@694/の/春[はる]@544/、/日本[にほん]/へ/行[い]きたい@48/です/。","I want to go to Japan next spring.",[48,544,694]],
+["fc9a9779",23,"毎年[まいとし]@618/、/冬[ふゆ]@586/に/なる@493/と/風邪[かぜ]@162/を/引[ひ]きます@558/。","Every year I catch a cold when winter comes.",[162,493,558,586,618]],
+["f14d7a60",24,"昨夜[ゆうべ]@678/から/雪[ゆき]@680/が/降[ふ]って@587/います/。","It has been snowing since last night.",[587,678,680]],
+["af4af857",24,"朝[あさ]@11/、/窓[まど]@630/を/開[あ]ける@9/と/、/外[そと]@363/は/真[ま]っ白[しろ]/でし/た/。","When I opened the window in the morning, everything outside was white.",[9,11,363,630]],
+["cc75da76",24,"道[みち]@640/は/雪[ゆき]@680/で/白[しろ]く@324/なって@493/いました/。","The road had turned white with snow.",[324,493,640,680]],
+["72a1615d",24,"子供[こども]@262/たち@383/は/外[そと]@363/で/雪[ゆき]@680/で/遊[あそ]んで@17/います/。","The children are playing outside in the snow.",[17,262,363,383,680]],
+["7ca2825c",24,"私[わたし]@713/は/厚[あつ]い@24/コート@249/を/着[き]て@209/、/外[そと]@363/に/出[で]ました@435/。","I put on a thick coat and went outside.",[24,209,249,363,435,713]],
+["54b77a3c",24,"手[て]@423/が/冷[つめ]たく@421/なりました@493/。","My hands got cold.",[421,423,493]],
+["45ba5913",24,"家[いえ]@46/に/帰[かえ]って@150/、/ストーブ@337/を/つけました@418/。","I went home and turned on the heater.",[46,150,337,418]],
+["f882f1f6",24,"温[あたた]かい/お茶[ちゃ]@114/を/飲[の]みました@514/。","I drank some warm tea.",[114,514]],
+["ea3565e2",25,"今日[きょう]@203/は/何曜日[なんようび]@494,487/です/か/。","What day of the week is it today?",[203,487,494]],
+["57f13950",25,"今日[きょう]@203/は/水曜日[すいようび]@327/です/。","Today is Wednesday.",[203,327]],
+["0715edd1",25,"昨日[きのう]@199/は/火曜日[かようび]@176/で/、/明日[あした]@15/は/木曜日[もくようび]@658/です/。","Yesterday was Tuesday, and tomorrow is Thursday.",[15,176,199,658]],
+["c70daa7b",25,"月曜日[げつようび]@238/から/金曜日[きんようび]@214/まで/学校[がっこう]@167/へ/行[い]きます@48/。","I go to school from Monday to Friday.",[48,167,214,238]],
+["9865d2d7",25,"土曜日[どようび]@469/と/日曜日[にちようび]@500/は/休[やす]み@670/です/。","Saturday and Sunday are days off.",[469,500,670]],
+["f58d05ea",25,"今月[こんげつ]@269/は/忙[いそが]しい@54/です/が/、/来月[らいげつ]@692/は/暇[ひま]@567/です/。","I'm busy this month, but next month I'll have free time.",[54,269,567,692]],
+["ebf49a18",25,"先月[せんげつ]@352/、/新[あたら]しい@20/カレンダー@183/を/買[か]いました@148/。","Last month I bought a new calendar.",[20,148,183,352]],
+["bcce8ddc",25,"今日[きょう]@203/は/五月[ごがつ]@242,166/三日[みっか]@641/です/。","Today is May 3rd.",[166,203,242,641]],
+["76c0345f",25,"五月[ごがつ]@242,166/五日[いつか]@60/は/子供[こども]@262/の/日[ひ]/です/。","May 5th is Children's Day.",[60,166,242,262]],
+["f2e15470",25,"私[わたし]@713/の/誕生日[たんじょうび]@396/は/七月[しちがつ]@299,166/七日[なのか]@488/です/。","My birthday is July 7th.",[166,299,396,488,713]],
+["b00122b6",25,"兄[あに]@28/の/誕生日[たんじょうび]@396/は/二月[にがつ]@495,166/二十日[はつか]@536/です/。","My older brother's birthday is February 20th.",[28,166,396,495,536]],
+["95021d58",25,"テスト@431/は/九月[くがつ]@215,166/九日[ここのか]@253/です/。","The test is on September 9th.",[166,215,253,431]],
+["bf59bc59",25,"今週[こんしゅう]@270/の/土曜日[どようび]@469/は/友達[ともだち]@468/と/テニス/を/します@342/。","This Saturday I'll play tennis with friends.",[270,342,468,469]],
+["fd3760e5",25,"先週[せんしゅう]@353/は/雨[あめ]@36/の/日[ひ]/が/多[おお]かった@97/です/。","Last week there were a lot of rainy days.",[36,97,353]],
+["eedf0f38",25,"来週[らいしゅう]@693/、/国[くに]@222/から/両親[りょうしん]@699/が/来[き]ます@229/。","Next week my parents are coming from my home country.",[222,229,693,699]],
+["1ce5b1f0",26,"昨日[きのう]@199/から/体[からだ]@178/の/調子[ちょうし]/が/悪[わる]い@717/です/。","I haven't felt well since yesterday.",[178,199,717]],
+["26661bb9",26,"朝[あさ]@11/起[お]きる@104/と/、/頭[あたま]@19/が/痛[いた]かった@55/です/。","When I got up this morning, I had a headache.",[11,19,55,104]],
+["382f4d67",26,"のど/も/痛[いた]くて@55/、/声[こえ]@248/が/出[で]ません@435/。","My throat hurts too, and I can't use my voice.",[55,248,435]],
+["18930bf1",26,"熱[ねつ]/は/三十八度[さんじゅうはちど]@287,313,535,442/ありました@40/。","I had a fever of thirty-eight degrees.",[40,287,313,442,535]],
+["2459955a",26,"風邪[かぜ]@162/を/引[ひ]いた@558/よう/です/。","It seems I've caught a cold.",[162,558]],
+["ea9064cb",26,"今日[きょう]@203/は/学校[がっこう]@167/を/休[やす]みました@671/。","I stayed home from school today.",[167,203,671]],
+["3da7d609",26,"母[はは]@541/と/近[ちか]く@402/の/病院[びょういん]@569/へ/行[い]きました@48/。","I went to the nearby hospital with my mother.",[48,402,541,569]],
+["85c3e973",26,"病院[びょういん]@569/の/待合室[まちあいしつ]/は/人[ひと]@563/が/多[おお]かった@97/です/。","The hospital waiting room was crowded.",[97,563,569]],
+["8de445b2",26,"三十分[さんじゅっぷん]@287,313,589/ぐらい@226/待[ま]ちました@627/。","I waited about thirty minutes.",[226,287,313,589,627]],
+["1a4f89e0",26,"お医者[いしゃ]@95,52/さん@286/は/「/大丈夫[だいじょうぶ]@373/です/よ/。/」/と/言[い]いました@45/。","The doctor said, \"You'll be all right.\"",[45,52,95,286,373]],
+["c6e1a455",26,"「/この@263/薬[くすり]@216/を/一日[いちにち]@57/三回[さんかい]@287,141/飲[の]んで@514/ください@217/。/」","\"Please take this medicine three times a day.\"",[57,141,216,217,263,287,514]],
+["5ec3f38a",26,"「/今日[きょう]@203/は/早[はや]く@542/寝[ね]て@509/ください@217/。/」","\"Please go to bed early today.\"",[203,217,509,542]],
+["c9f4dd23",26,"家[いえ]@46/に/帰[かえ]って@150/、/薬[くすり]@216/を/飲[の]んで@514/寝[ね]ました@509/。","I went home, took the medicine, and went to sleep.",[46,150,216,509,514]],
+["dc1754da",26,"三日[みっか]@641/後[ご]@26/に/は/、/もう@657/元気[げんき]@240/に/なりました@493/。","Three days later, I was already well again.",[26,240,493,641,657]],
+["18981c66",27,"人[ひと]@563/の/顔[かお]@151/に/は/目[め]@654/が/二[ふた]つ@581/、/耳[みみ]@646/が/二[ふた]つ@581/、/鼻[はな]@538/と/口[くち]@219/が/一[ひと]つ@564/あります@40/。","A person's face has two eyes, two ears, one nose and one mouth.",[40,151,219,538,563,564,581,646,654]],
+["f6757ff0",27,"私[わたし]@713/の/弟[おとうと]@117/は/目[め]@654/が/大[おお]きくて@98/、/可愛[かわい]い@186/です/。","My younger brother has big eyes and is cute.",[98,117,186,654,713]],
+["ebfda368",27,"象[ぞう]/は/鼻[はな]@538/が/長[なが]い@479/です/。","Elephants have long noses.",[479,538]],
+["c2f3201b",27,"うさぎ/は/耳[みみ]@646/が/長[なが]い@479/動物[どうぶつ]@448/です/。","Rabbits are animals with long ears.",[448,479,646]],
+["287477c8",27,"姉[あね]@29/は/髪[かみ]/が/長[なが]くて@479/、/背[せい]@344/が/高[たか]い@378/です/。","My older sister has long hair and is tall.",[29,344,378,479]],
+["bd1b3d84",27,"父[ちち]@405/は/手[て]@423/が/大[おお]きい@98/です/。","My father has big hands.",[98,405,423]],
+["2b78abbc",27,"たくさん@380/歩[ある]いた@41/の/で/、/足[あし]@14/が/痛[いた]い@55/です/。","I walked a lot, so my feet hurt.",[14,41,55,380]],
+["c421d780",27,"食[た]べる@392/前[まえ]@620/に/、/手[て]@423/を/洗[あら]いましょう@38/。","Let's wash our hands before eating.",[38,392,423,620]],
+["347d90de",27,"寝[ね]る@509/前[まえ]@620/に/、/歯[は]@516/を/磨[みが]いて@634/ください@217/。","Please brush your teeth before going to bed.",[217,509,516,620,634]],
+["56d497af",27,"お腹[なか]@123/が/痛[いた]い@55/とき@453/は/、/何[なに]@487/も/食[た]べません@392/。","When my stomach hurts, I don't eat anything.",[55,123,392,453,487]],
+["bc2b65ef",27,"祖父[そふ]/は/もう@657/年[とし]@458/です/が/、/体[からだ]@178/は/丈夫[じょうぶ]@319/です/。","My grandfather is old now, but his body is strong.",[178,319,458,657]],
+["3e59e0ed",27,"健康[けんこう]/の/ために/、/毎朝[まいあさ]@614/走[はし]って@530/います/。","I run every morning for my health.",[530,614]],
+["0b8ee5e1",28,"父[ちち]@405/は/前[まえ]@620/は/たばこ@389/を/吸[す]って@328/いました/。","My father used to smoke.",[328,389,405,620]],
+["402ae028",28,"でも@434/、/体[からだ]@178/に/悪[わる]い@717/の/で/、/去年[きょねん]@206/やめました/。","But it's bad for his health, so he quit last year.",[178,206,434,717]],
+["c9952390",28,"今[いま]@65/は/家[いえ]@46/に/灰皿[はいざら]@520/も/マッチ@629/も/ありません@40/。","Now there are neither ashtrays nor matches in the house.",[40,46,65,520,629]],
+["51b9f018",28,"ここ@251/で/たばこ@389/を/吸[す]わないで@328/ください@217/。","Please don't smoke here.",[217,251,328,389]],
+["e583d4ce",28,"外[そと]@363/の/空気[くうき]/を/吸[す]いましょう@328/。","Let's breathe some fresh air outside.",[328,363]],
+["f8abe4f9",29,"私[わたし]@713/は/音楽[おんがく]@138/が/大好[だいす]き@374/です/。","I love music.",[138,374,713]],
+["60e5e4fa",29,"毎晩[まいばん]@619/、/ラジオ@695/で/音楽[おんがく]@138/を/聞[き]きます@192/。","Every night I listen to music on the radio.",[138,192,619,695]],
+["673bc01c",29,"兄[あに]@28/は/ギター@194/を/弾[ひ]く@559/の/が/上手[じょうず]@318/です/。","My older brother is good at playing the guitar.",[28,194,318,559]],
+["0f7c99cc",29,"私[わたし]@713/も/ギター@194/を/習[なら]いたい@490/です/。","I want to learn the guitar too.",[194,490,713]],
+["dba53ca9",29,"妹[いもうと]@67/は/ピアノ/を/弾[ひ]きます@559/。","My younger sister plays the piano.",[67,559]],
+["1a274876",29,"姉[あね]@29/は/歌[うた]@78/が/上手[じょうず]@318/で/、/よく@684/日本[にほん]/の/歌[うた]@78/を/歌[うた]います@79/。","My older sister is a good singer and often sings Japanese songs.",[29,78,79,318,684]],
+["de2a3afa",29,"私[わたし]@713/は/歌[うた]う@79/の/が/下手[へた]@592/です/が/、/好[す]き@330/です/。","I'm bad at singing, but I like it.",[79,330,592,713]],
+["e79b3bd4",29,"父[ちち]@405/は/古[ふる]い@588/レコード@704/を/たくさん@380/持[も]って@660/います/。","My father has lots of old records.",[380,405,588,660,704]],
+["6688efde",29,"父[ちち]@405/の/部屋[へや]@595/に/は/古[ふる]い@588/ラジカセ@696/も/あります@40/。","There's also an old boombox in my father's room.",[40,405,588,595,696]],
+["cdc8df7e",29,"テープレコーダー@425/で/自分[じぶん]@305/の/声[こえ]@248/を/聞[き]きました@192/。","I listened to my own voice on a tape recorder.",[192,248,305,425]],
+["e4fb858c",29,"父[ちち]@405/は/昔[むかし]/の/歌[うた]@78/を/テープ@424/に/入[い]れて@72/いました/。","My father used to record old songs onto tapes.",[72,78,405,424]],
+["5c21a6bc",29,"週末[しゅうまつ]/、/友達[ともだち]@468/と/カラオケ/へ/行[い]きます@48/。","On the weekend I'll go to karaoke with friends.",[48,468]],
+["c7f83264",30,"私[わたし]@713/は/写真[しゃしん]@310/を/撮[と]る@473/の/が/好[す]き@330/です/。","I like taking photos.",[310,330,473,713]],
+["e86d8351",30,"誕生日[たんじょうび]@396/に/新[あたら]しい@20/カメラ@175/を/もらいました/。","I got a new camera for my birthday.",[20,175,396]],
+["e4973522",30,"日曜日[にちようび]@500/、/公園[こうえん]@244/で/花[はな]@537/の/写真[しゃしん]@310/を/撮[と]りました@473/。","On Sunday I took photos of flowers in the park.",[244,310,473,500,537]],
+["aa128e2c",30,"昔[むかし]/の/カメラ@175/は/フィルム@575/を/使[つか]いました@412/。","Old cameras used film.",[175,412,575]],
+["12ef88ad",30,"祖父[そふ]/は/今[いま]@65/も/フィルム@575/の/カメラ@175/を/使[つか]って@412/います/。","My grandfather still uses a film camera.",[65,175,412,575]],
+["45fab3ba",30,"家族[かぞく]@164/の/写真[しゃしん]@310/を/机[つくえ]@416/の/上[うえ]@75/に/置[お]いて@105/います/。","I keep a family photo on my desk.",[75,105,164,310,416]],
+["fa217232",30,"この@263/写真[しゃしん]@310/の/女[おんな]@139/の/人[ひと]@563/は/だれ@394/です/か/。","Who is the woman in this photo?",[139,263,310,394,563]],
+["35f22d0e",30,"それ@367/は/私[わたし]@713/の/母[はは]@541/の/若[わか]い@710/とき@453/の/写真[しゃしん]@310/です/。","That's a photo of my mother when she was young.",[310,367,453,541,710,713]],
+["4e5b0cca",30,"「/すみません@341/、/写真[しゃしん]@310/を/撮[と]って@473/も/いい@43/です/か/。/」","\"Excuse me, may I take a photo?\"",[43,310,341,473]],
+["108e61fd",30,"「/ええ@90/、/どうぞ@447/。/」","\"Yes, go ahead.\"",[90,447]],
+["445f8a40",31,"私[わたし]@713/は/スポーツ@339/が/好[す]き@330/です/。","I like sports.",[330,339,713]],
+["dcd9974e",31,"特[とく]に/サッカー/が/大好[だいす]き@374/です/。","I especially love soccer.",[374]],
+["c7d12407",31,"弟[おとうと]@117/は/サッカー/が/上手[じょうず]@318/で/、/足[あし]@14/が/速[はや]い@543/です/。","My younger brother is good at soccer and a fast runner.",[14,117,318,543]],
+["a46df56a",31,"毎週[まいしゅう]@616/水曜日[すいようび]@327/、/学校[がっこう]@167/の/プール@577/で/泳[およ]ぎます@135/。","Every Wednesday I swim in the school pool.",[135,167,327,577,616]],
+["b1752263",31,"私[わたし]@713/は/一[いち]キロ@212/泳[およ]ぐ@135/こと/が/できます@429/。","I can swim one kilometer.",[135,212,429,713]],
+["78aad59f",31,"夏[なつ]@483/は/海[うみ]@82/で/泳[およ]ぐ@135/の/が/楽[たの]しい@387/です/。","Swimming in the sea is fun in summer.",[82,135,387,483]],
+["ccde42a0",31,"父[ちち]@405/と/毎朝[まいあさ]@614/公園[こうえん]@244/を/走[はし]ります@530/。","I run in the park with my father every morning.",[244,405,530,614]],
+["ace75125",31,"今朝[けさ]@234/は/五[ご]キロ@212/走[はし]りました@530/。","This morning I ran five kilometers.",[212,234,530]],
+["182cc3a1",31,"疲[つか]れた@413/の/で/、/ベンチ/に/座[すわ]って@343/休[やす]みました@671/。","I got tired, so I sat on a bench and rested.",[343,413,671]],
+["dc386ec8",31,"冷[つめ]たい@421/水[みず]@637/が/とても@462/美味[おい]しかった@96/です/。","The cold water tasted very good.",[96,421,462,637]],
+["49ca24c4",32,"先週[せんしゅう]@353/の/土曜日[どようび]@469/、/友達[ともだち]@468/と/山[やま]@673/に/登[のぼ]りました@512/。","Last Saturday I climbed a mountain with friends.",[353,468,469,512,673]],
+["8df6b5e6",32,"朝[あさ]@11/早[はや]く@542/駅[えき]@91/に/集[あつ]まりました/。","We met at the station early in the morning.",[11,91,542]],
+["5714c6b1",32,"山[やま]@673/の/道[みち]@640/は/細[ほそ]くて@606/、/長[なが]かった@479/です/。","The mountain path was narrow and long.",[479,606,640,673]],
+["d67dec6a",32,"途中[とちゅう]/で/小[ちい]さい@398/川[かわ]@184/を/渡[わた]りました@716/。","Along the way we crossed a small stream.",[184,398,716]],
+["0494a410",32,"川[かわ]@184/の/水[みず]@637/は/とても@462/冷[つめ]たかった@421/です/。","The river water was very cold.",[184,421,462,637]],
+["469d661d",32,"木[き]@188/の/上[うえ]@75/で/鳥[とり]@470/が/鳴[な]いて@480/いました/。","Birds were singing in the trees.",[75,188,470,480]],
+["aec78ae4",32,"三時間[さんじかん]@287,294/歩[ある]いて@41/、/山[やま]@673/の/上[うえ]@75/に/着[つ]きました@415/。","After walking three hours, we reached the top of the mountain.",[41,75,287,294,415,673]],
+["df93fa1f",32,"山[やま]@673/の/上[うえ]@75/から/町[まち]@626/が/よく@684/見[み]えました/。","We could see the town well from the mountain top.",[75,626,673,684]],
+["94f8ce40",32,"みんな@648/で/お弁当[べんとう]@130/を/食[た]べました@392/。","We all ate our boxed lunches together.",[130,392,648]],
+["f1aa8c07",32,"山[やま]@673/の/上[うえ]@75/は/風[かぜ]@161/が/強[つよ]くて@422/、/涼[すず]しかった@335/です/。","It was windy and cool at the top.",[75,161,335,422,673]],
+["c1992062",32,"帰[かえ]り/は/足[あし]@14/が/とても@462/疲[つか]れました@413/。","On the way back my legs were very tired.",[14,413,462]],
+["4b96c350",33,"昨日[きのう]@199/の/晩[ばん]@549/、/映画館[えいがかん]@88/で/映画[えいが]@87/を/見[み]ました@647/。","Last night I saw a movie at the cinema.",[87,88,199,549,647]],
+["819b985f",33,"駅[えき]@91/の/近[ちか]く@402/に/新[あたら]しい@20/映画館[えいがかん]@88/が/できました@429/。","A new cinema opened near the station.",[20,88,91,402,429]],
+["e7a70d6d",33,"とても@462/有名[ゆうめい]@679/な/映画[えいが]@87/でし/た/から/、/人[ひと]@563/が/大勢[おおぜい]@100/並[なら]んで@491/いました/。","It was a very famous movie, so lots of people were lined up.",[87,100,462,491,563,679]],
+["fda881f5",33,"切符[きっぷ]@198/を/二枚[にまい]@495,613/買[か]いました@148/。","I bought two tickets.",[148,198,495,613]],
+["4d0f42b2",33,"映画[えいが]@87/は/七時[しちじ]@299,290/に/始[はじ]まって@527/、/九時[くじ]@215,290/半[はん]@548/に/終[お]わりました@137/。","The movie began at seven and ended at nine thirty.",[87,137,215,290,299,527,548]],
+["1d9644d4",33,"話[はなし]@539/は/少[すこ]し@334/難[むずか]しかった@651/です/が/、/面白[おもしろ]かった@134/です/。","The story was a bit difficult, but interesting.",[134,334,539,651]],
+["57e2b1ee",33,"映画[えいが]@87/の/音楽[おんがく]@138/も/とても@462/よかった@43/です/。","The movie's music was very good too.",[43,87,138,462]],
+["9ded112d",33,"友達[ともだち]@468/は/「/つまらなかった@420/。/」/と/言[い]いました@45/。","My friend said, \"It was boring.\"",[45,420,468]],
+["d6a3d0e8",33,"私[わたし]@713/は/面白[おもしろ]い@134/と/思[おも]いました/が/、/友達[ともだち]@468/は/違[ちが]いました@401/。","I thought it was interesting, but my friend didn't.",[134,401,468,713]],
+["e1282e75",33,"映画[えいが]@87/の/後[あと]@26/で/、/喫茶店[きっさてん]@196/で/話[はな]しました@540/。","After the movie we talked at a café.",[26,87,196,540]],
+["1b6097cf",34,"私[わたし]@713/は/動物[どうぶつ]@448/が/大好[だいす]き@374/です/。","I love animals.",[374,448,713]],
+["64e66743",34,"家[いえ]@46/に/犬[いぬ]@64/が/一匹[いっぴき]@56,557/と/猫[ねこ]@508/が/二匹[にひき]@495,557/います@70/。","At home we have one dog and two cats.",[46,56,64,70,495,508,557]],
+["5782a20d",34,"犬[いぬ]@64/の/名前[なまえ]@489/は/#ポチ/です/。","The dog's name is Pochi.",[64,489]],
+["980d48d4",34,"#ポチ/は/白[しろ]くて@324/、/大[おお]きい@98/犬[いぬ]@64/です/。","Pochi is a big white dog.",[64,98,324]],
+["4dd82ebe",34,"毎朝[まいあさ]@614/#ポチ/と/散歩[さんぽ]します@288/。","I take a walk with Pochi every morning.",[288,614]],
+["b5525dda",34,"猫[ねこ]@508/は/一日[いちにち]@57/中[じゅう]@314/寝[ね]て@509/います/。","The cats sleep all day.",[57,314,508,509]],
+["5c699c65",34,"猫[ねこ]@508/は/魚[さかな]@276/が/好[す]き@330/です/が/、/犬[いぬ]@64/は/肉[にく]@497/が/好[す]き@330/です/。","Cats like fish, but dogs like meat.",[64,276,330,497,508]],
+["5dfb8353",34,"友達[ともだち]@468/の/ペット@594/は/小[ちい]さい@398/鳥[とり]@470/です/。","My friend's pet is a small bird.",[398,468,470,594]],
+["2e364a60",34,"その@364/鳥[とり]@470/は/毎朝[まいあさ]@614/きれい@210/な/声[こえ]@248/で/鳴[な]きます@480/。","That bird sings with a pretty voice every morning.",[210,248,364,470,480,614]],
+["903c6176",34,"動物園[どうぶつえん]/に/は/象[ぞう]/や/ライオン/が/います@70/。","There are elephants and lions at the zoo.",[70]],
+["1abd3deb",34,"空[そら]@366/を/鳥[とり]@470/が/飛[と]んで@466/います/。","Birds are flying in the sky.",[366,466,470]],
+["c10e06e9",34,"犬[いぬ]@64/が/大[おお]きな@99/声[こえ]@248/で/鳴[な]いた@480/の/で/、/驚[おどろ]きました/。","The dog barked loudly, so I was startled.",[64,99,248,480]],
+["921915ef",35,"今日[きょう]@203/は/国[くに]@222/の/友達[ともだち]@468/に/手紙[てがみ]@428/を/書[か]きました@154/。","Today I wrote a letter to a friend back home.",[154,203,222,428,468]],
+["b75238f3",35,"万年筆[まんねんひつ]@633/で/書[か]きました@154/から/、/少[すこ]し@334/時間[じかん]@293/が/かかりました@152/。","I wrote it with a fountain pen, so it took a while.",[152,154,293,334,633]],
+["e9327149",35,"手紙[てがみ]@428/を/封筒[ふうとう]@576/に/入[い]れました@72/。","I put the letter in an envelope.",[72,428,576]],
+["5427a593",35,"封筒[ふうとう]@576/に/住所[じゅうしょ]/と/名前[なまえ]@489/を/書[か]きます@154/。","I write the address and name on the envelope.",[154,489,576]],
+["8bbc32ff",35,"郵便局[ゆうびんきょく]@677/で/切手[きって]@197/を/買[か]いました@148/。","I bought stamps at the post office.",[148,197,677]],
+["2d2926b4",35,"外国[がいこく]@143/へ/送[おく]る/の/で/、/切手[きって]@197/を/三枚[さんまい]@287,613/貼[は]りました@545/。","Since I'm sending it abroad, I put on three stamps.",[143,197,287,545,613]],
+["f119263a",35,"ポスト@605/に/手紙[てがみ]@428/を/出[だ]しました@382/。","I posted the letter in the mailbox.",[382,428,605]],
+["e7c76530",35,"旅行先[りょこうさき]/から/両親[りょうしん]@699/に/葉書[はがき]@522/を/出[だ]しました@382/。","I sent my parents a postcard from my trip.",[382,522,699]],
+["66319509",35,"葉書[はがき]@522/の/写真[しゃしん]@310/は/青[あお]い@3/海[うみ]@82/です/。","The picture on the postcard is of the blue sea.",[3,82,310,522]],
+["31140f5a",35,"一週間[いっしゅうかん]@56,315/後[ご]@26/に/友達[ともだち]@468/から/返事[へんじ]/が/来[き]ました@229/。","A week later a reply came from my friend.",[26,56,229,315,468]],
+["653b9f21",36,"夜[よる]@690/、/友達[ともだち]@468/に/電話[でんわ]@440/を/かけました@158/。","At night I called my friend.",[158,440,468,690]],
+["7c1a16e4",36,"「/もしもし@659/、/#キム/さん@286/です/か/。/」","\"Hello, is this Kim?\"",[286,659]],
+["8b4bbd00",36,"「/はい@518/、/そう@357/です/。/」","\"Yes, it is.\"",[357,518]],
+["92bc28ee",36,"「/明日[あした]@15/、/一緒[いっしょ]@61/に/映画[えいが]@87/を/見[み]ません@647/か/。/」","\"Would you like to see a movie together tomorrow?\"",[15,61,87,647]],
+["1d995286",36,"「/いい@43/です/ね/。/何時[なんじ]@494,487/に/会[あ]いましょう@1/か/。/」","\"Sounds good. What time shall we meet?\"",[1,43,487,494]],
+["a5eef435",36,"「/午前[ごぜん]@255/十時[じゅうじ]@313,290/に/駅[えき]@91/の/前[まえ]@620/は/どう@445/です/か/。/」","\"How about ten a.m. in front of the station?\"",[91,255,290,313,445,620]],
+["daaf527c",36,"「/ええ@90/、/大丈夫[だいじょうぶ]@373/です/。/じゃあ@309/、/また@624/明日[あした]@15/。/」","\"Yes, that's fine. See you tomorrow, then.\"",[15,90,309,373,624]],
+["876e7c3d",36,"電話[でんわ]@440/番号[ばんごう]@553/を/忘[わす]れた@712/の/で/、/母[はは]@541/に/聞[き]きました@192/。","I forgot the phone number, so I asked my mother.",[192,440,541,553,712]],
+["67672241",36,"番号[ばんごう]@553/の/初[はじ]め@528/の/数字[すうじ]/は/ゼロ@350/です/。","The first digit of the number is zero.",[350,528,553]],
+["1013edff",36,"電話[でんわ]@440/が/鳴[な]りました/が/、/だれ@394/も/出[で]ませんでした@435/。","The phone rang, but nobody answered.",[394,435,440]],
+["2f2d6707",36,"用事[ようじ]/が/終[お]わって@137/、/電話[でんわ]@440/を/切[き]りました@208/。","I finished my business and hung up the phone.",[137,208,440]],
+["f56baa93",37,"父[ちち]@405/は/大[おお]きい@98/会社[かいしゃ]@145/で/働[はたら]いて@534/います/。","My father works at a big company.",[98,145,405,534]],
+["6e39aef2",37,"父[ちち]@405/の/仕事[しごと]@295/は/とても@462/忙[いそが]しい@54/です/。","My father's job is very busy.",[54,295,405,462]],
+["7a07ffd3",37,"毎日[まいにち]@617/、/夜[よる]@690/遅[おそ]く@113/まで/仕事[しごと]@295/を/して@342/います/。","Every day he works until late at night.",[113,295,342,617,690]],
+["8d848116",37,"会社[かいしゃ]@145/は/駅[えき]@91/の/向[む]こう@650/の/ビル/の/十階[じゅっかい]@313,142/に/あります@40/。","His company is on the tenth floor of a building beyond the station.",[40,91,142,145,313,650]],
+["35185c88",37,"姉[あね]@29/は/デパート@433/に/勤[つと]めて@419/います/。","My older sister works at a department store.",[29,419,433]],
+["8c731a39",37,"姉[あね]@29/は/英語[えいご]@89/が/できます@429/から/、/外国人[がいこくじん]@144/の/お客[きゃく]さん/と/話[はな]します@540/。","My sister speaks English, so she talks with foreign customers.",[29,89,144,429,540]],
+["1c56c14c",37,"私[わたし]@713/は/来年[らいねん]@694/から/銀行[ぎんこう]@213/で/働[はたら]きます@534/。","I'll work at a bank from next year.",[213,534,694,713]],
+["02cc8ef8",37,"会社[かいしゃ]@145/の/人[ひと]@563/は/皆[みな]さん@644/親切[しんせつ]/です/。","Everyone at the company is kind.",[145,563,644]],
+["560da051",37,"「/皆[みな]さん@644/、/おはようございます/。/今日[きょう]@203/も/よろしく/お願[ねが]いします/。/」","\"Good morning, everyone. Let's do our best again today.\"",[203,644]],
+["fb51f086",37,"会議[かいぎ]/の/書類[しょるい]/を/十枚[じゅうまい]@313,613/コピーして@265/ください@217/。","Please make ten copies of the meeting documents.",[217,265,313,613]],
+["b89964ba",37,"この@263/仕事[しごと]@295/は/明日[あした]@15/まで/に/お願[ねが]いします/。","Please finish this job by tomorrow.",[15,263,295]],
+["56a635f3",37,"仕事[しごと]@295/の/後[あと]@26/で/、/同[おな]じ@124/会社[かいしゃ]@145/の/人[ひと]@563/と/ご飯[はん]@264/を/食[た]べ@392/に/行[い]きました@48/。","After work I went out to eat with people from the same company.",[26,48,124,145,264,295,392,563]],
+["aad69d22",38,"土曜日[どようび]@469/の/夜[よる]@690/、/友達[ともだち]@468/の/家[いえ]@46/で/パーティー@517/が/ありました@40/。","On Saturday night there was a party at a friend's house.",[40,46,468,469,517,690]],
+["1cffea30",38,"パーティー@517/に/は/人[ひと]@563/が/二十人[にじゅうにん]@495,313,504/ぐらい@226/来[き]ました@229/。","About twenty people came to the party.",[226,229,313,495,504,517,563]],
+["f675f268",38,"私[わたし]@713/は/ケーキ/を/作[つく]って@417/持[も]って@660/行[い]きました@48/。","I made a cake and took it along.",[48,417,660,713]],
+["d93c1c48",38,"テーブル@426/の/上[うえ]@75/に/食[た]べ物[もの]@391/と/飲[の]み物[もの]@513/が/たくさん@380/並[なら]んで@491/いました/。","Lots of food and drinks were laid out on the table.",[75,380,391,426,491,513]],
+["531aebea",38,"大人[おとな]@122/は/お酒[さけ]@107/を/飲[の]みました@514/が/、/私[わたし]@713/は/ジュース/を/飲[の]みました@514/。","The adults drank alcohol, but I drank juice.",[107,122,514,713]],
+["0630d21d",38,"音楽[おんがく]@138/が/うるさくて@84/、/話[はなし]@539/が/よく@684/聞[き]こえませんでした/。","The music was loud, and I couldn't hear people talk well.",[84,138,539,684]],
+["f30f2b1e",38,"隣[となり]@464/の/部屋[へや]@595/の/人[ひと]@563/が/「/静[しず]か@297/に/して@342/ください@217/。/」/と/言[い]い@45/に/来[き]ました@229/。","The person from the next room came to say, \"Please be quiet.\"",[45,217,229,297,342,464,563,595]],
+["f28c38c2",38,"みんな@648/で/歌[うた]@78/を/歌[うた]っ@79/たり/、/ゲーム/を/し@342/たり/しました@342/。","We all sang songs and played games.",[78,79,342,648]],
+["710e53d2",38,"初[はじ]めて@529/会[あ]った@1/人[ひと]@563/とも/話[はな]しました@540/。","I also talked with people I met for the first time.",[1,529,540,563]],
+["a352f1f5",38,"「/お名前[なまえ]@95,489/は/何[なん]@487/です/か/。/」","\"What is your name?\"",[95,487,489]],
+["573319f2",38,"「/#マリア/です/。/よろしく/お願[ねが]いします/。/」","\"I'm Maria. Nice to meet you.\"",[]],
+["f48b0bc4",38,"「/どちら@460/から/来[き]ました@229/か/。/」","\"Where are you from?\"",[229,460]],
+["58373e8e",38,"「/アメリカ/から/来[き]ました@229/。/」","\"I came from America.\"",[229]],
+["8b32de21",38,"とても@462/楽[たの]しい@387/パーティー@517/でし/た/。","It was a really fun party.",[387,462,517]],
+["ac59e97a",39,"「/こんにちは/。/お元気[げんき]@95,240/です/か/。/」","\"Hello. How are you?\"",[95,240]],
+["656f8fc8",39,"「/はい@518/、/元気[げんき]@240/です/。/あなた@27/は/。/」","\"I'm fine. And you?\"",[27,240,518]],
+["7a66e63f",39,"「/ええ@90/、/おかげさまで/。/」","\"Yes, I'm fine, thank you.\"",[90]],
+["4d6e6f37",39,"「/すみません@341/、/ちょっと@410/いい@43/です/か/。/」","\"Excuse me, do you have a moment?\"",[43,341,410]],
+["7b53601a",39,"「/はい@518/、/どうぞ@447/。/」","\"Yes, go ahead.\"",[447,518]],
+["0afa6453",39,"「/どうも@449/ありがとう/ございました/。/」","\"Thank you very much.\"",[449]],
+["504538e7",39,"「/いいえ@44/、/どういたしまして/。/」","\"No, you're welcome.\"",[44]],
+["4ebd1066",39,"「/さあ@273/、/始[はじ]めましょう/。/」","\"Well then, let's begin.\"",[273]],
+["f5b8b45b",39,"「/それでは@369/、/また@624/来週[らいしゅう]@693/。/」","\"Well then, see you next week.\"",[369,624,693]],
+["74b7b644",39,"「/ああ@0/、/そう@357/です/か/。/」","\"Oh, is that so?\"",[0,357]],
+["d0cd0cb6",40,"あの@31/人[ひと]@563/は/だれ@394/です/か/。","Who is that person?",[31,394,563]],
+["9cae4348",40,"あの@31/方[かた]@163/は/どなた@463/です/か/。","Who is that gentleman?",[31,163,463]],
+["a678dfed",40,"あの@31/方[かた]@163/は/新[あたら]しい@20/先生[せんせい]@354/です/。","He is the new teacher.",[20,31,163,354]],
+["f5cbcc99",40,"トイレ@444/は/どこ@456/です/か/。","Where is the toilet?",[444,456]],
+["eb3c99c4",40,"トイレ@444/は/あそこ@16/です/。","The toilet is over there.",[16,444]],
+["1f005699",40,"誕生日[たんじょうび]@396/は/いつ@59/です/か/。","When is your birthday?",[59,396]],
+["2a1e3634",40,"あなた@27/は/いくつ@49/です/か/。","How old are you?",[27,49]],
+["a8ff01c7",40,"この@263/りんご/は/いくつ@49/あります@40/か/。","How many of these apples are there?",[40,49,263]],
+["3a7578e6",40,"「/どうして@446/昨日[きのう]@199/来[き]ませんでした@229/か/。/」","\"Why didn't you come yesterday?\"",[199,229,446]],
+["d7e57012",40,"「/病気[びょうき]@570/だっ/た/から/です/。/」","\"Because I was sick.\"",[570]],
+["f095f6ce",40,"「/なぜ@482/日本語[にほんご]/を/勉強[べんきょう]して@598/います/か/。/」","\"Why are you studying Japanese?\"",[482,598]],
+["24d68edf",40,"「/日本[にほん]/の/映画[えいが]@87/が/好[す]き@330/だ/から/です/。/」","\"Because I like Japanese movies.\"",[87,330]],
+["b76bf9cf",40,"あなた@27/の/かばん@171/は/どれ@474/です/か/。","Which one is your bag?",[27,171,474]],
+["a78869b8",40,"どの@465/人[ひと]@563/が/あなた@27/の/お兄[にい]さん@125/です/か/。","Which person is your older brother?",[27,125,465,563]],
+["48e9fe39",40,"どんな@475/食[た]べ物[もの]@391/が/好[す]き@330/です/か/。","What kind of food do you like?",[330,391,475]],
+["cadfce14",40,"新[あたら]しい@20/学校[がっこう]@167/は/どう@445/です/か/。","How is your new school?",[20,167,445]],
+["a1cbe36b",41,"これ@267/は/私[わたし]@713/の/本[ほん]@609/です/。","This is my book.",[267,609,713]],
+["a266921d",41,"それ@367/は/あなた@27/の/傘[かさ]@159/です/か/。","Is that your umbrella?",[27,159,367]],
+["33238ecc",41,"あれ@42/は/何[なん]@487/の/建物[たてもの]@386/です/か/。","What building is that over there?",[42,386,487]],
+["07f518c8",41,"あれ@42/は/市役所[しやくしょ]/です/。","That's the city hall.",[42]],
+["5cc7c09a",41,"こちら@257/は/私[わたし]@713/の/友達[ともだち]@468/の/#トム/さん@286/です/。","This is my friend Tom.",[257,286,468,713]],
+["d24af4f9",41,"受付[うけつけ]/は/こちら@257/です/。","The reception desk is this way.",[257]],
+["24f6283c",41,"お手洗[てあら]い@115/は/あちら@21/です/。","The restroom is that way.",[21,115]],
+["b031a6de",41,"「/駅[えき]@91/は/どちら@460/です/か/。/」","\"Which way is the station?\"",[91,460]],
+["545c3aa9",41,"「/駅[えき]@91/は/そちら@361/です/。/」","\"The station is that way.\"",[91,361]],
+["c59b4aeb",41,"「/こっち@258/の/赤[あか]い@5/の/と/、/そっち@362/の/青[あお]い@3/の/と/、/どっち@461/が/いい@43/です/か/。/」","\"This red one or that blue one — which is better?\"",[3,5,43,258,362,461]],
+["73f2197c",41,"「/あっち@25/の/白[しろ]い@324/の/が/いい@43/です/。/」","\"I'd like the white one over there.\"",[25,43,324]],
+["2d244fc9",41,"こんな@271/に/大[おお]きい@98/魚[さかな]@276/は/初[はじ]めて@529/見[み]ました@647/。","I've never seen such a big fish before.",[98,271,276,529,647]],
+["2334fc13",41,"そこ@360/に/座[すわ]って@343/ください@217/。","Please sit there.",[217,343,360]],
+["f6999e8a",41,"ここ@251/は/私[わたし]@713/の/部屋[へや]@595/です/。","This is my room.",[251,595,713]],
+["d0f84a1a",41,"この@263/本[ほん]@609/は/私[わたし]@713/の/です/。","This book is mine.",[263,609,713]],
+["7e4635e6",41,"その@364/傘[かさ]@159/は/兄[あに]@28/の/です/。","That umbrella is my brother's.",[28,159,364]],
+["79e37ddb",41,"あの@31/白[しろ]い@324/建物[たてもの]@386/は/病院[びょういん]@569/です/。","That white building over there is a hospital.",[31,324,386,569]],
+["8aa9fbb9",42,"日曜日[にちようび]@500/の/朝[あさ]@11/は/家族[かぞく]@164/みんな@648/で/家[いえ]@46/の/仕事[しごと]@295/を/します@342/。","On Sunday mornings the whole family does housework.",[11,46,164,295,342,500,648]],
+["ff74b7f8",42,"母[はは]@541/は/洗濯[せんたく]@355/を/します@342/。","My mother does the laundry.",[342,355,541]],
+["f7c3f99b",42,"洗濯[せんたく]@355/を/した@342/服[ふく]@580/を/外[そと]@363/に/干[ほ]します/。","We hang the washed clothes outside.",[342,355,363,580]],
+["909b4979",42,"父[ちち]@405/は/窓[まど]@630/を/拭[ふ]きます/。","My father wipes the windows.",[405,630]],
+["1f704c0d",42,"私[わたし]@713/は/自分[じぶん]@305/の/部屋[へや]@595/と/廊下[ろうか]@707/の/掃除[そうじ]@358/を/します@342/。","I clean my room and the corridor.",[305,342,358,595,707,713]],
+["9354d989",42,"妹[いもうと]@67/は/お皿[さら]@108/を/洗[あら]って@38/、/棚[たな]/に/並[なら]べます@492/。","My younger sister washes the dishes and lines them up on the shelf.",[38,67,108,492]],
+["df065a28",42,"兄[あに]@28/は/ごみ/を/出[だ]します@382/。","My older brother takes out the trash.",[28,382]],
+["cde17b9a",42,"古[ふる]い@588/新聞[しんぶん]@326/と/雑誌[ざっし]@282/は/箱[はこ]@524/に/入[い]れて@72/、/玄関[げんかん]@239/に/置[お]きます@105/。","We put the old newspapers and magazines in a box and leave it in the entryway.",[72,105,239,282,326,524,588]],
+["02ee4f2c",42,"掃除[そうじ]@358/が/終[お]わる@137/と/、/家[いえ]@46/が/綺麗[きれい]@210/に/なって@493/、/気持[きも]ち/が/いい@43/です/。","When the cleaning is done, the house is clean and it feels good.",[43,46,137,210,358,493]],
+["9f99effa",42,"昼御飯[ひるごはん]@573/の/前[まえ]@620/に/、/みんな@648/で/お茶[ちゃ]@114/を/飲[の]みます@514/。","Before lunch we all have tea together.",[114,514,573,620,648]],
+["ec43541c",43,"夜[よる]@690/は/よく@684/家族[かぞく]@164/で/テレビ@436/を/見[み]ます@647/。","At night we often watch TV as a family.",[164,436,647,684,690]],
+["051f6584",43,"父[ちち]@405/は/毎晩[まいばん]@619/七時[しちじ]@299,290/の/ニュース@502/を/見[み]ます@647/。","My father watches the seven o'clock news every night.",[290,299,405,502,619,647]],
+["0588833e",43,"今日[きょう]@203/の/ニュース@502/で/大[おお]きい@98/地震[じしん]/の/話[はなし]@539/が/ありました@40/。","There was a story about a big earthquake on today's news.",[40,98,203,502,539]],
+["6428c2eb",43,"外国[がいこく]@143/で/大勢[おおぜい]@100/の/人[ひと]@563/が/死[し]にました@303/。","Many people died in a foreign country.",[100,143,303,563]],
+["fc681761",43,"とても@462/悲[かな]しい/ニュース@502/でし/た/。","It was very sad news.",[462,502]],
+["eec909d6",43,"私[わたし]@713/は/面白[おもしろ]い@134/テレビ@436/の/番組[ばんぐみ]/が/好[す]き@330/です/。","I like funny TV programs.",[134,330,436,713]],
+["4946cb5a",43,"テレビ@436/を/見[み]@647/すぎる@331/と/、/目[め]@654/が/悪[わる]く@717/なります@493/。","If you watch too much TV, your eyesight gets worse.",[331,436,493,647,654,717]],
+["72f17625",43,"十時[じゅうじ]@313,290/に/なったら@493/、/テレビ@436/を/消[け]して@235/寝[ね]ます@509/。","When it's ten o'clock, I turn off the TV and go to bed.",[235,290,313,436,493,509]],
+["09644800",44,"日曜日[にちようび]@500/の/公園[こうえん]@244/は/子供[こども]@262/が/多[おお]くて@97/、/うるさい@84/です/。","The park on Sunday is full of children and noisy.",[84,97,244,262,500]],
+["1a990ef9",44,"男[おとこ]の子[こ]@119/が/三人[さんにん]@287,504/、/ボール/で/遊[あそ]んで@17/います/。","Three boys are playing with a ball.",[17,119,287,504]],
+["7e53b34b",44,"女[おんな]の子[こ]@140/は/木[き]@188/の/下[した]@298/で/絵[え]@86/を/描[か]いて/います/。","A girl is drawing a picture under a tree.",[86,140,188,298]],
+["80efe5e3",44,"その@364/絵[え]@86/は/とても@462/上手[じょうず]@318/です/。","That picture is very good.",[86,318,364,462]],
+["f1b8a164",44,"小[ちい]さい@398/男[おとこ]の子[こ]@119/が/転[ころ]んで/、/泣[な]いて/います/。","A little boy fell down and is crying.",[119,398]],
+["89323e84",44,"お母[かあ]さん@101/が/すぐに@333/来[き]て@229/、/男[おとこ]の子[こ]@119/を/立[た]たせました@384/。","His mother came right away and helped the boy stand up.",[101,119,229,333,384]],
+["878e3d76",44,"池[いけ]@51/の/そば@365/に/男[おとこ]@118/の/人[ひと]@563/と/女[おんな]@139/の/人[ひと]@563/が/座[すわ]って@343/います/。","A man and a woman are sitting by the pond.",[51,118,139,343,365,563]],
+["399e96c2",44,"大人[おとな]@122/は/子供[こども]@262/を/見[み]@647/ながら/、/話[はな]して@540/います/。","The adults are talking while watching the children.",[122,262,540,647]],
+["fa1b0ccf",44,"子供[こども]@262/は/暗[くら]く@225/なる@493/まで/外[そと]@363/で/遊[あそ]びます@17/。","The children play outside until it gets dark.",[17,225,262,363,493]],
+["378dbe59",44,"五時[ごじ]@242,290/ごろ@268/に/なる@493/と/、/みんな@648/うち@80/へ/帰[かえ]ります@150/。","Around five o'clock everyone goes home.",[80,150,242,268,290,493,648]],
+["9d13c104",45,"私[わたし]@713/は/二〇〇五年[にせんごねん]@495,242,510/に/生[う]まれました@81/。","I was born in 2005.",[81,242,495,510,713]],
+["dbf4b380",45,"弟[おとうと]@117/は/私[わたし]@713/より/四[よっ]つ@687/下[した]@298/です/。","My younger brother is four years younger than me.",[117,298,687,713]],
+["c4317349",45,"弟[おとうと]@117/は/今年[ことし]@260/十七歳[じゅうななさい]@313,299,274/に/なります@493/。","My younger brother turns seventeen this year.",[117,260,274,299,313,493]],
+["f3de61fd",45,"日本[にほん]/で/は/二十歳[はたち]@533/から/大人[おとな]@122/です/。","In Japan you're an adult from age twenty.",[122,533]],
+["26d86279",45,"おじいさん@110/は/九十歳[きゅうじゅっさい]@200,313,274/です/が/、/まだ@625/毎日[まいにち]@617/歩[ある]いて@41/います/。","My grandfather is ninety, but he still walks every day.",[41,110,200,274,313,617,625]],
+["698eed8a",45,"おばあさん@128/は/昔[むかし]/、/小学校[しょうがっこう]/の/先生[せんせい]@354/でし/た/。","My grandmother used to be an elementary school teacher.",[128,354]],
+["78b3e8c5",45,"妹[いもうと]@67/の/誕生日[たんじょうび]@396/は/四月[しがつ]@289,166/八日[ようか]@682/です/。","My younger sister's birthday is April 8th.",[67,166,289,396,682]],
+["34e3f389",45,"誕生日[たんじょうび]@396/に/は/毎年[まいとし]@618/ケーキ/を/食[た]べます@392/。","Every year we eat cake on birthdays.",[392,396,618]],
+["6009c6e8",45,"ケーキ/に/ろうそく/を/七本[ななほん]@299,610/立[た]てました/。","We stood seven candles on the cake.",[299,610]],
+["000a0550",45,"妹[いもうと]@67/は/七[なな]つ@486/の/とき@453/、/初[はじ]めて@529/自転車[じてんしゃ]@301/に/乗[の]りました@515/。","My sister rode a bicycle for the first time when she was seven.",[67,301,453,486,515,529]],
+["73a54f9f",46,"今月[こんげつ]@269/は/予定[よてい]/が/たくさん@380/あります@40/。","I have lots of plans this month.",[40,269,380]],
+["5fcc227b",46,"一日[ついたち]@411/は/月曜日[げつようび]@238/です/。","The first is a Monday.",[238,411]],
+["ee56b7ed",46,"二日[ふつか]@584/に/歯医者[はいしゃ]/へ/行[い]きます@48/。","On the second I'm going to the dentist.",[48,584]],
+["70254963",46,"四日[よっか]@686/は/友達[ともだち]@468/の/結婚式[けっこんしき]/です/。","On the fourth is my friend's wedding.",[468,686]],
+["5cf345a5",46,"六日[むいか]@649/から/八日[ようか]@682/まで/、/仕事[しごと]@295/で/大阪[おおさか]/へ/行[い]きます@48/。","From the sixth to the eighth I'm going to Osaka for work.",[48,295,649,682]],
+["29c37b96",46,"十日[とおか]@452/は/休[やす]み@670/です/から/、/家[いえ]@46/で/ゆっくり@681/休[やす]みます@671/。","The tenth is a day off, so I'll relax at home.",[46,452,670,671,681]],
+["b8ad2831",46,"二十日[はつか]@536/は/私[わたし]@713/の/誕生日[たんじょうび]@396/です/。","The twentieth is my birthday.",[396,536,713]],
+["5bd5d246",46,"二十五日[にじゅうごにち]@495,313,242,499/に/給料[きゅうりょう]/を/もらいます/。","I get paid on the twenty-fifth.",[242,313,495,499]],
+["06e927c5",46,"大阪[おおさか]/に/は/三日[みっか]@641/いる@70/予定[よてい]/です/。","I plan to be in Osaka for three days.",[70,641]],
+["9713e6bb",46,"一日[いちにち]@57/に/二回[にかい]@495,141/、/薬[くすり]@216/を/飲[の]みます@514/。","I take medicine twice a day.",[57,141,216,495,514]],
+["1a003ea9",47,"テーブル@426/の/上[うえ]@75/に/りんご/が/六[むっ]つ@652/あります@40/。","There are six apples on the table.",[40,75,426,652]],
+["eb55995e",47,"みかん/は/九[ここの]つ@254/あります@40/。","There are nine mandarin oranges.",[40,254]],
+["f647a65e",47,"卵[たまご]@393/を/八[やっ]つ@672/使[つか]って@412/、/ケーキ/を/作[つく]ります@417/。","I'll make a cake using eight eggs.",[393,412,417,672]],
+["8b26f450",47,"箱[はこ]@524/の/中[なか]@478/に/ボール/が/七[なな]つ@486/入[はい]って@521/います/。","There are seven balls in the box.",[478,486,521,524]],
+["f4b70790",47,"子供[こども]@262/に/飴[あめ]@37/を/四[よっ]つ@687/ずつ@336/あげました/。","I gave the children four candies each.",[37,262,336,687]],
+["b28727d3",47,"一[いち]@56/、/二[に]@495/、/三[さん]@287/、/四[よん]@289/、/五[ご]@242/、/六[ろく]@708/、/七[なな]@299/、/八[はち]@535/、/九[きゅう]@200/、/十[じゅう]@313/。","One, two, three, four, five, six, seven, eight, nine, ten.",[56,200,242,287,289,299,313,495,535,708]],
+["b7a5089d",47,"十[とお]@450/数[かぞ]えて/から/、/目[め]@654/を/開[あ]けて@9/ください@217/。","Count to ten, then open your eyes.",[9,217,450,654]],
+["d2bddb9d",47,"百[ひゃく]@568/、/千[せん]@351/、/万[まん]@632/は/大[おお]きい@98/数字[すうじ]/です/。","A hundred, a thousand and ten thousand are big numbers.",[98,351,568,632]],
+["dc2db029",47,"ゼロ@350/は/何[なに]@487/も/ない@476/という/意味[いみ]@66/です/。","Zero means there is nothing.",[66,350,476,487]],
+["ae4812e4",47,"今日[きょう]@203/の/最低[さいてい]/気温[きおん]/は/零度[れいど]@702,442/でし/た/。","Today's lowest temperature was zero degrees.",[203,442,702]],
+["51f24677",48,"一昨日[おととい]@120/は/雨[あめ]@36/でし/た/が/、/昨日[きのう]@199/は/晴[は]れました@547/。","It rained the day before yesterday, but yesterday it was sunny.",[36,120,199,547]],
+["6202d455",48,"明後日[あさって]@13/は/日曜日[にちようび]@500/です/から/、/学校[がっこう]@167/は/休[やす]み@670/です/。","The day after tomorrow is Sunday, so there's no school.",[13,167,500,670]],
+["57cfa335",48,"おととし@121/、/初[はじ]めて@529/外国[がいこく]@143/へ/行[い]きました@48/。","The year before last, I went abroad for the first time.",[48,121,143,529]],
+["291b85f3",48,"兄[あに]@28/は/さ来年[らいねん]@285/大学[だいがく]@371/を/出[で]ます@435/。","My older brother graduates from university the year after next.",[28,285,371,435]],
+["30fdbb5d",48,"毎月[まいつき]@615/一回[いっかい]@56,141/、/祖母[そぼ]/に/手紙[てがみ]@428/を/書[か]きます@154/。","Once a month I write a letter to my grandmother.",[56,141,154,428,615]],
+["af683ec2",48,"日本[にほん]/に/来[き]て@229/、/もう@657/一月[ひとつき]@565/に/なります@493/。","It's already been a month since I came to Japan.",[229,493,565,657]],
+["9341de58",48,"三[さん]か月[げつ]@287,156/前[まえ]@621/に/日本語[にほんご]/の/勉強[べんきょう]@598/を/始[はじ]めました/。","I started studying Japanese three months ago.",[156,287,598,621]],
+["e8b3e99a",48,"来年[らいねん]@694/、/半年[はんとし]/ぐらい@226/日本[にほん]/に/住[す]みたい@341/です/。","Next year I want to live in Japan for about half a year.",[226,341,694]],
+["374ba14e",48,"夏休[なつやす]み@484/は/一[いっ]か月[げつ]@56,156/あります@40/。","Summer vacation is a month long.",[40,56,156,484]],
+["e1373098",48,"今日[きょう]@203/は/一日[いちにち]@57/中[じゅう]@314/雨[あめ]@36/でし/た/。","It rained all day today.",[36,57,203,314]],
+["07928360",48,"昼[ひる]@572/は/暑[あつ]い@22/です/が/、/夜[よる]@690/は/涼[すず]しい@335/です/。","It's hot in the daytime, but cool at night.",[22,335,572,690]],
+["82003e0f",48,"午前[ごぜん]@255/中[ちゅう]@408/は/家[いえ]@46/で/勉強[べんきょう]して@598/、/午後[ごご]@252/は/出[で]かけます@427/。","In the morning I study at home, and in the afternoon I go out.",[46,252,255,408,427,598]],
+["5d929121",48,"晩御飯[ばんごはん]@554/は/七時[しちじ]@299,290/ごろ@268/食[た]べます@392/。","We eat dinner around seven.",[268,290,299,392,554]],
+["695af952",48,"今晩[こんばん]@272/の/夕飯[ゆうはん]@676/は/カレー@182/です/。","Tonight's dinner is curry.",[182,272,676]],
+["22eda5ed",48,"十時[じゅうじ]@313,290/すぎ@331/に/寝[ね]ます@509/。","I go to bed after ten.",[290,313,331,509]],
+["65349aea",49,"昨日[きのう]@199/、/電車[でんしゃ]@439/の/中[なか]@478/で/財布[さいふ]@275/を/無[な]くしました@481/。","Yesterday I lost my wallet on the train.",[199,275,439,478,481]],
+["3cf34026",49,"財布[さいふ]@275/の/中[なか]@478/に/お金[かね]@103/が/一万円[いちまんえん]@56,632,93/ぐらい@226/入[はい]って@521/いました/。","There was about ten thousand yen in the wallet.",[56,93,103,226,275,478,521,632]],
+["8602a918",49,"とても@462/困[こま]りました@266/。","I was really troubled.",[266,462]],
+["e2d036cd",49,"駅[えき]@91/の/人[ひと]@563/に/「/財布[さいふ]@275/を/無[な]くしました@481/。/」/と/言[い]いました@45/。","I told the station staff, \"I lost my wallet.\"",[45,91,275,481,563]],
+["b1a3c322",49,"駅[えき]@91/の/人[ひと]@563/は/「/この@263/辺[へん]@596/の/交番[こうばん]@247/へ/行[い]って@48/ください@217/。/」/と/言[い]いました@45/。","The station staff said, \"Please go to the police box around here.\"",[45,48,91,217,247,263,563,596]],
+["a09ba036",49,"交番[こうばん]@247/で/警官[けいかん]@233/に/財布[さいふ]@275/の/色[いろ]@73/や/形[かたち]/を/話[はな]しました@540/。","At the police box I told the police officer the color and shape of the wallet.",[73,233,247,275,540]],
+["facefeb8",49,"「/黒[くろ]くて@232/、/たて@385/が/十[じゅう]@313/センチ/ぐらい@226/の/財布[さいふ]@275/です/。/」","\"It's a black wallet, about ten centimeters long.\"",[226,232,275,313,385]],
+["9c297c67",49,"次[つぎ]@414/の/日[ひ]/、/交番[こうばん]@247/から/電話[でんわ]@440/が/ありました@40/。","The next day there was a call from the police box.",[40,247,414,440]],
+["78e92331",49,"だれか@395/が/財布[さいふ]@275/を/交番[こうばん]@247/に/届[とど]けて/くれました/。","Someone had brought the wallet to the police box.",[247,275,395]],
+["5408179f",49,"お金[かね]@103/も/全部[ぜんぶ]@356/ありました@40/。","All the money was there too.",[40,103,356]],
+["e41d7d03",49,"本当[ほんとう]@612/に/よかった@43/です/。","I was really relieved.",[43,612]],
+["37801c2c",50,"友達[ともだち]@468/に/ペン@597/を/貸[か]しました@160/。","I lent my friend a pen.",[160,468,597]],
+["aa5d7dd6",50,"私[わたし]@713/は/ペン@597/を/三本[さんぼん]@287,610/持[も]って@660/いました/から/、/一本[いっぽん]@56,610/貸[か]しました@160/。","I had three pens, so I lent one.",[56,160,287,597,610,660,713]],
+["d82cd300",50,"「/すみません@341/、/消[け]しゴム/を/貸[か]して@160/ください@217/。/」","\"Excuse me, please lend me an eraser.\"",[160,217,341]],
+["e5d97f98",50,"「/どうぞ@447/。/使[つか]って@412/ください@217/。/」","\"Here you are. Please use it.\"",[217,412,447]],
+["608ce904",50,"雨[あめ]@36/が/降[ふ]って@587/きた/の/で/、/友達[ともだち]@468/に/傘[かさ]@159/を/借[か]りました@179/。","It started to rain, so I borrowed an umbrella from a friend.",[36,159,179,468,587]],
+["982e51be",50,"借[か]りた@179/物[もの]@662/は/大切[たいせつ]@375/に/使[つか]って@412/、/すぐに@333/返[かえ]しましょう@149/。","Use borrowed things carefully and return them promptly.",[149,179,333,375,412,662]],
+["c65d6a49",50,"兄[あに]@28/は/銀行[ぎんこう]@213/から/お金[かね]@103/を/借[か]りて@179/、/車[くるま]@230/を/買[か]いました@148/。","My older brother borrowed money from the bank and bought a car.",[28,103,148,179,213,230]],
+["77382467",51,"先生[せんせい]@354/は/「/分[わ]かった@711/人[ひと]@563/は/手[て]@423/を/上[あ]げて@10/ください@217/。/」/と/言[い]いました@45/。","The teacher said, \"Those who understood, please raise your hands.\"",[10,45,217,354,423,563,711]],
+["a4b6b223",51,"みんな@648/が/手[て]@423/を/上[あ]げました@10/。","Everyone raised their hands.",[10,423,648]],
+["c36e7de1",51,"風[かぜ]@161/で/戸[と]@441/が/開[あ]きました@8/。","The door opened in the wind.",[8,161,441]],
+["8d138466",51,"店[みせ]@638/は/十時[じゅうじ]@313,290/に/開[あ]きます@8/。","The shop opens at ten.",[8,290,313,638]],
+["c4cd17a7",51,"暗[くら]い@225/部屋[へや]@595/の/電気[でんき]@438/が/急[きゅう]に/消[き]えました@191/。","The light in the dark room suddenly went out.",[191,225,438,595]],
+["7a2c12f5",51,"旅行[りょこう]@701/に/要[い]る@71/物[もの]@662/を/かばん@171/に/入[い]れました@72/。","I put the things I need for the trip in my bag.",[71,72,171,662,701]],
+["8da5cec9",51,"パスポート/は/要[い]ります@71/か/。","Do I need a passport?",[71]],
+["8ebf5859",51,"宿題[しゅくだい]@317/を/やって@674/から/、/遊[あそ]び@17/に/行[い]きます@48/。","I'll do my homework, then go out to play.",[17,48,317,674]],
+["be15e46a",51,"犬[いぬ]@64/に/ご飯[はん]@264/を/やりました@674/。","I fed the dog.",[64,264,674]],
+["87176edd",51,"あの@31/人[ひと]@563/を/知[し]って@322/います/か/。","Do you know that person?",[31,322,563]],
+["4f758b06",51,"いいえ@44/、/知[し]りません@322/。","No, I don't know him.",[44,322]],
+["7bf0b14e",51,"名前[なまえ]@489/を/呼[よ]ばれた@688/の/で/、/立[た]ちました@384/。","My name was called, so I stood up.",[384,489,688]],
+["b29d8ed9",51,"先生[せんせい]@354/が/生徒[せいと]@345/の/名前[なまえ]@489/を/呼[よ]びます@688/。","The teacher calls the students' names.",[345,354,489,688]],
+["ecad7a50",51,"友達[ともだち]@468/を/家[いえ]@46/に/呼[よ]んで@688/、/晩御飯[ばんごはん]@554/を/作[つく]りました@417/。","I invited friends to my house and made dinner.",[46,417,468,554,688]],
+["7bb11e9c",51,"母[はは]@541/は/「/勉強[べんきょう]@598/は/大切[たいせつ]@375/です/。/」/と/言[い]います@45/。","My mother says, \"Studying is important.\"",[45,375,541,598]],
+["bde3bbb2",51,"これ@267/は/祖母[そぼ]/に/もらった/大切[たいせつ]@375/な/時計[とけい]@455/です/。","This is a precious watch I got from my grandmother.",[267,375,455]],
+["4b128ed9",52,"私[わたし]@713/は/野菜[やさい]@667/が/嫌[きら]い@207/です/。","I dislike vegetables.",[207,667,713]],
+["bc16f225",52,"特[とく]に/、/緑[みどり]@643/の/野菜[やさい]@667/は/嫌[いや]@68/です/。","I especially can't stand green vegetables.",[68,643,667]],
+["14e8672b",52,"でも@434/、/母[はは]@541/は/「/体[からだ]@178/に/いい@43/から/、/食[た]べ@392/なさい/。/」/と/言[い]います@45/。","But my mother says, \"It's good for you, so eat it.\"",[43,45,178,392,434,541]],
+["c3be5f1f",52,"この@263/店[みせ]@638/の/料理[りょうり]@700/は/まずい@623/です/。","This restaurant's food tastes bad.",[263,623,638,700]],
+["53d15f50",52,"あの@31/店[みせ]@638/の/ほう@163/が/美味[おい]しい@96/です/。","That other restaurant is tastier.",[31,96,163,638]],
+["2bbc6192",52,"「/コーヒー@250/を/もう@657/一杯[いっぱい]@56,519/いかが@47/です/か/。/」","\"Would you like another cup of coffee?\"",[47,56,250,519,657]],
+["91b2f24b",52,"「/いいえ@44/、/もう@657/結構[けっこう]@236/です/。/」","\"No, I've had enough, thank you.\"",[44,236,657]],
+["d0dcd3fa",52,"私[わたし]@713/は/甘[あま]い@34/物[もの]@662/が/大好[だいす]き@374/です/。","I love sweet things.",[34,374,662,713]],
+["8ad865e5",52,"妹[いもうと]@67/は/いろいろ@74/な/飴[あめ]@37/を/集[あつ]めて/います/。","My younger sister collects various kinds of candy.",[37,67,74]],
+["cd7626f1",52,"弟[おとうと]@117/は/怖[こわ]い/映画[えいが]@87/を/見[み]る@647/と/、/怖[こわ]がります@180/。","My younger brother gets scared when he watches scary movies.",[87,117,180,647]],
+["11cddc47",53,"空[そら]@366/の/青[あお]@2/と/海[うみ]@82/の/青[あお]@2/は/少[すこ]し@334/違[ちが]います@401/。","The blue of the sky and the blue of the sea are a little different.",[2,82,334,366,401]],
+["11f81a2c",53,"私[わたし]@713/は/黒[くろ]@231/が/好[す]き@330/です/から/、/黒[くろ]い@232/服[ふく]@580/が/多[おお]い@97/です/。","I like black, so I have lots of black clothes.",[97,231,232,330,580,713]],
+["d0f57e12",53,"白[しろ]@323/は/雪[ゆき]@680/の/色[いろ]@73/です/。","White is the color of snow.",[73,323,680]],
+["bb2a53fb",53,"信号[しんごう]/の/赤[あか]@4/は/「/止[と]まれ@467/」/です/。","A red traffic light means \"Stop.\"",[4,467]],
+["4b896cfe",53,"この@263/絵[え]@86/に/は/緑[みどり]@643/と/黄色[きいろ]@189/を/たくさん@380/使[つか]いました@412/。","I used a lot of green and yellow in this picture.",[86,189,263,380,412,643]],
+["4df6b76c",53,"この@263/鉛筆[えんぴつ]@94/は/太[ふと]くて@585/、/書[か]き@154/やすい@669/です/。","This pencil is thick and easy to write with.",[94,154,263,585,669]],
+["5a09f81b",53,"あの@31/ペン@597/は/細[ほそ]くて@606/、/軽[かる]い@181/です/。","That pen is thin and light.",[31,181,597,606]],
+["80d78289",54,"はじめまして/。","Nice to meet you.",[]],
+["e1a85ce0",54,"私[わたくし]@714/は/#ジョン/と/申[もう]します/。","My name is John.",[714]],
+["f0d148cd",54,"アメリカ/人[じん]@325/です/。","I'm American.",[325]],
+["ced6197a",54,"去年[きょねん]@206/の/四月[しがつ]@289,166/に/日本[にほん]/へ/来[き]ました@229/。","I came to Japan in April last year.",[166,206,229,289]],
+["e7b3029f",54,"今[いま]@65/、/大学[だいがく]@371/で/日本語[にほんご]/を/勉強[べんきょう]して@598/います/。","I'm studying Japanese at university now.",[65,371,598]],
+["d3911cb0",54,"私[わたし]@713/の/クラス@227/に/は/いろいろ@74/な/国[くに]@222/の/留学生[りゅうがくせい]@698/が/います@70/。","There are international students from various countries in my class.",[70,74,222,227,698,713]],
+["f08f5624",54,"中国[ちゅうごく]/人[じん]@325/の/学生[がくせい]@155/も/韓国[かんこく]/人[じん]@325/の/学生[がくせい]@155/も/います@70/。","There are Chinese students and Korean students.",[70,155,325]],
+["5ad46c3c",54,"私[わたし]@713/は/英語[えいご]@89/と/中国[ちゅうごく]/語[ご]@243/が/話[はな]せます@540/。","I can speak English and Chinese.",[89,243,540,713]],
+["66126c90",54,"日本語[にほんご]/は/まだ@625/下手[へた]@592/です/が/、/毎日[まいにち]@617/練習[れんしゅう]して@706/います/。","My Japanese is still poor, but I practice every day.",[592,617,625,706]],
+["554340a0",54,"趣味[しゅみ]/は/写真[しゃしん]@310/と/スポーツ@339/です/。","My hobbies are photography and sports.",[310,339]],
+["0b0bd158",54,"どうぞ@447/よろしく/お願[ねが]いします/。","I look forward to getting to know you.",[447]],
+["64f91949",55,"私[わたし]@713/の/大学[だいがく]@371/に/は/外国人[がいこくじん]@144/の/学生[がくせい]@155/が/多[おお]い@97/です/。","There are many foreign students at my university.",[97,144,155,371,713]],
+["6d95870a",55,"隣[となり]@464/の/部屋[へや]@595/の/人[ひと]@563/は/フランス/人[じん]@325/です/。","The person in the next room is French.",[325,464,563,595]],
+["05cdfa80",55,"彼女[かのじょ]/は/フランス/語[ご]@243/と/英語[えいご]@89/と/日本語[にほんご]/が/できます@429/。","She can speak French, English and Japanese.",[89,243,429]],
+["d0dac738",55,"外国語[がいこくご]/を/習[なら]う@490/の/は/難[むずか]しい@651/です/が/、/面白[おもしろ]い@134/です/。","Learning a foreign language is hard but interesting.",[134,490,651]],
+["84343397",55,"「/この@263/言葉[ことば]@261/は/英語[えいご]@89/で/何[なに]@487/と/言[い]います@45/か/。/」","\"How do you say this word in English?\"",[45,89,261,263,487]],
+["86e57ccf",55,"「/『/本[ほん]@609/』/は/英語[えいご]@89/で/『/ブック/』/です/。/」","\"'Hon' is 'book' in English.\"",[89,609]],
+["730df2d4",55,"外国人[がいこくじん]@144/の/友達[ともだち]@468/に/日本[にほん]/の/料理[りょうり]@700/を/教[おし]えました@111/。","I taught my foreign friend Japanese cooking.",[111,144,468,700]],
+["4e178f52",55,"友達[ともだち]@468/は/箸[はし]@526/を/使[つか]う@412/の/が/まだ@625/上手[じょうず]@318/で/は/ありません@40/。","My friend still isn't good at using chopsticks.",[40,318,412,468,526,625]],
+["65f41c92",56,"晩御飯[ばんごはん]@554/の/前[まえ]@620/に/、/テーブル@426/に/箸[はし]@526/と/茶碗[ちゃわん]@407/を/並[なら]べます@492/。","Before dinner, I set chopsticks and rice bowls on the table.",[407,426,492,526,554,620]],
+["c354dab0",56,"父[ちち]@405/の/箸[はし]@526/は/長[なが]くて@479/、/私[わたし]@713/の/箸[はし]@526/は/短[みじか]い@636/です/。","My father's chopsticks are long, and mine are short.",[405,479,526,636,713]],
+["5d9c69af",56,"カップ@168/と/コップ@259/は/どう@445/違[ちが]います@401/か/。","What's the difference between a cup and a glass?",[168,259,401,445]],
+["11730a14",56,"コーヒー@250/は/カップ@168/で/、/水[みず]@637/は/コップ@259/で/飲[の]みます@514/。","I drink coffee from a cup and water from a glass.",[168,250,259,514,637]],
+["0c44e267",56,"ナイフ@477/と/フォーク@578/で/肉[にく]@497/を/食[た]べました@392/。","I ate the meat with a knife and fork.",[392,477,497,578]],
+["e168f04f",56,"スプーン@338/が/一本[いっぽん]@56,610/足[た]りません/。","We're one spoon short.",[56,338,610]],
+["3a27180d",56,"醤油[しょうゆ]@320/を/取[と]って@472/ください@217/。","Please pass the soy sauce.",[217,320,472]],
+["f3e14cf7",56,"この@263/スープ/は/少[すこ]し@334/塩[しお]@291/が/足[た]りません/ね/。","This soup needs a little more salt, doesn't it?",[263,291,334]],
+["e4fb37a9",56,"牛肉[ぎゅうにく]@201/と/豚肉[ぶたにく]@582/と/、/どちら@460/が/いい@43/です/か/。","Which would you like, beef or pork?",[43,201,460,582]],
+["f7838bbd",56,"私[わたし]@713/は/牛肉[ぎゅうにく]@201/が/いい@43/です/。","I'd like beef.",[43,201,713]],
+["47f38506",57,"日本人[にほんじん]/は/毎晩[まいばん]@619/お風呂[ふろ]@129/に/入[はい]る@521/人[ひと]@563/が/多[おお]い@97/です/。","Many Japanese people take a bath every night.",[97,129,521,563,619]],
+["43dd99cb",57,"私[わたし]@713/は/朝[あさ]@11/シャワー@312/を/浴[あ]びて@32/、/夜[よる]@690/お風呂[ふろ]@129/に/入[はい]ります@521/。","I take a shower in the morning and a bath at night.",[11,32,129,312,521,690,713]],
+["f39f292e",57,"今日[きょう]@203/の/お風呂[ふろ]@129/は/熱[あつ]@23/すぎます@331/。","Today's bath is too hot.",[23,129,203,331]],
+["2008af48",57,"水[みず]@637/を/入[い]れて@72/、/少[すこ]し@334/温[ぬる]く@506/しました@342/。","I added water and made it a little cooler.",[72,334,342,506,637]],
+["1bf83f72",57,"石鹸[せっけん]@347/で/体[からだ]@178/を/洗[あら]って@38/から/、/お風呂[ふろ]@129/に/入[はい]ります@521/。","You wash your body with soap before getting into the bath.",[38,129,178,347,521]],
+["c59d975b",57,"お風呂[ふろ]@129/の/後[あと]@26/で/、/冷[つめ]たい@421/牛乳[ぎゅうにゅう]@202/を/飲[の]みます@514/。","After the bath I drink cold milk.",[26,129,202,421,514]],
+["2c8b9d4b",57,"お風呂[ふろ]@129/に/入[はい]る@521/と/、/体[からだ]@178/が/温[あたた]かく/なって@493/、/よく@684/寝[ね]られます@509/。","When I take a bath, my body gets warm and I sleep well.",[129,178,493,509,521,684]],
+["df59c121",58,"祖父[そふ]/の/家[いえ]@46/に/は/古[ふる]い@588/物[もの]@662/が/たくさん@380/あります@40/。","There are lots of old things at my grandfather's house.",[40,46,380,588,662]],
+["3a35a5db",58,"祖父[そふ]/は/ラジオ@695/で/毎朝[まいあさ]@614/ニュース@502/を/聞[き]きます@192/。","My grandfather listens to the news on the radio every morning.",[192,502,614,695]],
+["792e28af",58,"棚[たな]/の/上[うえ]@75/に/古[ふる]い@588/ラジカセ@696/が/あります@40/。","There's an old radio-cassette player on the shelf.",[40,75,588,696]],
+["fbc5c1a8",58,"祖父[そふ]/は/テープレコーダー@425/で/歌[うた]@78/を/録音[ろくおん]しました/。","My grandfather recorded songs with a tape recorder.",[78,425]],
+["a27026b3",58,"テープ@424/は/もう@657/売[う]って@83/いません/。","They don't sell tapes anymore.",[83,424,657]],
+["06aaa543",58,"祖父[そふ]/の/レコード@704/は/三百枚[さんびゃくまい]@287,568,613/ぐらい@226/あります@40/。","My grandfather has about three hundred records.",[40,226,287,568,613,704]],
+["35d4c120",58,"祖父[そふ]/は/万年筆[まんねんひつ]@633/で/手紙[てがみ]@428/を/書[か]きます@154/。","My grandfather writes letters with a fountain pen.",[154,428,633]],
+["c85f9ece",58,"机[つくえ]@416/の/上[うえ]@75/に/古[ふる]い@588/字引[じびき]@304/が/あります@40/。","There's an old dictionary on the desk.",[40,75,304,416,588]],
+["262e4e62",58,"昔[むかし]/は/みんな@648/マッチ@629/で/たばこ@389/に/火[ひ]/を/つけました@418/。","In the old days everyone lit cigarettes with matches.",[389,418,629,648]],
+["a7842fec",58,"今[いま]@65/は/灰皿[はいざら]@520/は/使[つか]って@412/いません/。","Now he doesn't use ashtrays.",[65,412,520]],
+["4a0fde7a",59,"今日[きょう]@203/は/朝[あさ]@11/から/曇[くも]り@223/です/。","It's been cloudy since morning today.",[11,203,223]],
+["bc47edbf",59,"午後[ごご]@252/に/なって@493/、/空[そら]@366/が/もっと@661/曇[くも]って@224/きました/。","In the afternoon, the sky became even cloudier.",[224,252,366,493,661]],
+["7598f9ff",59,"北[きた]@193/から/冷[つめ]たい@421/風[かぜ]@161/が/吹[ふ]いて@579/います/。","A cold wind is blowing from the north.",[161,193,421,579]],
+["7bc1f9ae",59,"明日[あした]@15/の/天気[てんき]@437/は/晴[は]れ@547/でしょう/。","Tomorrow's weather will probably be sunny.",[15,437,547]],
+["b9d07e2f",59,"南[みなみ]@645/の/国[くに]@222/は/冬[ふゆ]@586/で/も/暖[あたた]かい@18/です/。","Southern countries are warm even in winter.",[18,222,586,645]],
+["0ddc458c",59,"日[ひ]/は/東[ひがし]@556/から/出[で]て@435/、/西[にし]@498/に/入[はい]ります@521/。","The sun rises in the east and sets in the west.",[435,498,521,556]],
+["c7bc63f8",59,"天気[てんき]@437/が/いい@43/日[ひ]/は/、/窓[まど]@630/を/開[あ]けます@9/。","On days with good weather, I open the windows.",[9,43,437,630]],
+["ab9cc067",60,"最近[さいきん]/、/少[すこ]し@334/太[ふと]りました/。","Recently, I've gained a little weight.",[334]],
+["79a7c358",60,"体重[たいじゅう]/は/六十五[ろくじゅうご]キロ@211/です/。","I weigh sixty-five kilograms.",[211]],
+["56f8010c",60,"毎日[まいにち]@617/一万[いちまん]@56,632/歩[ぽ]/歩[ある]く@41/こと/に/しました@342/。","I decided to walk ten thousand steps every day.",[41,56,342,617,632]],
+["5b07f651",60,"ご飯[はん]@264/は/半分[はんぶん]@555/だけ@379/食[た]べます@392/。","I eat only half my rice.",[264,379,392,555]],
+["06b7499b",60,"甘[あま]い@34/物[もの]@662/は/あまり@35/食[た]べません@392/。","I don't eat many sweet things.",[34,35,392,662]],
+["d40972d3",60,"一[いっ]か月[げつ]@56,156/で/二[に]キロ@211/やせました/。","I lost two kilograms in a month.",[56,156,211]],
+["1c4ef7ee",60,"私[わたし]@713/の/弟[おとうと]@117/は/体[からだ]@178/が/弱[よわ]くて@691/、/よく@684/病気[びょうき]@570/に/なります@493/。","My younger brother is weak and often gets sick.",[117,178,493,570,684,691,713]],
+["1fc4b296",60,"でも@434/、/毎日[まいにち]@617/運動[うんどう]して/、/段々[だんだん]@397/強[つよ]く@422/なりました@493/。","But he exercised every day and gradually became stronger.",[397,422,434,493,617]],
+["efd857e6",60,"この@263/バター@532/は/二百[にひゃく]グラム@495,568,228/で/四百円[よんひゃくえん]@289,568,93/です/。","This butter is two hundred grams for four hundred yen.",[93,228,263,289,495,532,568]],
+["1a4ed6a4",61,"この@263/机[つくえ]@416/は/たて@385/が/一[いち]メートル@56,655/、/横[よこ]@685/が/二[に]メートル@495,655/です/。","This desk is one meter long and two meters wide.",[56,263,385,416,495,655,685]],
+["209ba57b",61,"その@364/橋[はし]@525/は/長[なが]さ/が/百[ひゃく]メートル@568,655/ぐらい@226/あります@40/。","That bridge is about a hundred meters long.",[40,226,364,525,568,655]],
+["3fa1b379",61,"学校[がっこう]@167/の/プール@577/は/二十五[にじゅうご]メートル@495,313,242,655/です/。","The school pool is twenty-five meters.",[167,242,313,495,577,655]],
+["1698db44",61,"駅[えき]@91/まで/五百[ごひゃく]メートル@242,568,655/ぐらい@226/です/。","It's about five hundred meters to the station.",[91,226,242,568,655]],
+["9259239c",61,"兄[あに]@28/の/背[せい]@344/は/百八十[ひゃくはちじゅう]@568,535,313/センチ/で/、/私[わたし]@713/より/高[たか]い@378/です/。","My older brother is a hundred eighty centimeters tall, taller than me.",[28,313,344,378,535,568,713]],
+["2dac0d96",61,"この@263/道[みち]@640/は/狭[せま]くて@349/、/車[くるま]@230/が/通[とお]れません/。","This road is narrow, and cars can't get through.",[230,263,349,640]],
+["a1bea75c",61,"あの@31/川[かわ]@184/は/広[ひろ]くて@574/、/深[ふか]い/です/。","That river is wide and deep.",[31,184,574]],
+["117af702",62,"昨日[きのう]@199/は/雨[あめ]@36/でし/た/。/しかし@292/、/今日[きょう]@203/は/いい@43/天気[てんき]@437/です/。","Yesterday it rained. However, today the weather is good.",[36,43,199,203,292,437]],
+["af191244",62,"私[わたし]@713/は/朝[あさ]@11/六時[ろくじ]@708,290/に/起[お]きます@104/。/そうして@359/、/犬[いぬ]@64/と/散歩[さんぽ]します@288/。","I get up at six in the morning. And then I walk the dog.",[11,64,104,288,290,359,708,713]],
+["d972e957",62,"宿題[しゅくだい]@317/が/終[お]わりました@137/。/では@432/、/遊[あそ]び@17/に/行[い]きましょう@48/。","The homework is done. Well then, let's go out and play.",[17,48,137,317,432]],
+["04594d0e",62,"今日[きょう]@203/の/授業[じゅぎょう]@316/は/終[お]わり@137/です/。/それでは@369/、/また@624/明日[あした]@15/。","Today's class is over. Well then, see you tomorrow.",[15,137,203,316,369,624]],
+["02dc7487",62,"じゃあ@309/、/私[わたし]@713/は/これ@267/で/失礼[しつれい]します/。","Well then, I'll be going now.",[267,309,713]],
+["de437d71",62,"明日[あした]@15/は/多分[たぶん]@390/雨[あめ]@36/でしょう/。","It will probably rain tomorrow.",[15,36,390]],
+["b3ec45f9",62,"兄[あに]@28/は/多分[たぶん]@390/まだ@625/寝[ね]て@509/います/。","My older brother is probably still sleeping.",[28,390,509,625]],
+["aea5f65b",62,"だれか@395/来[き]ました@229/よ/。","Someone has come.",[229,395]],
+["e3bc6ca8",62,"だれか@395/この@263/問題[もんだい]@664/が/分[わ]かります@711/か/。","Does anyone understand this question?",[263,395,664,711]],
+["c79ec9f3",63,"ここ@251/は/私[わたし]@713/が/生[う]まれた@81/所[ところ]@457/です/。","This is the place where I was born.",[81,251,457,713]],
+["236be079",63,"静[しず]か@297/な/所[ところ]@457/で/本[ほん]@609/を/読[よ]みたい@689/です/。","I want to read a book in a quiet place.",[297,457,609,689]],
+["cc6a3a29",63,"駅[えき]@91/から/近[ちか]い@400/所[ところ]@457/に/アパート@30/を/借[か]りました@179/。","I rented an apartment in a place close to the station.",[30,91,179,400,457]],
+["fc3139b2",63,"外[ほか]@602/の/人[ひと]@563/に/も/聞[き]いて@192/みましょう/。","Let's also ask the other people.",[192,563,602]],
+["97ea8925",63,"この@263/店[みせ]@638/は/ほか@602/の/店[みせ]@638/より/安[やす]い@669/です/。","This shop is cheaper than the other shops.",[263,602,638,669]],
+["b008ae0c",63,"ほか@602/に/質問[しつもん]@300/は/あります@40/か/。","Are there any other questions?",[40,300,602]],
+["57e7e973",63,"すみません@341/、/塩[しお]@291/を/取[と]って@472/ください@217/。","Excuse me, please pass the salt.",[217,291,341,472]],
+["1c5f2774",63,"テスト@431/で/いい@43/点[てん]/を/取[と]りました@472/。","I got a good score on the test.",[43,431,472]],
+["a8a3fbfc",63,"大学[だいがく]@371/で/日本語[にほんご]/の/授業[じゅぎょう]@316/を/取[と]って@472/います/。","I'm taking a Japanese class at university.",[316,371,472]],
+["3451bda3",64,"隣[となり]@464/の/家[いえ]@46/に/は/#佐藤[さとう]/さん@286/の/家族[かぞく]@164/が/住[す]んで@341/います/。","The Sato family lives in the house next door.",[46,164,286,341,464]],
+["ef836074",64,"#佐藤[さとう]/さん@286/の/奥[おく]さん@106/は/とても@462/親切[しんせつ]/な/人[ひと]@563/です/。","Mrs. Sato is a very kind person.",[106,286,462,563]],
+["47edd5b5",64,"「/奥[おく]さん@106/、/こんにちは/。/いい@43/お天気[てんき]@95,437/です/ね/。/」","\"Hello, ma'am. Nice weather, isn't it?\"",[43,95,106,437]],
+["262f86f0",64,"奥[おく]さん@106/は/時々[ときどき]@454/お菓子[かし]@102/を/くれます/。","Mrs. Sato sometimes gives us sweets.",[102,106,454]],
+["8ef81d60",64,"#佐藤[さとう]/さん@286/の/ご主人[しゅじん]@95/は/銀行員[ぎんこういん]/です/。","Mr. Sato is a bank clerk.",[95,286]],
+["ea301991",64,"#佐藤[さとう]/さん@286/の/家[いえ]@46/に/は/男[おとこ]の子[こ]@119/が/一人[ひとり]@566/と/女[おんな]の子[こ]@140/が/二人[ふたり]@583/います@70/。","The Satos have one boy and two girls.",[46,70,119,140,286,566,583]],
+["53799942",64,"先週[せんしゅう]@353/、/#佐藤[さとう]/さん@286/の/家族[かぞく]@164/と/一緒[いっしょ]@61/に/ご飯[はん]@264/を/食[た]べました@392/。","Last week we ate a meal with the Sato family.",[61,164,264,286,353,392]],
+["5d2862be",65,"今週[こんしゅう]@270/は/とても@462/忙[いそが]しい@54/です/。","This week is very busy.",[54,270,462]],
+["eb4cddf8",65,"月曜日[げつようび]@238/と/火曜日[かようび]@176/は/授業[じゅぎょう]@316/が/六時間[ろくじかん]@708,294/あります@40/。","On Monday and Tuesday I have six hours of classes.",[40,176,238,294,316,708]],
+["cd6761e8",65,"水曜日[すいようび]@327/の/晩[ばん]@549/は/アルバイト/が/あります@40/。","On Wednesday evening I have my part-time job.",[40,327,549]],
+["47da284c",65,"木曜日[もくようび]@658/の/昼[ひる]@572/は/友達[ともだち]@468/と/ご飯[はん]@264/を/食[た]べます@392/。","On Thursday at noon I'll have a meal with a friend.",[264,392,468,572,658]],
+["2dfe724e",65,"金曜日[きんようび]@214/は/暇[ひま]@567/です/から/、/映画[えいが]@87/を/見[み]@647/に/行[い]きます@48/。","I'm free on Friday, so I'll go see a movie.",[48,87,214,567,647]],
+["125cc9a3",65,"毎週[まいしゅう]@616/土曜日[どようび]@469/に/テニス/を/して@342/います/。","I play tennis every Saturday.",[342,469,616]],
+["90c12dfc",65,"先月[せんげつ]@352/は/試験[しけん]/が/あって@40/、/遊[あそ]ぶ@17/時間[じかん]@293/が/ありませんでした@40/。","Last month I had exams and no time to play.",[17,40,293,352]],
+["0c6052a3",65,"来月[らいげつ]@692/は/夏休[なつやす]み@484/です/から/、/国[くに]@222/へ/帰[かえ]ります@150/。","Next month is summer vacation, so I'll go back to my country.",[150,222,484,692]],
+["0d292374",65,"昨夜[ゆうべ]@678/は/遅[おそ]く@113/まで/起[お]きて@104/いました/。","Last night I stayed up late.",[104,113,678]],
+["a46c3ddb",65,"夕飯[ゆうはん]@676/の/後[あと]@26/で/、/少[すこ]し@334/散歩[さんぽ]しました@288/。","After dinner I took a short walk.",[26,288,334,676]],
+["9bf7e2d0",66,"祖母[そぼ]/は/山[やま]@673/の/中[なか]@478/の/小[ちい]さい@398/村[むら]@653/に/住[す]んで@341/います/。","My grandmother lives in a small village in the mountains.",[341,398,478,653,673]],
+["fb08e736",66,"村[むら]@653/に/は/店[みせ]@638/が/少[すく]なくて@332/、/少[すこ]し@334/不便[ふべん]/です/。","There are few shops in the village, so it's a bit inconvenient.",[332,334,638,653]],
+["e5e473fb",66,"村[むら]@653/の/若[わか]い@710/人[ひと]@563/は/みんな@648/町[まち]@626/へ/出[で]て@435/いきました/。","All the young people in the village have left for the city.",[435,563,626,648,653,710]],
+["751c555f",66,"村[むら]@653/の/家[いえ]@46/は/みんな@648/低[ひく]くて@560/、/古[ふる]い@588/です/。","The houses in the village are all low and old.",[46,560,588,648,653]],
+["9349c492",66,"村[むら]@653/の/近[ちか]く@402/に/綺麗[きれい]@210/な/川[かわ]@184/が/あります@40/。","There's a beautiful river near the village.",[40,184,210,402,653]],
+["d9d254ff",66,"夏[なつ]@483/に/は/、/子供[こども]@262/たち@383/が/川[かわ]@184/で/泳[およ]ぎます@135/。","In summer the children swim in the river.",[135,184,262,383,483]],
+["a0d21b4d",66,"でも@434/、/雨[あめ]@36/の/後[あと]@26/の/川[かわ]@184/は/危[あぶ]ない@33/です/。","But the river is dangerous after rain.",[26,33,36,184,434]],
+["1187d119",66,"村[むら]@653/の/人[ひと]@563/は/みんな@648/明[あか]るくて@6/、/親切[しんせつ]/です/。","The people in the village are all cheerful and kind.",[6,563,648,653]],
+["cb95623b",67,"地図[ちず]@404/を/見[み]@647/ながら/、/町[まち]@626/を/歩[ある]きました@41/。","I walked around the city looking at a map.",[41,404,626,647]],
+["8ca3dd2a",67,"大[おお]きい@98/交差点[こうさてん]@245/の/角[かど]@170/に/交番[こうばん]@247/が/あります@40/。","There's a police box on the corner of the big intersection.",[40,98,170,245,247]],
+["127883bb",67,"この@263/道[みち]@640/を/まっすぐ@628/行[い]く@48/と/、/駅[えき]@91/に/着[つ]きます@415/。","If you go straight along this road, you'll reach the station.",[48,91,263,415,628,640]],
+["4effd69a",67,"駅[えき]@91/から/地下鉄[ちかてつ]@403/に/乗[の]って@515/、/三[みっ]つ@642/目[め]/の/駅[えき]@91/で/降[お]ります@136/。","From the station I take the subway and get off at the third stop.",[91,136,403,515,642]],
+["b198ceb0",67,"この@263/町[まち]@626/は/自動車[じどうしゃ]@302/が/多[おお]くて@97/、/空気[くうき]/が/悪[わる]い@717/です/。","This city has a lot of cars, and the air is bad.",[97,263,302,626,717]],
+["7b4143aa",67,"交差点[こうさてん]@245/で/警官[けいかん]@233/が/車[くるま]@230/を/止[と]めました/。","A police officer stopped a car at the intersection.",[230,233,245]],
+["3cf569f5",67,"駅[えき]@91/の/前[まえ]@620/に/大[おお]きな@99/デパート@433/が/あります@40/。","There's a big department store in front of the station.",[40,91,99,433,620]],
+["cda2c3fb",67,"デパート@433/の/後[うし]ろ@76/に/古[ふる]い@588/お寺[てら]@95/が/あります@40/。","Behind the department store there's an old temple.",[40,76,95,433,588]],
+["bf746631",68,"父[ちち]@405/は/毎朝[まいあさ]@614/ワイシャツ@709/を/着[き]て@209/、/ネクタイ@507/を/締[し]めます@308/。","Every morning my father puts on a business shirt and ties his necktie.",[209,308,405,507,614,709]],
+["8191e62a",68,"父[ちち]@405/の/背広[せびろ]@348/は/黒[くろ]@231/と/紺[こん]/です/。","My father's suits are black and navy.",[231,348,405]],
+["7262e224",68,"私[わたし]@713/は/会社[かいしゃ]@145/へ/行[い]く@48/とき@453/、/スカート@329/を/はきます@523/。","When I go to the office, I wear a skirt.",[48,145,329,453,523,713]],
+["fee1a917",68,"休[やす]み@670/の/日[ひ]/は/ズボン@340/と/シャツ@311/です/。","On days off it's trousers and a shirt.",[311,340,670]],
+["bb2dbcad",68,"靴下[くつした]@221/に/穴[あな]/が/あいて@8/いました/。","There was a hole in my sock.",[8,221]],
+["746992c0",68,"ポケット@603/に/ハンカチ@552/と/財布[さいふ]@275/を/入[い]れます@72/。","I put a handkerchief and my wallet in my pocket.",[72,275,552,603]],
+["9e5c0272",68,"夏[なつ]@483/は/薄[うす]い@77/服[ふく]@580/を/着[き]ます@209/。","In summer I wear thin clothes.",[77,209,483,580]],
+["39a5e746",68,"外[そと]@363/は/日[ひ]/が/強[つよ]い@422/です/から/、/帽子[ぼうし]@600/を/かぶって@173/行[い]きましょう@48/。","The sun is strong outside, so let's wear hats.",[48,173,363,422,600]],
+["4b757f60",68,"この@263/白[しろ]い@324/シャツ@311/は/汚[きたな]い@195/です/から/、/洗濯[せんたく]します@355/。","This white shirt is dirty, so I'll wash it.",[195,263,311,324,355]],
+["6da29777",69,"初[はじ]め@528/に/、/平仮名[ひらがな]@571/と/片仮名[かたかな]@165/を/勉強[べんきょう]しました@598/。","First, we studied hiragana and katakana.",[165,528,571,598]],
+["1d816d1b",69,"平仮名[ひらがな]@571/は/易[やさ]しい@668/です/が/、/片仮名[かたかな]@165/は/少[すこ]し@334/難[むずか]しい@651/です/。","Hiragana is easy, but katakana is a little difficult.",[165,334,571,651,668]],
+["36b0388d",69,"先生[せんせい]@354/は/生徒[せいと]@345/に/紙[かみ]@174/を/一枚[いちまい]@56,613/ずつ@336/渡[わた]しました@715/。","The teacher handed each student a sheet of paper.",[56,174,336,345,354,613,715]],
+["27afce70",69,"紙[かみ]@174/に/自分[じぶん]@305/の/名前[なまえ]@489/を/片仮名[かたかな]@165/で/書[か]きました@154/。","I wrote my name in katakana on the paper.",[154,165,174,305,489]],
+["81d78176",69,"「/この@263/漢字[かんじ]@187/の/読[よ]み方[かた]/が/分[わ]かる@711/人[ひと]@563/は/います@70/か/。/」","\"Is there anyone who knows how to read this kanji?\"",[70,187,263,563,711]],
+["ebc9eae2",69,"私[わたし]@713/が/手[て]@423/を/上[あ]げて@10/、/答[こた]えました@256/。","I raised my hand and answered.",[10,256,423,713]],
+["b7379637",69,"クラス@227/の/生徒[せいと]@345/の/半分[はんぶん]@555/ぐらい@226/が/答[こた]え/を/間違[まちが]えました/。","About half of the students in the class got the answer wrong.",[226,227,345,555]],
+["6cd52fe3",69,"私[わたし]@713/は/クラス@227/で/一番[いちばん]@58/漢字[かんじ]@187/が/好[す]き@330/です/。","I like kanji the most in my class.",[58,187,227,330,713]],
+["16ef1611",69,"「/山[やま]@673/」/と/「/川[かわ]@184/」/は/同[おな]じ@124/ぐらい@226/易[やさ]しい@668/漢字[かんじ]@187/です/。","\"Mountain\" and \"river\" are equally easy kanji.",[124,184,187,226,668,673]],
+["d382d42e",69,"短[みじか]い@636/文章[ぶんしょう]@590/を/書[か]いて@154/、/先生[せんせい]@354/に/見[み]せました@639/。","I wrote a short passage and showed it to the teacher.",[154,354,590,636,639]],
+["95c135e6",69,"ボールペン@601/で/書[か]いた@154/字[じ]/は/消[け]せません@235/。","Characters written with a ball-point pen can't be erased.",[154,235,601]],
+["f0f7b06e",70,"市場[いちば]/は/野菜[やさい]@667/や/果物[くだもの]@218/など@485/が/とても@462/安[やす]い@669/です/。","At the market, vegetables, fruit and so on are very cheap.",[218,462,485,667,669]],
+["adc30095",70,"「/この@263/みかん/は/いくら@50/です/か/。/」","\"How much are these mandarin oranges?\"",[50,263]],
+["530668f8",70,"「/五[いつ]つ@62/で/三百円[さんびゃくえん]@287,568,93/です/。/」","\"Three hundred yen for five.\"",[62,93,287,568]],
+["e1bc1d85",70,"みかん/を/五[いつ]つ@62/と/、/桃[もも]/を/三[みっ]つ@642/買[か]いました@148/。","I bought five mandarin oranges and three peaches.",[62,148,642]],
+["92d28483",70,"卵[たまご]@393/は/六[むっ]つ@652/で/二百円[にひゃくえん]@495,568,93/でし/た/。","Eggs were two hundred yen for six.",[93,393,495,568,652]],
+["b2e1531d",70,"「/もっと@661/大[おお]きい@98/の/は/あります@40/か/。/」","\"Do you have bigger ones?\"",[40,98,661]],
+["3b393bad",70,"「/こんな@271/大[おお]きさ/は/どう@445/です/か/。/」","\"How about this size?\"",[271,445]],
+["ac42674d",70,"「/どれ@474/が/一番[いちばん]@58/甘[あま]い@34/です/か/。/」","\"Which one is the sweetest?\"",[34,58,474]],
+["ce39e3f3",70,"「/こっち@258/の/より/そっち@362/の/ほう@163/が/甘[あま]い@34/です/よ/。/」","\"That one there is sweeter than this one.\"",[34,163,258,362]],
+["17edba64",70,"「/じゃあ@309/、/あっち@25/の/赤[あか]い@5/の/を/八[やっ]つ@672/ください@217/。/」","\"Then, I'll take eight of those red ones over there.\"",[5,25,217,309,672]],
+["d7d20059",70,"飲[の]み物[もの]@513/も/買[か]いました@148/。/紅茶[こうちゃ]@246/と/ジュース/です/。","I bought drinks too: black tea and juice.",[148,246,513]],
+["bbe52996",70,"父[ちち]@405/の/ために/お酒[さけ]@107/も/一本[いっぽん]@56,610/買[か]いました@148/。","I also bought a bottle of sake for my father.",[56,107,148,405,610]],
+["0db1a7f9",70,"荷物[にもつ]@501/が/重[おも]くて@133/、/手[て]@423/が/痛[いた]く@55/なりました@493/。","My bags were heavy, and my hands started to hurt.",[55,133,423,493,501]],
+["5523110d",71,"「/いらっしゃいませ/。/お二人[ふたり]@95,583/です/か/。/」","\"Welcome. Two of you?\"",[95,583]],
+["f6964310",71,"「/はい@518/、/二人[ふたり]@583/です/。/」","\"Yes, two.\"",[518,583]],
+["bd8b10fd",71,"「/こちら@257/へ/どうぞ@447/。/」","\"This way, please.\"",[257,447]],
+["36681b79",71,"「/お手洗[てあら]い@115/は/どちら@460/です/か/。/」","\"Where is the restroom?\"",[115,460]],
+["d2563960",71,"「/あちら@21/です/。/」","\"It's over there.\"",[21]],
+["3ead70e9",71,"「/すみません@341/、/メニュー/を/ください@217/。/」","\"Excuse me, may I have a menu?\"",[217,341]],
+["f5fae43f",71,"「/この@263/料理[りょうり]@700/は/辛[から]い@177/です/か/。/」","\"Is this dish spicy?\"",[177,263,700]],
+["0520ba68",71,"「/はい@518/、/少[すこ]し@334/辛[から]い@177/です/。/」","\"Yes, it's a little spicy.\"",[177,334,518]],
+["8837c06d",71,"「/どの@465/料理[りょうり]@700/が/一番[いちばん]@58/人気[にんき]/です/か/。/」","\"Which dish is the most popular?\"",[58,465,700]],
+["e6231fc5",71,"「/そちら@361/の/カレー@182/が/人気[にんき]/です/よ/。/」","\"That curry is popular.\"",[182,361]],
+["22f04433",71,"「/どんな@475/飲[の]み物[もの]@513/が/あります@40/か/。/」","\"What kinds of drinks do you have?\"",[40,475,513]],
+["6c9ce4ef",71,"「/コーヒー@250/と/紅茶[こうちゃ]@246/と/、/どっち@461/に/します@342/か/。/」","\"Coffee or tea — which will you have?\"",[246,250,342,461]],
+["10ffbdf6",71,"料理[りょうり]@700/は/全部[ぜんぶ]@356/で/二千円[にせんえん]@495,351,93/でし/た/。","The food came to two thousand yen in all.",[93,351,356,495,700]],
+["72756057",72,"九日[ここのか]@253/から/十日[とおか]@452/まで/学校[がっこう]@167/は/休[やす]み@670/です/。","School is closed from the ninth to the tenth.",[167,253,452,670]],
+["5d35a9dc",72,"七日[なのか]@488/は/兄[あに]@28/の/誕生日[たんじょうび]@396/です/。","The seventh is my older brother's birthday.",[28,396,488]],
+["c540fcbc",72,"二日[ふつか]@584/と/四日[よっか]@686/に/病院[びょういん]@569/へ/行[い]かなけれ@48/ば/なりません@493/。","I have to go to the hospital on the second and the fourth.",[48,493,569,584,686]],
+["e6941154",72,"六日[むいか]@649/の/午後[ごご]@252/、/友達[ともだち]@468/が/家[いえ]@46/に/来[き]ます@229/。","On the afternoon of the sixth, a friend is coming to my house.",[46,229,252,468,649]],
+["a0b40e2b",72,"旅行[りょこう]@701/は/四日間[よっかかん]@289,499/です/。","The trip is four days long.",[289,499,701]],
+["40461202",72,"この@263/仕事[しごと]@295/は/二日[ふつか]@584/かかります@152/。","This job takes two days.",[152,263,295,584]],
+["76eef61f",72,"毎月[まいつき]@615/一日[ついたち]@411/に/部屋代[へやだい]/を/払[はら]います/。","I pay my rent on the first of every month.",[411,615]],
+["8dffd06a",73,"ああ@0/、/びっくりしました/。","Oh, what a surprise!",[0]],
+["0d367d5d",73,"ああ@0/、/疲[つか]れました@413/。","Ah, I'm tired.",[0,413]],
+["80c044a4",73,"さあ@273/、/出[で]かけましょう@427/。","Well, let's head out.",[273,427]],
+["85a746f9",73,"「/本当[ほんとう]@612/です/か/。/」/「/ええ@90/、/本当[ほんとう]@612/です/よ/。/」","\"Really?\" \"Yes, really.\"",[90,612]],
+["21b642f8",73,"試験[しけん]/に/落[お]ちて/、/とても@462/困[こま]りました@266/。","I failed the exam and was really troubled.",[266,462]],
+["abf45edb",73,"子供[こども]@262/の/とき@453/、/飼[か]って/いた/犬[いぬ]@64/が/死[し]にました@303/。","When I was a child, the dog we kept died.",[64,262,303,453]],
+["d5d08ddf",73,"雨[あめ]@36/の/日[ひ]/に/一人[ひとり]@566/で/家[いえ]@46/に/いる@70/の/は/嫌[いや]@68/です/。","I hate being home alone on rainy days.",[36,46,68,70,566]],
+["3ab31009",73,"あの@31/映画[えいが]@87/は/とても@462/つまらなかった@420/です/。","That movie was really boring.",[31,87,420,462]],
+["4ba8b28b",73,"子犬[こいぬ]/は/寒[さむ]がって@284,180/、/母犬[ははいぬ]/の/そば@365/から/離[はな]れません/。","The puppy feels cold and won't leave its mother's side.",[180,284,365]],
+["474830be",73,"妹[いもうと]@67/は/新[あたら]しい@20/ペット@594/を/欲[ほ]しがって@604,180/います/。","My younger sister wants a new pet.",[20,67,180,594,604]],
+["1223c40d",74,"お父[とう]さん@116/の/弟[おとうと]@117/は/東京[とうきょう]/に/住[す]んで@341/います/。","My father's younger brother lives in Tokyo.",[116,117,341]],
+["1387b0bb",74,"おじさん@109/と/おばさん@127/の/家[いえ]@46/は/駅[えき]@91/の/すぐ@333/そば@365/です/。","My uncle and aunt's house is right next to the station.",[46,91,109,127,333,365]],
+["dd6285af",74,"おばさん@127/は/料理[りょうり]@700/が/上手[じょうず]@318/で/、/いつも@63/美味[おい]しい@96/ご飯[はん]@264/を/作[つく]って@417/くれます/。","My aunt is a good cook and always makes delicious meals for us.",[63,96,127,264,318,417,700]],
+["4b3c217c",74,"おじさん@109/の/家庭[かてい]@169/は/とても@462/にぎやか@496/です/。","My uncle's household is very lively.",[109,169,462,496]],
+["a6c3073e",74,"いとこ/は/三人[さんにん]@287,504/兄弟[きょうだい]@205/で/、/一番[いちばん]@58/上[うえ]@75/は/もう@657/結婚[けっこん]して@237/います/。","My cousins are three siblings, and the oldest is already married.",[58,75,205,237,287,504,657]],
+["cb95c021",74,"来年[らいねん]@694/の/春[はる]@544/、/いとこ/の/結婚式[けっこんしき]/が/あります@40/。","Next spring there's my cousin's wedding.",[40,544,694]],
+["56fc5d88",74,"おじさん@109/は/眼鏡[めがね]@656/を/かけて@157/いて/、/とても@462/りっぱ@697/な/人[ひと]@563/です/。","My uncle wears glasses and is a very fine person.",[109,157,462,563,656,697]],
+["cc3d8c7d",75,"夜[よる]@690/十一時[じゅういちじ]@313,56,290/に/なる@493/と/、/店[みせ]@638/の/ドア@443/が/閉[し]まります@306/。","At eleven at night, the shop doors close.",[56,290,306,313,443,493,638,690]],
+["e35fb08a",75,"寝[ね]る@509/前[まえ]@620/に/、/窓[まど]@630/と/ドア@443/を/閉[し]めます@307/。","Before going to bed, I close the windows and doors.",[307,443,509,620,630]],
+["6e880bf1",75,"台所[だいどころ]@376/の/電気[でんき]@438/を/消[け]して@235/、/部屋[へや]@595/に/戻[もど]りました/。","I turned off the kitchen light and went back to my room.",[235,376,438,595]],
+["be85563e",75,"ボタン@607/を/押[お]す@112/と/、/電気[でんき]@438/が/消[き]えます@191/。","If you press the button, the light goes off.",[112,191,438,607]],
+["b41f5e96",75,"本棚[ほんだな]@611/の/上[うえ]@75/の/時計[とけい]@455/が/十二時[じゅうにじ]@313,495,290/を/打[う]ちました/。","The clock on the bookshelf struck twelve.",[75,290,313,455,495,611]],
+["0f9f8184",76,"朝[あさ]@11/は/晴[は]れ@546/でし/た/が/、/午後[ごご]@252/から/雨[あめ]@36/が/降[ふ]りました@587/。","It was sunny in the morning, but it rained from the afternoon.",[11,36,252,546,587]],
+["f64ec342",76,"傘[かさ]@159/を/差[さ]して@280/、/ポスト@605/まで/手紙[てがみ]@428/を/出[だ]し@382/に/行[い]きました@48/。","I put up my umbrella and went to the mailbox to post a letter.",[48,159,280,382,428,605]],
+["cf2092c3",76,"風[かぜ]@161/が/強[つよ]くて@422/、/傘[かさ]@159/が/役[やく]/に/立[た]ちませんでした@384/。","The wind was strong, and the umbrella was no use.",[159,161,384,422]],
+["73a97073",76,"家[いえ]@46/に/着[つ]いた@415/とき@453/、/ちょうど@409/雨[あめ]@36/が/止[や]みました/。","Just when I got home, the rain stopped.",[36,46,409,415,453]],
+["10d4200b",76,"段々[だんだん]@397/空[そら]@366/が/明[あか]るく@6/なって@493/きました/。","The sky gradually got brighter.",[6,366,397,493]],
+["23eb37e6",77,"「/どうして@446/日本語[にほんご]/を/勉強[べんきょう]して@598/います/か/。/」","\"Why are you studying Japanese?\"",[446,598]],
+["fcf9fe98",77,"「/日本[にほん]/の/会社[かいしゃ]@145/で/働[はたら]きたい@534/から/です/。/」","\"Because I want to work at a Japanese company.\"",[145,534]],
+["0ef159b4",77,"「/なぜ@482/昨日[きのう]@199/学校[がっこう]@167/を/休[やす]みました@671/か/。/」","\"Why were you absent from school yesterday?\"",[167,199,482,671]],
+["2ea22a7f",77,"「/頭[あたま]@19/が/痛[いた]かった@55/から/です/。/」","\"Because I had a headache.\"",[19,55]],
+["48044969",77,"「/あの@31/方[かた]@163/は/どなた@463/です/か/。/」/「/あの@31/方[かた]@163/は/校長先生[こうちょうせんせい]/です/。/」","\"Who is that person?\" \"That's the principal.\"",[31,163,463]],
+["d4d204ac",77,"「/いつ@59/日本[にほん]/へ/来[き]ました@229/か/。/」/「/おととし@121/来[き]ました@229/。/」","\"When did you come to Japan?\" \"I came the year before last.\"",[59,121,229]],
+["35699e5b",77,"「/お仕事[しごと]@95,295/は/何[なん]@487/です/か/。/」/「/銀行員[ぎんこういん]/です/。/」","\"What is your job?\" \"I'm a bank clerk.\"",[95,295,487]],
+["4462bb07",78,"もしもし@659/、/お母[かあ]さん@101/、/私[わたし]@713/です/。","Hello, Mom, it's me.",[101,659,713]],
+["5027b4a4",78,"毎週[まいしゅう]@616/日曜日[にちようび]@500/に/国[くに]@222/の/家族[かぞく]@164/に/電話[でんわ]@440/を/かけます@158/。","Every Sunday I call my family back home.",[158,164,222,440,500,616]],
+["99d2305c",78,"父[ちち]@405/は/電話[でんわ]@440/で/「/元気[げんき]@240/か/。/」/と/聞[き]きました@192/。","My father asked on the phone, \"Are you well?\"",[192,240,405,440]],
+["6459a593",78,"「/はい@518/、/元気[げんき]@240/です/。/どうも@449/心配[しんぱい]/を/かけて@157/、/すみません@341/。/」","\"Yes, I'm fine. Sorry to make you worry.\"",[157,240,341,449,518]],
+["9cb7b2b5",79,"十年[じゅうねん]@313,510/前[まえ]@621/、/この@263/町[まち]@626/に/は/高[たか]い@378/建物[たてもの]@386/が/ありませんでした@40/。","Ten years ago, there were no tall buildings in this town.",[40,263,313,378,386,510,621,626]],
+["36663bf7",79,"三年[さんねん]@287,510/前[まえ]@621/に/父[ちち]@405/と/富士山[ふじさん]/に/登[のぼ]りました@512/。","Three years ago I climbed Mount Fuji with my father.",[287,405,510,512,621]],
+["fa93b67a",79,"一昨日[おととい]@120/、/先[さき]@277/に/家[いえ]@46/へ/帰[かえ]った@150/の/は/私[わたし]@713/でし/た/。","The day before yesterday, I was the one who went home first.",[46,120,150,277,713]],
+["4c50e881",79,"明後日[あさって]@13/は/友達[ともだち]@468/と/一緒[いっしょ]@61/に/海[うみ]@82/へ/行[い]きます@48/。","The day after tomorrow I'm going to the sea with a friend.",[13,48,61,82,468]],
+["ad9434be",79,"さ来年[らいねん]@285/、/私[わたし]@713/は/二十歳[はたち]@533/に/なります@493/。","The year after next I'll turn twenty.",[285,493,533,713]],
+["661f2991",79,"弟[おとうと]@117/は/年[とし]@458/が/若[わか]い@710/です/が/、/私[わたし]@713/より/背[せい]@344/が/高[たか]い@378/です/。","My younger brother is young, but he's taller than me.",[117,344,378,458,710,713]],
+["6059da95",80,"この@263/料理[りょうり]@700/は/まずい@623/の/で/、/もう@657/作[つく]りません@417/。","This dish tastes bad, so I won't make it again.",[263,417,623,657,700]],
+["33a323b2",80,"卵[たまご]@393/を/一個[いっこ]@56,241/割[わ]って/、/フライパン/に/入[い]れます@72/。","I crack one egg and put it in the frying pan.",[56,72,241,393]],
+["7c5f0838",80,"太[ふと]い@585/ねぎ/を/細[ほそ]く@606/切[き]ります@208/。","I cut the thick green onion into thin strips.",[208,585,606]],
+["01c649c4",80,"火[ひ]/が/弱[よわ]い@691/の/で/、/もう@657/少[すこ]し@334/強[つよ]く@422/して@342/ください@217/。","The heat is low, so please turn it up a little.",[217,334,342,422,657,691]],
+["1c0e7443",80,"母[はは]@541/は/口[くち]@219/に/料理[りょうり]@700/を/入[い]れて@72/、/「/おいしい@96/。/」/と/言[い]いました@45/。","My mother put some food in her mouth and said, \"Delicious.\"",[45,72,96,219,541,700]],
+["d6a2bdab",81,"今日[きょう]@203/は/午後[ごご]@252/、/買[か]い物[もの]@147/に/行[い]きます@48/。","This afternoon I'm going shopping.",[48,147,203,252]],
+["053fa1a7",81,"まず/、/紙[かみ]@174/に/買[か]う@148/物[もの]@662/を/書[か]きます@154/。","First, I write what to buy on a piece of paper.",[148,154,174,662]],
+["00ddd2f3",81,"牛乳[ぎゅうにゅう]@202/と/卵[たまご]@393/と/、/りんご/を/三個[さんこ]@287,241/買[か]います@148/。","I'll buy milk, eggs and three apples.",[148,202,241,287,393]],
+["9ebb0c6e",81,"お店[みせ]@95,638/は/うち@80/の/すぐ@333/近[ちか]く@402/です/。","The shop is right near my home.",[80,95,333,402,638]],
+["f4cbd2b7",81,"レジ/に/人[ひと]@563/が/九人[きゅうにん]@200,504/並[なら]んで@491/いました/。","Nine people were lined up at the register.",[200,491,504,563]],
+["c771aac0",81,"「/ポイントカード/は/結構[けっこう]@236/です/。/」","\"I don't need a point card, thank you.\"",[236]],
+["f785bee4",82,"私[わたし]@713/の/家[いえ]@46/に/は/椅子[いす]@53/が/九[ここの]つ@254/あります@40/。","There are nine chairs in my house.",[40,46,53,254,713]],
+["f51058b5",82,"子供[こども]@262/は/指[ゆび]/で/十[とお]@450/まで/数[かぞ]えました/。","The child counted to ten on his fingers.",[262,450]],
+["b19fee1d",82,"冬[ふゆ]@586/の/朝[あさ]@11/、/外[そと]@363/の/気温[きおん]/は/零度[れいど]@702,442/以下[いか]/でし/た/。","On a winter morning, the temperature outside was below zero.",[11,363,442,586,702]],
+["322d402a",82,"番号[ばんごう]@553/は/七番[ななばん]@299,550/です/。","The number is seven.",[299,550,553]],
+["dfba065f",82,"私[わたし]@713/は/三[さん]@287/番目[ばんめ]/の/子供[こども]@262/です/。","I'm the third child.",[262,287,713]],
+["36b4a434",83,"この@263/山[やま]@673/は/一年[いちねん]@56,510/中[じゅう]@314/雪[ゆき]@680/が/あります@40/。","This mountain has snow all year round.",[40,56,263,314,510,673,680]],
+["c2326fe9",83,"私[わたし]@713/は/夏休[なつやす]み@484/中[ちゅう]@408/、/毎日[まいにち]@617/図書館[としょかん]@459/へ/行[い]きました@48/。","During the summer vacation I went to the library every day.",[48,408,459,484,617,713]],
+["f8fcac7c",83,"授業[じゅぎょう]@316/中[ちゅう]@408/は/話[はな]さないで@540/ください@217/。","Please don't talk during class.",[217,316,408,540]],
+["8fdb46b4",83,"しかし@292/、/休[やす]み時間[じかん]/は/話[はな]して@540/も/いい@43/です/。","However, you may talk during the break.",[43,292,540]],
+["c6f4896e",83,"朝御飯[あさごはん]@12/を/食[た]べました@392/。/それから@368/、/学校[がっこう]@167/へ/行[い]きました@48/。","I ate breakfast. After that, I went to school.",[12,48,167,368,392]],
+["ad16d614",83,"宿題[しゅくだい]@317/を/しました@342/。/そして@359/、/テレビ@436/を/見[み]ました@647/。","I did my homework. And then I watched TV.",[317,342,359,436,647]],
+["7deee9dd",83,"では@432/、/次[つぎ]@414/の/問題[もんだい]@664/を/やりましょう@674/。","Well then, let's do the next problem.",[414,432,664,674]],
+["145ca76c",84,"私[わたくし]@714/は/#山田[やまだ]/商事[しょうじ]/の/#田中[たなか]/と/申[もう]します/。","I am Tanaka from Yamada Trading.",[714]],
+["9878d5de",84,"私[わたくし]@714/が/ご案内[あんない]@95/します@342/。","I will show you around.",[95,342,714]],
+["18e60a61",85,"私[わたし]@713/の/好[す]き@330/な/色[いろ]@73/は/青[あお]@2/と/白[しろ]@323/です/。","My favorite colors are blue and white.",[2,73,323,330,713]],
+["9569ceb9",85,"あそこ@16/に/青[あお]い@3/車[くるま]@230/が/止[と]まって@467/います/。","There's a blue car parked over there.",[3,16,230,467]],
+["060fda7f",85,"あそこ@16/の/白[しろ]い@324/建物[たてもの]@386/は/図書館[としょかん]@459/です/。","That white building over there is the library.",[16,324,386,459]],
+["ca14d3a2",85,"あの@31/男[おとこ]@118/の/人[ひと]@563/は/私[わたし]@713/の/兄[あに]@28/の/友達[ともだち]@468/です/。","That man is a friend of my older brother.",[28,31,118,468,563,713]],
+["fd0dd651",85,"男[おとこ]@118/の/人[ひと]@563/が/三人[さんにん]@287,504/、/駅[えき]@91/の/前[まえ]@620/で/話[はな]して@540/います/。","Three men are talking in front of the station.",[91,118,287,504,540,563,620]],
+["fc0bdf60",85,"祖母[そぼ]/は/年[とし]@458/を/取[と]って@472/、/耳[みみ]@646/が/少[すこ]し@334/遠[とお]く@451/なりました@493/。","My grandmother has grown old, and her hearing has gotten a little weak.",[334,451,458,472,493,646]],
+["6da20120",85,"妹[いもうと]@67/は/今年[ことし]@260/で/十二[じゅうに]@313,495/に/なります@493/。/年[とし]@458/は/まだ@625/若[わか]い@710/です/。","My younger sister turns twelve this year. She's still young.",[67,260,313,458,493,495,625,710]],
+["396af692",85,"日本語[にほんご]/の/勉強[べんきょう]@598/を/始[はじ]めて/、/一月[ひとつき]@565/が/過[す]ぎました@331/。","A month has passed since I started studying Japanese.",[331,565,598]]];
+/* ================= Batch 10: Daily Reading =================
+   A ~5-minute read made of 5–8 short sentences picked from a hand-written bank (app30d.js, generated from src/dr/bank.txt;
+   918 sentences in 86 small scenes, every N5 word in at least two of them). Today's words are the targets: words reviewed
+   or due today, plus a few of today's new words. Everything else in the chosen sentences should already be on the deck.
+   - Picker: greedy. Each step takes the sentence with the best score = target words it newly covers (new-today words weigh
+     a bit more) − a penalty for N5 words not on the deck yet − a little for long sentences + a bonus for staying in a scene
+     already picked + a small seeded random tie-break. Seed = date + reroll count, so a day's pick is deterministic; it is
+     frozen (S.drDay) the first time the reader opens. Sentences are then grouped by scene in bank order.
+     Edge cases: almost no words yet → the shortest sentences with the fewest unseen words; nothing reviewed/due today →
+     recently reviewed and weak (often missed) words become the targets; target words with no sentence are logged.
+   - Reader: furigana (shared ふりがな switch), targets lightly highlighted, tap any word for reading + meaning (+ Add to
+     study), English hidden until tapped per sentence, per-sentence / play-all audio (ja-JP-KeitaNeural), a listening-only
+     mode that hides the text, and "New set" (reroll).
+   - Questions (2–3, multiple choice, no audio before answering): what a sentence means, what a word means in context, how a
+     kanji word is read.
+   - FSRS benefit — deliberately light, never a penalty (drBenefit):
+       a correct answer gives the question's key word(s) a small stability bonus: +5% of stability, at most +1.5 days, and the
+       due date moves by the same proportion of the current interval (≤ 1.5 days). Only words already in review (FSRS state
+       2), at most once per word per day, at most 12 words a day, never across a box/mastery boundary, never for a word that
+       is due today (its real review still has to happen). Nothing else changes: no review count, no rating/difficulty/last
+       review, no review log or optimizer log, the listening track and the separate conjugation track are untouched. A wrong
+       answer changes nothing.
+   State (in S, synced): S.drDay = { d, roll, s: [sentence ids], tg: [target ids], miss } (latest wins) ·
+   S.drHist = { "YYYY-MM-DD": { n, q, qt, done } } (max per field) · S.drBoost = { "YYYY-MM-DD": [word ids] } (union). */
+const DR = DR_S.map((r, i) => ({ id: r[0], th: r[1], m: r[2], en: r[3], w: r[4], i }));
+const DR_BY = {}, DR_WORD = {};
+DR.forEach(s => { DR_BY[s.id] = s; s.toks = s.m.split("/"); s.txt = s.toks.map(t => rdStrip(t.replace(/^#/, "").split("@")[0])).join(""); s.len = s.txt.length; s.w.forEach(id => (DR_WORD[id] = DR_WORD[id] || []).push(s.i)); });
+const DR_BONUS = { pct: 0.05, capDays: 1.5, maxWords: 12, bounds: [7, 21, 60, 180] };
+const drAudio = s => `dr/${s.id}.mp3`;
+const drRng = seed => { let h = 2166136261; for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619); return () => { h = (h + 0x6D2B79F5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+const drHist = () => nlog("drHist");
+const drDoneToday = () => !!(drHist()[todayStr()] || {}).done;
+const drWanted = () => (S.levels || ["n5"]).includes("n5") && LV.n5.ids.filter(id => S.cards[id]).length >= 8;
+/* one markup token → { raw, surf, ids, id (main word), gloss, name } */
+function drTok(tk) {
+  const name = tk[0] === "#"; if (name) tk = tk.slice(1);
+  const at = tk.indexOf("@"), raw = at < 0 ? tk : tk.slice(0, at), surf = rdStrip(raw);
+  const ids = at < 0 ? [] : tk.slice(at + 1).split(",").map(Number).filter(x => WORDS[x]);
+  let id = null;
+  if (ids.length) id = ids.find(x => WORDS[x].jp.split(/;\s*/).includes(surf)) ?? ids.filter(x => x !== 95).pop() ?? ids[0];
+  const gloss = !ids.length && !name ? (DR_GLOSS[surf] || (typeof RD_GLOSS !== "undefined" && RD_GLOSS[surf]) || null) : null;
+  return { raw, surf, ids, id, gloss, name };
+}
+const drKana = raw => raw.replace(/([\u4e00-\u9fff々〇]+)\[([^\]]+)\]/g, "$2");
+
+/* ---------- targets ---------- */
+function drTargets() {
+  const t0 = new Date().setHours(0, 0, 0, 0), t1 = startOfTomorrow(), nt = new Set(newToday().map(Number));
+  const rev = [], weak = [];
+  for (const id of LV.n5.ids) {
+    const c = S.cards[id]; if (!c || nt.has(id)) continue;
+    const f = c.f || {};
+    if ((f.lr && f.lr >= t0) || (f.st >= 2 && c.due < t1)) rev.push({ id, k: (c.due < t1 ? 0 : 1) + (f.s || 0) / 1000 });
+    else weak.push({ id, k: -(((+c.bad || 0) + 1) / ((+c.ok || 0) + (+c.bad || 0) + 2)) * 2 - (+c.lapses || 0) * 0.3 - (f.lr ? Math.max(0, 1 - (Date.now() - f.lr) / (14 * DAY)) : 0) });
+  }
+  rev.sort((a, b) => a.k - b.k); weak.sort((a, b) => a.k - b.k);
+  const nw = [...nt].filter(id => id < LOFF.n4 && S.cards[id]).slice(-6);
+  const fb = !rev.length;   // nothing reviewed or due today → recent / weak words
+  return { rev: (fb ? weak.slice(0, 12) : rev.slice(0, 40)).map(x => x.id), nw, fb };
+}
+/* ---------- picker ---------- */
+function drPick(roll = 0, avoid = []) {
+  const T = drTargets(), w = new Map(), known = id => !!S.cards[id];
+  T.rev.forEach((id, k) => w.set(id, T.fb ? 0.8 : 1 + Math.max(0, 0.3 - k * 0.01)));
+  T.nw.forEach(id => w.set(id, 1.3));
+  const nKnown = LV.n5.ids.filter(known).length, starter = nKnown < 20;
+  const rnd = drRng(todayStr() + ":" + roll), av = new Set(avoid), picked = [], covered = new Set(), themes = new Set();
+  const noSent = [...w.keys()].filter(id => !DR_WORD[id]);
+  if (noSent.length) console.info("[Daily Reading] target words without a sentence:", noSent.map(id => WORDS[id].jp).join(" "));
+  const jit = DR.map(() => rnd());
+  const unk = s => s.w.filter(id => !known(id) && !w.has(id)).length;
+  const MAX = starter ? 5 : 8, MIN = 5;
+  while (picked.length < MAX) {
+    let best = null, bs = -Infinity, bg = 0;
+    for (const s of DR) {
+      if (s.pick) continue;
+      let gain = 0; for (const id of s.w) if (w.has(id) && !covered.has(id)) gain += w.get(id);
+      const u = unk(s);
+      let sc = starter ? gain * 2 - u * 3 - s.len * 0.25 : gain * 3 - u * 1.6 - Math.max(0, s.len - 24) * 0.06;
+      if (themes.has(s.th)) sc += 0.9;
+      if (av.has(s.id)) sc -= 8;
+      sc += jit[s.i] * 0.6;
+      if (sc > bs) { bs = sc; best = s; bg = gain; }
+    }
+    if (!best || (picked.length >= MIN && bg <= 0)) break;
+    best.pick = true; picked.push(best); themes.add(best.th); best.w.forEach(id => { if (w.has(id)) covered.add(id); });
+  }
+  picked.forEach(s => delete s.pick);
+  const order = []; picked.forEach(s => { if (!order.includes(s.th)) order.push(s.th); });
+  picked.sort((a, b) => order.indexOf(a.th) - order.indexOf(b.th) || a.i - b.i);
+  return { d: todayStr(), roll, s: picked.map(s => s.id), tg: [...w.keys()].filter(id => covered.has(id)), nw: T.nw.filter(id => covered.has(id)), miss: noSent.length, fb: T.fb ? 1 : 0, st: starter ? 1 : 0 };
+}
+let DR_MEMO = null;
+/* today's set: the frozen one if the reader was opened today, else a preview (saved when persist) */
+function drCur(persist = false) {
+  const D = S.drDay;
+  if (isMap(D) && D.d === todayStr() && Array.isArray(D.s) && D.s.length && D.s.every(id => DR_BY[id])) return D;
+  const k = todayStr() + ":" + Object.keys(S.cards).length + ":" + newToday().length + ":" + totalDue();   // Home calls this several times per render
+  const p = DR_MEMO && DR_MEMO.k === k && Date.now() - DR_MEMO.t < 3000 ? DR_MEMO.p : drPick(0);
+  DR_MEMO = { k, t: Date.now(), p };
+  if (persist) { S.drDay = p; save(); }
+  return p;
+}
+const drMins = D => Math.max(3, Math.round(D.s.length * 0.45 + 1.5));
+
+/* ---------- light FSRS benefit (see header) ---------- */
+function drBenefit(id) {
+  const t = todayStr(), L = nlog("drBoost"), got = L[t] || [];
+  if (got.includes(id) || got.length >= DR_BONUS.maxWords) return null;
+  const c0 = S.cards[id]; if (!c0 || !c0.f || c0.f.st !== 2 || !(c0.f.s > 0) || !c0.f.lr) return null;
+  L[t] = [...got, id].sort((a, b) => a - b); for (const d in L) if (d < daysAgo(14)) delete L[d];
+  if (c0.f.due < startOfTomorrow()) return { id, ds: 0, dd: 0, due: true };   // due today: the real review still counts
+  const s0 = c0.f.s; let add = Math.min(s0 * DR_BONUS.pct, DR_BONUS.capDays);
+  for (const b of DR_BONUS.bounds) if (s0 < b && s0 + add >= b) add = Math.max(0, b - 0.01 - s0);
+  if (add <= 0) return { id, ds: 0, dd: 0 };
+  const c = JSON.parse(JSON.stringify(c0)), ivl = Math.max(0, c.f.due - c.f.lr), ext = Math.min(ivl * add / s0, DR_BONUS.capDays * DAY);
+  c.f.s = s0 + add; c.f.due = Math.round(c.f.due + ext); fsrsSync(c); S.cards[id] = c;
+  return { id, ds: add, dd: ext };
+}
+
+/* ---------- Home pieces ---------- */
+function drHomeTileHTML() {
+  const D = drCur(), done = drDoneToday();
+  return `<button class="mode drtile-home" data-m="daily-reading"><div class="ic">📖</div><h3>Daily Reading ${done ? `<span class="drok">✓</span>` : ""}</h3><p>${done ? "Done today · read again or try a new set" : `${D.s.length} sentences with today's words · ~${drMins(D)} min`}</p></button>`;
+}
+function drQuickHTML() {
+  if (!(S.levels || ["n5"]).includes("n5")) return "";
+  const D = drCur(), done = drDoneToday(), td = totalDue(), h = drHist()[todayStr()] || {};
+  const line = done ? `Daily Reading done ✓ · ${h.q || 0}/${h.qt || 0} questions` : td ? `Then: Daily Reading · ${D.s.length} sentences · ~${drMins(D)} min` : `Reviews done → Daily Reading · ${D.s.length} sentences · ~${drMins(D)} min`;
+  return `<button class="hqcell hqwide hqdr ${done ? "done" : ""}" id="hqDr"><span class="hqic">📖</span><div><b>${esc(line)}</b>${done ? "" : `<small class="muted"> · ${D.tg.length} of today's words</small>`}</div><span class="hqgo" aria-hidden="true">›</span></button>`;
+}
+function bindDrQuick(root = document) { const b = root.querySelector("#hqDr"); if (b) b.onclick = () => { sfx.click(); go(() => drView(home)); }; }
+function drWeekCount(days) { const H = drHist(); return days.filter(d => H[d] && H[d].done).length; }
+
+/* ---------- Reader ---------- */
+let DR_PLAY = null;
+function drStopPlay() { if (DR_PLAY) { DR_PLAY.stop = true; try { DR_PLAY.a && DR_PLAY.a.pause(); } catch (e) {} DR_PLAY = null; } document.querySelectorAll(".drsent.playing").forEach(e => e.classList.remove("playing")); const b = $("#drPlayAll"); if (b) b.textContent = "▶ Play all"; }
+function drPlayAll(list, from = 0) {
+  if (DR_PLAY) return drStopPlay();
+  const P = DR_PLAY = { i: from, stop: false, a: null }; const pb = $("#drPlayAll"); if (pb) pb.textContent = "⏹ Stop";
+  const step = () => {
+    if (P.stop || DR_PLAY !== P) return;
+    document.querySelectorAll(".drsent.playing").forEach(e => e.classList.remove("playing"));
+    if (P.i >= list.length) return drStopPlay();
+    const i = P.i++, row = document.querySelector(`.drsent[data-s="${i}"]`); if (row) { row.classList.add("playing"); row.scrollIntoView({ block: "nearest", behavior: REDUCED_MOTION() ? "auto" : "smooth" }); }
+    if (curAudio) { try { curAudio.pause(); } catch (e) {} }
+    const a = P.a = new Audio(AUDIO_BASE + drAudio(list[i])); curAudio = a;
+    let moved = false; const next = () => { if (moved) return; moved = true; setTimeout(step, 450); };
+    a.addEventListener("ended", next); a.addEventListener("error", () => { speakText(list[i].txt, true, 0.85); setTimeout(next, 1800); });
+    try { const p = a.play(); if (p && p.catch) p.catch(() => setTimeout(next, 1200)); } catch (e) { setTimeout(next, 1200); }
+  };
+  step();
+}
+function drPrefetch(list) {   // warm the audio cache so today's reading also plays offline later
+  if (!("caches" in window) || !navigator.onLine) return;
+  caches.open(AUDIO_CACHE).then(c => list.forEach(s => { const u = new URL(AUDIO_BASE + drAudio(s), location.href).href; c.match(u).then(h => h || fetch(u).then(r => r.ok && c.put(u, r))).catch(() => {}); })).catch(() => {});
+}
+/* tokens → buttons; punctuation is glued to its neighbour (nowrap) so 。 or 」 never starts a line and 「 never ends one */
+function drTokHTML(s, si, tg) {
+  const out = []; let open = "";
+  s.toks.forEach((tk, ti) => {
+    const t = drTok(tk);
+    if (/^[「『（]$/.test(t.surf)) { open += `<span class="rdp">${esc(t.surf)}</span>`; return; }
+    if (/^[、。」』）！？]$/.test(t.surf)) { const p = `<span class="rdp">${esc(t.surf)}</span>`; if (out.length) out[out.length - 1].push(p); else out.push([p]); return; }
+    const hit = t.ids.some(id => tg.has(id));
+    out.push([open + `<button class="rdw ${t.id != null ? "lk" : ""} ${hit ? "drt" : ""}" data-s="${si}" data-t="${ti}">${rdRuby(t.raw)}</button>`]); open = "";
+  });
+  return out.map(g => g.length > 1 || /^<span/.test(g[0]) ? `<span class="drnw">${g.join("")}</span>` : g[0]).join("") + open;
+}
+function drWordSheet(t) {
+  rdWordSheet({ raw: t.raw, surf: t.surf, id: t.id, gloss: t.gloss, name: t.name });
+  const box = document.querySelector("#rdSheet .box"); if (!box) return;
+  const f = box.querySelector(".rdform"); if (f) f.firstChild.textContent = "In the sentence: ";
+  const others = t.ids.filter(x => x !== t.id);
+  if (others.length) {
+    const p = document.createElement("p"); p.className = "muted drparts";
+    p.innerHTML = `Also in this word: ${others.map(x => `<button class="chip" data-wid="${x}"><span class="jp">${esc(WORDS[x].jp)}</span> ${esc(shortEn(WORDS[x]))}</button>`).join(" ")}`;
+    box.insertBefore(p, box.lastElementChild);
+    p.onclick = e => { const b = e.target.closest("[data-wid]"); if (!b) return; document.getElementById("rdSheet").remove(); drWordSheet({ raw: WORDS[+b.dataset.wid].jp, surf: WORDS[+b.dataset.wid].jp, ids: [+b.dataset.wid], id: +b.dataset.wid, gloss: null, name: false }); };
+  }
+}
+function drView(back = home) {
+  const D = drCur(true), list = D.s.map(id => DR_BY[id]), tg = new Set(D.tg), furi = S.rdFuri !== false, lo = !!S.drListen, done = drDoneToday();
+  let lastTh = -1;
+  const rows = list.map((s, i) => {
+    const th = s.th !== lastTh ? `<div class="drtheme"><span class="jp">${esc(DR_THEMES[s.th][2])}</span> · ${esc(DR_THEMES[s.th][1])}</div>` : ""; lastTh = s.th;
+    return `${th}<div class="rdsent drsent" data-s="${i}"><p class="jp rdjp">${drTokHTML(s, i, tg)}${grSayBtn(s.txt, drAudio(s))}</p>
+      <div class="drhid"><button class="mini grsay" data-say="${esc(s.txt)}" data-sap="${esc(drAudio(s))}" aria-label="Play sentence ${i + 1}">🔈</button><button class="btn ghost small drpeek" data-s="${i}">Sentence ${i + 1} · show text</button></div>
+      <button class="drenbtn" data-s="${i}" aria-expanded="false">Show English</button><p class="muted rden">${esc(s.en)}</p></div>`;
+  }).join("");
+  const sub = D.st ? "Starter set · the simplest sentences while your deck grows" : D.fb ? "Nothing reviewed today yet · built from recent and tricky words" : `${D.tg.length} of today's words${D.nw.length ? ` · ${D.nw.length} new today` : ""}`;
+  view.innerHTML = topbar("📖 Daily Reading") + `<div class="largetitle">Daily Reading</div>
+    <p class="subtitle" id="drSub">${list.length} sentences · ~${drMins(D)} min · ${esc(sub)}${done ? ` · <b>done today ✓</b>` : ""}</p>
+    <div class="panel rdstory drstory ${lo ? "drlisten" : ""}" id="drStory">
+      <div class="btnrow rdtools"><button class="btn sec small" id="drPlayAll">▶ Play all</button><button class="btn ghost small ${furi ? "on" : ""}" id="drFuri" aria-pressed="${furi}">ふりがな ${furi ? "on" : "off"}</button><button class="btn ghost small ${lo ? "on" : ""}" id="drLo" aria-pressed="${lo}">🎧 Listen only</button><button class="btn ghost small" id="drRoll">🎲 New set</button></div>
+      <div class="rdtext drtext">${rows}</div>
+      <p class="muted rdhint">Highlighted words are today's words · tap any word for its reading and meaning · tap “Show English” to check a sentence</p></div>
+    <div class="grgo"><button class="btn" id="drQuizBtn">Questions ▶</button><p class="muted">2–3 quick questions · right answers give today's words a small review bonus</p></div>`;
+  bindBack(back);
+  cleanup = drStopPlay;
+  drPrefetch(list);
+  $("#drPlayAll").onclick = () => { sfx.click(); drPlayAll(list); };
+  $("#drFuri").onclick = () => { S.rdFuri = S.rdFuri === false; save(); drStopPlay(); go(() => drView(back)); };
+  $("#drLo").onclick = () => { S.drListen = !S.drListen; save(); drStopPlay(); go(() => drView(back)); if (S.drListen) setTimeout(() => { if ($("#drPlayAll")) drPlayAll(list); }, 300); };
+  $("#drRoll").onclick = () => { sfx.click(); drStopPlay(); S.drDay = drPick((+D.roll || 0) + 1, D.s); save(); go(() => drView(back)); toast("🎲 New set of sentences"); };
+  $("#drQuizBtn").onclick = () => { sfx.click(); drStopPlay(); go(() => drQuiz(back)); };
+  view.querySelector(".drtext").onclick = e => {
+    const en = e.target.closest(".drenbtn");
+    if (en) { const row = en.closest(".drsent"), on = !row.classList.contains("showen"); row.classList.toggle("showen", on); en.textContent = on ? "Hide English" : "Show English"; en.setAttribute("aria-expanded", on); return; }
+    const pk = e.target.closest(".drpeek"); if (pk) { pk.closest(".drsent").classList.add("peek"); return; }
+    const b = e.target.closest(".rdw"); if (!b) return;
+    drWordSheet(drTok(list[+b.dataset.s].toks[+b.dataset.t]));
+  };
+}
+
+/* ---------- Questions ---------- */
+function drMakeQs(D) {
+  const list = D.s.map(id => DR_BY[id]), tg = new Set(D.tg), rnd = drRng(D.d + ":" + D.roll + ":q"), pickR = a => a[Math.floor(rnd() * a.length)];
+  const shuf = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const qs = [], usedS = new Set(), usedW = new Set();
+  const inRev = id => rdInReview(id);
+  // 1) sentence meaning
+  const c1 = list.filter(s => s.len >= 7 && s.w.some(id => tg.has(id))); const s1 = c1.length ? pickR(c1) : list.find(s => s.len >= 6) || list[0];
+  if (s1) {
+    const pool = shuf(DR.filter(s => s.id !== s1.id && !D.s.includes(s.id) && s.en !== s1.en && Math.abs(s.len - s1.len) < 12)); const same = pool.filter(s => s.th === s1.th);
+    const wrong = [...new Set([...same, ...pool].map(s => s.en))].slice(0, 3);
+    qs.push({ k: "mean", s: s1, prompt: rdRuby(s1.toks.map(t => t.replace(/^#/, "").split("@")[0]).join("")), q: "What does this sentence mean?", ans: s1.en, opts: shuf([s1.en, ...wrong]), keys: s1.w.filter(id => tg.has(id) && inRev(id)).slice(0, 2) });
+    usedS.add(s1.id); s1.w.forEach(id => usedW.add(id));
+  }
+  // candidate word tokens from the other sentences (targets first, words in review preferred)
+  const toks = [];
+  list.forEach(s => s.toks.forEach((tk, ti) => { const t = drTok(tk); if (t.id == null || t.ids.length > 1 || t.id === 95) return; toks.push({ s, ti, t, sc: (tg.has(t.id) ? 2 : 0) + (inRev(t.id) ? 1 : 0) + (usedS.has(s.id) ? -1.5 : 0) + rnd() * 0.5 }); }));
+  toks.sort((a, b) => b.sc - a.sc);
+  const hl = (s, ti, furiTok) => s.toks.map((tk, j) => { const raw = tk.replace(/^#/, "").split("@")[0]; return j === ti ? `<mark>${furiTok ? rdRuby(raw) : esc(rdStrip(raw))}</mark>` : rdRuby(raw); }).join("");
+  // 2) reading of a kanji word (dictionary form as written)
+  const r = toks.find(x => !usedW.has(x.t.id) && /\[/.test(x.t.raw) && x.t.surf === WORDS[x.t.id].jp && !/[\u4e00-\u9fff々]/.test(drKana(x.t.raw)));
+  if (r) {
+    const w = WORDS[r.t.id], ans = drKana(r.t.raw);
+    const wrong = [...new Set(distractors(w, 6, x => x.kana, "reading").map(x => x.kana.replace(/\s*\(.*\)$/, "")).filter(k => k !== ans))].slice(0, 3);
+    if (wrong.length === 3) { qs.push({ k: "read", s: r.s, prompt: hl(r.s, r.ti, false), q: `How do you read ${r.t.surf}?`, ans, opts: shuf([ans, ...wrong]), keys: inRev(w.id) ? [w.id] : [], jp: true }); usedW.add(w.id); usedS.add(r.s.id); }
+  }
+  // 3) meaning of a word in context
+  const m = toks.find(x => !usedW.has(x.t.id));
+  if (m) {
+    const w = WORDS[m.t.id], ans = shortEn(w);
+    const wrong = [...new Set(distractors(w, 6, x => shortEn(x), "meaning").map(x => shortEn(x)).filter(e => e !== ans))].slice(0, 3);
+    if (wrong.length === 3) qs.push({ k: "word", s: m.s, prompt: hl(m.s, m.ti, true), q: `What does ${m.t.surf} mean here?`, ans, opts: shuf([ans, ...wrong]), keys: inRev(w.id) ? [w.id] : [] });
+  }
+  return qs;
+}
+function drQuiz(back = home) {
+  const D = drCur(true), qs = drMakeQs(D);
+  studyScreen = true;
+  let pos = 0, right = 0, answered = false;
+  const bonus = [];
+  view.innerHTML = topbar("📖 Daily Reading", `<span class="muted" id="score"></span>`) + `<div class="sprog"><div id="sprog" style="width:0"></div></div><div id="qhost"></div>
+    <p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> choose · <kbd>Enter</kbd> next</p>`;
+  bindBack(() => drView(back));
+  const progress = () => { $("#sprog").style.width = (pos / Math.max(1, qs.length) * 100) + "%"; $("#score").textContent = `${pos}/${qs.length}`; };
+  const QZ = { choose: null };
+  const show = () => {
+    answered = false; progress(); scrollTo(0, 0);
+    if (pos >= qs.length) return finish();
+    const q = qs[pos];
+    $("#qhost").innerHTML = `<div class="card rdq drq" data-q="${pos}" data-k="${q.k}"><div class="qtype">Question ${pos + 1} of ${qs.length}</div>
+      <div class="grq jp rdqq drprompt">${q.prompt}</div><div class="muted grhint">${esc(q.q)}</div>
+      <div class="choices grlong">${q.opts.map((o, j) => `<button class="choice ${q.jp ? "jp" : ""}" data-i="${j}"><span class="k">${j + 1}</span>${esc(o)}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div></div>`;
+    const btns = [...view.querySelectorAll("#qhost .choice")];
+    const choose = j => {
+      if (answered || !btns[j]) return; answered = true;
+      const ok = q.opts[j] === q.ans;
+      btns.forEach((b, k) => { b.disabled = true; if (q.opts[k] === q.ans) b.classList.add("right"); }); if (!ok) btns[j].classList.add("wrong");
+      if (ok) { right++; q.keys.forEach(id => { const r = drBenefit(id); if (r) bonus.push(r); }); }
+      comboHit(ok, btns[j], 6); pos++; progress(); save();
+      $("#fb").innerHTML = `<div class="${ok ? "grok" : "grbad"}">${ok ? "✅ Correct!" : `❌ The answer: <span class="${q.jp ? "jp" : ""}">${esc(q.ans)}</span>`}</div>
+        <p class="jp drfbs">${rdRuby(q.s.toks.map(t => t.replace(/^#/, "").split("@")[0]).join(""), true)} ${grSayBtn(q.s.txt, drAudio(q.s))}</p><p class="muted drfbe">${esc(q.s.en)}</p>
+        <div class="btnrow"><button class="btn" id="nextBtn">${pos >= qs.length ? "See results" : "Next →"}</button></div>`;
+      $("#nextBtn").onclick = show;
+    };
+    btns.forEach((b, j) => b.onclick = () => choose(j));
+    QZ.choose = choose;
+  };
+  const finish = () => {
+    const t = todayStr(), H = drHist(), h = H[t] || {};
+    H[t] = { n: Math.max(+h.n || 0, D.s.length), q: Math.max(+h.q || 0, right), qt: Math.max(+h.qt || 0, qs.length), done: 1 };
+    for (const d in H) if (d < daysAgo(60)) delete H[d];
+    touchStreak(); save(); addXP(8 + right * 3);
+    const gained = bonus.filter(b => b.ds > 0);
+    $("#qhost").innerHTML = `<div class="card grfinish" id="drFinish"><div class="qtype">Daily Reading done!</div><div class="big">${right === qs.length ? "🌟" : "📖"}</div>
+      <p>${right}/${qs.length} questions correct · ${D.s.length} sentences read</p>
+      ${gained.length ? `<p class="muted">Small review bonus (not a full review):</p><ul class="grres">${gained.map(b => `<li><span class="grow jp">${esc(WORDS[b.id].jp)}</span><span class="rtag r3">+${fmtDays(b.dd)}</span></li>`).join("")}</ul>`
+        : `<p class="muted">${bonus.some(b => b.due) ? "Words due today keep their review — do it in Due Reviews." : "No schedule changes — the bonus only applies to words already in review."}</p>`}
+      <div class="btnrow"><button class="btn" id="drHome">Home</button><button class="btn sec" id="drAgain">Read again</button><button class="btn ghost" id="drNew">New set</button></div></div>`;
+    $("#sprog").style.width = "100%"; sfx.level(); if (right === qs.length && qs.length) confetti(80);
+    $("#drHome").onclick = () => go(home);
+    $("#drAgain").onclick = () => go(() => drView(back));
+    $("#drNew").onclick = () => { S.drDay = drPick((+D.roll || 0) + 1, D.s); save(); go(() => drView(back)); };
+  };
+  const onKey = e => {
+    if (document.querySelector(".modal")) return;
+    if (!answered && /^[1-4]$/.test(e.key) && QZ.choose) QZ.choose(+e.key - 1);
+    else if (answered && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const b = $("#nextBtn") || $("#drHome"); if (b) b.click(); }
+  };
+  addEventListener("keydown", onKey); cleanup = () => removeEventListener("keydown", onKey);
+  show();
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -11406,7 +12664,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
   Grammar: ${GR_DATA.length} N5 points — explanations, example sentences and drills are original, written for this app (no textbook text); example and drill audio use KeitaNeural (two-person drills: KeitaNeural + NanamiNeural).<br>
   Speaking practice: uses your browser's speech recognition (Web Speech API, ja-JP — on iPhone/iPad Apple's, in Chrome Google's service) only while the mic button is lit; or Record &amp; compare, where recordings stay on this device. Only a correct answer counts (as a Good review, Hard with the hint or a retry); misses never change a word's schedule and are only counted in Stats.<br>
-  Reading & Mock JLPT N5: ${RD_DATA.length} graded stories and every mock-test question are original, written for this app — nothing is taken from real JLPT tests; narration and the listening narrator use <b>ja-JP-KeitaNeural</b>; in dialogues men are KeitaNeural and women NanamiNeural (via edge-tts).<br>
+  Reading & Mock JLPT N5: ${RD_DATA.length} graded stories, the ${typeof DR_S !== "undefined" ? DR_S.length : ""} Daily Reading sentences and every mock-test question are original, written for this app — nothing is taken from real JLPT tests; narration and the listening narrator use <b>ja-JP-KeitaNeural</b>; in dialogues men are KeitaNeural and women NanamiNeural (via edge-tts).<br>
   Scheduling: <a href="https://github.com/open-spaced-repetition/py-fsrs" target="_blank" rel="noopener">FSRS-5</a> (Free Spaced Repetition Scheduler, MIT, Open Spaced Repetition — default parameters), ported to plain JavaScript.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
@@ -11418,7 +12676,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "848fba9f9bc8";
+const BUILD = "4c0aca3b1239";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -11468,7 +12726,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
