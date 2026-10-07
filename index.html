@@ -1214,6 +1214,12 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .drparts{font-size:.84rem;margin:6px 0}.drparts .chip{margin:3px 2px}
 .drnw{white-space:nowrap}
 .drstory .rdtools{display:grid;grid-template-columns:1fr 1fr;gap:8px}.drstory .rdtools .btn{width:100%;justify-content:center}
+/* Batch 11: Kana Tactics */
+.ktbtns{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;min-width:92px}
+.ktbtns .btn{width:100%;margin:0}
+.ktsum{list-style:none;padding:0;margin:8px auto;display:inline-block;text-align:left}
+.ktsum li{margin:2px 0}
+#ktModal .box{text-align:center}
 </style>
 </head>
 <body>
@@ -4870,7 +4876,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion", ktMiss: "mapUnion", ktImp: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -5189,7 +5195,7 @@ function backupSettingsHTML() {
     <div class="row"><span>📂 Restore from file<br><small class="muted">Shows what's inside first · you can undo it</small></span><button class="btn small sec" id="bkRestore">Restore…</button><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
     ${sn ? `<div class="row" id="bkUndoRow"><span>↩️ Undo last restore<br><small class="muted">Safety copy from ${esc(new Date(sn.at).toLocaleString())}</small></span><button class="btn small sec" id="bkUndo">Undo</button></div>` : ""}
     <div class="row"><span>🔔 Weekly backup reminder<br><small class="muted">A banner on Home when your last backup or sync is over 7 days old</small></span><button class="switch ${SY.remind ? "on" : ""}" id="bkRemind" role="switch" aria-checked="${!!SY.remind}" aria-label="Weekly backup reminder"></button></div>
-    <div class="syncbox" id="syncBox">${syncBoxHTML()}</div></div>`;
+    <div class="syncbox" id="syncBox">${syncBoxHTML()}</div></div>${typeof ktSettingsHTML === "function" ? ktSettingsHTML() : ""}`;
 }
 function syncBoxHTML() {
   if (!SY.token) return `<div class="row"><span>🔄 Sync with a secret GitHub Gist<br><small class="muted">Keep phone, tablet and computer in step. Uses your own free GitHub account.</small></span></div>
@@ -5227,6 +5233,7 @@ function bindBackupSettings(root) {
   const u = q("#bkUndo"); if (u) u.onclick = () => undoRestore();
   q("#bkRemind").onclick = e => { SY.remind = !SY.remind; sysave(); e.currentTarget.classList.toggle("on", SY.remind); e.currentTarget.setAttribute("aria-checked", SY.remind); };
   bindSyncBox(root);
+  if (typeof bindKtSettings === "function") bindKtSettings(root);
 }
 function bindSyncBox(root) {
   const q = s => root.querySelector(s);
@@ -12686,6 +12693,150 @@ function drQuiz(back = home) {
   addEventListener("keydown", onKey); cleanup = () => removeEventListener("keydown", onKey);
   show();
 }
+/* ================= Kana Tactics bridge (Batch 11) =================
+   Export: {"app":"jlpt-vocab-quest","v":1,"date":ISO,"known":[word ids],"weak":[word ids]}
+     word id = index into the app's WORDS list (N5: 0–717 = data.json index).
+     known = every word with a studied card (in review, or learned with ≥1 correct); weak ⊂ known-or-studied:
+     leeches, retrievability < 80 % now, relearning, or missed in the last 14 days (reviews, confusion log, Kana Tactics).
+   Import: {"source":"kana-tactics","date":ISO,"results":[{"id","type":"vocab|kana|kanji","correct":bool,"ms":int}]}
+     Correct vocab → the light Daily Reading bonus (drBenefit: same per-word/day + 12/day cap, box bounds, never due-today).
+     Wrong answers → no penalty; vocab misses are logged in S.ktMiss {day:[ids]} for display and the next export's weak list.
+     Each export (source+date+results) applies once: S.ktImp {key: appliedAtMs}. Conjugation track never touched. */
+const KT_TYPES = ["vocab", "kana", "kanji"], KT_MAX = 5000;
+const ktWordOk = id => Number.isInteger(id) && id >= 0 && !!WORDS[id];
+function ktRetNow(c) { const f = c && c.f; return f && f.st === 2 && f.s > 0 && f.lr ? fRet(Math.max(0, (Date.now() - f.lr) / F_DAY), f.s) : null; }
+function ktRecentMiss() {
+  const out = new Set(), cut = daysAgo(14), M = isMap(S.ktMiss) ? S.ktMiss : {}, C = isMap(S.confuse) ? S.confuse : {};
+  for (const d in M) if (d >= cut && Array.isArray(M[d])) M[d].forEach(i => ktWordOk(+i) && out.add(+i));
+  for (const k in C) { const m = /^(\d+)>/.exec(k), v = C[k]; if (m && v && (+v.t || 0) >= Date.now() - 14 * 864e5 && (+v.c || 0) < (+v.n || 0)) out.add(+m[1]); }
+  return out;
+}
+function ktExportData() {
+  const known = [], weak = [], miss = ktRecentMiss();
+  for (const k in S.cards) {
+    const id = +k, c = S.cards[k]; if (!ktWordOk(id) || !c) continue;
+    const f = c.f || {}, studied = f.st === 2 || f.st === 3 || (c.good || c.run || 0) > 0;
+    if (!studied && !miss.has(id)) continue;
+    known.push(id);
+    const r = ktRetNow(c);
+    if (isLeech(id) || f.st === 3 || (r != null && r < 0.8) || miss.has(id)) weak.push(id);
+  }
+  known.sort((a, b) => a - b); weak.sort((a, b) => a - b);
+  return { app: "jlpt-vocab-quest", v: 1, date: new Date().toISOString(), known, weak };
+}
+function ktExportText() { return JSON.stringify(ktExportData()); }
+async function ktExport() {
+  const txt = ktExportText(), name = `kana-tactics-study-${todayStr()}.json`; let done = false;
+  try {
+    const f = typeof File === "function" ? new File([txt], name, { type: "application/json" }) : null;
+    if (f && navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: "Study list for Kana Tactics" }); done = true; }
+  } catch (e) { if (e && e.name === "AbortError") { toast("Export cancelled"); return false; } }
+  if (!done) {
+    const u = URL.createObjectURL(new Blob([txt], { type: "application/json" })), a = document.createElement("a");
+    a.href = u; a.download = name; a.rel = "noopener"; a.style.display = "none"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 30000);
+  }
+  toast("⚔️ Study list exported"); return true;
+}
+async function ktCopy() {
+  const txt = ktExportText();
+  try { await navigator.clipboard.writeText(txt); toast("📋 Study list copied"); return true; }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0"; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+    let ok = false; try { ok = document.execCommand("copy"); } catch (e2) {} ta.remove();
+    toast(ok ? "📋 Study list copied" : "Couldn't copy — use Export instead"); return ok;
+  }
+}
+function ktHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, "0"); }
+function ktKey(p) { return ktHash(JSON.stringify([p.source, p.date, p.results.map(r => [r.type, r.id, r.correct ? 1 : 0, r.ms])])); }
+function ktValidate(p) {
+  if (!isMap(p)) return "That isn't a Kana Tactics results file (expected a JSON object).";
+  if (p.source !== "kana-tactics") return 'Not a Kana Tactics export ("source" must be "kana-tactics").';
+  if (typeof p.date !== "string" || !/^\d{4}-\d{2}-\d{2}T/.test(p.date) || isNaN(Date.parse(p.date))) return '"date" must be an ISO date-time like 2026-10-07T12:00:00Z.';
+  if (Date.parse(p.date) > Date.now() + 86400000) return '"date" is in the future.';
+  if (!Array.isArray(p.results) || !p.results.length) return '"results" must be a non-empty list.';
+  if (p.results.length > KT_MAX) return `Too many results (max ${KT_MAX}).`;
+  for (let i = 0; i < p.results.length; i++) {
+    const r = p.results[i], at = `Result ${i + 1}: `;
+    if (!isMap(r)) return at + "not an object.";
+    if (!KT_TYPES.includes(r.type)) return at + '"type" must be vocab, kana or kanji.';
+    if (typeof r.correct !== "boolean") return at + '"correct" must be true or false.';
+    if (!Number.isInteger(r.ms) || r.ms < 0 || r.ms > 36e5) return at + '"ms" must be a whole number of milliseconds.';
+    if (r.type === "vocab" ? !Number.isInteger(r.id) : !(typeof r.id === "string" && r.id.length && r.id.length <= 8) && !Number.isInteger(r.id)) return at + (r.type === "vocab" ? '"id" must be an app word id (integer).' : '"id" must be the kana/kanji character.');
+  }
+  return null;
+}
+/* Pure analysis (no state change) → summary; ktApply commits it. */
+function ktAnalyse(p) {
+  const err = ktValidate(p); if (err) return { err };
+  const key = ktKey(p), imp = isMap(S.ktImp) ? S.ktImp : {};
+  const by = { vocab: { ok: 0, bad: 0 }, kana: { ok: 0, bad: 0 }, kanji: { ok: 0, bad: 0 } };
+  const okIds = new Set(), badIds = new Set(); let unknown = 0, ms = 0;
+  for (const r of p.results) {
+    by[r.type][r.correct ? "ok" : "bad"]++; ms += r.ms;
+    if (r.type !== "vocab") continue;
+    if (!ktWordOk(r.id)) { unknown++; continue; }
+    (r.correct ? okIds : badIds).add(r.id);
+  }
+  for (const id of badIds) okIds.delete(id);   // a word missed anywhere in the run gets no bonus
+  return { key, dup: !!imp[key], by, okIds: [...okIds].sort((a, b) => a - b), badIds: [...badIds].sort((a, b) => a - b), unknown, n: p.results.length, avgMs: Math.round(ms / p.results.length), date: p.date };
+}
+function ktApply(A) {
+  if (!A || A.err || A.dup) return null;
+  const res = { boosted: [], due: [], skipped: [] };
+  for (const id of A.okIds) { const b = drBenefit(id); if (!b) res.skipped.push(id); else if (b.due) res.due.push(id); else if (b.ds > 0) res.boosted.push(id); else res.skipped.push(id); }
+  if (A.badIds.length) { const L = nlog("ktMiss"), t = todayStr(); L[t] = [...new Set([...(L[t] || []), ...A.badIds])].sort((a, b) => a - b); for (const d in L) if (d < daysAgo(30)) delete L[d]; }
+  const I = nlog("ktImp"); I[A.key] = Date.now();
+  const ks = Object.keys(I).sort((a, b) => I[a] - I[b]); while (ks.length > 200) delete I[ks.shift()];
+  save(); return res;
+}
+function ktSummaryHTML(A, R) {
+  const row = (lb, o) => o.ok + o.bad ? `<li>${lb}: <b>${o.ok}</b> ✓ · ${o.bad} ✗</li>` : "";
+  const words = ids => ids.slice(0, 12).map(i => `<span class="jp">${esc(WORDS[i].jp.split(/;\s*/)[0])}</span>`).join("、") + (ids.length > 12 ? ` +${ids.length - 12}` : "");
+  return `<p class="muted">Run from ${esc(new Date(A.date).toLocaleString())} · ${A.n} answers · avg ${(A.avgMs / 1000).toFixed(1)} s</p><ul class="ktsum">${row("Vocab", A.by.vocab)}${row("Kana", A.by.kana)}${row("Kanji", A.by.kanji)}</ul>
+    ${R ? `<p>⭐ Light bonus for <b>${R.boosted.length}</b> word${R.boosted.length === 1 ? "" : "s"} (same small, capped boost as Daily Reading)${R.due.length ? ` · ${R.due.length} due today (unchanged — review as usual)` : ""}${R.skipped.length ? ` · ${R.skipped.length} not eligible (new, learning or today's cap)` : ""}.</p>` : ""}
+    ${A.badIds.length ? `<p>📝 Missed (no penalty, added to your weak list): ${words(A.badIds)}</p>` : ""}
+    ${A.unknown ? `<p class="muted">${A.unknown} vocab id${A.unknown === 1 ? "" : "s"} not in this app's word list were ignored.</p>` : ""}
+    <p class="muted">Kana and kanji results are shown for information only.</p>`;
+}
+function ktModal(title, html) {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "ktModal";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="${esc(title)}"><h2>${esc(title)}</h2>${html}<div class="btnrow"><button class="btn" id="ktOk">OK</button></div></div>`;
+  document.body.appendChild(md); md.onclick = e => { if (e.target === md || e.target.id === "ktOk") { md.remove(); const s = document.querySelector("#ktSec"); if (s) s.outerHTML = ktSettingsHTML(), bindKtSettings(document); } };
+  return md;
+}
+function ktImportText(txt) {
+  let p; try { p = JSON.parse(String(txt || "").trim()); } catch (e) { ktModal("Can't import", `<p>That isn't valid JSON.</p>`); return null; }
+  const A = ktAnalyse(p);
+  if (A.err) { ktModal("Can't import", `<p>${esc(A.err)}</p>`); return A; }
+  if (A.dup) { ktModal("Already imported", `<p>These Kana Tactics results were already applied, so nothing changed.</p>${ktSummaryHTML(A, null)}`); return A; }
+  const R = ktApply(A); A.applied = R; sfx.click && sfx.click();
+  ktModal("⚔️ Kana Tactics results", ktSummaryHTML(A, R)); return A;
+}
+function ktImportFile(file) {
+  if (!file) return; if (file.size > 2e6) { ktModal("Can't import", "<p>That file is too large.</p>"); return; }
+  const rd = new FileReader(); rd.onload = () => ktImportText(rd.result); rd.onerror = () => ktModal("Can't import", "<p>The file couldn't be read.</p>"); rd.readAsText(file);
+}
+function ktPaste() {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "ktPaste";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Paste Kana Tactics results"><h2>Paste results</h2><p class="muted">Paste the JSON that Kana Tactics copied.</p><textarea id="ktTxt" rows="6" style="width:100%;font:13px ui-monospace,monospace" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><div class="btnrow"><button class="btn" id="ktGo">Import</button><button class="btn sec" id="ktCancel">Cancel</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "ktCancel") md.remove(); };
+  md.querySelector("#ktGo").onclick = () => { const t = md.querySelector("#ktTxt").value; md.remove(); ktImportText(t); };
+  setTimeout(() => { const t = md.querySelector("#ktTxt"); t && t.focus(); }, 50);
+}
+function ktMissRecent() { const M = isMap(S.ktMiss) ? S.ktMiss : {}, cut = daysAgo(14), s = new Set(); for (const d in M) if (d >= cut) (M[d] || []).forEach(i => ktWordOk(+i) && s.add(+i)); return [...s]; }
+function ktSettingsHTML() {
+  const E = ktExportData(), miss = ktMissRecent();
+  return `<div class="bksec" id="ktSec"><h3 class="bkh">⚔️ Kana Tactics</h3>
+    <div class="row"><span>Export study list for Kana Tactics<br><small class="muted">${E.known.length} known · ${E.weak.length} weak words</small></span><span class="ktbtns"><button class="btn small" id="ktExp">Export</button><button class="btn small sec" id="ktCopy">Copy</button></span></div>
+    <div class="row"><span>Import Kana Tactics results<br><small class="muted">Correct words get a small capped boost · misses never hurt</small></span><span class="ktbtns"><button class="btn small sec" id="ktImp">File…</button><button class="btn small sec" id="ktPasteB">Paste</button></span><input type="file" id="ktFile" accept=".json,application/json,text/plain" hidden></div>
+    ${miss.length ? `<p class="muted" id="ktMissLine">Recent misses in Kana Tactics: ${miss.slice(0, 10).map(i => `<span class="jp">${esc(WORDS[i].jp.split(/;\s*/)[0])}</span>`).join("、")}${miss.length > 10 ? ` +${miss.length - 10}` : ""}</p>` : ""}</div>`;
+}
+function bindKtSettings(root) {
+  const q = s => root.querySelector(s); if (!q("#ktExp")) return;
+  q("#ktExp").onclick = () => ktExport(); q("#ktCopy").onclick = () => ktCopy(); q("#ktPasteB").onclick = () => ktPaste();
+  const fi = q("#ktFile"); q("#ktImp").onclick = () => { fi.value = ""; fi.click(); }; fi.onchange = () => ktImportFile(fi.files && fi.files[0]);
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -12714,7 +12865,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "ff8f67693c00";
+const BUILD = "2d64bd168213";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -12764,7 +12915,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
