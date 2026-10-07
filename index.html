@@ -10821,9 +10821,9 @@ function conjHome() {
     <div class="sechead">Forms <small class="muted">due in filter</small></div>
     <div class="panel cjforms">${CJ_FORMS.map(f => {
       const x = byForm[f.id]; if (!x || !x.n) return "";
-      return `<button class="cjrow" data-f="${f.id}"><span class="cjlbl"><b>${esc(f.label)}</b><small class="muted">${esc(f.hint)}</small></span>
+      return `<div class="cjrow" role="button" tabindex="0" data-f="${f.id}"><span class="cjlbl"><b>${esc(f.label)}</b><small class="muted">${esc(f.hint)}</small></span>
         <span class="cjmeta">${x.learned}/${x.n}${x.due ? ` · <b class="duen">${x.due}</b>` : ""}</span>
-        <button type="button" class="mini cjguideb" data-g="${f.id}" aria-label="Guide">📖</button></button>`;
+        <button type="button" class="mini cjguideb" data-g="${f.id}" aria-label="${esc(f.label)} guide">📖</button></div>`;
     }).join("") || `<p class="muted">No forms match the current filters.</p>`}</div>
     <div class="sechead">Browse verbs</div>
     <div class="panel cjbrowse">${cjWordPool().slice(0, 40).map(id => {
@@ -10881,9 +10881,9 @@ function conjHome() {
       cjSavePref({ [key]: arr }); go(conjHome);
     };
   });
-  view.querySelectorAll(".cjrow[data-f]").forEach(b => b.onclick = e => {
-    if (e.target.closest(".cjguideb")) return;
-    sfx.click(); go(() => cjFormView(b.dataset.f));
+  view.querySelectorAll(".cjrow[data-f]").forEach(b => {
+    b.onclick = e => { if (e.target.closest(".cjguideb")) return; sfx.click(); go(() => cjFormView(b.dataset.f)); };
+    b.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); b.click(); } };
   });
   view.querySelectorAll(".cjguideb").forEach(b => b.onclick = e => { e.stopPropagation(); sfx.click(); go(() => cjGuideView(b.dataset.g)); });
   view.querySelectorAll(".cjverb").forEach(b => b.onclick = () => { sfx.click(); go(() => cjTableView(+b.dataset.w)); });
@@ -10895,8 +10895,10 @@ function cjHelpModal() {
     <p><b>Reveal mode (default):</b> think or say the answer, tap Reveal, hear Keita, then rate Again / Hard / Good / Easy. Fast — burn through many cards.</p>
     <p><b>Typing mode:</b> turn on with the mode button. Uses the 🪜 ladder (choose → type → listen → cloze).</p>
     <p>Each card is one <b>(word × form)</b> on its own FSRS track. Filters and the last mode are remembered. Never changes vocab due counts or reminders.</p>
+    <p><b>Guides:</b></p><div class="cjchips cjguides">${CJ_FORMS.map(f => `<button type="button" class="cjchip" data-g="${f.id}">📖 ${esc(f.label)}</button>`).join("")}</div>
     <div class="btnrow"><button class="btn" id="x">Got it</button></div></div>`;
   document.body.appendChild(md); md.querySelector("#x").onclick = () => md.remove(); md.onclick = e => { if (e.target === md) md.remove(); };
+  md.querySelectorAll(".cjguides button").forEach(b => b.onclick = () => { md.remove(); go(() => cjGuideView(b.dataset.g)); });
 }
 function cjLimitModal() {
   const md = document.createElement("div"); md.className = "modal";
@@ -11233,7 +11235,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "ac23c5cae351";
+const BUILD = "45de0e0c7c91";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
