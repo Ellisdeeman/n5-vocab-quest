@@ -1,4 +1,4 @@
-// Batch 9: ConjuGato-style conjugation — Reveal default, filters, table, self-grade, guides; still separate from vocab
+// Batch 9 + 9.1 (English meaning of conjugated forms): ConjuGato-style conjugation — Reveal default, filters, table, self-grade, guides; still separate from vocab
 const pw = require('playwright-core');
 const URL = process.env.URL || 'http://localhost:8766/'; const BR = process.env.BROWSER || 'chromium';
 const R = []; const ok = (n, c, i = '') => { R.push(!!c); console.log(c ? 'PASS' : 'FAIL', BR, n, c ? '' : i); };
@@ -30,6 +30,23 @@ const seed = () => {
   ok('いい → くない = よくない', await ev(() => (__N5.cjConjugate({ jp: 'いい', kana: 'いい', pos: 'ai' }, 'ai_neg') || [])[0] === 'よくない'));
   ok('帰る u, 着る ru, する irr', await ev(() => __N5.cjGroup({ jp: '帰る', kana: 'かえる', pos: 'v' }) === 'u' && __N5.cjGroup({ jp: '着る', kana: 'きる', pos: 'v' }) === 'ru' && __N5.cjReg({ jp: 'する', kana: 'する', pos: 'v' }) === 'irr'));
 
+  // 9.1 English meaning of the conjugated form
+  const EN = await ev(() => {
+    const W = jp => Object.values(__N5.WORDS).find(w => w && w.jp === jp);
+    const a = W('会う'), t = W('高い'), k = W('綺麗');
+    const E = (w, f) => w ? __N5.cjEn(w, f) : 'MISSING';
+    return { masu: E(a, 'masu'), masen: E(a, 'masen'), mashita: E(a, 'mashita'), mdeshita: E(a, 'masendeshita'), te: E(a, 'te'), tai: E(a, 'tai'), dict: E(a, 'dict'),
+      tneg: E(t, 'ai_neg'), tpast: E(t, 'ai_past'), tpn: E(t, 'ai_pastneg'), kneg: E(k, 'na_neg'), kpast: E(k, 'na_past'),
+      ate: E(W('食べる'), 'mashita'), went: E(W('行く'), 'mashita'), saw: E(W('見る'), 'mashita'), came: E(W('来る'), 'mashita'), bought: E(W('買う'), 'mashita'),
+      shower: E(W('浴びる'), 'mashita'), phr: __N5.cjEnPast('take a shower'), stop: __N5.cjEnPast('stop'), cry: __N5.cjEnPast('cry'),
+      copy: (__N5.cjConjugate(W('コピーする'), 'masu') || [])[0], ryoko: W('旅行') ? __N5.cjEligibleWord(W('旅行')) : false,
+      aud: __N5.cjAudioName(W('コピーする'), 'masu') };
+  });
+  ok('9.1 会う: meet / will meet · met · didn\'t meet · meet and… · want to meet · plain', EN.masu === 'meet / will meet (polite)' && EN.masen === "don't meet / won't meet (polite)" && EN.mashita === 'met (polite past)' && EN.mdeshita === "didn't meet (polite past)" && /^meet and… \/ please meet/.test(EN.te) && EN.tai === 'want to meet' && EN.dict === 'meet (plain)', JSON.stringify(EN));
+  ok('9.1 adjectives: not expensive · was expensive · wasn\'t · not pretty · was pretty', /^not expensive/.test(EN.tneg) && /^was expensive/.test(EN.tpast) && /^wasn't expensive/.test(EN.tpn) && /^not pretty/.test(EN.kneg) && /^was pretty/.test(EN.kpast), JSON.stringify(EN));
+  ok('9.1 irregular English past: ate/went/saw/came/bought/took a shower', /^ate/.test(EN.ate) && /^went/.test(EN.went) && /^saw/.test(EN.saw) && /^came/.test(EN.came) && /^bought/.test(EN.bought) && /^took a shower/.test(EN.shower) && EN.phr === 'took a shower' && EN.stop === 'stopped' && EN.cry === 'cried', JSON.stringify(EN));
+  ok('9.1 コピーする is a する-verb (コピーします, re-recorded v2 audio); 旅行 noun not drilled', EN.copy === 'コピーします' && EN.aud === 'コピーする-masu-v2.mp3' && EN.ryoko === false, JSON.stringify(EN));
+
   await p.evaluate(() => __N5.go(__N5.conjHome)); await p.waitForSelector('#cjGo'); await p.waitForTimeout(400);
   await shot('b9-hub');
   ok('hub: big Practice button + filter chips', await ev(() => !!document.querySelector('#cjGo') && document.querySelectorAll('.cjchip').length >= 8));
@@ -47,7 +64,7 @@ const seed = () => {
   await shot('b9-filters');
 
   // Reveal flow
-  const newId = await ev(() => { const it = __N5.cjPoolItems().find(x => !__N5.ccards()[x.id] && x.fid === 'te') || __N5.cjPoolItems().find(x => !__N5.ccards()[x.id]); return it && it.id; });
+  const newId = await ev(() => { if (!__N5.ccards()['1:mashita'] && __N5.WORDS[1] && __N5.WORDS[1].jp === '会う') return '1:mashita'; const it = __N5.cjPoolItems().find(x => !__N5.ccards()[x.id] && x.fid === 'te') || __N5.cjPoolItems().find(x => !__N5.ccards()[x.id]); return it && it.id; });
   ok('has a new form to practice', !!newId, String(newId));
   const beforeDue = await ev(() => __N5.totalDue());
   const iso0 = await ev(() => ({ acc: JSON.stringify(__N5.paceAcc()), td: __N5.totalDue(), tl: __N5.pnTimeline().now }));
@@ -57,6 +74,7 @@ const seed = () => {
   await p.tap('#cjReveal'); await p.waitForSelector('.cjansbig'); await p.waitForTimeout(400);
   await shot('b9-reveal');
   ok('after Reveal: answer + Again/Hard/Good/Easy + hear', await ev(() => !!document.querySelector('.cjansbig') && document.querySelectorAll('.cjrate button').length === 4 && !!document.querySelector('#cjSayAns')));
+  ok('9.1 reveal shows English of the conjugated form', await ev(id => { const e = document.querySelector('.cjen'); return !!e && e.textContent.includes(__N5.cjEn(__N5.WORDS[id.split(':')[0]], id.split(':')[1])) && (id !== '1:mashita' || /会いました · met \(polite past\)/.test(e.textContent)); }, newId));
   ok('rule or guide available after reveal', await ev(() => !!document.querySelector('.cjrule') || !!document.querySelector('#cjOpenG')));
   await p.tap('.cjrate button[data-r="3"]'); await p.waitForSelector('#nextBtn');
   ok('Good grades into ccards', await ev(id => !!__N5.ccards()[id] && __N5.ccards()[id].cj === 1, newId));
@@ -82,6 +100,7 @@ const seed = () => {
   await shot('b9-table');
   ok('verb table lists forms with kana answers', await ev(() => document.querySelectorAll('.cjcell').length >= 5 && /ます|て/.test(document.body.innerText)));
   ok('irregular cells present or regular verb unmarked', await ev(() => document.querySelectorAll('.cjcell').length >= 5));
+  ok('9.1 verb table: English meaning per cell', await ev(() => { const c = document.querySelectorAll('.cjcell'); return c.length >= 5 && [...c].every(x => (x.querySelector('.cjcellen') || {}).textContent); }));
   ok('Practice this verb button', await ev(() => !!document.querySelector('#cjPrThis')));
 
   // Guide
@@ -101,9 +120,15 @@ const seed = () => {
       const btn = [...document.querySelectorAll('#qhost .choice')].find(b => b.textContent.includes(a));
       (btn || document.querySelector('#qhost .choice')).click();
     }, tid);
-    await p.waitForSelector('#nextBtn'); await p.tap('#nextBtn'); await p.waitForTimeout(400);
+    await p.waitForSelector('#nextBtn');
+    await p.evaluate(() => (document.querySelector('.cjen') || document.body).scrollIntoView({ block: 'center' })); await shot('b91-type');
+    ok('9.1 typing feedback shows English of the form', await ev(() => !!document.querySelector('#qhost .cjen, .cjen') && /\S/.test(document.querySelector('.cjen').textContent)));
+    await p.tap('#nextBtn'); await p.waitForTimeout(400);
   } else ok('typing mode skipped (no new left)', true);
 
+  await p.evaluate(() => __N5.go(__N5.conjHome)); await p.waitForSelector('#cjGo');
+  ok('9.1 history rows show form + English', await ev(() => { const h = document.querySelector('.cjhist .cjhen'); return !!h && h.textContent.length > 2; }));
+  await p.evaluate(() => document.querySelector('.cjhist').scrollIntoView({ block: 'center' })); await shot('b91-history');
   // Grammar + Home entry
   await p.evaluate(() => __N5.go(__N5.grammarHome)); await p.waitForTimeout(400);
   ok('Grammar hub still has Conjugation drills', await ev(() => !!document.querySelector('#grConj')));
