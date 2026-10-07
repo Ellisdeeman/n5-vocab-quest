@@ -1225,6 +1225,8 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .stenrow .stenbtn{min-height:32px;padding:4px 12px;font-size:.85rem}
 .stenrow .sten{margin-top:4px}
 .grq .rdw,.clz .rdw{font-size:inherit}
+.newdone{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0;color:var(--label2)}
+#hqNew .btn{margin-left:6px;min-height:30px;padding:3px 10px;font-size:.82rem}
 </style>
 </head>
 <body>
@@ -2019,7 +2021,15 @@ function revLogAdd(lv, trk, ok) {
    union per day, so two devices together still respect the cap. */
 const NEW_PRESETS = [5, 10, 15, 20, 30], KJ_PRESETS = [3, 5, 10, 20];
 const limV = (v, d) => v === "off" ? Infinity : (v == null || v === "" || isNaN(+v)) ? d : Math.max(1, Math.min(500, Math.round(+v)));
-const newLimitV = () => (typeof paceOn === "function" && paceOn()) ? paceLimit() : limV(S.newLimit, 15), kjLimitV = () => limV(S.kjLimit, 10);
+/* Batch 12: ONE daily new-word cap = auto-pace value (itself ≤ the manual limit) or the manual limit, further capped by the
+   daily-goal "new words" target when one is set, plus words the user explicitly asked for today ("Learn N more").
+   The goal ring counts exactly what this cap counts: unique words in S.newLog[today]. */
+const goalNewV = () => (typeof TS !== "undefined" && TS && TS.goalNew > 0) ? +TS.goalNew : Infinity;
+const newExtraV = () => { const x = S.newExtra; return x && typeof x === "object" && x[todayStr()] > 0 ? +x[todayStr()] : 0; };
+const newBaseV = () => Math.min((typeof paceOn === "function" && paceOn()) ? paceLimit() : limV(S.newLimit, 15), goalNewV());
+const newLimitV = () => { const b = newBaseV(); return b === Infinity ? Infinity : b + newExtraV(); }, kjLimitV = () => limV(S.kjLimit, 10);
+const newWordsOn = d => { const L = S.newLog && S.newLog[d]; return Array.isArray(L) ? L.length : ((typeof tget === "function" && tget(d).newW) || 0); };
+function newAddExtra(n) { const t = todayStr(), L = nlog("newExtra"); L[t] = (+L[t] || 0) + n; for (const d in L) if (d < daysAgo(7)) delete L[d]; save(); }
 function nlog(k) {
   if (!S[k] || typeof S[k] !== "object" || Array.isArray(S[k])) S[k] = {};
   return S[k];
@@ -2062,15 +2072,18 @@ function capView(kj = false, back, host) {
   host = host || $("#qhost");
   const lim = kj ? kjLimitV() : newLimitV(), what = kj ? "kanji" : "words";
   const seen = kj ? Object.keys(JS.cards).filter(c => KJ[c]) : ALL_IDS.filter(id => S.cards[id] && WORDS[id]), due = totalDue();
-  const html = `<div class="card capcard" id="capCard"><div class="big">🌙</div><div class="qtype">Daily limit reached</div>
-    <p class="capmsg">You've hit today's ${lim} new ${what} — reviews only until tomorrow</p>
+  const more = kj ? 0 : newMoreN();
+  const html = `<div class="card capcard" id="capCard"><div class="big">🌙</div><div class="qtype">New ${what} done for today</div>
+    <p class="capmsg">You've learned today's ${lim} new ${what}. From here it's reviews only — new ones come back tomorrow.</p>
     <div class="btnrow capbtns">${due ? `<button class="btn" id="capDue">Review due (${due})</button>` : ""}${seen.length ? `<button class="btn ${due ? "ghost" : ""}" id="capSeen">Practice seen ${what}</button>` : ""}
-    <button class="btn ghost" id="capRaise">Raise the limit in Settings</button></div></div>`;
+    ${more ? `<button class="btn ghost" id="capMore">Learn ${more} more (optional)</button>` : ""}
+    <button class="btn ghost small" id="capRaise">Change the limit in Settings</button></div></div>`;
   if (!host) { view.innerHTML = topbar(kj ? "字 Kanji" : "Study") + `<div id="qhost">${html}</div>`; bindBack(typeof back === "function" ? back : home); }
   else host.innerHTML = html;
   const b = typeof back === "function" ? back : undefined;
   const d = $("#capDue"); if (d) d.onclick = () => { sfx.click(); go(dueView); };
   const s = $("#capSeen"); if (s) s.onclick = () => { sfx.click(); go(kj ? () => kjSession(shuffle(seen).slice(0, 20).map(c => ({ j: 1, id: c })), "字 Practice seen kanji", b || home, "") : () => quiz("mixed", seen, "🎲 Practice seen words", b)); };
+  const mb = $("#capMore"); if (mb) mb.onclick = () => { sfx.click(); newMoreStart(more, b || home); };
   $("#capRaise").onclick = () => { sfx.click(); go(settingsView); setTimeout(() => { const r = $(kj ? "#kjLimRow" : "#newLimRow"); if (r) { r.scrollIntoView({ block: "center" }); r.classList.add("flash"); } }, 60); };
 }
 /* Settings rows: select with presets / Custom… / Off, plus a number input for custom */
@@ -2659,9 +2672,9 @@ function dailySession(back, key) {
     onFinish: () => {
       if (!D.done) { D.done = true; S.dailyHistory[D.date] = 1; touchStreak(); save(); addXP(50); sfx.level(); confetti(220); }
       $("#qhost").innerHTML = `<div class="card"><div class="qtype">Done for today!</div><div class="big">✅</div>
-        <p>${D.correct} correct answers · ${D.newCount} new words · 🔥 ${currentStreak()}-day streak</p><p class="sub">+50 XP session bonus</p>${nextReviewListHTML()}
+        <p>${D.correct} correct answers · ${D.items.filter((it, k) => it.isNew && k < D.pos && S.cards[it.id]).length} new words · 🔥 ${currentStreak()}-day streak</p><p class="sub">+50 XP session bonus</p>${newDoneHTML()}${nextReviewListHTML()}
         <div class="btnrow"><button class="btn" id="homeBtn">Home</button><button class="btn ghost" id="moreBtn">Extra practice</button></div></div>`;
-      bindNextReview($("#qhost")); $("#homeBtn").onclick = () => go(typeof back === "function" ? back : home);
+      bindNextReview($("#qhost")); bindNewDone($("#qhost"), typeof back === "function" ? back : home); $("#homeBtn").onclick = () => go(typeof back === "function" ? back : home);
       $("#moreBtn").onclick = () => go(() => quiz("mixed", unlockedIds(), "🎲 Extra practice", typeof back === "function" ? back : undefined));
     }
   });
@@ -3095,7 +3108,7 @@ function settings(page = false) {
     ${audioLessonSettingsHTML()}
     <div class="row"><span>🆕 New words per daily session<br><small class="muted">Default 10 · target ~${S.dailyTarget} items</small></span><input type="number" id="newPer" min="0" max="40" value="${S.newPerDay}"></div>
     ${paceSettingsHTML()}
-    ${limitRowHTML("newLim", "🚦 Daily new words limit", "Most unseen words introduced per day (all levels, every mode & game) — the maximum when Auto pace is on. After that: reviews only until midnight. Kana don't count; Pimsleur \"Mark lesson done\" doesn't count.", S.newLimit, NEW_PRESETS, 15)}
+    ${limitRowHTML("newLim", "🚦 Daily new words limit", "Most unseen words introduced per day (all levels, every mode & game) — the maximum when Auto pace is on. Your daily goal\'s new-word number (if set) caps it too. After that: reviews only until midnight, unless you tap “Learn 5 more”. Kana don't count; Pimsleur \"Mark lesson done\" doesn't count.", S.newLimit, NEW_PRESETS, 15)}
     ${limitRowHTML("kjLim", "🚦 Daily new kanji limit", "Kanji have their own daily limit (separate from words)", S.kjLimit, KJ_PRESETS, 10)}
     ${limitRowHTML("grLim", "🚦 Daily new grammar limit", "New N5 grammar points per day — grammar has its own review track", S.grLimit, GR_PRESETS, 2)}
     ${backupSettingsHTML()}
@@ -3229,7 +3242,7 @@ function kCheckUnlocks() {
   }
 }
 function kGrade(id, ok, ctx = {}) {
-  trackItem(!KS.cards[id]);
+  trackItem(false);   // kana are items, not "new words" (goal ring = the word cap counter)
   const it = KITEMS[id], wasM = kMasteredRow(it.s, it.g);
   const c = KS.cards[id] ? JSON.parse(JSON.stringify(KS.cards[id])) : { box: 0, due: 0, ok: 0, bad: 0 };
   srsAnswer(c, id, ok, ctx);
@@ -3623,7 +3636,7 @@ const tget = d => TS.days[d] || { sec: 0, items: 0, newW: 0 };
 function goalParts(d = todayStr()) {
   const x = tget(d), parts = [{ k: "min", label: "minutes", have: Math.floor(x.sec / 60), need: TS.goalMin }];
   if (TS.goalItems > 0) parts.push({ k: "items", label: "items reviewed", have: x.items, need: TS.goalItems });
-  if (TS.goalNew > 0) parts.push({ k: "new", label: "new words", have: x.newW, need: TS.goalNew });
+  if (TS.goalNew > 0) parts.push({ k: "new", label: "new words", have: newWordsOn(d), need: Math.min(TS.goalNew, d === todayStr() && typeof newBaseV === "function" && newBaseV() !== Infinity ? newBaseV() : TS.goalNew) });   // same counter as the daily cap (unique words; kana/kanji/grammar not included)
   return parts;
 }
 /* today: judged live against the current goal; past days: met if it was reached that day (flag) or meets the current goal */
@@ -3706,7 +3719,7 @@ function goalSettings(after) {
     <div class="row"><span>⏱️ Minutes per day</span><span class="seg gseg" id="gMin">${GOAL_OPTS.map(m => `<button class="${m === TS.goalMin ? "on" : ""}" data-m="${m}">${m}</button>`).join("")}<button class="${custom ? "on" : ""}" data-m="custom">…</button></span></div>
     <div class="row" id="gCustomRow" style="${custom ? "" : "display:none"}"><span>Custom minutes</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gCustom" min="1" max="600" value="${TS.goalMin}"></div>
     <div class="row"><span>🔁 Items reviewed per day<br><small class="muted">0 = no item goal</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gItems" min="0" max="2000" value="${TS.goalItems}"></div>
-    <div class="row"><span>🆕 New words per day<br><small class="muted">0 = no new-word goal</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gNew" min="0" max="200" value="${TS.goalNew}"></div>
+    <div class="row"><span>🆕 New words per day<br><small class="muted">0 = no new-word goal · also caps new words per day</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gNew" min="0" max="200" value="${TS.goalNew}"></div>
     <div style="text-align:right;margin-top:12px"><button class="btn" id="gDone">Done</button></div></div>`;
   document.body.appendChild(md);
   const setMin = v => { TS.goalMin = Math.max(1, Math.min(600, v | 0 || 15)); tsave(); };
@@ -3738,7 +3751,7 @@ function historyView(range = 7, asTab = false) {
     ${kanjiStatsHTML()}${typeof spkStatsHTML === "function" ? spkStatsHTML() : ""}
     <div class="sechead" style="display:flex;align-items:center;justify-content:space-between;text-transform:none;font-size:1rem;color:var(--label);font-weight:700;margin:22px 2px 8px">Study time ${segH}</div>` : topbar("📊 Study history", segH)) + `
     <div class="panel"><div class="chart ${range === 30 ? "c30" : ""}" id="chart"><div class="goalline" style="bottom:${18 + TS.goalMin * 60 / max * 142}px" title="goal"><span>goal ${TS.goalMin}m</span></div>
-      ${days.map((d, i) => `<div class="bar ${goalMet(d) ? "met" : ""}" title="${d}: ${fmtMin(vals[i])} · ${tget(d).items} items · ${tget(d).newW} new${tget(d).aud ? ` · 🎧 lesson ${tget(d).aud.map(a => a.n).join(", ")}` : ""}"><i style="height:${vals[i] / max * 100}%"></i><small>${range === 7 ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][new Date(d + "T12:00").getDay()] : (i % 5 === 4 || i === range - 1 ? d.slice(8) : "")}</small></div>`).join("")}</div>
+      ${days.map((d, i) => `<div class="bar ${goalMet(d) ? "met" : ""}" title="${d}: ${fmtMin(vals[i])} · ${tget(d).items} items · ${newWordsOn(d)} new${tget(d).aud ? ` · 🎧 lesson ${tget(d).aud.map(a => a.n).join(", ")}` : ""}"><i style="height:${vals[i] / max * 100}%"></i><small>${range === 7 ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][new Date(d + "T12:00").getDay()] : (i % 5 === 4 || i === range - 1 ? d.slice(8) : "")}</small></div>`).join("")}</div>
       <p class="muted" style="font-size:.85rem">Last ${range} days: <b>${fmtMin(rangeSec)}</b> · avg <b>${fmtMin(rangeSec / range)}</b>/day · goal met on <b>${metDays}</b>/${range} days</p></div>
     <div class="grid htot">
       <div class="mode"><div class="ic">⏳</div><h3 id="hAll">${(totalSec / 3600).toFixed(1)} h</h3><p>all-time study</p></div>
@@ -3746,7 +3759,7 @@ function historyView(range = 7, asTab = false) {
       <div class="mode"><div class="ic">🏆</div><h3 id="hBest">${best ? fmtMin(best[1].sec) : "—"}</h3><p>best day${best ? ` (${best[0]})` : ""}</p></div>
       <div class="mode"><div class="ic">🎯</div><h3>${goalStreak()} d</h3><p>goal streak</p></div>
       <div class="mode"><div class="ic">🔁</div><h3>${all.reduce((n, [, x]) => n + x.items, 0)}</h3><p>items answered (tracked)</p></div>
-      <div class="mode"><div class="ic">🆕</div><h3>${all.reduce((n, [, x]) => n + x.newW, 0)}</h3><p>new words (tracked)</p></div>
+      <div class="mode"><div class="ic">🆕</div><h3>${all.reduce((n, [d]) => n + newWordsOn(d), 0)}</h3><p>new words (tracked)</p></div>
       ${(() => { const a = alStats(); return a.n || AL.on ? `<div class="mode" id="hAud"><div class="ic">🎧</div><h3>${a.n}</h3><p>audio lessons · ${fmtMin(a.sec)}</p></div>` : ""; })()}
     </div>${gamesStatsHTML()}`;
   { const amo = $("#amOpen"); if (amo) amo.onclick = () => { sfx.click(); go(allMapView); }; }
@@ -4127,7 +4140,7 @@ const kjLevelsWithCards = () => LEVELS.filter(l => Object.values(JS.cards).some(
 function kjLearn(c) {    // learn card seen → the kanji enters the SRS (due now, so the quiz right after counts)
   if (JS.cards[c]) return;
   markNewK(c);
-  JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl, t: Date.now(), f: fNew(Date.now()) }; jsave(); trackItem(true); touchStreak(); save();
+  JS.cards[c] = { box: 0, due: Date.now(), ok: 0, bad: 0, l: KJ[c].lvl, t: Date.now(), f: fNew(Date.now()) }; jsave(); trackItem(false); touchStreak(); save();
 }
 function kjGrade(c, ok, ctx = {}) {
   const isNew = !JS.cards[c];
@@ -4135,7 +4148,7 @@ function kjGrade(c, ok, ctx = {}) {
   const x = Object.assign(JS.cards[c] ? JSON.parse(JSON.stringify(JS.cards[c])) : { box: 0, due: 0, ok: 0, bad: 0 }, { l: KJ[c].lvl });
   srsAnswer(x, c, ok, ctx);
   const before = kjUnlockedCount(x.l);
-  x.t = Date.now(); JS.cards[c] = x; jsave(); schedShow(x, ctx, "j", c); trackItem(isNew); touchStreak(); save();
+  x.t = Date.now(); JS.cards[c] = x; jsave(); schedShow(x, ctx, "j", c); trackItem(false); touchStreak(); save();
   if (kjUnlockedCount(x.l) > before) queueUnlock(`🔓 ${KJ_BATCH} new ${LNAME(x.l)} kanji unlocked`);
 }
 /* ---------- stroke order (KanjiVG) ---------- */
@@ -4883,7 +4896,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion", ktMiss: "mapUnion", ktImp: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion", ktMiss: "mapUnion", ktImp: "mapMax", newExtra: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -7597,7 +7610,7 @@ function grGrade(id, r) {
   srsAnswer(c, id, r > 1, { rating: r });
   c.t = Date.now(); G[id] = c;
   schedShow(c, { quiet: true }, "g", id);
-  trackItem(isNew); touchStreak(); save();
+  trackItem(false); touchStreak(); save();
   if (typeof updateDueBadge === "function") updateDueBadge();
   return c;
 }
@@ -10241,7 +10254,7 @@ function homeQuickHTML() {
     <div class="hqgrid">
       <div class="hqcell"><span class="hqic">⏰</span><div><b id="hqDue">${esc(dueLine)}</b></div></div>
       <div class="hqcell"><span class="hqic">🎯</span><div><b>${esc(goalLine)}</b></div></div>
-      <div class="hqcell"><span class="hqic">🌱</span><div><b>${esc(newLine)}</b></div></div>
+      <div class="hqcell" id="hqNew"><span class="hqic">${lim !== Infinity && left <= 0 ? "🌙" : "🌱"}</span><div><b>${esc(lim !== Infinity && left <= 0 ? "New words done for today" : newLine)}</b>${lim !== Infinity && left <= 0 && typeof newMoreN === "function" && newMoreN() ? ` <button class="btn ghost small" id="newMoreBtn">Learn ${newMoreN()} more</button>` : ""}</div></div>
       <div class="hqcell"><span class="hqic">🔥</span><div><b>${st} day streak</b>${st ? "" : "<small class=\"muted\"> · study today to start</small>"}</div></div>
       ${typeof drQuickHTML === "function" ? drQuickHTML() : ""}
     </div>
@@ -10253,6 +10266,7 @@ function bindHomeQuick(root = document) {
   const s = root.querySelector("#hqStart"); if (s) s.onclick = () => { sfx.click(); if (totalDue()) startDueReview("all", home); else dueOrPractice(); };
   const w = root.querySelector("#hqWeek"); if (w) w.onclick = () => { sfx.click(); go(weekReportView); };
   if (typeof bindDrQuick === "function") bindDrQuick(root);
+  if (typeof bindNewDone === "function") bindNewDone(root, home);
 }
 
 /* ---------- Weekly aggregates (read-only; never touches schedules) ---------- */
@@ -10271,7 +10285,7 @@ function weekRevStats(days, conj = false) {   // conj = the separate conjugation
   return { a, ok, acc: a ? ok / a : null };
 }
 function weekTime(days) { return days.reduce((n, d) => n + (tget(d).sec || 0), 0); }
-function weekNewWords(days) { return days.reduce((n, d) => n + (tget(d).newW || 0), 0); }
+function weekNewWords(days) { return days.reduce((n, d) => n + newWordsOn(d), 0); }
 function weekMasteredDelta() {
   /* cards currently mastered that were last touched in the window ≈ "reached mastery recently".
      We don't store master-date; approximate with box ≥ MASTER and lr within 7 days. */
@@ -12889,6 +12903,37 @@ document.addEventListener("click", e => {
   const mk = ST_TOK[b.dataset.f]; if (!mk) return;
   const tk = mk.split("/")[+b.dataset.t]; if (tk) drWordSheet(drTok(tk));
 });
+/* ================= Batch 12: "Learn N more" — the only way past today's new-word cap =================
+   Tapping it raises today's cap by N (S.newExtra[today], synced, max-merged) and runs a short lesson with exactly those
+   N new words (intro + recall). Nothing else ever lifts the cap. */
+const NEW_MORE = 5;
+function newMoreN() { if (newLimitV() === Infinity) return 0; const lv = activeLevels().filter(l => LV[l] && LV[l].loaded); let n = 0; for (const l of lv) for (const id of LV[l].ids) if (!S.cards[id] && isNewWord(id) && ++n >= NEW_MORE) return NEW_MORE; return n; }
+function newMoreStart(n, back = home) {
+  n = Math.max(1, Math.min(NEW_MORE, n | 0 || NEW_MORE));
+  newAddExtra(n);
+  const ids = newWordsForToday(n, new Set());
+  if (!ids.length) { toast("No unseen words left in your levels 🎉"); return go(back); }
+  const items = []; ids.forEach(id => items.push({ id, mode: "meaning", isNew: 1 })); shuffle(ids.slice()).forEach(id => items.push({ id, mode: ladderOn() ? "mixed" : "reverse" }));
+  let pos = 0, right = 0;
+  go(() => runSession({
+    title: `🆕 ${ids.length} more new word${ids.length === 1 ? "" : "s"}`, items: true, showNew: true, back,
+    progress: () => ({ done: pos, total: items.length }),
+    nextItem: () => items[pos] || null,
+    onItemDone: (ok, id, mode, skipped) => { pos++; if (ok && !skipped) right++; save(); },
+    onFinish: () => {
+      $("#qhost").innerHTML = `<div class="card" id="moreDone"><div class="qtype">Extra words done</div><div class="big">🌱</div><p>${ids.length} new word${ids.length === 1 ? "" : "s"} · ${right} correct</p>
+        <p class="muted">They join your reviews from tomorrow.</p><div class="btnrow"><button class="btn" id="homeBtn">Home</button></div></div>`;
+      $("#homeBtn").onclick = () => go(back);
+    }
+  }));
+}
+/* gentle line for Home / end-of-session cards once today's new words are done */
+function newDoneHTML() {
+  if (!capReached()) return "";
+  const m = newMoreN();
+  return `<div class="newdone" id="newDone"><span>🌙 New words done for today</span>${m ? `<button class="btn ghost small" id="newMoreBtn">Learn ${m} more</button>` : ""}</div>`;
+}
+function bindNewDone(root = document, back = home) { const b = root.querySelector("#newMoreBtn"); if (b) b.onclick = () => { sfx.click(); newMoreStart(newMoreN(), back); }; }
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -12917,7 +12962,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "807af1316dab";
+const BUILD = "c6c56dd7d100";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -12967,7 +13012,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
