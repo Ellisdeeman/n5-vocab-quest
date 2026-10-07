@@ -12728,49 +12728,57 @@ function drQuiz(back = home) {
   addEventListener("keydown", onKey); cleanup = () => removeEventListener("keydown", onKey);
   show();
 }
-/* ================= Kana Tactics bridge (Batch 11) =================
+/* ================= Games bridge: Kana Terror (and the older Kana Tactics) — Batch 11, Batch 14 =================
    Export: {"app":"jlpt-vocab-quest","v":1,"date":ISO,"known":[word ids],"weak":[word ids]}
-     word id = index into the app's WORDS list (N5: 0–717 = data.json index).
-     known = every word with a studied card (in review, or learned with ≥1 correct); weak ⊂ known-or-studied:
-     leeches, retrievability < 80 % now, relearning, or missed in the last 14 days (reviews, confusion log, Kana Tactics).
-   Import: {"source":"kana-tactics","date":ISO,"results":[{"id","type":"vocab|kana|kanji","correct":bool,"ms":int}]}
+     word id = the app's global word id (N5: 0–717 = data.json index; N4 10000+, N3 20000+, …; Pimsleur-only ≥50000).
+     known = EVERY word the user has been introduced to (B14): any vocab card in S.cards whatever its state — new/Seen
+     (lesson or Pimsleur "add to Seen"), learning, review, relearning — plus any word in the new-word log; weak ⊂ known:
+     leeches, retrievability < 80 % now, relearning, or missed in the last 14 days (reviews, confusion log, games).
+   Import: {"source":"kana-terror"|"kana-tactics","date":ISO,"results":[{"id","type":"vocab|kana|kanji","correct":bool,"ms":int}]}
      Correct vocab → the light Daily Reading bonus (drBenefit: same per-word/day + 12/day cap, box bounds, never due-today).
      Wrong answers → no penalty; vocab misses are logged in S.ktMiss {day:[ids]} for display and the next export's weak list.
      Each export (source+date+results) applies once: S.ktImp {key: appliedAtMs}. Conjugation track never touched. */
 const KT_TYPES = ["vocab", "kana", "kanji"], KT_MAX = 5000;
+const KT_SOURCES = { "kana-terror": "Kana Terror", "kana-tactics": "Kana Tactics" }, KT_GAME_URL = "https://ellisdeeman.github.io/kana-terror/";
+const ktGame = src => KT_SOURCES[src] || "the game";
+/* a real word id (its level may not be loaded yet: N4–N1 and Pimsleur lists load on demand) */
+const ktIdOk = id => Number.isInteger(id) && id >= 0 && (!!WORDS[id] || (typeof lvlOf === "function" && !!lvlOf(id) && id < 60000));
 const ktWordOk = id => Number.isInteger(id) && id >= 0 && !!WORDS[id];
 function ktRetNow(c) { const f = c && c.f; return f && f.st === 2 && f.s > 0 && f.lr ? fRet(Math.max(0, (Date.now() - f.lr) / F_DAY), f.s) : null; }
 function ktRecentMiss() {
   const out = new Set(), cut = daysAgo(14), M = isMap(S.ktMiss) ? S.ktMiss : {}, C = isMap(S.confuse) ? S.confuse : {};
-  for (const d in M) if (d >= cut && Array.isArray(M[d])) M[d].forEach(i => ktWordOk(+i) && out.add(+i));
+  for (const d in M) if (d >= cut && Array.isArray(M[d])) M[d].forEach(i => ktIdOk(+i) && out.add(+i));
   for (const k in C) { const m = /^(\d+)>/.exec(k), v = C[k]; if (m && v && (+v.t || 0) >= Date.now() - 14 * 864e5 && (+v.c || 0) < (+v.n || 0)) out.add(+m[1]); }
   return out;
 }
 function ktExportData() {
-  const known = [], weak = [], miss = ktRecentMiss();
-  for (const k in S.cards) {
-    const id = +k, c = S.cards[k]; if (!ktWordOk(id) || !c) continue;
-    const f = c.f || {}, studied = f.st === 2 || f.st === 3 || (c.good || c.run || 0) > 0;
-    if (!studied && !miss.has(id)) continue;
-    known.push(id);
-    const r = ktRetNow(c);
-    if (isLeech(id) || f.st === 3 || (r != null && r < 0.8) || miss.has(id)) weak.push(id);
+  const known = new Set(), weak = new Set(), miss = ktRecentMiss();
+  for (const k in S.cards) {   // every introduced word, whatever its state (Seen / learning / review / relearning)
+    const id = +k, c = S.cards[k]; if (!ktIdOk(id) || !c) continue;
+    known.add(id);
+    const f = c.f || {}, r = ktRetNow(c);
+    if (isLeech(id) || f.st === 3 || (r != null && r < 0.8) || miss.has(id)) weak.add(id);
   }
-  known.sort((a, b) => a - b); weak.sort((a, b) => a - b);
+  const NL = isMap(S.newLog) ? S.newLog : {};   // introduced in a lesson (card may still be syncing in)
+  for (const d in NL) if (Array.isArray(NL[d])) NL[d].forEach(i => { i = +i; if (ktIdOk(i)) known.add(i); });
+  for (const i of miss) if (known.has(i)) weak.add(i);
+  return ktExportOut([...known].sort((a, b) => a - b), [...weak].sort((a, b) => a - b));
+}
+function ktExportOut(known, weak) {
   return { app: "jlpt-vocab-quest", v: 1, date: new Date().toISOString(), known, weak };
 }
 function ktExportText() { return JSON.stringify(ktExportData()); }
 async function ktExport() {
-  const txt = ktExportText(), name = `kana-tactics-study-${todayStr()}.json`; let done = false;
+  const txt = ktExportText(), name = `jlpt-study-list-${todayStr()}.json`; let done = false;
   try {
     const f = typeof File === "function" ? new File([txt], name, { type: "application/json" }) : null;
-    if (f && navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: "Study list for Kana Tactics" }); done = true; }
+    if (f && navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: "Study list for games" }); done = true; }
   } catch (e) { if (e && e.name === "AbortError") { toast("Export cancelled"); return false; } }
   if (!done) {
     const u = URL.createObjectURL(new Blob([txt], { type: "application/json" })), a = document.createElement("a");
     a.href = u; a.download = name; a.rel = "noopener"; a.style.display = "none"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 30000);
   }
-  toast("⚔️ Study list exported"); return true;
+  toast("🎮 Study list exported"); return true;
 }
 async function ktCopy() {
   const txt = ktExportText();
@@ -12784,8 +12792,8 @@ async function ktCopy() {
 function ktHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, "0"); }
 function ktKey(p) { return ktHash(JSON.stringify([p.source, p.date, p.results.map(r => [r.type, r.id, r.correct ? 1 : 0, r.ms])])); }
 function ktValidate(p) {
-  if (!isMap(p)) return "That isn't a Kana Tactics results file (expected a JSON object).";
-  if (p.source !== "kana-tactics") return 'Not a Kana Tactics export ("source" must be "kana-tactics").';
+  if (!isMap(p)) return "That isn't a game results file (expected a JSON object).";
+  if (!Object.prototype.hasOwnProperty.call(KT_SOURCES, p.source)) return 'Not a game results file ("source" must be "kana-terror" or "kana-tactics").';
   if (typeof p.date !== "string" || !/^\d{4}-\d{2}-\d{2}T/.test(p.date) || isNaN(Date.parse(p.date))) return '"date" must be an ISO date-time like 2026-10-07T12:00:00Z.';
   if (Date.parse(p.date) > Date.now() + 86400000) return '"date" is in the future.';
   if (!Array.isArray(p.results) || !p.results.length) return '"results" must be a non-empty list.';
@@ -12813,7 +12821,7 @@ function ktAnalyse(p) {
     (r.correct ? okIds : badIds).add(r.id);
   }
   for (const id of badIds) okIds.delete(id);   // a word missed anywhere in the run gets no bonus
-  return { key, dup: !!imp[key], by, okIds: [...okIds].sort((a, b) => a - b), badIds: [...badIds].sort((a, b) => a - b), unknown, n: p.results.length, avgMs: Math.round(ms / p.results.length), date: p.date };
+  return { key, src: p.source, game: ktGame(p.source), dup: !!imp[key], by, okIds: [...okIds].sort((a, b) => a - b), badIds: [...badIds].sort((a, b) => a - b), unknown, n: p.results.length, avgMs: Math.round(ms / p.results.length), date: p.date };
 }
 function ktApply(A) {
   if (!A || A.err || A.dup) return null;
@@ -12827,7 +12835,7 @@ function ktApply(A) {
 function ktSummaryHTML(A, R) {
   const row = (lb, o) => o.ok + o.bad ? `<li>${lb}: <b>${o.ok}</b> ✓ · ${o.bad} ✗</li>` : "";
   const words = ids => ids.slice(0, 12).map(i => `<span class="jp">${esc(WORDS[i].jp.split(/;\s*/)[0])}</span>`).join("、") + (ids.length > 12 ? ` +${ids.length - 12}` : "");
-  return `<p class="muted">Run from ${esc(new Date(A.date).toLocaleString())} · ${A.n} answers · avg ${(A.avgMs / 1000).toFixed(1)} s</p><ul class="ktsum">${row("Vocab", A.by.vocab)}${row("Kana", A.by.kana)}${row("Kanji", A.by.kanji)}</ul>
+  return `<p class="muted">From <b>${esc(A.game || "the game")}</b> · run from ${esc(new Date(A.date).toLocaleString())} · ${A.n} answers · avg ${(A.avgMs / 1000).toFixed(1)} s</p><ul class="ktsum">${row("Vocab", A.by.vocab)}${row("Kana", A.by.kana)}${row("Kanji", A.by.kanji)}</ul>
     ${R ? `<p>⭐ Light bonus for <b>${R.boosted.length}</b> word${R.boosted.length === 1 ? "" : "s"} (same small, capped boost as Daily Reading)${R.due.length ? ` · ${R.due.length} due today (unchanged — review as usual)` : ""}${R.skipped.length ? ` · ${R.skipped.length} not eligible (new, learning or today's cap)` : ""}.</p>` : ""}
     ${A.badIds.length ? `<p>📝 Missed (no penalty, added to your weak list): ${words(A.badIds)}</p>` : ""}
     ${A.unknown ? `<p class="muted">${A.unknown} vocab id${A.unknown === 1 ? "" : "s"} not in this app's word list were ignored.</p>` : ""}
@@ -12839,13 +12847,21 @@ function ktModal(title, html) {
   document.body.appendChild(md); md.onclick = e => { if (e.target === md || e.target.id === "ktOk") { md.remove(); const s = document.querySelector("#ktSec"); if (s) s.outerHTML = ktSettingsHTML(), bindKtSettings(document); } };
   return md;
 }
-function ktImportText(txt) {
+async function ktLoadFor(p) {   // vocab ids from N4–N1 lists that aren't loaded yet
+  try {
+    if (!isMap(p) || !Array.isArray(p.results) || typeof loadLevel !== "function") return;
+    const need = [...new Set(p.results.filter(r => isMap(r) && r.type === "vocab" && Number.isInteger(r.id) && r.id >= 0 && !WORDS[r.id]).map(r => lvlOf(r.id)))].filter(l => LV[l] && !LV[l].loaded);
+    if (need.length) await Promise.all(need.map(loadLevel));
+  } catch (e) {}
+}
+async function ktImportText(txt) {
   let p; try { p = JSON.parse(String(txt || "").trim()); } catch (e) { ktModal("Can't import", `<p>That isn't valid JSON.</p>`); return null; }
+  await ktLoadFor(p);
   const A = ktAnalyse(p);
   if (A.err) { ktModal("Can't import", `<p>${esc(A.err)}</p>`); return A; }
-  if (A.dup) { ktModal("Already imported", `<p>These Kana Tactics results were already applied, so nothing changed.</p>${ktSummaryHTML(A, null)}`); return A; }
+  if (A.dup) { ktModal("Already imported", `<p>These ${esc(A.game)} results were already applied, so nothing changed.</p>${ktSummaryHTML(A, null)}`); return A; }
   const R = ktApply(A); A.applied = R; sfx.click && sfx.click();
-  ktModal("⚔️ Kana Tactics results", ktSummaryHTML(A, R)); return A;
+  ktModal(`🎮 ${A.game} results`, ktSummaryHTML(A, R)); return A;
 }
 function ktImportFile(file) {
   if (!file) return; if (file.size > 2e6) { ktModal("Can't import", "<p>That file is too large.</p>"); return; }
@@ -12853,7 +12869,7 @@ function ktImportFile(file) {
 }
 function ktPaste() {
   const md = document.createElement("div"); md.className = "modal"; md.id = "ktPaste";
-  md.innerHTML = `<div class="box" role="dialog" aria-label="Paste Kana Tactics results"><h2>Paste results</h2><p class="muted">Paste the JSON that Kana Tactics copied.</p><textarea id="ktTxt" rows="6" style="width:100%;font:13px ui-monospace,monospace" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><div class="btnrow"><button class="btn" id="ktGo">Import</button><button class="btn sec" id="ktCancel">Cancel</button></div></div>`;
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Paste game results"><h2>Paste results</h2><p class="muted">Paste the results JSON the game copied (Kana Terror or Kana Tactics).</p><textarea id="ktTxt" rows="6" style="width:100%;font:13px ui-monospace,monospace" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><div class="btnrow"><button class="btn" id="ktGo">Import</button><button class="btn sec" id="ktCancel">Cancel</button></div></div>`;
   document.body.appendChild(md);
   md.onclick = e => { if (e.target === md || e.target.id === "ktCancel") md.remove(); };
   md.querySelector("#ktGo").onclick = () => { const t = md.querySelector("#ktTxt").value; md.remove(); ktImportText(t); };
@@ -12862,10 +12878,11 @@ function ktPaste() {
 function ktMissRecent() { const M = isMap(S.ktMiss) ? S.ktMiss : {}, cut = daysAgo(14), s = new Set(); for (const d in M) if (d >= cut) (M[d] || []).forEach(i => ktWordOk(+i) && s.add(+i)); return [...s]; }
 function ktSettingsHTML() {
   const E = ktExportData(), miss = ktMissRecent();
-  return `<div class="bksec" id="ktSec"><h3 class="bkh">⚔️ Kana Tactics</h3>
-    <div class="row"><span>Export study list for Kana Tactics<br><small class="muted">${E.known.length} known · ${E.weak.length} weak words</small></span><span class="ktbtns"><button class="btn small" id="ktExp">Export</button><button class="btn small sec" id="ktCopy">Copy</button></span></div>
-    <div class="row"><span>Import Kana Tactics results<br><small class="muted">Correct words get a small capped boost · misses never hurt</small></span><span class="ktbtns"><button class="btn small sec" id="ktImp">File…</button><button class="btn small sec" id="ktPasteB">Paste</button></span><input type="file" id="ktFile" accept=".json,application/json,text/plain" hidden></div>
-    ${miss.length ? `<p class="muted" id="ktMissLine">Recent misses in Kana Tactics: ${miss.slice(0, 10).map(i => `<span class="jp">${esc(WORDS[i].jp.split(/;\s*/)[0])}</span>`).join("、")}${miss.length > 10 ? ` +${miss.length - 10}` : ""}</p>` : ""}</div>`;
+  return `<div class="bksec" id="ktSec"><h3 class="bkh">🎮 Games</h3>
+    <p class="muted" id="ktIntro" style="font-size:.85rem">Practise your words in <a href="${KT_GAME_URL}" target="_blank" rel="noopener">Kana Terror</a> (Kana Tactics files still work): export your study list into the game, then bring its results back here.</p>
+    <div class="row"><span>Export study list for games<br><small class="muted">${E.known.length} words you've met · ${E.weak.length} weak</small></span><span class="ktbtns"><button class="btn small" id="ktExp">Export</button><button class="btn small sec" id="ktCopy">Copy</button></span></div>
+    <div class="row"><span>Import game results<br><small class="muted">Correct words get a small capped boost · misses never hurt</small></span><span class="ktbtns"><button class="btn small sec" id="ktImp">File…</button><button class="btn small sec" id="ktPasteB">Paste</button></span><input type="file" id="ktFile" accept=".json,application/json,text/plain" hidden></div>
+    ${miss.length ? `<p class="muted" id="ktMissLine">Recent misses in games: ${miss.slice(0, 10).map(i => `<span class="jp">${esc(WORDS[i].jp.split(/;\s*/)[0])}</span>`).join("、")}${miss.length > 10 ? ` +${miss.length - 10}` : ""}</p>` : ""}</div>`;
 }
 function bindKtSettings(root) {
   const q = s => root.querySelector(s); if (!q("#ktExp")) return;
@@ -13090,7 +13107,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "98d2ae57951f";
+const BUILD = "79ec8cb7cf95";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
