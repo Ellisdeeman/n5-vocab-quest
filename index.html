@@ -1187,7 +1187,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .cjrevcard .cjbig{font-size:1.85rem;font-weight:700;line-height:1.3}
 .cjrevcard .cjtarget{margin-top:10px;font-size:1.15rem}.cjansbig{font-size:1.7rem;font-weight:700;margin:6px 0}
 .cjrate{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.cjrate .btn{min-height:48px}.cjguide p{margin:8px 0;line-height:1.45}.cjhrow{padding:8px 0;border-bottom:.5px solid var(--sep);font-size:.92rem}
+.cjrate .btn{min-height:48px;width:100%;margin:0}.cjguide p{margin:8px 0;line-height:1.45}.cjhrow{padding:8px 0;border-bottom:.5px solid var(--sep);font-size:.92rem}
 .cjhrow:last-child{border-bottom:none}.cjforms .cjrow{position:relative}.cjguideb{flex-shrink:0}
 </style>
 </head>
@@ -11080,7 +11080,7 @@ function cjRenderReveal(id, onRate) {
     <div class="feedback" id="fb" hidden></div></div>`;
   const reveal = () => {
     if (revealed) return; revealed = true;
-    $("#cjReveal").disabled = true;
+    $("#cjReveal").disabled = true; $("#cjReveal").parentElement.style.display = "none";
     const fb = $("#fb"); fb.hidden = false;
     const rule = cjRule(w, f.id), G = cjGuide(f.id);
     fb.innerHTML = `<div class="jp cjansbig">${esc(accepted[0])}</div>
@@ -11235,7 +11235,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "45de0e0c7c91";
+const BUILD = "640607a5a477";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
