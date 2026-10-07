@@ -12617,7 +12617,7 @@ function drQuiz(back = home) {
       if (ok) { right++; q.keys.forEach(id => { const r = drBenefit(id); if (r) bonus.push(r); }); }
       comboHit(ok, btns[j], 6); pos++; progress(); save();
       $("#fb").innerHTML = `<div class="${ok ? "grok" : "grbad"}">${ok ? "✅ Correct!" : `❌ The answer: <span class="${q.jp ? "jp" : ""}">${esc(q.ans)}</span>`}</div>
-        <p class="jp drfbs">${rdRuby(q.s.toks.map(t => t.replace(/^#/, "").split("@")[0]).join(""), true)} ${grSayBtn(q.s.txt, drAudio(q.s))}</p><p class="muted drfbe">${esc(q.s.en)}</p>
+        ${q.k === "mean" ? `<p class="drfbs">${grSayBtn(q.s.txt, drAudio(q.s))} <span class="muted">Listen to the sentence</span></p>` : `<p class="jp drfbs">${rdRuby(q.s.toks.map(t => t.replace(/^#/, "").split("@")[0]).join(""), true)} ${grSayBtn(q.s.txt, drAudio(q.s))}</p><p class="muted drfbe">${esc(q.s.en)}</p>`}
         <div class="btnrow"><button class="btn" id="nextBtn">${pos >= qs.length ? "See results" : "Next →"}</button></div>`;
       $("#nextBtn").onclick = show;
     };
@@ -12676,7 +12676,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "4c0aca3b1239";
+const BUILD = "37011b97f034";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
