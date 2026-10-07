@@ -33,6 +33,7 @@ jobs:
       - name: Load state
         run: |
           git fetch --depth=1 origin push-state 2>/dev/null && git show FETCH_HEAD:state.json > state.json || echo '{"v":1,"dev":{}}' > state.json
+          git show FETCH_HEAD:duo.json > duo.json 2>/dev/null || echo '{"v":1,"s":{}}' > duo.json
       - name: Decide and send
         id: run
         env:
@@ -41,7 +42,7 @@ jobs:
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           PUSH_DATA_KEY: ${{ secrets.PUSH_DATA_KEY }}
           TEST_SUB: ${{ github.event.inputs.test_sub }}
-        run: node push/run.js state.json
+        run: node push/run.js state.json duo.json
       - name: Save state
         if: steps.run.outputs.changed == '1'
         env:
@@ -50,6 +51,14 @@ jobs:
           sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/state.json?ref=push-state" --jq .sha 2>/dev/null || true)
           gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/state.json" -f branch=push-state -f message="reminder state" \
             -f content="$(base64 -w0 state.json)" ${sha:+-f sha=$sha} --silent
+      - name: Save Duolingo status
+        if: steps.run.outputs.duo_changed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/duo.json?ref=push-state" --jq .sha 2>/dev/null || true)
+          gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/duo.json" -f branch=push-state -f message="duolingo status" \
+            -f content="$(base64 -w0 duo.json)" ${sha:+-f sha=$sha} --silent
       - name: Keep the schedule enabled
         if: github.event_name == 'schedule'
         env:
