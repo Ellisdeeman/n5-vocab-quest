@@ -1214,6 +1214,12 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .drparts{font-size:.84rem;margin:6px 0}.drparts .chip{margin:3px 2px}
 .drnw{white-space:nowrap}
 .drstory .rdtools{display:grid;grid-template-columns:1fr 1fr;gap:8px}.drstory .rdtools .btn{width:100%;justify-content:center}
+/* Batch 11: Kana Tactics */
+.ktbtns{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;min-width:92px}
+.ktbtns .btn{width:100%;margin:0}
+.ktsum{list-style:none;padding:0;margin:8px auto;display:inline-block;text-align:left}
+.ktsum li{margin:2px 0}
+#ktModal .box{text-align:center}
 </style>
 </head>
 <body>
@@ -4870,7 +4876,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion", ktMiss: "mapUnion", ktImp: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -5189,7 +5195,7 @@ function backupSettingsHTML() {
     <div class="row"><span>📂 Restore from file<br><small class="muted">Shows what's inside first · you can undo it</small></span><button class="btn small sec" id="bkRestore">Restore…</button><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
     ${sn ? `<div class="row" id="bkUndoRow"><span>↩️ Undo last restore<br><small class="muted">Safety copy from ${esc(new Date(sn.at).toLocaleString())}</small></span><button class="btn small sec" id="bkUndo">Undo</button></div>` : ""}
     <div class="row"><span>🔔 Weekly backup reminder<br><small class="muted">A banner on Home when your last backup or sync is over 7 days old</small></span><button class="switch ${SY.remind ? "on" : ""}" id="bkRemind" role="switch" aria-checked="${!!SY.remind}" aria-label="Weekly backup reminder"></button></div>
-    <div class="syncbox" id="syncBox">${syncBoxHTML()}</div></div>`;
+    <div class="syncbox" id="syncBox">${syncBoxHTML()}</div></div>${typeof ktSettingsHTML === "function" ? ktSettingsHTML() : ""}`;
 }
 function syncBoxHTML() {
   if (!SY.token) return `<div class="row"><span>🔄 Sync with a secret GitHub Gist<br><small class="muted">Keep phone, tablet and computer in step. Uses your own free GitHub account.</small></span></div>
@@ -5227,6 +5233,7 @@ function bindBackupSettings(root) {
   const u = q("#bkUndo"); if (u) u.onclick = () => undoRestore();
   q("#bkRemind").onclick = e => { SY.remind = !SY.remind; sysave(); e.currentTarget.classList.toggle("on", SY.remind); e.currentTarget.setAttribute("aria-checked", SY.remind); };
   bindSyncBox(root);
+  if (typeof bindKtSettings === "function") bindKtSettings(root);
 }
 function bindSyncBox(root) {
   const q = s => root.querySelector(s);
@@ -11434,7 +11441,7 @@ const DR_S = [
 ["ab884740",0,"コーヒー@250/に/砂糖[さとう]@283/を/少[すこ]し@334/入[い]れます@72/。","I put a little sugar in my coffee.",[72,250,283,334]],
 ["63c268cd",0,"父[ちち]@405/は/毎朝[まいあさ]@614/新聞[しんぶん]@326/を/読[よ]みます@689/。","My father reads the newspaper every morning.",[326,405,614,689]],
 ["4c70c0e9",0,"母[はは]@541/は/台所[だいどころ]@376/で/お弁当[べんとう]@130/を/作[つく]って@417/います/。","My mother is making a boxed lunch in the kitchen.",[130,376,417,541]],
-["6f4179e3",0,"七時[しちじ]@299,290/半[はん]@548/に/家[いえ]@46/を/出[で]ます@435/。","I leave home at seven thirty.",[46,290,299,435,548]],
+["6f4179e3",0,"七時半[しちじはん]@299,290,548/に/家[いえ]@46/を/出[で]ます@435/。","I leave home at seven thirty.",[46,290,299,435,548]],
 ["d992dc8c",0,"出[で]かける@427/前[まえ]@620/に/、/時計[とけい]@455/を/見[み]ます@647/。","Before I go out, I look at the clock.",[427,455,620,647]],
 ["8b153c3c",0,"今日[きょう]@203/は/少[すこ]し@334/遅[おそ]く@113/起[お]きました@104/。","I got up a little late today.",[104,113,203,334]],
 ["7d410a71",0,"急[いそ]がない/と/、/電車[でんしゃ]@439/に/遅[おく]れます/。","If I don't hurry, I'll be late for the train.",[439]],
@@ -11524,7 +11531,7 @@ const DR_S = [
 ["70b901c4",6,"学校[がっこう]@167/の/門[もん]@663/の/前[まえ]@620/で/友達[ともだち]@468/に/会[あ]いました@1/。","I met my friend in front of the school gate.",[1,167,468,620,663]],
 ["66f49b6e",6,"教室[きょうしつ]@204/は/三階[さんがい]@287,142/に/あります@40/。","The classroom is on the third floor.",[40,142,204,287]],
 ["98b356b3",6,"エレベーター@92/は/ありません@40/から/、/階段[かいだん]@146/を/使[つか]います@412/。","There's no elevator, so we use the stairs.",[40,92,146,412]],
-["fa43d0b2",6,"授業[じゅぎょう]@316/は/八時[はちじ]@535,290/半[はん]@548/に/始[はじ]まります@527/。","Class begins at eight thirty.",[290,316,527,535,548]],
+["fa43d0b2",6,"授業[じゅぎょう]@316/は/八時半[はちじはん]@535,290,548/に/始[はじ]まります@527/。","Class begins at eight thirty.",[290,316,527,535,548]],
 ["177ce12b",6,"私[わたし]@713/の/クラス@227/に/は/学生[がくせい]@155/が/二十人[にじゅうにん]@495,313,504/います@70/。","There are twenty students in my class.",[70,155,227,313,495,504,713]],
 ["bb5ff51a",6,"留学生[りゅうがくせい]@698/も/四人[よにん]@289,504/います@70/。","There are also four international students.",[70,289,504,698]],
 ["f9b48b40",6,"先生[せんせい]@354/は/教室[きょうしつ]@204/に/入[はい]って@521/、/「/おはようございます/。/」/と/言[い]いました@45/。","The teacher came into the classroom and said \"Good morning.\"",[45,204,354,521]],
@@ -11564,7 +11571,7 @@ const DR_S = [
 ["f4618f91",8,"鉛筆[えんぴつ]@94/は/使[つか]わないで@412/ください@217/。","Please don't use pencils.",[94,217,412]],
 ["b6dc9c68",8,"テスト@431/の/紙[かみ]@174/は/先生[せんせい]@354/に/出[だ]して@382/ください@217/。","Please hand your test paper in to the teacher.",[174,217,354,382,431]],
 ["80ca4042",8,"次[つぎ]@414/の/ページ@591/を/見[み]て@647/ください@217/。","Please look at the next page.",[217,414,591,647]],
-["da9589cf",8,"私[わたし]@713/は/八十[はちじゅう]@535,313/点[てん]/でし/た/。","I got eighty points.",[313,535,713]],
+["da9589cf",8,"私[わたし]@713/は/八十点[はちじってん]@535,313/でし/た/。","I got eighty points.",[313,535,713]],
 ["201ac4b0",8,"次[つぎ]@414/の/テスト@431/は/もっと@661/頑張[がんば]ります/。","I'll try harder on the next test.",[414,431,661]],
 ["81b69b64",9,"大学[だいがく]@371/の/図書館[としょかん]@459/は/とても@462/大[おお]きい@98/です/。","The university library is very big.",[98,371,459,462]],
 ["0a05f6a2",9,"図書館[としょかん]@459/の/中[なか]@478/で/は/静[しず]か@297/に/して@342/ください@217/。","Please be quiet inside the library.",[217,297,342,459,478]],
@@ -11582,7 +11589,7 @@ const DR_S = [
 ["0081b456",10,"食堂[しょくどう]@321/は/いつも@63/学生[がくせい]@155/が/大勢[おおぜい]@100/います@70/。","There are always lots of students in the cafeteria.",[63,70,100,155,321]],
 ["e6e0e0fb",10,"今日[きょう]@203/は/カレー@182/を/食[た]べました@392/。","Today I ate curry.",[182,203,392]],
 ["6c9142c6",10,"この@263/カレー@182/は/ちょっと@410/辛[から]い@177/です/。","This curry is a bit spicy.",[177,182,263,410]],
-["fd5dd064",10,"カレー@182/は/一[いち]@56/皿[さら]/四百円[よんひゃくえん]@289,568,93/です/。","Curry is four hundred yen a plate.",[56,93,182,289,568]],
+["fd5dd064",10,"カレー@182/は/一皿[ひとさら]@56/四百円[よんひゃくえん]@289,568,93/です/。","Curry is four hundred yen a plate.",[56,93,182,289,568]],
 ["03a0e3ae",10,"友達[ともだち]@468/は/豚肉[ぶたにく]@582/と/野菜[やさい]@667/の/料理[りょうり]@700/を/頼[たの]みました@388/。","My friend ordered a pork and vegetable dish.",[388,468,582,667,700]],
 ["cedc899f",10,"食堂[しょくどう]@321/の/料理[りょうり]@700/は/安[やす]くて@669/美味[おい]しい@96/です/。","The cafeteria food is cheap and delicious.",[96,321,669,700]],
 ["c9a10219",10,"水[みず]@637/は/コップ@259/で/飲[の]みます@514/。","I drink water from a glass.",[259,514,637]],
@@ -11638,8 +11645,8 @@ const DR_S = [
 ["bc6cffbc",14,"りんご/を/五[いつ]つ@62/と/卵[たまご]@393/を/十個[じゅっこ]@313,241/買[か]いました@148/。","I bought five apples and ten eggs.",[62,148,241,313,393]],
 ["747f5cc0",14,"りんご/は/一[ひと]つ@564/百二十円[ひゃくにじゅうえん]@568,495,313,93/です/。","Apples are one hundred twenty yen each.",[93,313,495,564,568]],
 ["0cedafa3",14,"全部[ぜんぶ]@356/で/千円[せんえん]@351,93/ぐらい@226/でし/た/。","It was about a thousand yen in all.",[93,226,351,356]],
-["83b9b278",14,"魚[さかな]@276/屋[や]@665/で/魚[さかな]@276/も/二匹[にひき]@495,557/買[か]いました@148/。","I also bought two fish at the fish shop.",[148,276,495,557,665]],
-["2e8ec9e4",14,"肉[にく]@497/屋[や]@665/で/は/豚肉[ぶたにく]@582/を/三百[さんびゃく]グラム@287,568,228/買[か]いました@148/。","At the butcher's I bought three hundred grams of pork.",[148,228,287,497,568,582,665]],
+["83b9b278",14,"魚屋[さかなや]@276,665/で/魚[さかな]@276/も/二匹[にひき]@495,557/買[か]いました@148/。","I also bought two fish at the fish shop.",[148,276,495,557,665]],
+["2e8ec9e4",14,"肉屋[にくや]@497,665/で/は/豚肉[ぶたにく]@582/を/三百[さんびゃく]グラム@287,568,228/買[か]いました@148/。","At the butcher's I bought three hundred grams of pork.",[148,228,287,497,568,582,665]],
 ["47560d9f",14,"荷物[にもつ]@501/が/重[おも]く@133/なりました@493/。","My bags got heavy.",[133,493,501]],
 ["3e7709c0",14,"帰[かえ]り道[みち]/で/パン@551/屋[や]@665/に/寄[よ]りました/。","On the way home I stopped by the bakery.",[551,665]],
 ["336b2478",14,"パン@551/屋[や]@665/の/パン@551/は/柔[やわ]らかくて/美味[おい]しい@96/です/。","The bakery's bread is soft and delicious.",[96,551,665]],
@@ -11657,8 +11664,8 @@ const DR_S = [
 ["29bdd3fa",15,"母[はは]@541/は/とても@462/喜[よろこ]びました/。","My mother was very happy.",[462,541]],
 ["c2cded07",16,"私[わたし]@713/の/町[まち]@626/は/あまり@35/大[おお]きく@98/ありません@40/が/、/便利[べんり]@599/です/。","My town isn't very big, but it's convenient.",[35,40,98,599,626,713]],
 ["f88d0e98",16,"駅[えき]@91/の/前[まえ]@620/に/は/銀行[ぎんこう]@213/と/郵便局[ゆうびんきょく]@677/が/あります@39/。","In front of the station there's a bank and a post office.",[39,91,213,620,677]],
-["e93d46cc",16,"郵便局[ゆうびんきょく]@677/の/隣[となり]@464/に/小[ちい]さい@398/本[ほん]@609/屋[や]@665/が/あります@40/。","Next to the post office there's a small bookshop.",[40,398,464,609,665,677]],
-["6355d744",16,"駅[えき]@91/の/北[きた]@193/側[がわ]@185/に/大[おお]きい@98/公園[こうえん]@244/が/あります@39/。","There's a big park on the north side of the station.",[39,91,98,185,193,244]],
+["e93d46cc",16,"郵便局[ゆうびんきょく]@677/の/隣[となり]@464/に/小[ちい]さい@398/本屋[ほんや]@609,665/が/あります@40/。","Next to the post office there's a small bookshop.",[40,398,464,609,665,677]],
+["6355d744",16,"駅[えき]@91/の/北側[きたがわ]@193,185/に/大[おお]きい@98/公園[こうえん]@244/が/あります@39/。","There's a big park on the north side of the station.",[39,91,98,185,193,244]],
 ["ea1d958a",16,"公園[こうえん]@244/の/向[む]こう@650/に/病院[びょういん]@569/が/あります@40/。","Beyond the park there's a hospital.",[40,244,569,650]],
 ["6ea031d8",16,"駅[えき]@91/の/南[みなみ]@645/に/は/古[ふる]い@588/お寺[てら]@95/が/あります@40/。","South of the station there's an old temple.",[40,91,95,588,645]],
 ["c5c8c338",16,"この@263/お寺[てら]@95/は/とても@462/有名[ゆうめい]@679/です/。","This temple is very famous.",[95,263,462,679]],
@@ -11670,8 +11677,8 @@ const DR_S = [
 ["a532e0e3",16,"私[わたし]@713/は/この@263/町[まち]@626/が/大好[だいす]き@374/です/。","I love this town.",[263,374,626,713]],
 ["0a1e08be",17,"「/すみません@341/、/郵便局[ゆうびんきょく]@677/は/どこ@456/です/か/。/」","\"Excuse me, where is the post office?\"",[341,456,677]],
 ["5ded0737",17,"「/この@263/道[みち]@640/を/まっすぐ@628/行[い]って@48/ください@217/。/」","\"Please go straight along this road.\"",[48,217,263,628,640]],
-["9707753a",17,"「/二[ふた]つ@581/目[め]/の/角[かど]@170/を/右[みぎ]@635/に/曲[ま]がって@622/ください@217/。/」","\"Please turn right at the second corner.\"",[170,217,581,622,635]],
-["7668299c",17,"「/交差点[こうさてん]@245/を/渡[わた]る@716/と/、/左[ひだり]@562/側[がわ]@185/に/郵便局[ゆうびんきょく]@677/が/あります@40/。/」","\"When you cross the intersection, the post office is on the left.\"",[40,185,245,562,677,716]],
+["9707753a",17,"「/二[ふた]つ目[め]@581/の/角[かど]@170/を/右[みぎ]@635/に/曲[ま]がって@622/ください@217/。/」","\"Please turn right at the second corner.\"",[170,217,581,622,635]],
+["7668299c",17,"「/交差点[こうさてん]@245/を/渡[わた]る@716/と/、/左側[ひだりがわ]@562,185/に/郵便局[ゆうびんきょく]@677/が/あります@40/。/」","\"When you cross the intersection, the post office is on the left.\"",[40,185,245,562,677,716]],
 ["fa24fbe9",17,"「/ここ@251/から/遠[とお]い@451/です/か/。/」","\"Is it far from here?\"",[251,451]],
 ["265ddeed",17,"「/いいえ@44/、/近[ちか]い@400/です/よ/。/歩[ある]いて@41/五分[ごふん]@242,589/ぐらい@226/です/。/」","\"No, it's close. It's about a five-minute walk.\"",[41,44,226,242,400,589]],
 ["dedc3899",17,"「/ありがとう/ございました/。/」","\"Thank you very much.\"",[]],
@@ -11687,7 +11694,7 @@ const DR_S = [
 ["f803db4a",18,"切符[きっぷ]@198/は/一枚[いちまい]@56,613/二百五十円[にひゃくごじゅうえん]@495,568,242,313,93/です/。","A ticket is two hundred fifty yen.",[56,93,198,242,313,495,568,613]],
 ["e5d52e20",18,"機械[きかい]/で/切符[きっぷ]@198/を/買[か]いました@148/。","I bought a ticket from the machine.",[148,198]],
 ["63743137",18,"ボタン@607/を/押[お]す@112/と/、/切符[きっぷ]@198/が/出[で]て@435/きます/。","When you press the button, the ticket comes out.",[112,198,435,607]],
-["3d0c07da",18,"電車[でんしゃ]@439/は/三番[さんばん]@287,550/線[せん]/から/出[で]ます@435/。","The train leaves from track three.",[287,435,439,550]],
+["3d0c07da",18,"電車[でんしゃ]@439/は/三番線[さんばんせん]@287,550/から/出[で]ます@435/。","The train leaves from track three.",[287,435,439,550]],
 ["6ac54e95",18,"ホーム/で/電車[でんしゃ]@439/を/待[ま]ちます@627/。","I wait for the train on the platform.",[439,627]],
 ["78b2c5a3",18,"みんな@648/一列[いちれつ]/に/並[なら]んで@491/います/。","Everyone is lined up in a single line.",[491,648]],
 ["6c9bbc35",18,"電車[でんしゃ]@439/が/ゆっくりと@681/止[と]まりました@467/。","The train came slowly to a stop.",[439,467,681]],
@@ -11859,7 +11866,7 @@ const DR_S = [
 ["819b985f",33,"駅[えき]@91/の/近[ちか]く@402/に/新[あたら]しい@20/映画館[えいがかん]@88/が/できました@429/。","A new cinema opened near the station.",[20,88,91,402,429]],
 ["e7a70d6d",33,"とても@462/有名[ゆうめい]@679/な/映画[えいが]@87/でし/た/から/、/人[ひと]@563/が/大勢[おおぜい]@100/並[なら]んで@491/いました/。","It was a very famous movie, so lots of people were lined up.",[87,100,462,491,563,679]],
 ["fda881f5",33,"切符[きっぷ]@198/を/二枚[にまい]@495,613/買[か]いました@148/。","I bought two tickets.",[148,198,495,613]],
-["4d0f42b2",33,"映画[えいが]@87/は/七時[しちじ]@299,290/に/始[はじ]まって@527/、/九時[くじ]@215,290/半[はん]@548/に/終[お]わりました@137/。","The movie began at seven and ended at nine thirty.",[87,137,215,290,299,527,548]],
+["4d0f42b2",33,"映画[えいが]@87/は/七時[しちじ]@299,290/に/始[はじ]まって@527/、/九時半[くじはん]@215,290,548/に/終[お]わりました@137/。","The movie began at seven and ended at nine thirty.",[87,137,215,290,299,527,548]],
 ["1d9644d4",33,"話[はなし]@539/は/少[すこ]し@334/難[むずか]しかった@651/です/が/、/面白[おもしろ]かった@134/です/。","The story was a bit difficult, but interesting.",[134,334,539,651]],
 ["57e2b1ee",33,"映画[えいが]@87/の/音楽[おんがく]@138/も/とても@462/よかった@43/です/。","The movie's music was very good too.",[43,87,138,462]],
 ["9ded112d",33,"友達[ともだち]@468/は/「/つまらなかった@420/。/」/と/言[い]いました@45/。","My friend said, \"It was boring.\"",[45,420,468]],
@@ -11894,7 +11901,7 @@ const DR_S = [
 ["1d995286",36,"「/いい@43/です/ね/。/何時[なんじ]@494,487/に/会[あ]いましょう@1/か/。/」","\"Sounds good. What time shall we meet?\"",[1,43,487,494]],
 ["a5eef435",36,"「/午前[ごぜん]@255/十時[じゅうじ]@313,290/に/駅[えき]@91/の/前[まえ]@620/は/どう@445/です/か/。/」","\"How about ten a.m. in front of the station?\"",[91,255,290,313,445,620]],
 ["daaf527c",36,"「/ええ@90/、/大丈夫[だいじょうぶ]@373/です/。/じゃあ@309/、/また@624/明日[あした]@15/。/」","\"Yes, that's fine. See you tomorrow, then.\"",[15,90,309,373,624]],
-["876e7c3d",36,"電話[でんわ]@440/番号[ばんごう]@553/を/忘[わす]れた@712/の/で/、/母[はは]@541/に/聞[き]きました@192/。","I forgot the phone number, so I asked my mother.",[192,440,541,553,712]],
+["876e7c3d",36,"電話番号[でんわばんごう]@440,553/を/忘[わす]れた@712/の/で/、/母[はは]@541/に/聞[き]きました@192/。","I forgot the phone number, so I asked my mother.",[192,440,541,553,712]],
 ["67672241",36,"番号[ばんごう]@553/の/初[はじ]め@528/の/数字[すうじ]/は/ゼロ@350/です/。","The first digit of the number is zero.",[350,528,553]],
 ["1013edff",36,"電話[でんわ]@440/が/鳴[な]りました/が/、/だれ@394/も/出[で]ませんでした@435/。","The phone rang, but nobody answered.",[394,435,440]],
 ["2f2d6707",36,"用事[ようじ]/が/終[お]わって@137/、/電話[でんわ]@440/を/切[き]りました@208/。","I finished my business and hung up the phone.",[137,208,440]],
@@ -12097,8 +12104,8 @@ const DR_S = [
 ["ced6197a",54,"去年[きょねん]@206/の/四月[しがつ]@289,166/に/日本[にほん]/へ/来[き]ました@229/。","I came to Japan in April last year.",[166,206,229,289]],
 ["e7b3029f",54,"今[いま]@65/、/大学[だいがく]@371/で/日本語[にほんご]/を/勉強[べんきょう]して@598/います/。","I'm studying Japanese at university now.",[65,371,598]],
 ["d3911cb0",54,"私[わたし]@713/の/クラス@227/に/は/いろいろ@74/な/国[くに]@222/の/留学生[りゅうがくせい]@698/が/います@70/。","There are international students from various countries in my class.",[70,74,222,227,698,713]],
-["f08f5624",54,"中国[ちゅうごく]/人[じん]@325/の/学生[がくせい]@155/も/韓国[かんこく]/人[じん]@325/の/学生[がくせい]@155/も/います@70/。","There are Chinese students and Korean students.",[70,155,325]],
-["5ad46c3c",54,"私[わたし]@713/は/英語[えいご]@89/と/中国[ちゅうごく]/語[ご]@243/が/話[はな]せます@540/。","I can speak English and Chinese.",[89,243,540,713]],
+["f08f5624",54,"中国人[ちゅうごくじん]@325/の/学生[がくせい]@155/も/韓国人[かんこくじん]@325/の/学生[がくせい]@155/も/います@70/。","There are Chinese students and Korean students.",[70,155,325]],
+["5ad46c3c",54,"私[わたし]@713/は/英語[えいご]@89/と/中国語[ちゅうごくご]@243/が/話[はな]せます@540/。","I can speak English and Chinese.",[89,243,540,713]],
 ["66126c90",54,"日本語[にほんご]/は/まだ@625/下手[へた]@592/です/が/、/毎日[まいにち]@617/練習[れんしゅう]して@706/います/。","My Japanese is still poor, but I practice every day.",[592,617,625,706]],
 ["554340a0",54,"趣味[しゅみ]/は/写真[しゃしん]@310/と/スポーツ@339/です/。","My hobbies are photography and sports.",[310,339]],
 ["0b0bd158",54,"どうぞ@447/よろしく/お願[ねが]いします/。","I look forward to getting to know you.",[447]],
@@ -12146,7 +12153,7 @@ const DR_S = [
 ["c7bc63f8",59,"天気[てんき]@437/が/いい@43/日[ひ]/は/、/窓[まど]@630/を/開[あ]けます@9/。","On days with good weather, I open the windows.",[9,43,437,630]],
 ["ab9cc067",60,"最近[さいきん]/、/少[すこ]し@334/太[ふと]りました/。","Recently, I've gained a little weight.",[334]],
 ["79a7c358",60,"体重[たいじゅう]/は/六十五[ろくじゅうご]キロ@211/です/。","I weigh sixty-five kilograms.",[211]],
-["56f8010c",60,"毎日[まいにち]@617/一万[いちまん]@56,632/歩[ぽ]/歩[ある]く@41/こと/に/しました@342/。","I decided to walk ten thousand steps every day.",[41,56,342,617,632]],
+["56f8010c",60,"毎日[まいにち]@617/一万歩[いちまんぽ]@56,632/歩[ある]く@41/こと/に/しました@342/。","I decided to walk ten thousand steps every day.",[41,56,342,617,632]],
 ["5b07f651",60,"ご飯[はん]@264/は/半分[はんぶん]@555/だけ@379/食[た]べます@392/。","I eat only half my rice.",[264,379,392,555]],
 ["06b7499b",60,"甘[あま]い@34/物[もの]@662/は/あまり@35/食[た]べません@392/。","I don't eat many sweet things.",[34,35,392,662]],
 ["d40972d3",60,"一[いっ]か月[げつ]@56,156/で/二[に]キロ@211/やせました/。","I lost two kilograms in a month.",[56,156,211]],
@@ -12206,7 +12213,7 @@ const DR_S = [
 ["cb95623b",67,"地図[ちず]@404/を/見[み]@647/ながら/、/町[まち]@626/を/歩[ある]きました@41/。","I walked around the city looking at a map.",[41,404,626,647]],
 ["8ca3dd2a",67,"大[おお]きい@98/交差点[こうさてん]@245/の/角[かど]@170/に/交番[こうばん]@247/が/あります@40/。","There's a police box on the corner of the big intersection.",[40,98,170,245,247]],
 ["127883bb",67,"この@263/道[みち]@640/を/まっすぐ@628/行[い]く@48/と/、/駅[えき]@91/に/着[つ]きます@415/。","If you go straight along this road, you'll reach the station.",[48,91,263,415,628,640]],
-["4effd69a",67,"駅[えき]@91/から/地下鉄[ちかてつ]@403/に/乗[の]って@515/、/三[みっ]つ@642/目[め]/の/駅[えき]@91/で/降[お]ります@136/。","From the station I take the subway and get off at the third stop.",[91,136,403,515,642]],
+["4effd69a",67,"駅[えき]@91/から/地下鉄[ちかてつ]@403/に/乗[の]って@515/、/三[みっ]つ目[め]@642/の/駅[えき]@91/で/降[お]ります@136/。","From the station I take the subway and get off at the third stop.",[91,136,403,515,642]],
 ["b198ceb0",67,"この@263/町[まち]@626/は/自動車[じどうしゃ]@302/が/多[おお]くて@97/、/空気[くうき]/が/悪[わる]い@717/です/。","This city has a lot of cars, and the air is bad.",[97,263,302,626,717]],
 ["7b4143aa",67,"交差点[こうさてん]@245/で/警官[けいかん]@233/が/車[くるま]@230/を/止[と]めました/。","A police officer stopped a car at the intersection.",[230,233,245]],
 ["3cf569f5",67,"駅[えき]@91/の/前[まえ]@620/に/大[おお]きな@99/デパート@433/が/あります@40/。","There's a big department store in front of the station.",[40,91,99,433,620]],
@@ -12323,7 +12330,7 @@ const DR_S = [
 ["f51058b5",82,"子供[こども]@262/は/指[ゆび]/で/十[とお]@450/まで/数[かぞ]えました/。","The child counted to ten on his fingers.",[262,450]],
 ["b19fee1d",82,"冬[ふゆ]@586/の/朝[あさ]@11/、/外[そと]@363/の/気温[きおん]/は/零度[れいど]@702,442/以下[いか]/でし/た/。","On a winter morning, the temperature outside was below zero.",[11,363,442,586,702]],
 ["322d402a",82,"番号[ばんごう]@553/は/七番[ななばん]@299,550/です/。","The number is seven.",[299,550,553]],
-["dfba065f",82,"私[わたし]@713/は/三[さん]@287/番目[ばんめ]/の/子供[こども]@262/です/。","I'm the third child.",[262,287,713]],
+["dfba065f",82,"私[わたし]@713/は/三番目[さんばんめ]@287/の/子供[こども]@262/です/。","I'm the third child.",[262,287,713]],
 ["36b4a434",83,"この@263/山[やま]@673/は/一年[いちねん]@56,510/中[じゅう]@314/雪[ゆき]@680/が/あります@40/。","This mountain has snow all year round.",[40,56,263,314,510,673,680]],
 ["c2326fe9",83,"私[わたし]@713/は/夏休[なつやす]み@484/中[ちゅう]@408/、/毎日[まいにち]@617/図書館[としょかん]@459/へ/行[い]きました@48/。","During the summer vacation I went to the library every day.",[48,408,459,484,617,713]],
 ["f8fcac7c",83,"授業[じゅぎょう]@316/中[ちゅう]@408/は/話[はな]さないで@540/ください@217/。","Please don't talk during class.",[217,316,408,540]],
@@ -12510,7 +12517,45 @@ function drTokHTML(s, si, tg) {
   });
   return out.map(g => g.length > 1 || /^<span/.test(g[0]) ? `<span class="drnw">${g.join("")}</span>` : g[0]).join("") + open;
 }
+/* numbers + counters (八百五, 三千円, 七時半, 二十四日 …) are one token: show the whole reading, the value and the counter */
+const DR_DIG = { 〇: 0, 零: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 }, DR_MUL = { 十: 10, 百: 100, 千: 1000 };
+function drNumVal(k) {
+  if (/〇/.test(k) || (k.length > 1 && !/[十百千万]/.test(k))) return +[...k].map(c => DR_DIG[c]).join("");   // positional (二〇〇五)
+  let total = 0, sect = 0, cur = null;
+  for (const c of k) {
+    if (c in DR_DIG) cur = DR_DIG[c];
+    else if (c in DR_MUL) { sect += (cur == null ? 1 : cur) * DR_MUL[c]; cur = null; }
+    else if (c === "万") { total += (sect + (cur || 0) || 1) * 10000; sect = 0; cur = null; }
+  }
+  return total + sect + (cur || 0);
+}
+const DR_CTR = { 時: "o'clock", 時半: "half past (o'clock)", 時間: "hours (duration)", 分: "minutes", 円: "yen", 人: "people", 本: "long, thin things (pens, bottles…)", 枚: "flat things (paper, tickets…)", 冊: "books", 台: "machines, vehicles", 匹: "small animals", 杯: "cups, glasses, bowlfuls", 個: "small objects", 歳: "years old", 年: "year", 年間: "years (duration)", か月: "months (duration)", 週間: "weeks", 度: "degrees; times", 番: "number (in order)", 番目: "-th (ordinal)", 番線: "track / platform number", つ: "things (general counter)", つ目: "-th (ordinal)", 日: "day (date) / days", 日間: "days (duration)", 月: "month (name: 五月 = May)", 回: "times", 階: "floor", 皿: "plates", 点: "points", 歩: "steps", ページ: "page", メートル: "meters", キロ: "kilo(grams / meters)", グラム: "grams", センチ: "centimeters" };
+const DR_CMP = { 魚屋: ["さかなや", "fish shop"], 肉屋: ["にくや", "butcher's"], 本屋: ["ほんや", "bookshop"], 北側: ["きたがわ", "north side"], 南側: ["みなみがわ", "south side"], 東側: ["ひがしがわ", "east side"], 西側: ["にしがわ", "west side"], 左側: ["ひだりがわ", "left side"], 右側: ["みぎがわ", "right side"], 中国人: ["ちゅうごくじん", "Chinese (person)"], 韓国人: ["かんこくじん", "Korean (person)"], 中国語: ["ちゅうごくご", "Chinese (language)"], 電話番号: ["でんわばんごう", "phone number"] };
+function drNumInfo(t) {
+  const m = /^([〇零一二三四五六七八九十百千万]+|何)(.+)?$/.exec(t.surf); if (!m || !t.ids.length) return null;
+  if (t.ids.some(x => WORDS[x].jp.split(/;\s*/).includes(t.surf))) return null;   // its own N5 word (一番, 三日, 一人…): the normal word sheet
+  if (m[1] === "何") return { q: true, ctr: m[2] || "" };
+  const ctr = m[2] || "";
+  if (ctr && !(ctr in DR_CTR) && !/^(つ|か月|日|時半)$/.test(ctr)) return null;
+  const n = drNumVal(m[1]);
+  return { n, ctr, val: ctr === "時半" ? `${n}:30` : ctr === "月" ? `month ${n}` : ctr === "日" && t.ids.includes(411) ? "1st (of the month)" : /〇/.test(m[1]) || /^年/.test(ctr) ? String(n) : n.toLocaleString("en-US") };
+}
+function drSheet(head, body, ids, sayText) {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "rdSheet";
+  md.innerHTML = `<div class="box rdsheet" role="dialog" aria-label="Word">${head}${body}${ids.length ? `<p class="muted drparts">Parts: ${ids.map(x => `<button class="chip" data-wid="${x}"><span class="jp">${esc(WORDS[x].jp)}</span> ${esc(shortEn(WORDS[x]))}</button>`).join(" ")}</p>` : ""}
+    <div class="btnrow"><button class="btn sec" id="rdSay">🔈 Listen</button></div><div class="btnrow"><button class="btn ghost" id="rdClose">Close</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { const b = e.target.closest("[data-wid]"); if (b) { md.remove(); const w = WORDS[+b.dataset.wid]; return drWordSheet({ raw: w.jp, surf: w.jp, ids: [w.id], id: w.id, gloss: null, name: false }); } if (e.target === md || e.target.id === "rdClose") md.remove(); };
+  md.querySelector("#rdSay").onclick = () => speakText(sayText, true, 0.85);
+}
 function drWordSheet(t) {
+  const ni = drNumInfo(t), kana = drKana(t.raw);
+  if (ni) {
+    const ctrEn = DR_CTR[ni.ctr] || (ni.ctr ? "" : "");
+    return drSheet(`<div class="prompt jp drnum">${esc(t.surf)}</div><div class="jp rdkana">${esc(kana)}</div><div class="muted">${esc(ROMA(kana))}</div>`,
+      `${ni.q ? `<p class="rdmean">how many / what ${esc(ni.ctr)}</p>` : `<p class="rdmean drval">= <b>${esc(ni.val)}</b>${ctrEn ? ` · <span class="drctr">${esc(ni.ctr)}: ${esc(ctrEn)}</span>` : ""}</p>`}<p class="muted">Number${ni.ctr ? " + counter" : ""} · read as one word</p>`, t.ids, kana);
+  }
+  if (DR_CMP[t.surf]) return drSheet(`<div class="prompt jp">${esc(t.surf)}</div><div class="jp rdkana">${esc(DR_CMP[t.surf][0])}</div>`, `<p class="rdmean">${esc(DR_CMP[t.surf][1])}</p><p class="muted">Compound word</p>`, t.ids, DR_CMP[t.surf][0]);
   rdWordSheet({ raw: t.raw, surf: t.surf, id: t.id, gloss: t.gloss, name: t.name });
   const box = document.querySelector("#rdSheet .box"); if (!box) return;
   const f = box.querySelector(".rdform"); if (f) f.firstChild.textContent = "In the sentence: ";
@@ -12648,6 +12693,150 @@ function drQuiz(back = home) {
   addEventListener("keydown", onKey); cleanup = () => removeEventListener("keydown", onKey);
   show();
 }
+/* ================= Kana Tactics bridge (Batch 11) =================
+   Export: {"app":"jlpt-vocab-quest","v":1,"date":ISO,"known":[word ids],"weak":[word ids]}
+     word id = index into the app's WORDS list (N5: 0–717 = data.json index).
+     known = every word with a studied card (in review, or learned with ≥1 correct); weak ⊂ known-or-studied:
+     leeches, retrievability < 80 % now, relearning, or missed in the last 14 days (reviews, confusion log, Kana Tactics).
+   Import: {"source":"kana-tactics","date":ISO,"results":[{"id","type":"vocab|kana|kanji","correct":bool,"ms":int}]}
+     Correct vocab → the light Daily Reading bonus (drBenefit: same per-word/day + 12/day cap, box bounds, never due-today).
+     Wrong answers → no penalty; vocab misses are logged in S.ktMiss {day:[ids]} for display and the next export's weak list.
+     Each export (source+date+results) applies once: S.ktImp {key: appliedAtMs}. Conjugation track never touched. */
+const KT_TYPES = ["vocab", "kana", "kanji"], KT_MAX = 5000;
+const ktWordOk = id => Number.isInteger(id) && id >= 0 && !!WORDS[id];
+function ktRetNow(c) { const f = c && c.f; return f && f.st === 2 && f.s > 0 && f.lr ? fRet(Math.max(0, (Date.now() - f.lr) / F_DAY), f.s) : null; }
+function ktRecentMiss() {
+  const out = new Set(), cut = daysAgo(14), M = isMap(S.ktMiss) ? S.ktMiss : {}, C = isMap(S.confuse) ? S.confuse : {};
+  for (const d in M) if (d >= cut && Array.isArray(M[d])) M[d].forEach(i => ktWordOk(+i) && out.add(+i));
+  for (const k in C) { const m = /^(\d+)>/.exec(k), v = C[k]; if (m && v && (+v.t || 0) >= Date.now() - 14 * 864e5 && (+v.c || 0) < (+v.n || 0)) out.add(+m[1]); }
+  return out;
+}
+function ktExportData() {
+  const known = [], weak = [], miss = ktRecentMiss();
+  for (const k in S.cards) {
+    const id = +k, c = S.cards[k]; if (!ktWordOk(id) || !c) continue;
+    const f = c.f || {}, studied = f.st === 2 || f.st === 3 || (c.good || c.run || 0) > 0;
+    if (!studied && !miss.has(id)) continue;
+    known.push(id);
+    const r = ktRetNow(c);
+    if (isLeech(id) || f.st === 3 || (r != null && r < 0.8) || miss.has(id)) weak.push(id);
+  }
+  known.sort((a, b) => a - b); weak.sort((a, b) => a - b);
+  return { app: "jlpt-vocab-quest", v: 1, date: new Date().toISOString(), known, weak };
+}
+function ktExportText() { return JSON.stringify(ktExportData()); }
+async function ktExport() {
+  const txt = ktExportText(), name = `kana-tactics-study-${todayStr()}.json`; let done = false;
+  try {
+    const f = typeof File === "function" ? new File([txt], name, { type: "application/json" }) : null;
+    if (f && navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: "Study list for Kana Tactics" }); done = true; }
+  } catch (e) { if (e && e.name === "AbortError") { toast("Export cancelled"); return false; } }
+  if (!done) {
+    const u = URL.createObjectURL(new Blob([txt], { type: "application/json" })), a = document.createElement("a");
+    a.href = u; a.download = name; a.rel = "noopener"; a.style.display = "none"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 30000);
+  }
+  toast("⚔️ Study list exported"); return true;
+}
+async function ktCopy() {
+  const txt = ktExportText();
+  try { await navigator.clipboard.writeText(txt); toast("📋 Study list copied"); return true; }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0"; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+    let ok = false; try { ok = document.execCommand("copy"); } catch (e2) {} ta.remove();
+    toast(ok ? "📋 Study list copied" : "Couldn't copy — use Export instead"); return ok;
+  }
+}
+function ktHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, "0"); }
+function ktKey(p) { return ktHash(JSON.stringify([p.source, p.date, p.results.map(r => [r.type, r.id, r.correct ? 1 : 0, r.ms])])); }
+function ktValidate(p) {
+  if (!isMap(p)) return "That isn't a Kana Tactics results file (expected a JSON object).";
+  if (p.source !== "kana-tactics") return 'Not a Kana Tactics export ("source" must be "kana-tactics").';
+  if (typeof p.date !== "string" || !/^\d{4}-\d{2}-\d{2}T/.test(p.date) || isNaN(Date.parse(p.date))) return '"date" must be an ISO date-time like 2026-10-07T12:00:00Z.';
+  if (Date.parse(p.date) > Date.now() + 86400000) return '"date" is in the future.';
+  if (!Array.isArray(p.results) || !p.results.length) return '"results" must be a non-empty list.';
+  if (p.results.length > KT_MAX) return `Too many results (max ${KT_MAX}).`;
+  for (let i = 0; i < p.results.length; i++) {
+    const r = p.results[i], at = `Result ${i + 1}: `;
+    if (!isMap(r)) return at + "not an object.";
+    if (!KT_TYPES.includes(r.type)) return at + '"type" must be vocab, kana or kanji.';
+    if (typeof r.correct !== "boolean") return at + '"correct" must be true or false.';
+    if (!Number.isInteger(r.ms) || r.ms < 0 || r.ms > 36e5) return at + '"ms" must be a whole number of milliseconds.';
+    if (r.type === "vocab" ? !Number.isInteger(r.id) : !(typeof r.id === "string" && r.id.length && r.id.length <= 8) && !Number.isInteger(r.id)) return at + (r.type === "vocab" ? '"id" must be an app word id (integer).' : '"id" must be the kana/kanji character.');
+  }
+  return null;
+}
+/* Pure analysis (no state change) → summary; ktApply commits it. */
+function ktAnalyse(p) {
+  const err = ktValidate(p); if (err) return { err };
+  const key = ktKey(p), imp = isMap(S.ktImp) ? S.ktImp : {};
+  const by = { vocab: { ok: 0, bad: 0 }, kana: { ok: 0, bad: 0 }, kanji: { ok: 0, bad: 0 } };
+  const okIds = new Set(), badIds = new Set(); let unknown = 0, ms = 0;
+  for (const r of p.results) {
+    by[r.type][r.correct ? "ok" : "bad"]++; ms += r.ms;
+    if (r.type !== "vocab") continue;
+    if (!ktWordOk(r.id)) { unknown++; continue; }
+    (r.correct ? okIds : badIds).add(r.id);
+  }
+  for (const id of badIds) okIds.delete(id);   // a word missed anywhere in the run gets no bonus
+  return { key, dup: !!imp[key], by, okIds: [...okIds].sort((a, b) => a - b), badIds: [...badIds].sort((a, b) => a - b), unknown, n: p.results.length, avgMs: Math.round(ms / p.results.length), date: p.date };
+}
+function ktApply(A) {
+  if (!A || A.err || A.dup) return null;
+  const res = { boosted: [], due: [], skipped: [] };
+  for (const id of A.okIds) { const b = drBenefit(id); if (!b) res.skipped.push(id); else if (b.due) res.due.push(id); else if (b.ds > 0) res.boosted.push(id); else res.skipped.push(id); }
+  if (A.badIds.length) { const L = nlog("ktMiss"), t = todayStr(); L[t] = [...new Set([...(L[t] || []), ...A.badIds])].sort((a, b) => a - b); for (const d in L) if (d < daysAgo(30)) delete L[d]; }
+  const I = nlog("ktImp"); I[A.key] = Date.now();
+  const ks = Object.keys(I).sort((a, b) => I[a] - I[b]); while (ks.length > 200) delete I[ks.shift()];
+  save(); return res;
+}
+function ktSummaryHTML(A, R) {
+  const row = (lb, o) => o.ok + o.bad ? `<li>${lb}: <b>${o.ok}</b> ✓ · ${o.bad} ✗</li>` : "";
+  const words = ids => ids.slice(0, 12).map(i => `<span class="jp">${esc(WORDS[i].jp.split(/;\s*/)[0])}</span>`).join("、") + (ids.length > 12 ? ` +${ids.length - 12}` : "");
+  return `<p class="muted">Run from ${esc(new Date(A.date).toLocaleString())} · ${A.n} answers · avg ${(A.avgMs / 1000).toFixed(1)} s</p><ul class="ktsum">${row("Vocab", A.by.vocab)}${row("Kana", A.by.kana)}${row("Kanji", A.by.kanji)}</ul>
+    ${R ? `<p>⭐ Light bonus for <b>${R.boosted.length}</b> word${R.boosted.length === 1 ? "" : "s"} (same small, capped boost as Daily Reading)${R.due.length ? ` · ${R.due.length} due today (unchanged — review as usual)` : ""}${R.skipped.length ? ` · ${R.skipped.length} not eligible (new, learning or today's cap)` : ""}.</p>` : ""}
+    ${A.badIds.length ? `<p>📝 Missed (no penalty, added to your weak list): ${words(A.badIds)}</p>` : ""}
+    ${A.unknown ? `<p class="muted">${A.unknown} vocab id${A.unknown === 1 ? "" : "s"} not in this app's word list were ignored.</p>` : ""}
+    <p class="muted">Kana and kanji results are shown for information only.</p>`;
+}
+function ktModal(title, html) {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "ktModal";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="${esc(title)}"><h2>${esc(title)}</h2>${html}<div class="btnrow"><button class="btn" id="ktOk">OK</button></div></div>`;
+  document.body.appendChild(md); md.onclick = e => { if (e.target === md || e.target.id === "ktOk") { md.remove(); const s = document.querySelector("#ktSec"); if (s) s.outerHTML = ktSettingsHTML(), bindKtSettings(document); } };
+  return md;
+}
+function ktImportText(txt) {
+  let p; try { p = JSON.parse(String(txt || "").trim()); } catch (e) { ktModal("Can't import", `<p>That isn't valid JSON.</p>`); return null; }
+  const A = ktAnalyse(p);
+  if (A.err) { ktModal("Can't import", `<p>${esc(A.err)}</p>`); return A; }
+  if (A.dup) { ktModal("Already imported", `<p>These Kana Tactics results were already applied, so nothing changed.</p>${ktSummaryHTML(A, null)}`); return A; }
+  const R = ktApply(A); A.applied = R; sfx.click && sfx.click();
+  ktModal("⚔️ Kana Tactics results", ktSummaryHTML(A, R)); return A;
+}
+function ktImportFile(file) {
+  if (!file) return; if (file.size > 2e6) { ktModal("Can't import", "<p>That file is too large.</p>"); return; }
+  const rd = new FileReader(); rd.onload = () => ktImportText(rd.result); rd.onerror = () => ktModal("Can't import", "<p>The file couldn't be read.</p>"); rd.readAsText(file);
+}
+function ktPaste() {
+  const md = document.createElement("div"); md.className = "modal"; md.id = "ktPaste";
+  md.innerHTML = `<div class="box" role="dialog" aria-label="Paste Kana Tactics results"><h2>Paste results</h2><p class="muted">Paste the JSON that Kana Tactics copied.</p><textarea id="ktTxt" rows="6" style="width:100%;font:13px ui-monospace,monospace" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><div class="btnrow"><button class="btn" id="ktGo">Import</button><button class="btn sec" id="ktCancel">Cancel</button></div></div>`;
+  document.body.appendChild(md);
+  md.onclick = e => { if (e.target === md || e.target.id === "ktCancel") md.remove(); };
+  md.querySelector("#ktGo").onclick = () => { const t = md.querySelector("#ktTxt").value; md.remove(); ktImportText(t); };
+  setTimeout(() => { const t = md.querySelector("#ktTxt"); t && t.focus(); }, 50);
+}
+function ktMissRecent() { const M = isMap(S.ktMiss) ? S.ktMiss : {}, cut = daysAgo(14), s = new Set(); for (const d in M) if (d >= cut) (M[d] || []).forEach(i => ktWordOk(+i) && s.add(+i)); return [...s]; }
+function ktSettingsHTML() {
+  const E = ktExportData(), miss = ktMissRecent();
+  return `<div class="bksec" id="ktSec"><h3 class="bkh">⚔️ Kana Tactics</h3>
+    <div class="row"><span>Export study list for Kana Tactics<br><small class="muted">${E.known.length} known · ${E.weak.length} weak words</small></span><span class="ktbtns"><button class="btn small" id="ktExp">Export</button><button class="btn small sec" id="ktCopy">Copy</button></span></div>
+    <div class="row"><span>Import Kana Tactics results<br><small class="muted">Correct words get a small capped boost · misses never hurt</small></span><span class="ktbtns"><button class="btn small sec" id="ktImp">File…</button><button class="btn small sec" id="ktPasteB">Paste</button></span><input type="file" id="ktFile" accept=".json,application/json,text/plain" hidden></div>
+    ${miss.length ? `<p class="muted" id="ktMissLine">Recent misses in Kana Tactics: ${miss.slice(0, 10).map(i => `<span class="jp">${esc(WORDS[i].jp.split(/;\s*/)[0])}</span>`).join("、")}${miss.length > 10 ? ` +${miss.length - 10}` : ""}</p>` : ""}</div>`;
+}
+function bindKtSettings(root) {
+  const q = s => root.querySelector(s); if (!q("#ktExp")) return;
+  q("#ktExp").onclick = () => ktExport(); q("#ktCopy").onclick = () => ktCopy(); q("#ktPasteB").onclick = () => ktPaste();
+  const fi = q("#ktFile"); q("#ktImp").onclick = () => { fi.value = ""; fi.click(); }; fi.onchange = () => ktImportFile(fi.files && fi.files[0]);
+}
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -12676,7 +12865,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "ffe168cfa6e9";
+const BUILD = "2d64bd168213";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -12726,7 +12915,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
