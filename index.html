@@ -1222,11 +1222,12 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 #ktModal .box{text-align:center}
 /* Batch 12: question sentences */
 .stenrow{margin:6px 0 2px;text-align:center}
-.stenrow .stenbtn{min-height:32px;padding:4px 12px;font-size:.85rem}
+.stenrow .stenbtn{min-height:44px;padding:4px 14px;font-size:.85rem}
 .stenrow .sten{margin-top:4px}
 .grq .rdw,.clz .rdw{font-size:inherit}
+.newdone .btn{min-height:44px}
 .newdone{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0;color:var(--label2)}
-#hqNew .btn{margin-left:6px;min-height:30px;padding:3px 10px;font-size:.82rem}
+#hqNew .btn{margin:4px 0 0 6px;min-height:44px;padding:4px 12px;font-size:.85rem}
 </style>
 </head>
 <body>
@@ -12962,7 +12963,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "c6c56dd7d100";
+const BUILD = "2060ccdb6b23";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
