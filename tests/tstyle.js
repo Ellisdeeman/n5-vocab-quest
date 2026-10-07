@@ -190,7 +190,7 @@ const audit=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1;
   // batch 8: home quick, weekly report, conjugation hub
   await p.evaluate(()=>__N5.go(home));await p.waitForSelector('#homeQuick');await p.evaluate(()=>document.querySelector('#homeQuick').scrollIntoView({block:'center'}));await check('home quick glance');
   await p.evaluate(()=>__N5.go(__N5.weekReportView));await p.waitForSelector('.wkgrid');await p.waitForTimeout(300);await check('weekly report');
-  await p.evaluate(()=>{const cards={};[0,1,2,3,4,5,10,20,30].forEach(id=>{cards[id]={box:2,due:Date.now()-1e3,ok:3,bad:0,f:{st:2,s:4,d:5,lr:Date.now()-864e5,due:Date.now()-1e3}};});Object.assign(__N5.S().cards,cards);__N5.go(__N5.conjHome);});await p.waitForSelector('#cjSub');await p.waitForTimeout(300);await check('conjugation hub');
+  await p.evaluate(()=>{const cards={};[0,1,2,3,4,5,10,20,30].forEach(id=>{cards[id]={box:2,due:Date.now()-1e3,ok:3,bad:0,f:{st:2,s:4,d:5,lr:Date.now()-864e5,due:Date.now()-1e3}};});Object.assign(__N5.S().cards,cards);__N5.go(__N5.conjHome);});await p.waitForSelector('#cjGo, #cjSub');await p.waitForTimeout(300);await check('conjugation hub');
   // batch 7: review reminders card — install guide, needs Gist sync, ready, on (status + warnings), help open
   await p.route('https://raw.githubusercontent.com/**',r=>r.fulfill({json:{v:1,dev:{}}}));
   await p.route('https://api.github.com/repos/**/runs**',r=>r.fulfill({json:{workflow_runs:[{run_started_at:new Date(Date.now()-5*60e3).toISOString()}]}}));
