@@ -10074,7 +10074,7 @@ const pnTz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZo
 function pnTimeline(now = Date.now()) {
   const H = now + 7 * 864e5, add = []; let n = 0;
   const f = d => { d = +d; if (!isFinite(d)) return; if (d <= now) n++; else if (d <= H) add.push(Math.ceil((d - now) / 60e3)); };
-  for (const k in S.cards) { const c = S.cards[k]; if (typeof duoFresh === "function" && duoFresh(c) && c.due > now) continue; f(c.due); }   // Duolingo-marked words still waiting for release (app35) are not "due soon"
+  for (const k in S.cards) { const c = S.cards[k]; if (typeof duoFresh === "function" && duoFresh(c)) continue; f(c.due); }   // Duolingo-marked words not yet answered (app35, released ≤quota/day) never count toward reminders
   for (const id in KS.cards) if (KITEMS[id]) f(KS.cards[id].due);
   for (const c in JS.cards) f(JS.cards[c].due);
   if (typeof gcards === "function" && typeof GR !== "undefined") { const G = gcards(); for (const id in G) if (GR[id]) f(G[id].due); }
@@ -13171,7 +13171,7 @@ const duoDueFreshN = () => { let n = 0, now = Date.now(); for (const k in S.card
 /* ---------- Settings: position summary + per-day release ---------- */
 function duoPosHTML() {
   const p = S.duoPos;
-  const cur = p && p.s ? `<b>${esc(duoLabel(p.s, p.u))}</b>${p.done ? " (finished)" : ""}<br><small class="muted">${duoTarget().size} words marked as seen · ${duoPendingN()} still waiting to join your reviews</small>` : `<small class="muted">Not set. Tell the app where you are and the words Duolingo has already taught you are marked as seen (not known).</small>`;
+  const cur = p && p.s ? `<b>${esc(duoLabel(p.s, p.u))}</b>${p.done ? " (finished)" : ""}<br><small class="muted">${duoTarget().size} words taught so far · ${duoPendingN()} still waiting to join your reviews</small>` : `<small class="muted">Not set. Tell the app where you are and the words Duolingo has already taught you are marked as seen (not known).</small>`;
   return `<div class="duopos" id="duoPos"><div class="row"><span style="text-align:left">📍 Where are you in Duolingo?<br>${cur}</span><button class="btn small" id="duoPosBtn">${p && p.s ? "Update" : "Set"}</button></div>
     ${limitRowHTML("duoQ", "Duolingo words added to reviews per day", "Words marked from Duolingo join your reviews gradually (first time as multiple choice). They never count toward your daily new-word limit or goal ring.", S.duoQuota == null ? DUO_QDEF : S.duoQuota, DUO_QUOTAS, DUO_QDEF).replace(/<option value="off"[^>]*>Off<\/option>/, "")}</div>`;
 }
@@ -13272,7 +13272,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "7f800add68d3";
+const BUILD = "5bb8f930670e";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
