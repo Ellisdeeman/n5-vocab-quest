@@ -13202,8 +13202,8 @@ function duoPicker(after) {
         <label class="row"><span>Unit you're on</span><select id="dpUnit" style="max-width:62vw">${Array.from({ length: n }, (_, i) => `<option value="${i + 1}" ${st.u === i + 1 ? "selected" : ""}>${esc(duoLabel(st.s, i + 1))}</option>`).join("")}</select></label>
         <label class="row"><span>I've finished this unit too</span><input type="checkbox" id="dpDone" ${st.done ? "checked" : ""}></label>
         <div class="row"><span>Levels to include<br><small class="muted">Words outside your study levels are skipped</small></span><span class="dplv">${LEVELS.map(l => `<label><input type="checkbox" data-lv="${l}" ${st.lv.includes(l) ? "checked" : ""}> ${LNAME(l)}</label>`).join(" ")}</span></div>
-        <div class="duoprev" id="dpPrev"><b>Marks ~${pv.add} word${pv.add === 1 ? "" : "s"} as seen</b>${pv.add ? ` <span class="muted">(${duoByText(pv.by)})</span>` : ""}<br>
-          <small class="muted">${pv.have ? `${pv.have} of the ${pv.total} words Duolingo has taught you are already in your reviews. ` : ""}They join your reviews ${duoQuota()} a day (first as multiple choice) and don't use up your new-word limit.${back ? ` Moving back keeps every word you've already answered${pv.rm ? `; ${pv.rm} Duolingo word${pv.rm === 1 ? "" : "s"} you haven't answered yet will be unmarked` : ""}.` : ""}</small></div>
+        <div class="duoprev" id="dpPrev"><b>${pv.add ? `Marks ~${pv.add} word${pv.add === 1 ? "" : "s"} as seen` : pv.rm ? `Unmarks ${pv.rm} unanswered word${pv.rm === 1 ? "" : "s"}` : "Nothing new to mark"}</b>${pv.add ? ` <span class="muted">(${duoByText(pv.by)})</span>` : ""}<br>
+          <small class="muted">${pv.have ? `${pv.have} of the ${pv.total} words Duolingo has taught you are already in your reviews. ` : ""}${pv.add ? `They join your reviews ${duoQuota()} a day (first as multiple choice) and don't use up your new-word limit.` : ""}${back ? ` Moving back keeps every word you've already answered${pv.rm ? `; ${pv.rm} Duolingo word${pv.rm === 1 ? "" : "s"} you haven't answered yet will be unmarked` : ""}.` : ""}</small></div>
         <p class="muted" style="font-size:.78rem;margin:6px 0">Word lists: 2026 course, from duome.eu (unofficial), hand-checked — close but not exact. Not affiliated with Duolingo.</p>
         <div class="btnrow" style="justify-content:flex-end">${S.duoPos && S.duoPos.s ? `<button class="btn ghost small" id="dpClear">Clear</button>` : ""}<button class="btn sec" id="dpCancel">Cancel</button><button class="btn" id="dpApply">Apply</button></div>`;
     }
@@ -13272,7 +13272,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "5bb8f930670e";
+const BUILD = "8a1273fa5584";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
