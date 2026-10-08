@@ -47,20 +47,17 @@ jobs:
         if: steps.run.outputs.changed == '1'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/state.json?ref=push-state" --jq .sha 2>/dev/null || true)
-          gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/state.json" -f branch=push-state -f message="reminder state" \
-            -f content="$(base64 -w0 state.json)" ${sha:+-f sha=$sha} --silent
+        run: node push/save.js state.json "reminder state"
       - name: Save Duolingo status
+        # non-fatal: reminders were already sent; a failed save only leaves the app's Duolingo status a run behind
         if: steps.run.outputs.duo_changed == '1'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/duo.json?ref=push-state" --jq .sha 2>/dev/null || true)
-          gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/duo.json" -f branch=push-state -f message="duolingo status" \
-            -f content="$(base64 -w0 duo.json)" ${sha:+-f sha=$sha} --silent
+        run: node push/save.js duo.json "duolingo status"
       - name: Keep the schedule enabled
-        if: github.event_name == 'schedule'
+        # runs even when an earlier step failed, so a bad save can never let GitHub disable the cron
+        if: ${{ !cancelled() && github.event_name == 'schedule' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
