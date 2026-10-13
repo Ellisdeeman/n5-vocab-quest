@@ -13371,12 +13371,25 @@ function gkLessonView(n) {
 const gkGr = id => GENKI.g[id] || 0;
 const gkGrFilterOn = () => !!S.grGk && gkCur() > 0;
 /* ===== v38: Kanji card on the Home tab — same card as each level page's (#kjOpen), one per level you're studying ===== */
+/* v43: one Home kanji card — your current level = lowest of N5→N1 with < 90 % of its kanji learned (auto-advances at 90 %; all done → N1) */
+const KJ_ADV = 0.9;
+function kjLevelProg(l) {
+  const total = KJL[l] && KJL[l].loaded ? KJL[l].list.length : (KJINFO[l] ? (KJINFO[l].chars || "").length : 0);
+  let seen = 0; for (const c in JS.cards) if (JS.cards[c].l === l) seen++;
+  return { total, seen, pct: total ? seen / total : 0 };
+}
+function homeKjLevel() {
+  const ls = ["n5", "n4", "n3", "n2", "n1"].filter(l => KJL[l]);
+  return ls.find(l => kjLevelProg(l).pct < KJ_ADV) || ls[ls.length - 1];
+}
 function homeKjHTML() {
-  return `<div class="homekj" id="homeKj">${activeLevels().filter(l => KJL[l]).map(l => {
+  const l = homeKjLevel(); if (!l) return `<div class="homekj" id="homeKj"></div>`;
+  const ls = ["n5", "n4", "n3", "n2", "n1"].filter(x => KJL[x]), nx = ls[ls.indexOf(l) + 1], pg = kjLevelProg(l);
+  return `<div class="homekj" id="homeKj">${[l].map(l => {
     const failed = !KJL[l].loaded && KJL[l].failAt && Date.now() - KJL[l].failAt < 8000;
     if (!KJL[l].loaded && !failed) loadKanji(l).then(ok => { if (ok && curView === home && !studyScreen && !document.querySelector(".modal")) { const el = $("#homeKj"); if (el) { el.outerHTML = homeKjHTML(); bindHomeKj(); } } });
     const kst = KJL[l].loaded ? kjStats(l) : { total: KJINFO[l] ? (KJINFO[l].chars || "").length : 0, mast: 0, seen: 0, due: 0 };
-    return `<button class="kjcard" data-kjh="${l}" style="--c:var(--${l})">${lvRing("字", kst.mast / (kst.total || 1), `var(--${l})`, 48)}<span class="grow"><b>Kanji · ${LNAME(l)} · ${kst.total}</b><br><small>${failed ? "Couldn't load the kanji list (offline?) · tap to retry" : !KJL[l].loaded ? "Loading…" : `${kst.mast} mastered · ${kst.seen} learned${kst.due ? ` · ${kst.due} due` : ""} · easiest → hardest, stroke order`}</small></span>${I("chevronR")}</button>`; }).join("")}</div>`;
+    return `<button class="kjcard" data-kjh="${l}" style="--c:var(--${l})">${lvRing("字", kst.mast / (kst.total || 1), `var(--${l})`, 48)}<span class="grow"><b>Kanji · ${LNAME(l)} · ${kst.total}</b><br><small>${failed ? "Couldn't load the kanji list (offline?) · tap to retry" : !KJL[l].loaded ? "Loading…" : `${kst.mast} mastered · ${kst.seen} learned${kst.due ? ` · ${kst.due} due` : ""} · easiest → hardest, stroke order`}</small><br><small class="muted kjadv">${LNAME(l)} · ${Math.floor(pg.pct * 100)}% learned${nx ? ` → ${LNAME(nx)} at 90%` : ""}</small></span>${I("chevronR")}</button>`; }).join("")}</div>`;
 }
 function bindHomeKj() { view.querySelectorAll("[data-kjh]").forEach(b => b.onclick = () => { sfx.click(); const l = b.dataset.kjh; if (!KJL[l].loaded) { KJL[l].failAt = 0; loadKanji(l); } go(kanjiPageFn(l)); }); }
 /* ===== v39: Pitch accent training — only words you've mastered (box ≥ MASTER_BOX) =====
@@ -13821,7 +13834,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "e834a1d7fc7c";
+const BUILD = "508a2fdd044d";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
