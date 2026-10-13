@@ -3085,9 +3085,10 @@ function leechView() {
   const ids = leechIds().sort((a, b) => card(b).bad - card(a).bad);
   view.innerHTML = topbar("🧛 Leeches", `<span class="muted">${ids.length} words</span>`) +
     `<p class="muted" style="margin:4px 0 10px">A word becomes a leech after 4+ misses or 2+ lapses (forgotten after being learned). Get it right 4 times in a row to tame it. Write a mnemonic — it's shown whenever the word is reviewed.</p>
-    ${ids.length ? `<div class="btnrow leechbtns" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button><button class="btn sec" id="detention">📝 Detention</button></div><div id="llist"></div>`
-      : `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>No leeches right now — nice! Words you keep missing will show up here.</p></div>`}${confSectionHTML()}`;
+    ${ids.length ? `<div class="btnrow leechbtns" style="justify-content:flex-start"><button class="btn" id="drill">🎯 Drill leeches</button><button class="btn sec" id="drillType">⌨️ Typing drill</button><button class="btn sec" id="detention">📝 Detention</button><button class="btn sec" id="lwPdf">✍️ Worksheet PDF</button></div><div id="llist"></div>`
+      : `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>No leeches right now — nice! Words you keep missing will show up here.</p><button class="btn sec" id="lwPdf">✍️ Worksheet PDF</button></div>`}${confSectionHTML()}`;
   bindBack(); bindConfSection(leechView);
+  { const b = $("#lwPdf"); if (b) b.onclick = () => lwOpen(); }
   if (!ids.length) return;
   $("#llist").innerHTML = ids.map(id => { const w = WORDS[id], c = card(id); return `<div class="leechrow"><div class="row" style="border:none;padding:0 0 6px" data-id="${id}"><span><b class="jp" style="font-size:1.5rem">${esc(w.jp)}</b> <span class="muted jp">${w.hasKanji ? esc(w.kana) : ""}</span> ${S.romaji ? `<span class="muted" style="font-size:.8rem">${esc(ROMA(w.kana))}</span>` : ""}</span><span style="text-align:right">${esc(w.en)}<br><small class="muted">✘ ${c.bad} misses · ${c.lapses || 0} lapses · run ${c.run || 0}/4</small></span></div>
     <textarea class="notebox" data-lnote="${id}" placeholder="💡 Mnemonic for ${esc(w.jp)}…">${esc(S.notes[id] || "")}</textarea></div>`; }).join("");
@@ -13580,6 +13581,214 @@ function rkSession(back) {
   next();
 }
 const rtkTileHTML = () => { const d = rkDue().length; return `<button class="mode rktile-home" data-m="rtk"><div class="ic">🧠</div><h3>Remembering the Kanji ${d ? `<span class="badge">${d}</span>` : ""}</h3><p>${RTKS.frame ? `Frame ${RTKS.frame} · ${rkLearned()} in reviews` : "Heisig 6th ed. · set your frame"} · separate</p></button>`; };
+/* ---------- v42: Leeches handwriting worksheet (PDF made on-device, for GoodNotes + Apple Pencil) ----------
+   iPad 4:3 portrait (197×263 mm). Part 1 study+practice (2 per page), Part 2 shuffled recall, Part 3 answer key.
+   Pages are drawn on a canvas (system Japanese font, KanjiVG stroke paths) and wrapped into a tiny image-only PDF — no library, works offline. */
+const LW_W = 197, LW_H = 263, LW_PX = 6, LW_MAX = 30;
+const lwHasK = c => /[\u4e00-\u9fff々]/.test(c);
+const lwKanji = w => [...String(w.jp).split(/;\s*/)[0]].filter(c => lwHasK(c) && c !== "々");
+const lwJp = w => String(w.jp).split(/;\s*/)[0];
+const lwKana = w => String(w.kana).replace(/ \(する\)$/, "").split(/;\s*/)[0];
+const lwEn = w => String(w.en).split(/;\s*/).slice(0, 2).join("; ");
+function lwRand(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
+function lwShuffle(a, seed) { const r = lwRand(seed), b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+function lwIds() { return leechIds().sort((a, b) => card(b).bad - card(a).bad || (card(b).lapses || 0) - (card(a).lapses || 0)).slice(0, LW_MAX); }
+/* example sentence: must contain the word; prefer sentences whose other kanji are all N5 kanji, then shorter */
+function lwExample(id) {
+  const n5 = ((KJINFO.n5 || {}).chars || ""), own = new Set(lwKanji(WORDS[id]));
+  const xs = ex(id).filter(x => x && x[0] && x[2] && x[0].includes(x[2]) && x[0].length <= 44 && x[0].length > x[2].length + 1);
+  const easy = x => [...x[0].replace(x[2], "")].every(c => !lwHasK(c) || n5.includes(c) || own.has(c));
+  return xs.filter(easy).sort((a, b) => a[0].length - b[0].length)[0] || xs.sort((a, b) => a[0].length - b[0].length)[0] || null;
+}
+/* look-alike / confused partner: 1) your own confusion log, 2) look-alike kanji data */
+function lwPartner(id) {
+  const w = WORDS[id], P = confPairs(400).find(g => g.a === id || g.b === id);
+  if (P) return WORDS[P.a === id ? P.b : P.a];
+  const ks = lwKanji(w);
+  for (const c of ks) {
+    const grp = CF_LOOK.find(g => g.includes(c)), alts = [...(grp || "")].filter(x => x !== c).concat((kjInfo(c) || {}).la || []);
+    for (const y of alts) {
+      let best = null;
+      for (const j of ALL_IDS) { const v = WORDS[j]; if (!v || j === id || !lwJp(v).includes(y) || /^[〜~～]/.test(v.jp)) continue; if (!best || Math.abs(lwJp(v).length - lwJp(w).length) < Math.abs(lwJp(best).length - lwJp(w).length)) best = v; }
+      if (best) return best;
+    }
+  }
+  return null;
+}
+function lwDiff(w, v) {
+  if (!v) return "";
+  const A = lwKanji(w), B = lwKanji(v), d = [];
+  const ka = A.filter(c => !B.includes(c)), kb = B.filter(c => !A.includes(c));
+  const kd = c => { const k = kjInfo(c) || {}; const m = String(k.mean || "").split(/[,;]\s*/)[0]; return `${c}${m ? " = " + m : ""}${k.strokes ? ` (${k.strokes} strokes)` : ""}`; };
+  if (ka.length && kb.length) d.push(`${ka.map(kd).join(", ")}  vs  ${kb.map(kd).join(", ")}`);
+  if (lwKana(w) === lwKana(v)) d.push(`same sound ${lwKana(w)} — tell them apart by meaning`);
+  else d.push(`${lwKana(w)} vs ${lwKana(v)}`);
+  return d.join(" · ");
+}
+async function lwStrokes(chars) {
+  const ls = [...new Set(chars.map(kjLevelOf).filter(Boolean))];
+  await Promise.all(ls.map(l => loadStrokes(l).catch(() => false)));
+  const out = {}; chars.forEach(c => { const k = KJ[c]; out[c] = k && k.paths && k.paths.length ? k.paths : null; }); return out;
+}
+function lwData(ids, strokes) {
+  return ids.map(id => { const w = WORDS[id], v = lwPartner(id), e = lwExample(id);
+    return { id, jp: lwJp(w), kana: lwKana(w), en: lwEn(w), ks: lwKanji(w), v: v ? { jp: lwJp(v), kana: lwKana(v), en: lwEn(v), ks: lwKanji(v) } : null, diff: lwDiff(w, v), ex: e ? e[0] : "", form: e ? e[2] : "", hook: (S.notes || {})[id] || "" }; });
+}
+/* ---- canvas drawing (units: mm) ---- */
+const LW_FONT = `"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans CJK JP","Noto Sans JP","Yu Gothic",sans-serif`;
+function lwCtx() { const c = document.createElement("canvas"); c.width = LW_W * LW_PX; c.height = LW_H * LW_PX; const g = c.getContext("2d"); g.scale(LW_PX, LW_PX); g.fillStyle = "#fff"; g.fillRect(0, 0, LW_W, LW_H); g.textBaseline = "alphabetic"; return { c, g }; }
+function lwText(g, t, x, y, pt, o = {}) { g.font = `${o.bold ? "700 " : ""}${pt * 0.3528}px ${LW_FONT}`; g.fillStyle = o.col || "#000"; g.textAlign = o.align || "left"; g.fillText(t, x, y); g.textAlign = "left"; return g.measureText(t).width; }
+function lwWrap(g, t, x, y, w, pt, lh, o = {}) {
+  g.font = `${o.bold ? "700 " : ""}${pt * 0.3528}px ${LW_FONT}`;
+  const toks = String(t).match(/[\u3000-\u9fff\uff00-\uffef]|[^\s\u3000-\u9fff\uff00-\uffef]+\s*|\s+/g) || [];
+  let line = "", n = 0, max = o.max || 9;
+  for (const k of toks) { if (line && g.measureText(line + k).width > w) { if (n + 1 >= max) { line += "…"; break; } lwText(g, line.trimEnd(), x, y + n * lh, pt, o); n++; line = k.trimStart(); } else line += k; }
+  if (line) { lwText(g, line.trimEnd(), x, y + n * lh, pt, o); n++; }
+  return n * lh;
+}
+function lwBox(g, x, y, s, guide = true) {
+  g.lineWidth = 0.25; g.strokeStyle = "#000"; g.setLineDash([]); g.strokeRect(x, y, s, s);
+  if (guide) { g.lineWidth = 0.15; g.strokeStyle = "#b5b5b5"; g.setLineDash([0.8, 0.8]); g.beginPath(); g.moveTo(x + s / 2, y); g.lineTo(x + s / 2, y + s); g.moveTo(x, y + s / 2); g.lineTo(x + s, y + s / 2); g.stroke(); g.setLineDash([]); }
+}
+function lwKanjiCell(g, c, paths, x, y, s, mode) {   // mode: blank | trace | nums
+  lwBox(g, x, y, s);
+  if (mode === "blank") return;
+  if (paths && typeof Path2D === "function") {
+    g.save(); g.translate(x, y); g.scale(s / 109, s / 109); g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = mode === "trace" ? 3 : 3.2; g.strokeStyle = mode === "trace" ? "#c4c4c4" : "#000";
+    paths.forEach(d => { try { g.stroke(new Path2D(d)); } catch (e) {} });
+    if (mode === "nums") { g.fillStyle = "#c00"; g.font = `700 9px sans-serif`; paths.forEach((d, i) => { const m = /M\s*([\d.]+)[ ,]([\d.-]+)/.exec(d); if (m) g.fillText(String(i + 1), +m[1] - 6, +m[2] - 1.5); }); }
+    g.restore();
+  } else lwText(g, c, x + s / 2, y + s * 0.82, s * 2.2, { align: "center", col: mode === "trace" ? "#c4c4c4" : "#000" });
+}
+function lwFoot(g, s, date) { lwText(g, `Leeches worksheet · ${date} · ${s}`, 11, LW_H - 4.5, 7, { col: "#666" }); lwText(g, "strokes: KanjiVG CC BY-SA 3.0 · sentences: Tatoeba CC BY 2.0 FR", LW_W - 11, LW_H - 4.5, 7, { col: "#666", align: "right" }); }
+function lwBlockH(it) { return 41 + 18.6 * Math.max(1, it.ks.length) + 13 + 10; }
+function lwStudy(g, it, n, y0, P) {
+  const x0 = 11, W = LW_W - 22, h = lwBlockH(it);
+  g.lineWidth = 0.4; g.strokeStyle = "#000"; g.strokeRect(x0, y0, W, h);
+  let x = x0 + 3, y = y0 + 3;
+  lwText(g, `#${n}`, x, y + 3, 7, { col: "#666" });
+  const big = it.jp.length > 3 ? 24 : 32; const bw = lwText(g, it.jp, x, y + 14, big, { bold: true });
+  lwText(g, it.kana, x, y + 21, 13); lwWrap(g, it.en, x, y + 27, 52, 10, 4.2, { max: 3 });
+  let kx = Math.max(x + 56, x + bw + 4); const ds = it.ks.length > 2 ? 17 : it.ks.length > 1 ? 22 : 26;
+  it.ks.forEach((c, i) => lwKanjiCell(g, c, P[c], kx + i * (ds + 1.5), y + 1, ds, "nums"));
+  // confusable box
+  const vx = x0 + W - 66; g.lineWidth = 0.3; g.beginPath(); g.moveTo(vx - 2, y); g.lineTo(vx - 2, y + 36); g.stroke();
+  if (it.v) {
+    lwText(g, "Don't confuse with", vx, y + 3.5, 8.5, { bold: true });
+    lwText(g, it.v.jp, vx, y + 12, 18, { bold: true }); lwText(g, it.v.kana, vx + 2 + Math.min(40, it.v.jp.length * 6.6), y + 12, 9);
+    lwWrap(g, it.v.en, vx, y + 17, 64, 8.5, 3.6, { max: 1 });
+    lwWrap(g, "Difference: " + it.diff, vx, y + 21.5, 64, 8, 3.5, { max: 4 });
+  } else { lwText(g, "Don't confuse with", vx, y + 3.5, 8.5, { bold: true }); lwWrap(g, "No look-alike on file — write one you mix it up with:", vx, y + 9, 64, 8, 3.5); g.beginPath(); g.moveTo(vx, y + 24); g.lineTo(vx + 62, y + 24); g.stroke(); }
+  y = y0 + 41; const bs = 16.5;
+  (it.ks.length ? it.ks : [it.jp[0]]).forEach(c => {
+    lwText(g, c, x, y + 5, 7); lwText(g, "trace 4", x, y + 8.5, 6.5, { col: "#333" }); lwText(g, "write 5", x, y + 11.5, 6.5, { col: "#333" });
+    for (let i = 0; i < 9; i++) lwKanjiCell(g, c, P[c], x + 13 + i * (bs + 0.8), y, bs, i < 4 ? "trace" : "blank");
+    y += 18.6;
+  });
+  const kc = [...it.kana], m = Math.min(11, 150 / (3 * kc.length + 1));
+  lwText(g, "kana", x, y + 4.5, 7); lwText(g, "×3", x, y + 8, 6.5, { col: "#333" });
+  let kx2 = x + 13;
+  for (let r = 0; r < 3; r++) { kc.forEach((ch, i) => { lwBox(g, kx2 + i * m, y, m, false); if (r === 0) lwText(g, ch, kx2 + i * m + m / 2, y + m * 0.78, m * 2.0, { align: "center", col: "#c4c4c4" }); }); kx2 += kc.length * m + 3; }
+  y += 13;
+  g.lineWidth = 0.3; g.beginPath(); g.moveTo(x, y + 6.5); g.lineTo(x0 + W - 3, y + 6.5); g.stroke();
+  lwText(g, "memory hook:", x, y + 2.8, 7.5, { col: "#555" }); if (it.hook) lwWrap(g, it.hook, x + 20, y + 5.5, W - 26, 9, 4, { max: 1 });
+  return h;
+}
+async function lwPages(items, P, date, seed) {
+  const pages = [], cap = LW_H - 20 - 8;
+  let cur = null, used = 0, pn = 0;
+  const layout = []; items.forEach((it, i) => { const h = lwBlockH(it) + 3; if (!layout.length || used + h > cap - (layout.length === 1 ? 12 : 0)) { layout.push([]); used = 0; } layout[layout.length - 1].push(i); used += h; });
+  for (const grp of layout) {
+    cur = lwCtx(); let y = 11;
+    if (!pn) { lwText(cur.g, "Part 1 · Study + practice", 11, y + 5, 15, { bold: true }); y += 8; y += lwWrap(cur.g, "For each leech: look at the stroke order and the difference from its look-alike, write a hook, trace 4, write 5 on your own, then spell the kana 3 times.", 11, y + 3, LW_W - 22, 9, 3.8) + 2; }
+    for (const i of grp) y += lwStudy(cur.g, items[i], i + 1, y, P) + 3;
+    pn++; lwFoot(cur.g, `Part 1 · page ${pn}/${layout.length}`, date); pages.push(cur.c);
+  }
+  const order = lwShuffle(items.map((_, i) => i), seed), per = 6, rp = [];
+  for (let i = 0; i < order.length; i += per) rp.push(order.slice(i, i + per));
+  rp.forEach((ch, j) => {
+    const { c, g } = lwCtx(); let y = 11;
+    lwText(g, j ? "Part 2 · Recall (continued)" : "Part 2 · Recall", 11, y + 5, 15, { bold: true }); y += 8;
+    if (!j) y += lwWrap(g, "Do this after all of Part 1, without looking back. Write the word in kanji and in kana. Check with the key at the end, then tick ✓ or ✗.", 11, y + 3, LW_W - 22, 9, 3.8) + 2;
+    ch.forEach((ix, q) => { const it = items[ix], num = j * per + q + 1;
+      lwText(g, String(num), 11, y + 6, 13, { bold: true });
+      lwText(g, it.en, 22, y + 5, 10.5, { bold: true });
+      if (it.ex) { const i0 = it.ex.indexOf(it.form); const pre = it.ex.slice(0, i0), post = it.ex.slice(i0 + it.form.length);
+        const w1 = lwText(g, pre, 22, y + 11, 12.5); g.lineWidth = 0.35; g.beginPath(); g.moveTo(22 + w1 + 0.5, y + 11.6); g.lineTo(22 + w1 + 17, y + 11.6); g.stroke(); lwText(g, post, 22 + w1 + 18, y + 11, 12.5); }
+      lwText(g, "kanji", 22, y + 15.5, 6.5); lwText(g, "kana", 22 + Math.max(2, it.jp.length) * 16 + 3, y + 15.5, 6.5);
+      g.lineWidth = 0.3; g.strokeRect(22, y + 16.5, Math.max(2, it.jp.length) * 16, 15); g.strokeRect(22 + Math.max(2, it.jp.length) * 16 + 3, y + 16.5, 70, 15);
+      g.strokeRect(22 + Math.max(2, it.jp.length) * 16 + 78, y + 20, 8, 8);
+      y += 35; g.lineWidth = 0.3; g.beginPath(); g.moveTo(11, y); g.lineTo(LW_W - 11, y); g.stroke(); y += 2;
+    });
+    lwFoot(g, `Part 2 · page ${j + 1}/${rp.length}`, date); pages.push(c);
+  });
+  { const { c, g } = lwCtx(); let y = 11;
+    lwText(g, "Part 3 · Answer key (Part 2)", 11, y + 5, 15, { bold: true }); y += 9;
+    lwText(g, "Only open after finishing Part 2. Circle any you missed and study those first tomorrow.", 11, y + 2, 9); y += 5;
+    const rh = Math.min(8, (LW_H - 30 - y) / Math.max(1, order.length)), cx = [11, 20, 52, 84, LW_W - 11];
+    order.forEach((ix, q) => { const it = items[ix];
+      g.lineWidth = 0.3; g.strokeRect(11, y, LW_W - 22, rh); [20, 52, 84].forEach(xx => { g.beginPath(); g.moveTo(xx, y); g.lineTo(xx, y + rh); g.stroke(); });
+      lwText(g, String(q + 1), 15.5, y + rh * 0.7, 10, { bold: true, align: "center" }); lwText(g, it.jp, 22, y + rh * 0.74, 12); lwText(g, it.kana, 54, y + rh * 0.72, 10); lwWrap(g, it.en, 86, y + rh * 0.72, LW_W - 99, 10, 4, { max: 1 });
+      y += rh; });
+    lwText(g, "Score: ______ / " + order.length, 11, y + 9, 11);
+    lwFoot(g, "Part 3", date); pages.push(c); }
+  return pages;
+}
+/* ---- minimal PDF (one JPEG per page) ---- */
+async function lwPdf(canvases) {
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const push = b => { const u = typeof b === "string" ? enc.encode(b) : b; parts.push(u); len += u.length; };
+  const obj = (n, body) => { offs[n] = len; push(`${n} 0 obj\n`); body(); push("\nendobj\n"); };
+  const jpg = c => new Promise(r => c.toBlob(b => b.arrayBuffer().then(a => r(new Uint8Array(a))), "image/jpeg", 0.88));
+  const N = canvases.length, pw = (LW_W / 25.4 * 72).toFixed(2), ph = (LW_H / 25.4 * 72).toFixed(2);
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  obj(1, () => push("<< /Type /Catalog /Pages 2 0 R >>"));
+  obj(2, () => push(`<< /Type /Pages /Count ${N} /Kids [${canvases.map((_, i) => `${3 + i * 3} 0 R`).join(" ")}] >>`));
+  for (let i = 0; i < N; i++) {
+    const p = 3 + i * 3, im = await jpg(canvases[i]), cs = `q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`;
+    obj(p, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /Im0 ${p + 2} 0 R >> >> /Contents ${p + 1} 0 R >>`));
+    obj(p + 1, () => push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(p + 2, () => { push(`<< /Type /XObject /Subtype /Image /Width ${canvases[i].width} /Height ${canvases[i].height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.length} >>\nstream\n`); push(im); push("\nendstream"); });
+  }
+  const n = 3 + N * 3, x = len;
+  push(`xref\n0 ${n}\n0000000000 65535 f \n${offs.slice(1, n).map(o => String(o).padStart(10, "0") + " 00000 n \n").join("")}trailer\n<< /Size ${n} /Root 1 0 R >>\nstartxref\n${x}\n%%EOF\n`);
+  return new Blob(parts, { type: "application/pdf" });
+}
+async function lwBuild(ids = lwIds()) {
+  if (!ids.length) return null;
+  const items0 = ids.map(id => WORDS[id]).filter(Boolean), chars = [...new Set(items0.flatMap(lwKanji).concat(ids.flatMap(id => { const v = lwPartner(id); return v ? lwKanji(v) : []; })))];
+  const P = await lwStrokes(chars), items = lwData(ids, P), d = new Date(), date = d.toDateString();
+  if (document.fonts && document.fonts.ready) try { await document.fonts.ready; } catch (e) {}
+  const pages = await lwPages(items, P, date, +todayStr().replace(/\D/g, "") || 1);
+  const blob = await lwPdf(pages);
+  window.__lwLast = { pages: pages.length, items: items.length, size: blob.size, missingStrokes: chars.filter(c => !P[c]) };
+  return { blob, pages: pages.length, n: items.length, name: `leeches-worksheet-${todayStr()}.pdf` };
+}
+async function lwShare(r) {
+  const f = typeof File === "function" ? new File([r.blob], r.name, { type: "application/pdf" }) : null;
+  try { if (f && navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: "Leeches worksheet" }); return "shared"; } }
+  catch (e) { if (e && e.name === "AbortError") return "cancel"; }
+  const u = URL.createObjectURL(r.blob), a = document.createElement("a");
+  a.href = u; a.download = r.name; a.rel = "noopener"; a.style.display = "none"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+  return "download";
+}
+/* button flow: tap → build (needs a moment) → sheet with a fresh "Share" tap (iOS only opens the share sheet straight from a tap) */
+async function lwOpen() {
+  sfx.click();
+  const ids = lwIds(), md = document.createElement("div"); md.className = "modal"; md.id = "lwSheet";
+  const close = () => md.remove();
+  if (!ids.length) { md.innerHTML = `<div class="box" style="text-align:center"><div class="big">🌱</div><p><b>No leeches right now.</b><br>Nothing to write tonight — words you keep missing will show up here and on your worksheet.</p><div class="btnrow"><button class="btn" id="lwClose">OK</button></div></div>`; document.body.appendChild(md); $("#lwClose").onclick = close; return; }
+  md.innerHTML = `<div class="box" style="text-align:center"><h3 style="margin-top:0">📝 Leeches worksheet</h3><p id="lwMsg">Making your worksheet for ${ids.length} leech${ids.length > 1 ? "es" : ""}…</p><div class="btnrow" id="lwBtns"><button class="btn sec" id="lwClose">Close</button></div></div>`;
+  document.body.appendChild(md); $("#lwClose").onclick = close;
+  let r = null; try { r = await lwBuild(ids); } catch (e) { reportError && reportError(e); }
+  if (!md.isConnected) return;
+  if (!r) { $("#lwMsg").textContent = "Couldn't make the worksheet — try again."; return; }
+  $("#lwMsg").innerHTML = `Ready: <b>${r.n}</b> leech${r.n > 1 ? "es" : ""}, <b>${r.pages}</b> pages (iPad size).<br><small class="muted">Share → GoodNotes. Part 1 study & practice, Part 2 recall, answer key last.</small>`;
+  $("#lwBtns").innerHTML = `<button class="btn" id="lwGo">📤 Share to GoodNotes</button><button class="btn sec" id="lwClose">Close</button>`;
+  $("#lwClose").onclick = close;
+  $("#lwGo").onclick = async () => { const s = await lwShare(r); if (s === "cancel") return; toast(s === "shared" ? "📝 Worksheet shared" : "📝 Worksheet downloaded"); close(); };
+}
+window.__LW = { lwIds, lwBuild, lwPartner, lwExample, lwData, lwOpen, lwShare };
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -13612,7 +13821,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "b05e7dc67a85";
+const BUILD = "e834a1d7fc7c";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
