@@ -1244,6 +1244,10 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .dplv{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:flex-end}
 .dplv label{display:inline-flex;align-items:center;gap:4px;min-height:32px}
 #duoPick select{max-width:100%;min-height:40px}
+.gktag{display:inline-block;font-size:.72rem;color:var(--accent);margin-left:6px}
+.grgk{margin:8px 0 4px}
+.gkpos{margin-top:10px;border-top:1px solid var(--sep,rgba(128,128,128,.25));padding-top:8px}
+.gkpos select{max-width:52vw}
 </style>
 </head>
 <body>
@@ -2463,7 +2467,7 @@ function renderTyping(w, onAnswer, opts = {}) {
 let cleanup = null;
 let curView = null, viewGen = 0;   // viewGen: bumped on every screen change, so async views can tell if they are still on screen
 let curTab = "home";
-const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"], [pimsView, "levels"], [allMapView, "stats"]]);
+const TAB_OF = () => new Map([...LEVELS.map(l => [levelPageFn(l), "levels"]), ...LEVELS.map(l => [kanjiPageFn(l), "levels"]), [home, "home"], [dueView, "review"], [levelsView, "levels"], [kanaHome, "levels"], [statsView, "stats"], [settingsView, "settings"], [gamesView, "home"], [pimsView, "levels"], [gkView, "levels"], [allMapView, "stats"]]);
 function setTab(t) { curTab = t; document.querySelectorAll(".tabbar button").forEach(b => { const on = b.dataset.tab === t; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function applyTint() { const a = activeLevels(); document.documentElement.style.setProperty("--tint", "var(--accent)"); }
 function go(fn) { if (GAME_ON) gameEnded(); const wasStudy = studyScreen; curView = fn; SESSION_GRADED = []; viewGen++; studyScreen = false; if (cleanup) { cleanup(); cleanup = null; } document.querySelectorAll(".modal").forEach(m => m.remove()); combo = 0; sessionQueue = []; recent = []; if (HAS_SPEECH) try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) try { curAudio.pause(); } catch (e) {} window.scrollTo(0, 0);
@@ -2809,7 +2813,7 @@ function kanaCardHTML(list) {
 }
 function levelPickerHTML(list = false) {
   const act = activeLevels(), all = act.length === LEVELS.length;
-  if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${pimsCardHTML()}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
+  if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${pimsCardHTML()}${gkCardHTML()}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
       return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Open ${LNAME(l)}">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`)}
         <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">${LNAME(l)} · ${st.total} words</b><small>${st.mast} mastered · ${st.seen} seen${st.due ? ` · ${st.due} due` : ""}${LV[l].loaded || l === "n5" ? "" : " · tap to download"}</small>
         <span class="minibar"><i style="width:${st.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${st.mast / tot * 100}%"></i></span></span>
@@ -2831,6 +2835,7 @@ function bindLevelPicker() {
       sfx.click();
       if (c.dataset.lv === "kana") { go(kanaHome); return; }
       if (c.dataset.lv === "pims") { go(pimsView); return; }
+      if (c.dataset.lv === "genki") { go(gkView); return; }
       const t = e.target.closest("[data-tog]");
       if (t) { e.stopPropagation(); const l = t.dataset.tog, cur = activeLevels(); setLevels(cur.includes(l) ? cur.filter(x => x !== l) : cur.concat(l)); return; }
       if (c.dataset.lv === "all") setLevels(LEVELS.slice()); else openLevel(c.dataset.lv);   // tap a level = open its page (and study it alone)
@@ -7654,14 +7659,16 @@ function grammarHome() {
   else hero = `<div class="hero done"><div class="ic">🎉</div><div><h2>All ${GR_DATA.length} points learned</h2><p>${due.next != null ? `Next grammar review ${fmtIn(due.next)}` : ""}</p></div></div>`;
   view.innerHTML = topbar("文 Grammar") + `<div class="largetitle">N5 Grammar</div>
     <p class="subtitle" id="grSub">${learned} of ${GR_DATA.length} points learned · ${due.ids.length} due · ${limTxt}</p>${hero}
-    ${GR_CATS.map(cat => `<div class="panel grcat"><h2>${esc(cat)}</h2>${GR_DATA.filter(p => p.cat === cat).map(p => { const st = grStatus(p.id);
-      return `<button class="grrow" data-g="${p.id}"><span class="grn">${p.n}</span><span class="grow"><b>${esc(p.t)}</b><small class="jp">${esc(p.p)}</small></span><span class="grst st-${st}">${GR_ST[st]}</span></button>`; }).join("")}</div>`).join("")}
+    ${gkCur() ? `<div class="seg grgk" id="grGk" role="radiogroup" aria-label="Genki filter"><button role="radio" aria-checked="${!gkGrFilterOn()}" class="${gkGrFilterOn() ? "" : "on"}" data-gk="0">All points</button><button role="radio" aria-checked="${gkGrFilterOn()}" class="${gkGrFilterOn() ? "on" : ""}" data-gk="1">📗 Up to Genki L${gkCur()}</button></div>` : ""}
+    ${GR_CATS.map(cat => { const ps = GR_DATA.filter(p => p.cat === cat && (!gkGrFilterOn() || (gkGr(p.id) && gkGr(p.id) <= gkCur()))); if (!ps.length) return ""; return `<div class="panel grcat"><h2>${esc(cat)}</h2>${ps.map(p => { const st = grStatus(p.id);
+      return `<button class="grrow" data-g="${p.id}"><span class="grn">${p.n}</span><span class="grow"><b>${esc(p.t)}</b><small class="jp">${esc(p.p)}</small>${gkGr(p.id) ? `<small class="gktag">📗 Genki L${gkGr(p.id)}</small>` : ""}</span><span class="grst st-${st}">${GR_ST[st]}</span></button>`; }).join("")}</div>`; }).join("")}
     <div class="btnrow" style="margin:12px 0"><button class="btn" id="grConj">✏️ Conjugation drills</button></div>
     <p class="muted grcredit">Lessons, examples and drills are original, written for this app. Example audio: Microsoft neural TTS voice ja-JP-KeitaNeural via edge-tts (two-person drills add ja-JP-NanamiNeural). Each point gets its own memory schedule (the Grammar track in Review). Conjugation is a separate track.</p>`;
   bindBack(back);
   const rv = $("#grRev"); if (rv) rv.onclick = () => { sfx.click(); go(() => grSession(grDueScan().ids, "review", "⏰ Grammar · due", grammarHome)); };
   const nb = $("#grNext"); if (nb) nb.onclick = () => { sfx.click(); go(() => grLesson(nx.id, grammarHome)); };
   const gc = $("#grConj"); if (gc) gc.onclick = () => { sfx.click(); go(conjHome); };
+  const gk = $("#grGk"); if (gk) gk.onclick = e => { const b = e.target.closest("[data-gk]"); if (!b) return; sfx.click(); S.grGk = b.dataset.gk === "1"; save(); grammarHome(); };
   view.querySelectorAll(".grrow").forEach(b => b.onclick = () => { sfx.click(); go(() => grLesson(b.dataset.g, grammarHome)); });
 }
 
@@ -13067,7 +13074,7 @@ function duoSettingsHTML() {
   return `<div class="bksec" id="duoSec"><h3 class="bkh">🦉 Duolingo</h3>
     <div class="row"><span>Duolingo profile<br><small class="muted">Profile link (duolingo.com/profile/NAME) or username</small></span><input type="text" id="duoIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="duolingo.com/profile/…" value="${esc(S.duoUser || "")}"></div>
     <div class="btnrow" style="justify-content:flex-end"><button class="btn small sec" id="duoClr"${S.duoUser ? "" : " disabled"}>Remove</button><button class="btn small" id="duoSave">Save</button></div>
-    <p class="muted" id="duoNote" style="font-size:.82rem">Your Duolingo profile must be <b>public</b> (Duolingo → Settings → Privacy). The “done today” check runs on the reminder server for invited users and needs Gist sync; your username only travels encrypted. Saved on this device and synced.</p>${typeof duoPosHTML === "function" ? duoPosHTML() : ""}</div>`;
+    <p class="muted" id="duoNote" style="font-size:.82rem">Your Duolingo profile must be <b>public</b> (Duolingo → Settings → Privacy). The “done today” check runs on the reminder server for invited users and needs Gist sync; your username only travels encrypted. Saved on this device and synced.</p>${typeof duoPosHTML === "function" ? duoPosHTML() : ""}${typeof gkPosHTML === "function" ? gkPosHTML() : ""}</div>`;
 }
 function bindDuoSettings(root) {
   const q = s => root.querySelector(s); if (!q("#duoSave")) return;
@@ -13079,7 +13086,7 @@ function bindDuoSettings(root) {
     msg(u ? `Saved <b>${esc(u)}</b>. Make sure the profile is public.` : "Removed.");
     if (ch && u) duoRefresh(true); toast(u ? "🦉 Duolingo profile saved" : "Duolingo profile removed");
   };
-  if (typeof bindDuoPos === "function") bindDuoPos(root);
+  if (typeof bindDuoPos === "function") bindDuoPos(root); if (typeof bindGkPos === "function") bindGkPos(root);
   q("#duoClr").onclick = () => { duoSet(""); q("#duoIn").value = ""; q("#duoClr").disabled = true; msg("Removed."); toast("Duolingo profile removed"); if (typeof pnUpload === "function") pnUpload("duo"); };
 }
 function duoEdit() {
@@ -13121,7 +13128,8 @@ function duoTarget(pos = S.duoPos) {
 function duoPreview(pos) {
   const T = duoTarget(pos), by = {}, have = { n: 0 }; let add = 0, rm = 0;
   for (const id of T) { if (S.cards[id]) { have.n++; continue; } add++; const l = lvlOf(id); by[l] = (by[l] || 0) + 1; }
-  for (const k in S.cards) if (duoFresh(S.cards[k]) && !T.has(+k)) rm++;
+  let G = new Set(); try { G = gkTarget(); } catch (e) {}
+  for (const k in S.cards) if (duoFresh(S.cards[k]) && !T.has(+k) && !G.has(+k)) rm++;
   return { total: T.size, add, by, have: have.n, rm };
 }
 const duoByText = by => LEVELS.filter(l => by[l]).map(l => `${LNAME(l)} ${by[l]}`).join(" · ");
@@ -13151,6 +13159,7 @@ function duoSchedule(now = Date.now()) {
 /* drop never-answered Duolingo cards that are no longer in the target (moving back / after a sync brought them back) */
 function duoPrune() {
   const T = duoTarget(); let n = 0;
+  if (typeof gkTarget === "function") { try { for (const id of gkTarget()) T.add(id); } catch (e) { return 0; } }   // Genki marks (app36) share this mechanism; if unavailable, prune nothing
   for (const k in S.cards) if (duoFresh(S.cards[k]) && !T.has(+k)) { delete S.cards[k]; n++; }
   return n;
 }
@@ -13243,6 +13252,86 @@ function duoNudgeBind() {
 }
 duoMaint();
 setInterval(() => { if (!studyScreen) duoMaint(); }, 10 * 60e3);   // a new day releases the next batch while the app stays open
+/* ===== v36: Genki (3rd edition) — lesson picker, lesson decks, grammar by lesson =====
+   GENKI (site_data/genki_map.json, tools/genki_build.py): l = { lesson: { n: entries in the book list, w: [app N5 ids] } },
+   g = { grammar id: Genki lesson that first teaches it (approximate) }. Ids only — no Genki text ships.
+   S.gkPos = { l: last lesson finished (0 = not started), at } (synced, latest wins).
+   Words of finished lessons are marked "seen" with exactly the Duolingo mechanism (app35): cards flagged duo:1 + gk:1,
+   share the same per-day drip (S.duoQuota), skip the new-word cap/goal ring and reminders until answered once.
+   duoPrune keeps the union of both targets, so the two sources coexist. */
+const GENKI = {"v":"genki3-1","src":"cemulate Genki vocab list (public), matched to app N5","l":{"1":{"n":56,"w":[31,65,89,155,252,255,354,371,440,468,489,487,518,548,553,698,713,295,52,101,116,126,125,67,117]},"2":{"n":48,"w":[267,367,42,474,263,364,31,465,16,456,394,96,276,497,667,94,159,171,220,275,296,301,326,424,455,511,597,600,609,115,196,213,459,677,50,378,449]},"3":{"n":55,"w":[87,138,282,339,436,12,107,114,250,554,573,637,46,167,11,15,59,203,272,469,500,617,619,48,150,192,514,540,689,104,392,509,647,229,342,542,410,454,684,434]},"4":{"n":63,"w":[147,227,27,64,262,264,310,416,428,508,551,563,244,433,569,608,626,705,199,353,176,327,658,214,1,39,148,154,473,627,711,70,380,446,659,635,562,620,76,478,75,298,365,464,360,251,238]},"5":{"n":54,"w":[82,197,198,317,391,396,431,437,513,522,531,561,595,670,701,20,22,23,54,98,134,284,387,398,420,588,651,668,669,207,240,297,330,374,567,135,192,515,674,427,368,373,462,475]},"6":{"n":49,"w":[103,128,129,187,270,414,438,439,501,591,630,690,693,694,377,17,149,235,303,343,384,412,521,660,671,9,111,136,179,307,418,712]},"7":{"n":50,"w":[29,30,67,78,117,125,126,145,164,174,205,222,230,321,405,654,656,186,479,542,636,599,79,173,322,341,523,209,566,583]},"8":{"n":46,"w":[13,36,175,234,269,295,457,483,517,525,586,616,692,318,592,679,38,45,70,208,417]},"9":{"n":48,"w":[73,130,194,216,279,352,570,3,5,232,324,710,137,527,559,131,435,648,657,564,581,642,687,62,652,486,672,254,313]},"10":{"n":43,"w":[7,91,151,260,311,403,544,18,113,335,421,152,467,493,58,460]},"11":{"n":43,"w":[102,119,140,143,257,316,673,148,472,490,512,534,413,26,661]},"12":{"n":47,"w":[14,66,123,161,223,516,537,546,580,662,680,34,55,97,349,717,481,63,390,529]},"13":{"n":55,"w":[110,122,182,246,261,346,638,713,177,400,74,160,480,634,356,57,584,641,686,60,649,488,682,253,452]},"14":{"n":48,"w":[28,106,109,127,259,293,507,541,699,604,10,429,124,206,409,684,609]},"15":{"n":41,"w":[86,88,144,365,404,503,577,594,574,83,154,415,342]},"16":{"n":42,"w":[283,640,195,266,382,72,639]},"17":{"n":47,"w":[118,139,153,174,337,502,332,422,505,72,342,305,620]},"18":{"n":48,"w":[26,202,329,320,363,675,703,6,8,112,278,306,388,415,191]},"19":{"n":51,"w":[257,460,539,688,690,157,547,120,482,614,625]},"20":{"n":50,"w":[21,170,678,133,41,622,273,369,624]},"21":{"n":56,"w":[451,375,105,280,545,587,674,334]},"22":{"n":55,"w":[161,188,84,596,530,579]},"23":{"n":43,"w":[178,221,623,401,150,68]}},"g":{"wa":1,"no":1,"ka":1,"desu":1,"time":1,"yone":2,"mo":2,"kore":2,"kono":2,"koko":2,"qwords":2,"counters":2,"wo":3,"ni":3,"de":3,"he":3,"masu":3,"masen":3,"mashou":3,"ga":4,"to":4,"deshita":4,"mashita":4,"aru":4,"loc":4,"iadj":5,"iadjpast":5,"naadj":5,"adjnoun":7,"te":6,"tekudasai":6,"temoii":6,"tewa":6,"tekara":6,"kara":6,"teiru":7,"niiku":7,"gakara":7,"da":8,"dict":8,"nai":8,"naide":8,"qmo":8,"ta":9,"moumada":9,"maeato":9,"naru":10,"hikaku":10,"ya":11,"tai":11,"deshou":12,"hoshii":14}};
+const GK_N = Object.keys(GENKI.l).map(Number).sort((a, b) => a - b);
+const gkLessonIds = n => (GENKI.l[n] && GENKI.l[n].w) || [];
+const gkCur = () => (S.gkPos && +S.gkPos.l) || 0;
+const gkBook = n => n <= 12 ? "Genki I" : "Genki II";
+function gkTarget(l = gkCur()) { const o = new Set(); for (const n of GK_N) if (n <= l) for (const id of gkLessonIds(n)) o.add(id); return o; }
+function gkApply(l) {
+  S.gkPos = { l: +l || 0, at: Date.now() };
+  const T = gkTarget(), now = Date.now(); let add = 0;
+  for (const id of T) {
+    const c = S.cards[id];
+    if (!c) { S.cards[id] = { box: 0, due: now + 365 * DAY, ok: 0, bad: 0, f: fNew(now + 365 * DAY), duo: 1, gk: 1 }; add++; }
+    else if (duoFresh(c)) c.gk = 1;
+  }
+  const rm = duoPrune(); duoSchedule(now); save(); try { updateDueBadge(); } catch (e) {}
+  return { add, rm, total: T.size };
+}
+function gkPreview(l) { const T = gkTarget(l); let add = 0, have = 0, rm = 0; const D = duoTarget(); for (const id of T) S.cards[id] ? have++ : add++;
+  for (const k in S.cards) if (duoFresh(S.cards[k]) && !T.has(+k) && !D.has(+k)) rm++; return { add, have, rm, total: T.size }; }
+const gkLabel = l => l ? `Finished Lesson ${l} (${gkBook(l)})` : "Not started";
+function gkPosHTML() {
+  const l = gkCur();
+  return `<div class="duopos gkpos" id="gkPos"><label class="row"><span style="text-align:left">📗 Genki (3rd edition)<br><small class="muted">${l ? `${gkTarget().size} Genki words marked as seen` : "Pick the last lesson you've finished; its words are marked as seen (not known)."}</small></span>
+    <select id="gkSel" aria-label="Genki lesson finished"><option value="0" ${l ? "" : "selected"}>Not started</option>${GK_N.map(n => `<option value="${n}" ${n === l ? "selected" : ""}>Lesson ${n} · ${gkBook(n)}</option>`).join("")}</select></label>
+    <small class="muted" id="gkPrev"></small></div>`;
+}
+function bindGkPos(root) {
+  const sel = root.querySelector("#gkSel"); if (!sel) return;
+  sel.onchange = () => {
+    const l = +sel.value, p = gkPreview(l);
+    const r = gkApply(l); try { sfx.click(); } catch (e) {}
+    toast(l ? `📗 ${r.add} Genki words marked as seen${r.rm ? ` · ${r.rm} unmarked` : ""}` : `📗 Genki: not started${r.rm ? ` · ${r.rm} unanswered words unmarked` : ""}`);
+    const el = root.querySelector("#gkPos"); if (el) { el.outerHTML = gkPosHTML(); bindGkPos(root); const pv = root.querySelector("#gkPrev");
+      if (pv && l) pv.textContent = `${p.have} already in your reviews · new ones join ${duoQuota()} a day (shared with Duolingo), first as multiple choice; they don't use your new-word limit.`; }
+  };
+}
+/* ---------- Levels tab card + lesson decks ---------- */
+function gkCardHTML() {
+  const l = gkCur(), ids = [...gkTarget(GK_N[GK_N.length - 1])], seen = ids.filter(id => S.cards[id]).length;
+  return `<div class="lvcard" data-lv="genki" role="button" tabindex="0" aria-label="Open Genki lessons"><span class="lvring" style="--lc:var(--accent)"><span class="lvmix">📗</span></span>
+    <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">Genki lessons · 3rd ed.</b><small>${esc(gkLabel(l))} · ${seen}/${ids.length} words seen · unofficial</small></span><span class="lvchk" aria-hidden="true">${I("chevronR")}</span></div>`;
+}
+function gkView() {
+  const l = gkCur();
+  view.innerHTML = topbar("📗 Genki lessons", `<span class="muted">${esc(gkLabel(l))}</span>`) + `
+    <p class="pmnote">Genki 3rd edition word lists (from a public learner list), limited to words in this app's N5 list. Unofficial; not affiliated with The Japan Times. Set your lesson in Settings.</p>
+    <div class="panel pmlist" id="gkList">${GK_N.map(n => { const ids = gkLessonIds(n), s = ids.filter(id => S.cards[id]).length;
+      return `<button class="setcard pmrow gkrow" data-n="${n}"><span class="ic" style="--c:var(--accent)">${n <= l ? "✅" : n}</span><span class="grow"><b>Lesson ${n}</b> <span class="muted">· ${gkBook(n)} · ${ids.length} of ${GENKI.l[n].n} words in the app</span>
+        <div class="minibar"><i style="width:${ids.length ? s / ids.length * 100 : 0}%;background:var(--s2)"></i></div><small class="muted">${s}/${ids.length} in your reviews</small></span></button>`; }).join("")}</div>`;
+  bindBack();
+  $("#gkList").onclick = e => { const b = e.target.closest(".gkrow"); if (!b) return; sfx.click(); go(() => gkLessonView(+b.dataset.n)); };
+}
+function gkLessonView(n) {
+  const ids = gkLessonIds(n).filter(id => WORDS[id]), kan = ids.filter(id => WORDS[id].hasKanji).length, back = () => gkLessonView(n);
+  view.innerHTML = topbar(`📗 Genki Lesson ${n}`, `<span class="muted">${ids.filter(id => S.cards[id]).length}/${ids.length} seen</span>`) + `
+    <p class="pmnote">${gkBook(n)} · ${ids.length} of the lesson's ${GENKI.l[n].n} words are in this app's N5 list. Practice here doesn't change your schedule.</p>
+    <div class="grid">
+      <button class="mode" data-m="mixed"><div class="ic">🎲</div><h3>Mixed</h3><p>All question types</p></button>
+      <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning</h3><p>JP → EN</p></button>
+      <button class="mode" data-m="reverse"><div class="ic">🔄</div><h3>Reverse</h3><p>EN → JP</p></button>
+      ${kan ? `<button class="mode" data-m="reading"><div class="ic">📖</div><h3>Reading</h3><p>${kan} kanji words</p></button>` : ""}
+      <button class="mode" data-m="typing"><div class="ic">⌨️</div><h3>Typing</h3><p>Type the Japanese</p></button>
+      ${canAudio() ? `<button class="mode" data-m="listen"><div class="ic">🎧</div><h3>Listening</h3><p>Hear & choose</p></button>` : ""}
+      <button class="mode" data-m="match"><div class="ic">🧩</div><h3>Match</h3><p>Pairs game</p></button>
+    </div>
+    <div class="panel" id="gkWords">${ids.map(id => wordRow(WORDS[id])).join("")}</div>`;
+  bindBack(gkView);
+  view.querySelectorAll("button.mode").forEach(b => b.onclick = () => { sfx.click(); pimsDrill(ids, `Genki L${n} · ${b.dataset.m === "match" ? "Match" : MODES[b.dataset.m].t}`, back, b.dataset.m); });
+  $("#gkWords").onclick = e => { const r = e.target.closest(".row"); if (r) wordModal(WORDS[+r.dataset.id]); };
+}
+/* ---------- grammar: Genki lesson tags + "up to my lesson" filter ---------- */
+const gkGr = id => GENKI.g[id] || 0;
+const gkGrFilterOn = () => !!S.grGk && gkCur() > 0;
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -13272,7 +13361,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "8a1273fa5584";
+const BUILD = "fb1162fe228a";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -13322,7 +13411,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
