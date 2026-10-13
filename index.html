@@ -1264,6 +1264,8 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .rkstory{display:block;margin:8px 0}.rkstory span{display:block;font-weight:600;margin-bottom:4px}.rkstory textarea{width:100%;box-sizing:border-box;font:inherit;border-radius:10px;padding:8px;border:1px solid var(--sep,rgba(128,128,128,.3));background:var(--card);color:var(--label)}
 .rkrate{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.rkrate .btn{padding-left:4px;padding-right:4px}
 .rkrow{width:100%;display:flex;gap:10px;align-items:center;background:none;border:0;border-bottom:1px solid var(--sep,rgba(128,128,128,.2));padding:8px 2px;color:var(--label)}
+.lsrate{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}.lsrate .btn{padding-left:4px;padding-right:4px}
+.lsans{margin:8px 0}
 </style>
 </head>
 <body>
@@ -9474,7 +9476,7 @@ function spkFinish() {
    same memory. The separate listening track (c.L) keeps its own schedule: when it is
    due it's asked as listening multiple choice while L-stability < 7 days, then as
    listen & type.
-   Speaking misses never change the schedule (same rule as Speaking practice).
+   Speak rung: he self-rates Again/Hard/Good/Easy after seeing what was heard + the answer; that grades the main track.
    Manual mode = the old random mix of question types. */
 const LADDER = [
   { ic: "👆", t: "Recognize", d: "multiple choice" },
@@ -9575,26 +9577,40 @@ function renderCloze(w, onAnswer, opts = {}) {
   return { choose, idk };
 }
 
-/* rung 4 · Speak (inline, inside any session). Mic only after a tap. A miss never reschedules. */
+/* rung 4 · Speak (inline, inside any session). Mic only after a tap; the prompt is English only (nothing about the answer
+   shows before he speaks). After speaking (or "Show answer"): what was heard + the correct answer, then Again / Hard /
+   Good / Easy — the self-rating grades the MAIN FSRS track (speech recognition only shows a ✓/✗ hint, it never grades). */
 function renderSpeakQ(w, onAnswer, opts = {}) {
-  const host = opts.host || $("#qhost"); let tries = 0, hinted = false, done = false, busy = false;
+  const host = opts.host || $("#qhost"); let done = false, busy = false;
   host.innerHTML = `<div class="card lspk"><div class="qtype">🎤 Say it in Japanese</div>
     ${S.notes[w.id] && opts.peekNote ? `<button class="btn ghost small" id="peek" style="margin-top:6px">💡 peek at note</button>` : ""}
-    <div class="prompt en">${esc(w.en)}</div><div class="sub" id="lsHint">${w.hasKanji ? `<span class="jp">${esc(w.jp)}</span> · ` : ""}<button class="btn ghost small" id="lsShow">Show reading</button></div>
+    <div class="prompt en">${esc(w.en)}</div>
     <button class="spkmic" id="lsMic" aria-label="Tap to speak">🎤</button><div class="spkstatus" id="lsStatus">Tap the mic, then say the word</div>
-    <div class="btnrow"><button class="btn ghost small" id="lsType">⌨️ Type instead</button><button class="btn ghost small" id="lsGive">Show answer</button></div>
+    <div class="btnrow" id="lsAlt"><button class="btn ghost small" id="lsType">⌨️ Type instead</button><button class="btn ghost small" id="lsGive">Show answer</button></div>
     <div class="feedback" id="fb"></div></div>`;
   markNew(w.id);
   const st = (t, c = "") => { const s = host.querySelector("#lsStatus"); if (s) { s.textContent = t; s.className = "spkstatus " + c; } };
   const pk = host.querySelector("#peek"); if (pk) pk.onclick = () => { pk.outerHTML = noteHTML(w.id); };
-  host.querySelector("#lsShow").onclick = e => { hinted = true; e.currentTarget.outerHTML = `<span class="jp">${esc(w.kana)}</span>`; };
   const toTyping = () => { if (done) return; done = true; renderTyping(w, onAnswer, opts); };
   host.querySelector("#lsType").onclick = toTyping;
-  const giveUp = () => { if (done) return; done = true; host.querySelector("#lsMic").disabled = true;
-    if (typeof spkCount === "function") spkCount("miss");
-    host.querySelector("#fb").innerHTML = revealHTML(w, false, `<div class="muted" style="font-size:.9rem">Speaking misses don't change the schedule.</div>`);
-    if (canSpeak()) speak(w, true); onAnswer(false, null, 0, { nograde: true }); };
-  host.querySelector("#lsGive").onclick = giveUp;
+  const reveal = (alts, srOk) => {
+    if (done) return; done = true; const mic = host.querySelector("#lsMic"); if (mic) mic.disabled = true; st("");
+    const alt = host.querySelector("#lsAlt"); if (alt) alt.remove();
+    if (typeof spkCount === "function") spkCount(srOk ? "ok" : "miss");
+    const heard = alts && alts.length ? [...new Set(alts)].slice(0, 3).map(a => `「${esc(a)}」`).join(" ") : "";
+    const fb = host.querySelector("#fb");
+    fb.innerHTML = `<div class="spkheard">${heard ? `Heard: <span class="jp">${heard}</span> <span class="muted">${srOk ? "✓ sounds like a match" : "✗ didn't match"}</span>` : `<span class="muted">Nothing spoken</span>`}</div>
+      <div class="lsans"><span class="jp" style="font-size:1.5rem">${esc(w.jp)}</span>${w.jp !== w.kana ? ` <span class="jp">【${esc(w.kana)}】</span>` : ""} <span class="muted">${esc(w.en)}</span></div>
+      <p class="muted" style="margin:6px 0 4px;font-size:.85rem">How did you do?</p>
+      <div class="lsrate" id="lsRate">${[[1, "Again"], [2, "Hard"], [3, "Good"], [4, "Easy"]].map(([r, t]) => `<button class="btn ${r === 1 ? "sec" : ""}" data-r="${r}">${t}</button>`).join("")}</div>`;
+    if (canSpeak()) speak(w, true);
+    fb.querySelectorAll("[data-r]").forEach(b => b.onclick = () => {
+      const r = +b.dataset.r; cur_lspk = { rating: r }; fb.querySelector("#lsRate").remove();
+      fb.insertAdjacentHTML("beforeend", `<div class="muted" style="font-size:.85rem">Rated <b>${b.textContent}</b></div>`);
+      onAnswer(r > 1, b);
+    });
+  };
+  host.querySelector("#lsGive").onclick = () => reveal(null, false);
   const listen = () => {
     const C = spkSR(); if (!C) return toTyping();
     const r = new C(); let alts = [], err = null, ended = false; busy = true;
@@ -9604,13 +9620,7 @@ function renderSpeakQ(w, onAnswer, opts = {}) {
     r.onend = () => { if (ended) return; ended = true; busy = false; clearTimeout(tmo); const mic = host.querySelector("#lsMic"); if (!mic || done) return; mic.classList.remove("on");
       if (err === "not-allowed" || err === "service-not-allowed") { st("Microphone blocked — switching to typing", "bad"); return setTimeout(toTyping, 900); }
       if (!alts.length) { st(err && err !== "no-speech" && err !== "aborted" ? "Speech recognition failed — try again or type instead" : "Didn't catch that — tap the mic and try again", "bad"); return; }
-      const m = spkMatch(alts, w), heard = [...new Set(alts)].slice(0, 3).map(a => `「${esc(a)}」`).join(" ");
-      if (m.ok) { done = true; mic.disabled = true; if (typeof spkCount === "function") spkCount("ok");
-        cur_lspk = { rating: hinted || tries ? 2 : 3 };
-        host.querySelector("#fb").innerHTML = revealHTML(w, true, `<div class="spkheard">Heard: <span class="jp">${heard}</span></div>`); st("");
-        if (canSpeak()) speak(w, true); onAnswer(true, mic); }
-      else { tries++; st(tries >= 2 ? "Not quite — one more try, or show the answer" : "Not quite — try again", "bad");
-        host.querySelector("#fb").innerHTML = `<div class="spkheard">Heard: <span class="jp">${heard}</span></div>`; if (tries >= 3) giveUp(); }
+      reveal(alts, spkMatch(alts, w).ok);
     };
     let tmo = setTimeout(() => { try { r.stop(); } catch (e) {} }, 8000);
     try { r.start(); } catch (e) { busy = false; st("Couldn't start the mic — type instead", "bad"); return; }
@@ -9619,7 +9629,7 @@ function renderSpeakQ(w, onAnswer, opts = {}) {
   host.querySelector("#lsMic").onclick = () => { if (done || busy) return; spkAskFirst(listen); };
   return {};
 }
-let cur_lspk = null;   // rating for a speaking answer (Good, or Hard after a hint / retry)
+let cur_lspk = null;   // self-rating (1–4) for a speaking answer
 
 /* ---------- #8 Corrective feedback ---------- */
 const CF_LOOK = ["未末", "土士", "人入八", "千干", "大犬太天", "白百自", "休体", "左右石", "午牛年", "夫天", "目自日白", "力刀", "待持特時", "間問聞門", "買貫員貝", "鳥島", "田由甲申", "王玉主", "母毎海", "今令", "会合", "雨両", "校交", "読話語", "雪雲電", "見貝", "木本未", "東車", "外夕", "少小", "牛午", "名各", "肉内", "週調", "近遠", "書昼晝", "高京", "早草"];
@@ -13602,7 +13612,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "c86d6a975980";
+const BUILD = "b05e7dc67a85";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
