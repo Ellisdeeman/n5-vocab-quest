@@ -3,7 +3,7 @@
    - data/nX.json, data/kanji-nX.json and data/kanji-nX-s.json (stroke paths) ?v=<hash>: cache-first per version (old versions of the same file are dropped); offline falls back to any cached version
    - HTML/navigation: network-first with a 4 s timeout → cached copy (never hangs on a slow network, never pins a stale index.html) */
 const AUDIO_REV = 2;   // 2 = Keita/Nanami voice switch (2026-10-06)
-const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v39", DATA_CACHE = "n5vq-data-v1";
+const AUDIO_CACHE = "n5vq-audio-v1", PAGE_CACHE = "n5vq-page-v40", DATA_CACHE = "n5vq-data-v1";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k !== AUDIO_CACHE && k !== PAGE_CACHE && k !== DATA_CACHE) await caches.delete(k);
@@ -46,7 +46,7 @@ self.addEventListener("fetch", e => {
     })().catch(() => fetch(req)));
     return;
   }
-  if (/\/data\/(kanji-|games-)?n[1-5](-s)?\.json$/.test(url.pathname)) {
+  if (/\/data\/((kanji-|games-)?n[1-5](-s)?|rtk(-s-\d+)?)\.json$/.test(url.pathname)) {
     e.respondWith((async () => {
       const cache = await caches.open(DATA_CACHE);
       const hit = await cache.match(req.url);

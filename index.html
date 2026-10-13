@@ -1253,6 +1253,17 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .ptopt.ok{border-color:var(--s4,#2a9d4b);background:rgba(42,157,75,.12)}.ptopt.bad{border-color:#d33;background:rgba(221,51,51,.1)}
 .ptg{display:block;margin:4px auto;max-width:100%}.ptk{font-size:15px;fill:var(--label)}.ptguide .ptg{display:inline-block;width:70px;vertical-align:middle}
 .ptpair{margin:6px 0}
+.rkfront{text-align:center;font-size:1.5rem;margin:10px 0}.rkkw{font-size:1.7rem}
+.rkk{text-align:center;font-size:4.6rem;line-height:1.1;margin:6px 0}
+.rkstroke{display:flex;justify-content:center;color:var(--label)}.rksvg .rkg{stroke:var(--sep,rgba(128,128,128,.3));stroke-dasharray:3 3;stroke-width:.6}
+.rksvg .rkn{font-size:7px;fill:var(--accent);font-family:-apple-system,sans-serif}
+.rksvg.anim path{stroke-dasharray:1;stroke-dashoffset:1;animation:rkdraw .55s ease forwards;animation-delay:calc(var(--i) * .6s)}
+@keyframes rkdraw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.rksvg.anim path{animation-duration:.01s}}
+.rkparts{text-align:center;font-size:.9rem;color:var(--label2)}
+.rkstory{display:block;margin:8px 0}.rkstory span{display:block;font-weight:600;margin-bottom:4px}.rkstory textarea{width:100%;box-sizing:border-box;font:inherit;border-radius:10px;padding:8px;border:1px solid var(--sep,rgba(128,128,128,.3));background:var(--card);color:var(--label)}
+.rkrate{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.rkrate .btn{padding-left:4px;padding-right:4px}
+.rkrow{width:100%;display:flex;gap:10px;align-items:center;background:none;border:0;border-bottom:1px solid var(--sep,rgba(128,128,128,.2));padding:8px 2px;color:var(--label)}
 </style>
 </head>
 <body>
@@ -2755,6 +2766,7 @@ function home() {
     ${weekReportCardHTML()}
     <button class="mode lotile-home" data-m="listen-only"><div class="ic">🎧</div><h3>Listening-only</h3><p>Hands-free stories & sentences · audio first</p></button>
     ${pitchTileHTML()}
+    ${rtkTileHTML()}
     ${(() => { const H = mkHist(), l = H[H.length - 1];
       return `<button class="mode mktile-home" data-m="mock"><div class="ic">📝</div><h3>Mock JLPT N5</h3><p>${l ? `Last ${l.total}/180 · ${l.pass ? "pass" : "not yet"}` : "Timed practice test · 90 min"}</p></button>`; })()}
     <button class="mode" data-m="meaning"><div class="ic">🈁</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
@@ -2796,7 +2808,7 @@ function home() {
   bindAudioLesson(); bindHomeQuick(); bindHomeKj();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, conjugation: conjHome, "week-report": weekReportView, "reading-stories": readingHome, "daily-reading": () => drView(home), mock: mockHome, "listen-only": () => loHome(home), pitch: () => pitchHome(home) };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, conjugation: conjHome, "week-report": weekReportView, "reading-stories": readingHome, "daily-reading": () => drView(home), mock: mockHome, "listen-only": () => loHome(home), pitch: () => pitchHome(home), rtk: () => rtkHome(home) };
     go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
@@ -4912,8 +4924,14 @@ const SYKEY = "jlptVocabQuest.sync.v1";        // this device only: token, gist 
 const SMKEY = "jlptVocabQuest.syncmeta.v1";    // per-field "modified at" stamps used by the merge
 const SNAPKEY = "jlptVocabQuest.snapshot.v1";  // safety snapshot taken before any restore (for Undo)
 const GIST_DESC = "JLPT Vocab Quest sync", GIST_FILE = "jlpt-quest-sync.json", BK_APP = "jlpt-vocab-quest", BK_VER = 1;
-const SYNC_STORES = [["S", KEY], ["KS", KKEY], ["JS", JKEY], ["TS", TKEY], ["AL", AKEY]];
-const stGet = n => n === "S" ? S : n === "KS" ? KS : n === "JS" ? JS : n === "TS" ? TS : AL;
+/* Remembering the Kanji (app40): its own store, completely separate from vocab/kanji/kana — synced alongside them */
+const RKEY = "jlptVocabQuest.rtk.v1";
+const rkDefault = () => ({ cards: {}, frame: 0, perDay: 10, notes: {}, newLog: {} });
+let RTKS; try { RTKS = Object.assign(rkDefault(), JSON.parse(localStorage.getItem(RKEY) || "{}")); } catch (e) { RTKS = rkDefault(); }
+["cards", "notes", "newLog"].forEach(k => { if (!RTKS[k] || typeof RTKS[k] !== "object" || Array.isArray(RTKS[k])) RTKS[k] = {}; });
+function rksave() { try { localStorage.setItem(RKEY, JSON.stringify(RTKS)); } catch (e) {} if (typeof syncTouch === "function") syncTouch(); }
+const SYNC_STORES = [["S", KEY], ["KS", KKEY], ["JS", JKEY], ["TS", TKEY], ["AL", AKEY], ["RK", RKEY]];
+const stGet = n => n === "S" ? S : n === "KS" ? KS : n === "JS" ? JS : n === "TS" ? TS : n === "RK" ? RTKS : AL;
 const syDefault = () => ({ token: "", gistId: "", lastSync: 0, lastTry: 0, err: "", errAt: 0, rateUntil: 0, lastBackup: 0, remind: false, snooze: 0, device: "" });
 let SY; try { SY = Object.assign(syDefault(), JSON.parse(localStorage.getItem(SYKEY) || "{}")); } catch (e) { SY = syDefault(); }
 if (!SY.device) SY.device = Math.random().toString(36).slice(2, 10);
@@ -4930,6 +4948,7 @@ const MERGE_RULES = {
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
+  RK: { cards: "cards", notes: "mapLww", newLog: "mapUnion" },   // frame / perDay = latest change wins
   AL: { log: "mapLww", rep: "mapMax", padd: "mapUnion" }   // cur (lesson number) = latest change wins; repeat counts = max; Pimsleur words added = union
 };
 const hash = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + s.length.toString(36); };
@@ -5047,9 +5066,10 @@ function applyStores(stores, mod) {
   JS = Object.assign({ cards: {} }, g(JKEY)); if (!isObj(JS.cards)) JS.cards = {};
   TS = Object.assign(timeDefault(), g(TKEY)); if (!isObj(TS.days)) TS.days = {};
   AL = Object.assign(alDefault(), g(AKEY)); if (!isObj(AL.log)) AL.log = {};
+  RTKS = Object.assign(rkDefault(), g(RKEY)); ["cards", "notes", "newLog"].forEach(k => { if (!isObj(RTKS[k])) RTKS[k] = {}; });
   try { if (typeof duoPrune === "function") { duoPrune(); duoSchedule(); } } catch (e) {}   // Duolingo marks: drop unanswered ones a newer position removed, re-meter releases (app35)
   fsrsMigrateAll([S, KS, JS]);   // old-format (Leitner) backups / gists convert on the way in; new-format cards are left alone
-  window.__syncReady = false; save(); ksave(); jsave(); tsave(); alsave(); window.__syncReady = true;
+  window.__syncReady = false; save(); ksave(); jsave(); tsave(); alsave(); rksave(); window.__syncReady = true;
   SM = { mod: Object.assign({}, isObj(mod) ? mod : {}), snap: {} }; stampAll(true); smsave();
   applyTheme();
   const refresh = () => { try { updateHeader(); updateDueBadge(); if (!studyScreen && curView && !document.querySelector(".modal")) go(curView); } catch (e) {} };
@@ -13447,6 +13467,109 @@ function ptSession(kind, pool, pairs, back) {
   next();
 }
 const pitchTileHTML = () => `<button class="mode pttile-home" data-m="pitch"><div class="ic">🎵</div><h3>Pitch accent</h3><p>Drop, listening & minimal pairs · mastered words only</p></button>`;
+/* ===== v40: Remembering the Kanji (6th edition) — a completely separate kanji-memory track =====
+   Store RTKS (jlptVocabQuest.rtk.v1, app11): cards { frame: card with its own FSRS state f }, frame = the frame you're on,
+   perDay = new frames introduced per day, notes { frame: your story }, newLog { day: [frames introduced] }.
+   Nothing here touches S/JS/KS: no effect on vocab or kanji reviews, the new-word cap, the goal ring, Due counts or
+   reminders. Frames 1..RTKS.frame join gradually (RTKS.perDay a day, in frame order).
+   Data (lazy, pub repo): data/rtk.json — frame, kanji, keyword, primitive names (community list sdcr/heisig-kanjis,
+   frames cross-checked with Kanjium); data/rtk-s-K.json — KanjiVG stroke paths (CC BY-SA 3.0). No Heisig stories or
+   explanations ship: the story field is yours.
+   Card: keyword (+ frame #) → you recall/write the kanji → reveal → kanji, numbered strokes + animation, primitives,
+   your story → Again / Hard / Good / Easy. */
+const RK_INFO = {"chunks":["0d87143e9c","a6d6de98ff","fd3f9b1057","b2165eacd3","c528d0538e","efdab9e8c4","292fd8b155","cd6fe81b82","29050aa193"],"v":"8c399270bb","n":2200,"ch":250,"nostroke":0};
+let RKD = null, rkP = null; const RKS = {}, rkSP = {};
+const rkUrl = () => `data/rtk.json?v=${RK_INFO.v}`, rkSUrl = k => `data/rtk-s-${k}.json?v=${RK_INFO.chunks[k]}`;
+function rkLoad() { if (RKD) return Promise.resolve(true); if (!rkP) rkP = fetchT(rkUrl(), 30000).then(r => { if (!r.ok) throw 0; return r.json(); }).then(d => { RKD = d.items; return true; }).catch(() => { rkP = null; return false; }); return rkP; }
+function rkStrokes(fr) { const k = Math.floor((fr - 1) / RK_INFO.ch); if (RKS[k]) return Promise.resolve(RKS[k][fr - 1 - k * RK_INFO.ch] || []);
+  if (!rkSP[k]) rkSP[k] = fetchT(rkSUrl(k), 30000).then(r => { if (!r.ok) throw 0; return r.json(); }).then(d => (RKS[k] = d.paths)).catch(() => { delete rkSP[k]; return null; });
+  return rkSP[k].then(p => (p ? p[fr - 1 - k * RK_INFO.ch] || [] : [])); }
+const rkItem = fr => RKD && RKD[fr - 1];
+const RK_PERDAY = [3, 5, 10, 15, 20, 30];
+const rkToday = () => (Array.isArray(RTKS.newLog[todayStr()]) ? RTKS.newLog[todayStr()] : []);
+const rkNewLeft = () => Math.max(0, (+RTKS.perDay || 10) - rkToday().length);
+const rkUnseen = () => { const o = []; for (let f = 1; f <= Math.min(+RTKS.frame || 0, RK_INFO.n); f++) if (!RTKS.cards[f]) o.push(f); return o; };
+const rkDue = (now = Date.now()) => Object.keys(RTKS.cards).map(Number).filter(f => RTKS.cards[f].due <= now).sort((a, b) => RTKS.cards[a].due - RTKS.cards[b].due);
+const rkLearned = () => Object.keys(RTKS.cards).length;
+function rkGrade(fr, r, now = Date.now()) {
+  const c = RTKS.cards[fr] || (RTKS.cards[fr] = { ok: 0, bad: 0, f: null, due: now });
+  c.f = fsrsNext(c.f, r, now, fCfg()); c.due = c.f.due; c.t = now; r > 1 ? c.ok++ : c.bad++; c.box = boxFromF(c.f);
+  rksave(); return c;
+}
+function rkIntroduce(fr) { const d = todayStr(); if (!Array.isArray(RTKS.newLog[d])) RTKS.newLog[d] = []; if (!RTKS.newLog[d].includes(fr)) RTKS.newLog[d].push(fr); }
+function rkStrokeSVG(paths, o = {}) {
+  const n = paths.length;
+  return `<svg class="rksvg ${o.anim ? "anim" : ""}" viewBox="0 0 109 109" width="${o.size || 150}" height="${o.size || 150}" role="img" aria-label="stroke order"><line x1="54.5" y1="0" x2="54.5" y2="109" class="rkg"/><line x1="0" y1="54.5" x2="109" y2="54.5" class="rkg"/>
+    <g fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">${paths.map((d, i) => `<path d="${d}" pathLength="1" style="--i:${i};--n:${n}"/>`).join("")}</g>
+    ${o.nums === false ? "" : paths.map((d, i) => { const m = /M\s*([\d.]+)[ ,]([\d.-]+)/.exec(d); return m ? `<text x="${(+m[1] - 5).toFixed(1)}" y="${(+m[2] - 1).toFixed(1)}" class="rkn">${i + 1}</text>` : ""; }).join("")}</svg>`;
+}
+/* ---------- hub ---------- */
+async function rtkHome(back = home) {
+  const gen = viewGen; view.innerHTML = topbar("🧠 Remembering the Kanji") + `<div class="panel"><p>Loading…</p></div>`; bindBack(back);
+  const okd = await rkLoad(); if (gen !== viewGen) return;
+  const due = rkDue().length, un = rkUnseen().length, nl = Math.min(rkNewLeft(), un), fr = +RTKS.frame || 0;
+  view.innerHTML = topbar("🧠 Remembering the Kanji") + `<div class="largetitle">Remembering the Kanji</div>
+    <p class="subtitle">6th edition frames · its own reviews, separate from everything else</p>
+    ${!okd ? `<div class="panel"><p>Couldn't load the frame list (offline?).</p><button class="btn" id="rkRetry">Try again</button></div>` : `
+    <div class="panel rkset"><label class="row"><span>Frame you're on<br><small class="muted">Frames 1–${fr || "N"} join your RTK reviews gradually</small></span><input type="number" id="rkFrame" min="0" max="${RK_INFO.n}" inputmode="numeric" value="${fr || ""}" placeholder="e.g. 120" style="width:96px"></label>
+      <label class="row"><span>New frames per day</span><select id="rkPer">${RK_PERDAY.map(n => `<option value="${n}" ${+RTKS.perDay === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <small class="muted" id="rkFrameInfo">${fr ? `Up to #${fr} ${esc(rkItem(fr) ? rkItem(fr)[2] : "")} · ${rkLearned()} in reviews · ${un} still to add` : "Set your frame to start."}</small></div>
+    <div class="hero ${due || nl ? "" : "done"}"><div class="ic">🧠</div><div><h2>${due ? `${due} due` : "Nothing due"}${nl ? ` · ${nl} new today` : ""}</h2><p>Keyword → write the kanji → check</p></div><button class="btn" id="rkGo" ${due || nl ? "" : "disabled"}>Start ▶</button></div>
+    <div class="btnrow"><button class="btn sec" id="rkList" ${rkLearned() ? "" : "disabled"}>📜 My frames & stories</button></div>`}
+    <p class="muted" style="font-size:.78rem">Frame numbers and keywords: Remembering the Kanji 1, 6th edition (J. W. Heisig), via the community list <a href="https://github.com/sdcr/heisig-kanjis" target="_blank" rel="noopener">sdcr/heisig-kanjis</a>, checked against <a href="https://github.com/mifunetoshiro/kanjium" target="_blank" rel="noopener">Kanjium</a>. The book's stories aren't included — write your own (or a summary) in each card's story box. Stroke order: <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> (CC BY-SA 3.0, Ulrich Apel). Not affiliated with the author or publisher. This section never changes your vocab or kanji reviews, daily limits, goal or reminders.</p>`;
+  bindBack(back);
+  const rt = $("#rkRetry"); if (rt) rt.onclick = () => rtkHome(back);
+  if (!okd) return;
+  $("#rkFrame").onchange = e => { const v = Math.max(0, Math.min(RK_INFO.n, Math.round(+e.target.value || 0))); RTKS.frame = v; rksave(); toast(v ? `🧠 Frame ${v} · ${rkItem(v)[2]}` : "🧠 Frame cleared"); rtkHome(back); };
+  $("#rkPer").onchange = e => { RTKS.perDay = +e.target.value; rksave(); rtkHome(back); };
+  $("#rkGo").onclick = () => { sfx.click(); go(() => rkSession(() => rtkHome(back))); };
+  $("#rkList").onclick = () => { sfx.click(); go(() => rkListView(() => rtkHome(back))); };
+}
+function rkListView(back) {
+  const fs = Object.keys(RTKS.cards).map(Number).sort((a, b) => a - b);
+  view.innerHTML = topbar("📜 My frames") + `<div class="panel rklist" id="rkL">${fs.map(f => { const it = rkItem(f), c = RTKS.cards[f];
+    return `<button class="row rkrow" data-f="${f}"><span class="jp" style="font-size:1.6rem">${it[1]}</span><span class="grow" style="text-align:left"><b>#${f} ${esc(it[2])}</b><br><small class="muted">${RTKS.notes[f] ? esc(String(RTKS.notes[f]).slice(0, 60)) : "no story yet"} · ${trackText(c.f)}</small></span></button>`; }).join("")}</div>`;
+  bindBack(back);
+  $("#rkL").onclick = e => { const b = e.target.closest(".rkrow"); if (!b) return; go(() => rkCardView(+b.dataset.f, () => rkListView(back))); };
+}
+function rkCardView(f, back) { view.innerHTML = topbar(`🧠 #${f}`) + `<div class="panel rkcard" id="rkCard"></div>`; bindBack(back); rkRenderBack($("#rkCard"), f, null); }
+/* back of card: kanji, strokes (+ animate), primitives, story */
+function rkRenderBack(el, f, after) {
+  const it = rkItem(f);
+  el.innerHTML = `<div class="rkfront"><span class="muted">#${f}</span> <b class="rkkw">${esc(it[2])}</b></div>
+    <div class="rkk jp">${it[1]}</div>
+    <div class="rkstroke" id="rkStroke"><small class="muted">Loading strokes…</small></div>
+    <div class="btnrow" style="justify-content:center"><button class="btn sec small" id="rkAnim">▶ Animate strokes</button></div>
+    <p class="rkparts"><b>${it[4]} stroke${it[4] === 1 ? "" : "s"}</b>${it[3] ? ` · primitives: ${esc(it[3])}` : ""}</p>
+    <label class="rkstory"><span>Your story</span><textarea id="rkNote" rows="3" placeholder="Write your own story for “${esc(it[2])}”…">${esc(RTKS.notes[f] || "")}</textarea></label>
+    ${after ? `<div class="rkrate" id="rkRate">${[[1, "Again"], [2, "Hard"], [3, "Good"], [4, "Easy"]].map(([r, t]) => `<button class="btn ${r === 1 ? "sec" : ""}" data-r="${r}">${t}</button>`).join("")}</div>` : ""}`;
+  rkStrokes(f).then(p => { const s = el.querySelector("#rkStroke"); if (s) s.innerHTML = p && p.length ? rkStrokeSVG(p) : `<small class="muted">Stroke data unavailable offline</small>`; });
+  el.querySelector("#rkAnim").onclick = () => rkStrokes(f).then(p => { const s = el.querySelector("#rkStroke"); if (s && p && p.length) { s.innerHTML = rkStrokeSVG(p, { anim: true }); } });
+  el.querySelector("#rkNote").onchange = e => { const v = e.target.value.trim(); if (v) RTKS.notes[f] = v; else delete RTKS.notes[f]; rksave(); toast("📝 Story saved"); };
+  if (after) el.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { const n = el.querySelector("#rkNote"); if (n) n.onchange({ target: n }); after(+b.dataset.r); });
+}
+/* ---------- session ---------- */
+function rkSession(back) {
+  const due = rkDue(), fresh = rkUnseen().slice(0, rkNewLeft()), q = due.concat(fresh); let done = 0, again = 0;
+  if (!q.length) return rtkHome();
+  const next = () => {
+    if (!q.length) { view.innerHTML = topbar("🧠 RTK") + `<div class="panel" style="text-align:center"><div class="big">🧠</div><h2>${done} frame${done === 1 ? "" : "s"} done</h2><p class="muted">${again ? `${again} marked Again` : ""}</p><button class="btn" id="rkBack">Done</button></div>`; bindBack(back); $("#rkBack").onclick = () => go(back); return; }
+    const f = q.shift(), isNew = !RTKS.cards[f], it = rkItem(f);
+    view.innerHTML = topbar(`🧠 ${done + 1}/${done + q.length + 1}`, `<span class="muted">${isNew ? "new frame" : "review"}</span>`) + `<div class="panel rkcard" id="rkCard">
+      <div class="qtype">${isNew ? "New frame · study it, then write it" : "Write the kanji for this keyword"}</div>
+      <div class="rkfront"><span class="muted">#${f}</span> <b class="rkkw">${esc(it[2])}</b></div>
+      <p class="muted" style="text-align:center">Write it on paper (or in the air), then check.</p>
+      <div class="btnrow" style="justify-content:center"><button class="btn" id="rkShow">Show kanji</button></div></div>`;
+    bindBack(back);
+    $("#rkShow").onclick = () => { sfx.click(); rkRenderBack($("#rkCard"), f, r => {
+      if (isNew) rkIntroduce(f);
+      const c = rkGrade(f, r); done++; if (r === 1) again++;
+      if (c.due - Date.now() < 20 * 60e3) q.splice(Math.min(q.length, 3), 0, f);   // learning step: see it again soon in this session
+      r > 1 ? sfx.good() : sfx.bad(); next(); }); };
+  };
+  next();
+}
+const rtkTileHTML = () => { const d = rkDue().length; return `<button class="mode rktile-home" data-m="rtk"><div class="ic">🧠</div><h3>Remembering the Kanji ${d ? `<span class="badge">${d}</span>` : ""}</h3><p>${RTKS.frame ? `Frame ${RTKS.frame} · ${rkLearned()} in reviews` : "Heisig 6th ed. · set your frame"} · separate</p></button>`; };
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -13467,6 +13590,7 @@ $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].lo
   Duolingo position: which words each unit of Duolingo's 2026 Japanese course teaches comes from <a href="https://duome.eu/vocabulary/en/ja/skills" target="_blank" rel="noopener">duome.eu</a> (unofficial Duolingo data) and unit titles from <a href="https://duolingodata.com/" target="_blank" rel="noopener">duolingodata.com</a>, matched to this app's word lists and hand-checked; only unit titles and the app's own word ids are stored — no Duolingo translations or audio. Not affiliated with or endorsed by Duolingo.<br>
   Pitch accent: <a href="https://github.com/mifunetoshiro/kanjium" target="_blank" rel="noopener">Kanjium</a> accents data (CC BY-SA 4.0) — the pitch accent notation was provided by Uros O. through his free database.<br>
   Genki lessons: which lesson teaches each word comes from a public learner-made Genki 3rd edition vocabulary list (cemulate), matched to this app's N5 list; only lesson numbers and the app's word ids are stored. Not affiliated with The Japan Times.<br>
+  Remembering the Kanji: 6th edition frame numbers, keywords and primitive names from the community list <a href="https://github.com/sdcr/heisig-kanjis" target="_blank" rel="noopener">sdcr/heisig-kanjis</a>, frames checked against Kanjium; no text from the book is included. Stroke order: KanjiVG (CC BY-SA 3.0). Not affiliated with J. W. Heisig or the publisher.<br>
   Scheduling: <a href="https://github.com/open-spaced-repetition/py-fsrs" target="_blank" rel="noopener">FSRS-5</a> (Free Spaced Repetition Scheduler, MIT, Open Spaced Repetition — default parameters), ported to plain JavaScript.<br>
   Parts of speech & topic grouping derived with <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a> (EDRDG, CC BY-SA 4.0).`;
 }
@@ -13478,7 +13602,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "bf5ddee400bb";
+const BUILD = "c86d6a975980";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -13528,7 +13652,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { RK_INFO, rkLoad, rkStrokes, rkItem, rkDue, rkUnseen, rkNewLeft, rkGrade, rtkHome, rkSession, RK: () => RTKS, rksave, PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
