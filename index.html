@@ -1266,6 +1266,8 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .rkrow{width:100%;display:flex;gap:10px;align-items:center;background:none;border:0;border-bottom:1px solid var(--sep,rgba(128,128,128,.2));padding:8px 2px;color:var(--label)}
 .lsrate{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}.lsrate .btn{padding-left:4px;padding-right:4px}
 .lsans{margin:8px 0}
+
+.hfseg button{white-space:nowrap;padding-left:10px;padding-right:10px}
 </style>
 </head>
 <body>
@@ -1777,13 +1779,18 @@ SFX_NAMES.forEach(n => sfx[n] = () => { if (!S.sound) return; const set = S.sfxS
 /* ================= Speech synthesis ================= */
 const HAS_SPEECH = "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance === "function";
 let jaVoice = null, voicesChecked = false;
-function loadVoices() { if (!HAS_SPEECH) return; const vs = speechSynthesis.getVoices(); if (vs.length) voicesChecked = true; jaVoice = vs.find(v => /^ja[-_]JP/i.test(v.lang)) || vs.find(v => /^ja/i.test(v.lang)) || null; }
+/* v45: the app's voice is male (Keita). Device speech is only a last resort and must never switch to a female system voice
+   (iOS's default Japanese voice Kyoko is female): use a known male Japanese voice if the device has one, else stay silent. */
+const JA_MALE = /otoya|hattori|ichiro|keita|daichi|naoki|takumi|male|男性/i, JA_FEMALE = /kyoko|o-?ren|nanami|ayumi|haruka|mizuki|sayaka|female|女性/i;
+function loadVoices() { if (!HAS_SPEECH) return; const vs = speechSynthesis.getVoices(); if (vs.length) voicesChecked = true;
+  const ja = vs.filter(v => /^ja/i.test(v.lang)); jaVoice = ja.find(v => JA_MALE.test(v.name) && !JA_FEMALE.test(v.name)) || null; }
 if (HAS_SPEECH) { loadVoices(); try { speechSynthesis.addEventListener("voiceschanged", loadVoices); } catch (e) { speechSynthesis.onvoiceschanged = loadVoices; } }
 const canSpeak = () => S.speech && canAudio();
 const speechText = w => forms(w.kana)[0] || w.kana;
 function speakText(text, force, rate = 0.9) {
   if (!HAS_SPEECH || (!S.speech && !force)) return;
-  try { const u = new SpeechSynthesisUtterance(text); u.lang = "ja-JP"; if (jaVoice) u.voice = jaVoice; u.rate = rate; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {}
+  if (!jaVoice) return;   // no male Japanese voice on this device → silent rather than Kyoko
+  try { const u = new SpeechSynthesisUtterance(text); u.lang = "ja-JP"; u.voice = jaVoice; u.rate = rate; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {}
 }
 /* ================= Pre-recorded audio (neural TTS / human recordings) with speechSynthesis fallback ================= */
 const AUDIO_BASE = "audio/";
@@ -1797,19 +1804,24 @@ function playFile(path, fallbackText, rate = 0.9) {
   const fb = () => { if (fallbackText) speakText(fallbackText, true, rate); };
   if (audioOK === false || audioFail.has(path)) return fb();
   const a = new Audio(AUDIO_BASE + path); curAudio = a;
-  let fell = false;
-  const fall = () => { if (fell) return; fell = true; audioFail.add(path); if (audioOK === null && location.protocol === "file:") audioOK = false; if (curAudio === a) fb(); };
+  let fell = false, retried = false;
+  /* a failed clip is retried once straight from the network; a failure is only remembered for 2 minutes (never for the session) */
+  const fall = () => { if (fell) return;
+    if (!retried && curAudio === a && /^https?:$/.test(location.protocol)) { retried = true; try { a.src = AUDIO_BASE + path + "?r=" + Date.now(); const q = a.play(); if (q && q.catch) q.catch(e => { if (e && (e.name === "NotAllowedError" || e.name === "AbortError")) return; fall(); }); return; } catch (e) {} }
+    fell = true; audioFail.add(path); setTimeout(() => audioFail.delete(path), 120000); if (audioOK === null && location.protocol === "file:") audioOK = false; if (curAudio === a) fb(); };
   a.addEventListener("playing", () => { if (audioOK === null) audioOK = true; }, { once: true });
   a.addEventListener("error", fall);
   try { const p = a.play(); if (p && p.catch) p.catch(e => { if (e && (e.name === "NotAllowedError" || e.name === "AbortError")) return; fall(); }); } catch (e) { fall(); }
 }
 function probeAudio(done) {
   const a = new Audio(); let fin = false;
-  const end = ok => { if (fin) return; fin = true; audioOK = ok; done && done(ok); };
+  // v45: a slow probe (cold start, busy service worker, iOS not preloading before a tap) must NOT switch the whole
+  // session to device speech — only an actual load error on file:// does; on the website a timeout leaves audioOK unknown.
+  const end = (ok, timeout) => { if (fin) return; fin = true; if (ok) audioOK = true; else if (!timeout || location.protocol === "file:") { if (location.protocol === "file:") audioOK = false; } done && done(ok); };
   a.preload = "metadata";
   a.addEventListener("loadedmetadata", () => end(true));
   a.addEventListener("error", () => end(false));
-  setTimeout(() => end(false), 8000);
+  setTimeout(() => end(false, true), 8000);
   a.src = AUDIO_BASE + "n5/w/0.mp3";
 }
 /* audio layout: audio/<level>/w/<index>.mp3 (words), audio/<level>/s|h/<tatoebaId>.mp3 (TTS / human sentences; a sentence
@@ -13891,7 +13903,7 @@ function hfUi() { const b = $("#hfPlay"); if (b && HF_EL) b.innerHTML = HF_EL.pa
 const hfFmt = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
 async function hfView(back = home) {
   const gen = viewGen, c = hfCfg(), ids = hfKnown();
-  const seg = (k, opts) => `<span class="seg" data-hfk="${k}">${opts.map(([v, t]) => `<button class="${String(c[k]) === String(v) ? "on" : ""}" data-v="${v}">${t}</button>`).join("")}</span>`;
+  const seg = (k, opts) => `<span class="seg hfseg" data-hfk="${k}">${opts.map(([v, t]) => `<button class="${String(c[k]) === String(v) ? "on" : ""}" data-v="${v}">${t}</button>`).join("")}</span>`;
   view.innerHTML = topbar("🎧 Hands-free") + `<div class="largetitle">Hands-free flashcards</div>
     <p class="subtitle">${ids.length} known word${ids.length === 1 ? "" : "s"} · shuffled · keeps playing with your phone locked</p>
     ${ids.length < 4 ? `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>This plays words you already know (answered right at least once). Learn a few more and come back.</p></div>` : `
@@ -13949,7 +13961,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "f9229fbfa799";
+const BUILD = "cb24cb8415e5";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
