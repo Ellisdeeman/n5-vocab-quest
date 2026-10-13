@@ -2767,6 +2767,7 @@ function home() {
     ${conjHomeTileHTML()}
     ${weekReportCardHTML()}
     <button class="mode lotile-home" data-m="listen-only"><div class="ic">🎧</div><h3>Listening-only</h3><p>Hands-free stories & sentences · audio first</p></button>
+    ${hfTileHTML()}
     ${pitchTileHTML()}
     ${rtkTileHTML()}
     ${(() => { const H = mkHist(), l = H[H.length - 1];
@@ -2810,7 +2811,7 @@ function home() {
   bindAudioLesson(); bindHomeQuick(); bindHomeKj();
   view.querySelectorAll("button.mode").forEach(b => b.onclick = () => {
     sfx.click(); const m = b.dataset.m;
-    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, conjugation: conjHome, "week-report": weekReportView, "reading-stories": readingHome, "daily-reading": () => drView(home), mock: mockHome, "listen-only": () => loHome(home), pitch: () => pitchHome(home), rtk: () => rtkHome(home) };
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, conjugation: conjHome, "week-report": weekReportView, "reading-stories": readingHome, "daily-reading": () => drView(home), mock: mockHome, "listen-only": () => loHome(home), pitch: () => pitchHome(home), rtk: () => rtkHome(home), "hands-free": () => hfView(home) };
     go(special[m] || (() => quiz(m)));   // pass the view itself (not a wrapper) so async views like Due Reviews recognise themselves
   });
 }
@@ -13802,6 +13803,120 @@ async function lwOpen() {
   $("#lwGo").onclick = async () => { const s = await lwShare(r); if (s === "cancel") return; toast(s === "shared" ? "📝 Worksheet shared" : "📝 Worksheet downloaded"); close(); };
 }
 window.__LW = { lwIds, lwBuild, lwPartner, lwExample, lwData, lwOpen, lwShare };
+/* ---------- v44: Hands-free listening flashcards (known words only) ----------
+   One continuous audio track is assembled on-device (Web Audio decode → resample → silences → 16 kHz mono WAV),
+   cached in IndexedDB and only rebuilt when the known-word set or the settings change. A single <audio> element +
+   Media Session keeps it playing with the iPhone locked; next/previous track jump word-by-word via chapter times.
+   English gloss clips (audio/en/, data/en-audio.json) are used ONLY here. Practice only: never touches FSRS,
+   reviews, goal, cap or reminders. */
+const HF_SR = 16000, HF_VER = 1, HF_DB = "n5vq-hf";
+const hfCfg = () => Object.assign({ dir: "je", gap: 3 }, S.hf || {});
+let HF_EN = null, HF_EL = null, HF_T = null;   // en manifest · audio element · {key, chapters, dur, n}
+function hfKnown() {   // learned words with real review history (answered right at least once) — Duolingo/Genki "seen" cards don't count
+  return Object.keys(S.cards).map(Number).filter(id => { const c = S.cards[id]; if (!c || id >= 50000) return false; return (+c.ok || 0) >= 1 && ((+c.ok || 0) + (+c.bad || 0)) >= 1; }).sort((a, b) => a - b);
+}
+const hfLvl = id => LEVELS.slice().reverse().find(l => id >= LOFF[l]);
+function hfKey(ids, c) { let h = 2166136261; for (const x of `${HF_VER}|${c.dir}|${c.gap}|${ids.join(",")}`) { h ^= x.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h.toString(36) + "-" + ids.length; }
+/* tiny IndexedDB wrapper: one store, one record ("track") */
+function hfDb() { return new Promise((res, rej) => { const r = indexedDB.open(HF_DB, 1); r.onupgradeneeded = () => r.result.createObjectStore("t"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+/* the WAV is stored as an ArrayBuffer (Blobs in IndexedDB are unreliable in some WebKit builds) */
+async function hfGet() { try { const d = await hfDb(); const r = await new Promise(res => { const q = d.transaction("t").objectStore("t").get("track"); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); if (r && r.wav) { r.blob = new Blob([r.wav], { type: "audio/wav" }); delete r.wav; } return r && r.blob ? r : null; } catch (e) { return null; } }
+async function hfPut(v0) { const v = Object.assign({}, v0, { wav: await v0.blob.arrayBuffer() }); delete v.blob; const d = await hfDb(); return new Promise((res, rej) => { const tx = d.transaction("t", "readwrite"); tx.objectStore("t").put(v, "track"); tx.oncomplete = () => res(true); tx.onerror = () => rej(tx.error); }); }
+async function hfEnMap() { if (HF_EN) return HF_EN; const r = await fetchT(`data/en-audio.json?v=${HF_VER}`); if (!r.ok) throw new Error(r.status); return (HF_EN = await r.json()); }
+function hfResample(buf) {   // → Float32 mono @ HF_SR, peak-normalised to ~-3 dBFS
+  const ch = buf.numberOfChannels, n = buf.length, src = new Float32Array(n);
+  for (let c = 0; c < ch; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) src[i] += d[i] / ch; }
+  const ratio = buf.sampleRate / HF_SR, m = Math.floor(n / ratio), out = new Float32Array(m); let pk = 0;
+  for (let i = 0; i < m; i++) { const p = i * ratio, j = Math.floor(p), f = p - j, v = src[j] * (1 - f) + (src[j + 1] || 0) * f; out[i] = v; if (Math.abs(v) > pk) pk = Math.abs(v); }
+  if (pk > 0.05) { const g = 0.7 / pk; for (let i = 0; i < m; i++) out[i] *= g; }
+  return out;
+}
+function hfWav(chunks, total) {
+  const b = new ArrayBuffer(44 + total * 2), v = new DataView(b), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); v.setUint32(4, 36 + total * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, HF_SR, true); v.setUint32(28, HF_SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, total * 2, true);
+  let o = 44; for (const c of chunks) { if (typeof c === "number") { o += c * 2; continue; } for (let i = 0; i < c.length; i++, o += 2) v.setInt16(o, Math.max(-1, Math.min(1, c[i])) * 32767, true); }
+  return new Blob([b], { type: "audio/wav" });
+}
+async function hfBuild(onProg = () => {}) {
+  const c = hfCfg(), ids0 = hfKnown(); if (!ids0.length) return null;
+  const t0 = performance.now(), key = hfKey(ids0, c);
+  await Promise.all([...new Set(ids0.map(hfLvl))].map(l => loadLevel(l).catch(() => false)));
+  const en = await hfEnMap().catch(() => ({}));
+  const ids = lwShuffle(ids0.filter(id => WORDS[id]), parseInt(key, 36) || 1);
+  const AC = window.AudioContext || window.webkitAudioContext, ac = new AC();
+  const dec = async url => { try { const r = await fetchT(url, 20000); if (!r.ok) return null; const ab = await r.arrayBuffer(); const buf = await new Promise((res, rej) => { const p = ac.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); }); return hfResample(buf); } catch (e) { return null; } };
+  const chunks = [], chapters = []; let total = 0, done = 0;
+  const sil = s => { const n = Math.round(s * HF_SR); chunks.push(n); total += n; };
+  sil(0.6);
+  const Q = ids.slice(), work = [], res = new Map();
+  const one = async id => { const w = WORDS[id], h = (en[w.lvl] || [])[w.li]; const [ja, eng] = await Promise.all([dec(AUDIO_BASE + wordAudioPath(w)), h ? dec(AUDIO_BASE + `en/${h}.mp3`) : null]); res.set(id, [ja, eng]); onProg(++done, ids.length); };
+  for (let k = 0; k < 6; k++) work.push((async () => { while (Q.length) await one(Q.shift()); })());
+  await Promise.all(work);
+  try { ac.close(); } catch (e) {}
+  for (const id of ids) {
+    const [ja, eng] = res.get(id) || []; if (!ja && !eng) continue;
+    const w = WORDS[id], first = c.dir === "ej" ? eng : ja, second = c.dir === "ej" ? ja : eng;
+    chapters.push({ t: total / HF_SR, id, jp: String(w.jp).split(/;\s*/)[0], kana: String(w.kana).split(/;\s*/)[0], en: String(w.en).split(/;\s*/)[0] });
+    if (first) { chunks.push(first); total += first.length; }
+    if (second) { sil(+c.gap || 3); chunks.push(second); total += second.length; }
+    sil(1.6);
+  }
+  const blob = hfWav(chunks, total), rec = { key, blob, chapters, dur: total / HF_SR, n: chapters.length, ms: Math.round(performance.now() - t0), at: Date.now(), dir: c.dir, gap: c.gap };
+  try { await hfPut(rec); } catch (e) {}
+  window.__hfLast = { ms: rec.ms, size: blob.size, n: rec.n, dur: rec.dur };
+  return rec;
+}
+function hfChapter(t) { const ch = HF_T ? HF_T.chapters : []; let i = 0; while (i + 1 < ch.length && ch[i + 1].t <= t + 0.05) i++; return i; }
+function hfSeekWord(d) { if (!HF_EL || !HF_T) return; const ch = HF_T.chapters, i = hfChapter(HF_EL.currentTime), into = HF_EL.currentTime - (ch[i] ? ch[i].t : 0);
+  const j = Math.max(0, Math.min(ch.length - 1, d < 0 && into > 2 ? i : i + d)); HF_EL.currentTime = ch[j].t + 0.01; hfMeta(true); }
+function hfMeta(force) {
+  if (!HF_EL || !HF_T) return; const i = hfChapter(HF_EL.currentTime), x = HF_T.chapters[i]; if (!x) return;
+  if (!force && HF_EL.__ch === i) return; HF_EL.__ch = i;
+  const el = $("#hfNow"); if (el) el.innerHTML = `<b>${i + 1}</b> / ${HF_T.chapters.length}`;
+  if ("mediaSession" in navigator && typeof MediaMetadata === "function") try {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: `Word ${i + 1} of ${HF_T.chapters.length}`, artist: "Hands-free flashcards", album: "JLPT Vocab Quest", artwork: [{ src: "icons/icon-512.png", sizes: "512x512", type: "image/png" }, { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" }] });
+  } catch (e) {}
+}
+function hfAttach(rec) {
+  HF_T = rec;
+  if (!HF_EL) { HF_EL = document.createElement("audio"); HF_EL.id = "hfAudio"; HF_EL.preload = "auto"; HF_EL.setAttribute("playsinline", ""); document.body.appendChild(HF_EL); HF_EL.addEventListener("timeupdate", () => hfMeta()); HF_EL.addEventListener("play", () => hfUi()); HF_EL.addEventListener("pause", () => hfUi()); }
+  if (HF_EL.__key !== rec.key) { if (HF_EL.__url) URL.revokeObjectURL(HF_EL.__url); HF_EL.__url = URL.createObjectURL(rec.blob); HF_EL.src = HF_EL.__url; HF_EL.__key = rec.key; HF_EL.__ch = -1; }
+  if ("mediaSession" in navigator) { const ms = navigator.mediaSession, set = (a, f) => { try { ms.setActionHandler(a, f); } catch (e) {} };
+    set("play", () => HF_EL.play()); set("pause", () => HF_EL.pause()); set("nexttrack", () => hfSeekWord(1)); set("previoustrack", () => hfSeekWord(-1));
+    set("seekforward", null); set("seekbackward", null); }
+  hfMeta(true);
+}
+function hfUi() { const b = $("#hfPlay"); if (b && HF_EL) b.innerHTML = HF_EL.paused ? "▶️ Play" : "⏸ Pause"; }
+const hfFmt = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+async function hfView(back = home) {
+  const gen = viewGen, c = hfCfg(), ids = hfKnown();
+  const seg = (k, opts) => `<span class="seg" data-hfk="${k}">${opts.map(([v, t]) => `<button class="${String(c[k]) === String(v) ? "on" : ""}" data-v="${v}">${t}</button>`).join("")}</span>`;
+  view.innerHTML = topbar("🎧 Hands-free") + `<div class="largetitle">Hands-free flashcards</div>
+    <p class="subtitle">${ids.length} known word${ids.length === 1 ? "" : "s"} · shuffled · keeps playing with your phone locked</p>
+    ${ids.length < 4 ? `<div class="panel" style="text-align:center"><div class="big">🌱</div><p>This plays words you already know (answered right at least once). Learn a few more and come back.</p></div>` : `
+    <div class="panel"><div class="row"><span>Direction</span>${seg("dir", [["je", "日本語 → English"], ["ej", "English → 日本語"]])}</div>
+    <div class="row"><span>Pause to answer</span>${seg("gap", [[2, "2 s"], [3, "3 s"], [5, "5 s"], [8, "8 s"]])}</div>
+    <p class="muted" style="font-size:.85rem;margin:6px 0 0">Listening practice only — doesn't change reviews, goal or limits. Lock-screen ⏭/⏮ skip a word.</p></div>
+    <div class="panel" id="hfBox" style="text-align:center"><p id="hfMsg" class="muted">Checking for a saved track…</p><div class="btnrow" id="hfBtns"></div></div>`}`;
+  bindBack(back);
+  if (ids.length < 4) return;
+  view.querySelectorAll("[data-hfk]").forEach(sg => sg.onclick = e => { const b = e.target.closest("button"); if (!b) return; sfx.click(); S.hf = Object.assign(hfCfg(), { [sg.dataset.hfk]: sg.dataset.hfk === "gap" ? +b.dataset.v : b.dataset.v }); save(); hfView(back); });
+  const key = hfKey(ids, c), rec = HF_T && HF_T.key === key ? HF_T : await hfGet(); if (gen !== viewGen) return;
+  const ready = r => { hfAttach(r); $("#hfMsg").innerHTML = `<b>${r.n}</b> words · ${hfFmt(r.dur)} · <span id="hfNow"></span>`; hfMeta(true);
+    $("#hfBtns").innerHTML = `<button class="btn sec" id="hfPrev">⏮</button><button class="btn" id="hfPlay">▶️ Play</button><button class="btn sec" id="hfNext">⏭</button>`;
+    $("#hfPlay").onclick = () => { sfx.click(); HF_EL.paused ? HF_EL.play().catch(() => {}) : HF_EL.pause(); }; $("#hfPrev").onclick = () => hfSeekWord(-1); $("#hfNext").onclick = () => hfSeekWord(1); hfUi(); };
+  if (rec && rec.key === key) return ready(rec);
+  $("#hfMsg").textContent = rec ? "Your known words or settings changed — the track needs a quick rebuild." : "First time: the app builds one audio track from your words (it's saved for next time).";
+  $("#hfBtns").innerHTML = `<button class="btn" id="hfBuild">🔨 Build track</button>`;
+  $("#hfBuild").onclick = async () => { sfx.click(); $("#hfBtns").innerHTML = ""; const m = $("#hfMsg");
+    if (HF_EL && !HF_EL.paused) HF_EL.pause();
+    let r = null; try { r = await hfBuild((d, n) => { if (m.isConnected) m.textContent = `Building… ${d}/${n} words`; }); } catch (e) { reportError && reportError(e); }
+    if (gen !== viewGen) return; if (!r) { m.textContent = "Couldn't build the track (offline?) — try again."; $("#hfBtns").innerHTML = `<button class="btn" id="hfBuild">🔨 Try again</button>`; $("#hfBuild").onclick = () => hfView(back); return; }
+    ready(r); };
+}
+const hfTileHTML = () => `<button class="mode hftile-home" data-m="hands-free"><div class="ic">🎧</div><h3>Hands-free flashcards</h3><p>${hfKnown().length} known words · 日本語 → pause → English · works locked</p></button>`;
+window.__HF = { hfKnown, hfBuild, hfGet, hfKey, hfCfg, hfView, hfSeekWord, hfChapter, get T() { return HF_T; }, get EL() { return HF_EL; } };
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -13834,7 +13949,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "508a2fdd044d";
+const BUILD = "f9229fbfa799";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });

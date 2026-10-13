@@ -60,3 +60,5 @@ ja-JP-KeitaNeural (rate -5%) via edge-tts 7.2.8; rd/manifest.json lists the text
 Mock JLPT N5 listening (mk/): one file per listening question (mk/<id>.mp3), built from edge-tts 7.2.8 segments —
 narrator ja-JP-KeitaNeural (slower, lower pitch), men and neutral speakers ja-JP-KeitaNeural, women ja-JP-NanamiNeural — joined with ffmpeg silences.
 All scripts were written for this app and are not taken from any real JLPT test; mk/manifest.json lists each file's lines.
+
+audio/en/: English gloss clips (Hands-free flashcards only) synthesized offline with Kokoro-82M v1.0 (Apache-2.0), voice af_heart.
