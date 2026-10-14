@@ -62,3 +62,6 @@ narrator ja-JP-KeitaNeural (slower, lower pitch), men and neutral speakers ja-JP
 All scripts were written for this app and are not taken from any real JLPT test; mk/manifest.json lists each file's lines.
 
 audio/en/: English gloss clips (Hands-free flashcards only) synthesized offline with Kokoro-82M v1.0 (Apache-2.0), voice af_heart.
+
+Pitch accent trainer (pt/<level>/<index>.mp3, used only by the pitch trainer): VOICEVOX:玄野武宏 (ノーマル), https://voicevox.hiroshiba.jp/
+Generated offline with the VOICEVOX engine; per-mora pitch set from Kanjium accent data (word + が). Used per the VOICEVOX and 玄野武宏 terms (credit "VOICEVOX:玄野武宏").
