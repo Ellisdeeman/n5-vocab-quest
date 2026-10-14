@@ -1268,6 +1268,15 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .lsans{margin:8px 0}
 
 .hfseg button{white-space:nowrap;padding-left:10px;padding-right:10px}
+
+.kwpad{display:flex;justify-content:center}.kwsvg{width:min(78vw,300px);height:min(78vw,300px);touch-action:none;border-radius:14px;border:2px solid var(--line,#ccc);background:var(--card,#fff);-webkit-user-select:none;user-select:none}
+.kwbg{fill:transparent}.kwg{stroke:var(--muted,#999);stroke-opacity:.35;stroke-dasharray:3 3;stroke-width:.6}
+.kwink,.kwok,.kwbad,.kwhint{fill:none;stroke-linecap:round;stroke-linejoin:round}.kwink{stroke:var(--text,#111);stroke-width:4}.kwok{stroke:var(--text,#111);stroke-width:4}
+.kwbad{stroke:#e5484d;stroke-width:4;animation:kwfade .7s forwards}.kwhint{stroke:#8a8f98;stroke-width:4;stroke-opacity:.55;animation:kwfade .9s forwards}.kwhint.strong{stroke-opacity:.8;animation-duration:1.6s}
+@keyframes kwfade{0%{opacity:1}70%{opacity:1}100%{opacity:0}}
+.kwbar{display:flex;align-items:center;gap:8px;max-width:300px;margin:6px auto}.kwfin .kwsvg{border-color:var(--accent,#1a7f6e)}
+.kwsum{text-align:center;margin:6px 0}.kwsug{outline:3px solid var(--accent,#1a7f6e);outline-offset:2px}.rkpref{display:block;text-align:center;font-size:.8rem;color:var(--muted,#888);margin-top:6px}
+.kwkw{font-size:1.6rem;font-weight:700;text-align:center}.kwreveal{display:flex;align-items:center;justify-content:center;gap:14px}
 </style>
 </head>
 <body>
@@ -4348,7 +4357,7 @@ function kanjiView(l) {
       <button class="btn ${fresh.length ? "" : "ghost"}" id="kjLearnBtn">Learn ▶</button></div>
     <div class="panel duepanel">${dueRow("kanji:" + l, "字", `Kanji due · ${LNAME(l)}`, due)}</div>
     <div class="sechead">Practice learned kanji</div>
-    <div class="grid">${Object.entries(KJ_MODES).map(([m, t]) => `<button class="mode ${learned.length ? "" : "dim"}" data-km="${m}"><div class="ic jp">${{ k2m: "意", k2r: "音", m2k: "字", wr: "語" }[m]}</div><h3>${t}</h3><p>${learned.length ? `${Math.min(20, learned.length)} questions` : "learn some kanji first"}</p></button>`).join("")}</div>
+    <div class="grid">${Object.entries(KJ_MODES).map(([m, t]) => `<button class="mode ${learned.length ? "" : "dim"}" data-km="${m}"><div class="ic jp">${{ k2m: "意", k2r: "音", m2k: "字", wr: "語" }[m]}</div><h3>${t}</h3><p>${learned.length ? `${Math.min(20, learned.length)} questions` : "learn some kanji first"}</p></button>`).join("")}<button class="mode" id="kwWrite"><div class="ic">✍️</div><h3>Write it</h3><p>Draw with finger or Pencil · stroke order checked</p></button></div>
     <div class="sechead">All ${LNAME(l)} kanji · easiest → hardest</div>
     <div class="kjgrid">${list.map((c, i) => { const x = JS.cards[c]; return `<button class="kjtile ${i >= un ? "locked" : ""} ${x ? "b" + Math.min(5, x.box) : ""}" data-c="${esc(c)}" aria-label="${esc(c)} ${esc(KJ[c].mean)}${i >= un ? " (locked)" : ""}">${esc(c)}</button>`; }).join("")}</div>
     <p class="muted" style="font-size:.8rem">Order: stroke count, frequency and school grade, with components taught before the kanji that contain them. Tap any kanji for its card.</p>`;
@@ -4357,6 +4366,7 @@ function kanjiView(l) {
   view.querySelectorAll("[data-review]").forEach(b => b.onclick = () => { sfx.click(); startDueReview(b.dataset.review, me); });
   view.querySelectorAll("button.mode[data-km]").forEach(b => b.onclick = () => { sfx.click(); if (!list.some(c => JS.cards[c])) return kanjiPractice(l, b.dataset.km, me); go(() => kanjiPractice(l, b.dataset.km, me)); });
   view.querySelectorAll(".kjtile").forEach(b => b.onclick = () => kjModal(b.dataset.c));
+  $("#kwWrite").onclick = () => { sfx.click(); go(() => kwPractice(l, me)); };
 }
 function kjSession(items, title, back, doneMsg) {
   const D = { items, pos: 0, correct: 0, retried: [] };
@@ -13571,15 +13581,16 @@ function rkListView(back) {
 }
 function rkCardView(f, back) { view.innerHTML = topbar(`🧠 #${f}`) + `<div class="panel rkcard" id="rkCard"></div>`; bindBack(back); rkRenderBack($("#rkCard"), f, null); }
 /* back of card: kanji, strokes (+ animate), primitives, story */
-function rkRenderBack(el, f, after) {
-  const it = rkItem(f);
+function rkRenderBack(el, f, after, wres) {
+  const it = rkItem(f), sug = wres ? kwSuggest(wres) : 0;
   el.innerHTML = `<div class="rkfront"><span class="muted">#${f}</span> <b class="rkkw">${esc(it[2])}</b></div>
+    ${wres ? `<p class="kwsum">✍️ ${esc(kwSummary(wres))} <span class="muted">Suggested: ${["", "Again", "Hard", "Good", "Easy"][sug]}</span></p>` : ""}
     <div class="rkk jp">${it[1]}</div>
     <div class="rkstroke" id="rkStroke"><small class="muted">Loading strokes…</small></div>
     <div class="btnrow" style="justify-content:center"><button class="btn sec small" id="rkAnim">▶ Animate strokes</button></div>
     <p class="rkparts"><b>${it[4]} stroke${it[4] === 1 ? "" : "s"}</b>${it[3] ? ` · primitives: ${esc(it[3])}` : ""}</p>
     <label class="rkstory"><span>Your story</span><textarea id="rkNote" rows="3" placeholder="Write your own story for “${esc(it[2])}”…">${esc(RTKS.notes[f] || "")}</textarea></label>
-    ${after ? `<div class="rkrate" id="rkRate">${[[1, "Again"], [2, "Hard"], [3, "Good"], [4, "Easy"]].map(([r, t]) => `<button class="btn ${r === 1 ? "sec" : ""}" data-r="${r}">${t}</button>`).join("")}</div>` : ""}`;
+    ${after ? `<div class="rkrate" id="rkRate">${[[1, "Again"], [2, "Hard"], [3, "Good"], [4, "Easy"]].map(([r, t]) => `<button class="btn ${r === 1 ? "sec" : ""} ${r === sug ? "kwsug" : ""}" data-r="${r}">${t}</button>`).join("")}</div>` : ""}`;
   rkStrokes(f).then(p => { const s = el.querySelector("#rkStroke"); if (s) s.innerHTML = p && p.length ? rkStrokeSVG(p) : `<small class="muted">Stroke data unavailable offline</small>`; });
   el.querySelector("#rkAnim").onclick = () => rkStrokes(f).then(p => { const s = el.querySelector("#rkStroke"); if (s && p && p.length) { s.innerHTML = rkStrokeSVG(p, { anim: true }); } });
   el.querySelector("#rkNote").onchange = e => { const v = e.target.value.trim(); if (v) RTKS.notes[f] = v; else delete RTKS.notes[f]; rksave(); toast("📝 Story saved"); };
@@ -13595,17 +13606,28 @@ function rkSession(back) {
     view.innerHTML = topbar(`🧠 ${done + 1}/${done + q.length + 1}`, `<span class="muted">${isNew ? "new frame" : "review"}</span>`) + `<div class="panel rkcard" id="rkCard">
       <div class="qtype">${isNew ? "New frame · study it, then write it" : "Write the kanji for this keyword"}</div>
       <div class="rkfront"><span class="muted">#${f}</span> <b class="rkkw">${esc(it[2])}</b></div>
-      <p class="muted" style="text-align:center">Write it on paper (or in the air), then check.</p>
-      <div class="btnrow" style="justify-content:center"><button class="btn" id="rkShow">Show kanji</button></div></div>`;
+      <div id="rkWrite"></div>
+      <div class="btnrow" style="justify-content:center"><button class="btn sec" id="rkSkip">${rkNoWrite() ? "✍️ Write it here" : "Skip writing"}</button><button class="btn" id="rkShow">Show kanji</button></div>
+      <label class="rkpref"><input type="checkbox" id="rkNoW" ${rkNoWrite() ? "checked" : ""}> Always skip writing (write on paper instead)</label></div>`;
     bindBack(back);
-    $("#rkShow").onclick = () => { sfx.click(); rkRenderBack($("#rkCard"), f, r => {
+    let pad = null, wres = null;
+    const reveal = () => { sfx.click(); rkRenderBack($("#rkCard"), f, r => {
       if (isNew) rkIntroduce(f);
       const c = rkGrade(f, r); done++; if (r === 1) again++;
       if (c.due - Date.now() < 20 * 60e3) q.splice(Math.min(q.length, 3), 0, f);   // learning step: see it again soon in this session
-      r > 1 ? sfx.good() : sfx.bad(); next(); }); };
+      r > 1 ? sfx.good() : sfx.bad(); next(); }, wres); };
+    const startPad = () => { $("#rkWrite").innerHTML = `<small class="muted">Loading pad…</small>`;
+      rkStrokes(f).then(p => { const h = $("#rkWrite"); if (!h) return; if (!p || !p.length) { h.innerHTML = `<p class="muted" style="text-align:center">Write it on paper (stroke data unavailable offline), then check.</p>`; return; }
+        pad = kwMount(h, p, { onDone: r => { wres = r; setTimeout(reveal, r.gaveUp ? 0 : 450); } }); }); };
+    const paper = () => { $("#rkWrite").innerHTML = `<p class="muted" style="text-align:center">Write it on paper (or in the air), then check.</p>`; };
+    rkNoWrite() ? paper() : startPad();
+    $("#rkSkip").onclick = () => { const toPad = rkNoWrite() && !pad; $("#rkSkip").remove(); if (toPad) startPad(); else { pad = null; paper(); } };
+    $("#rkNoW").onchange = e => { try { localStorage.setItem("n5vq.rkNoWrite", e.target.checked ? "1" : ""); } catch (x) {} };
+    $("#rkShow").onclick = () => { if (pad && !wres) { const st = pad.state(); if (st.k > 0 || st.mistakes) return pad.giveUp(); } reveal(); };
   };
   next();
 }
+const rkNoWrite = () => { try { return localStorage.getItem("n5vq.rkNoWrite") === "1"; } catch (e) { return false; } };
 const rtkTileHTML = () => { const d = rkDue().length; return `<button class="mode rktile-home" data-m="rtk"><div class="ic">🧠</div><h3>Remembering the Kanji ${d ? `<span class="badge">${d}</span>` : ""}</h3><p>${RTKS.frame ? `Frame ${RTKS.frame} · ${rkLearned()} in reviews` : "Heisig 6th ed. · set your frame"} · separate</p></button>`; };
 /* ---------- v42: Leeches handwriting worksheet (PDF made on-device, for GoodNotes + Apple Pencil) ----------
    iPad 4:3 portrait (197×263 mm). Part 1 study+practice (2 per page), Part 2 shuffled recall, Part 3 answer key.
@@ -13929,6 +13951,107 @@ async function hfView(back = home) {
 }
 const hfTileHTML = () => `<button class="mode hftile-home" data-m="hands-free"><div class="ic">🎧</div><h3>Hands-free flashcards</h3><p>${hfKnown().length} known words · 日本語 → pause → English · works locked</p></button>`;
 window.__HF = { hfKnown, hfBuild, hfGet, hfKey, hfCfg, hfView, hfSeekWord, hfChapter, get T() { return HF_T; }, get EL() { return HF_EL; } };
+/* ---------- v46: Kanji handwriting checker (KanjiVG strokes) ----------
+   Own stroke matcher (no library): every finger/Pencil stroke is resampled and compared with the next KanjiVG stroke
+   for shape (mean point distance), direction (start→end) and position. Feedback comes only AFTER each attempt:
+   a correct stroke snaps to the model stroke; a wrong one flashes red, then the expected stroke flashes grey briefly.
+   Nothing is shown before you write. Used by Remembering the Kanji (its own track) and the level Kanji "Write it" practice. */
+const KW_N = 24;
+let KW_SVG = null;
+function kwSample(d, n = KW_N) {   // KanjiVG path → n points (109×109 space)
+  if (!KW_SVG) { KW_SVG = document.createElementNS("http://www.w3.org/2000/svg", "svg"); KW_SVG.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden"); document.body.appendChild(KW_SVG); }
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", d); KW_SVG.appendChild(p);
+  let L = 0; try { L = p.getTotalLength(); } catch (e) {}
+  const out = []; for (let i = 0; i < n; i++) { let q = { x: 0, y: 0 }; try { q = p.getPointAtLength(L * i / (n - 1)); } catch (e) {} out.push({ x: q.x, y: q.y }); }
+  p.remove(); return out;
+}
+function kwResample(pts, n = KW_N) {
+  if (pts.length < 2) return Array(n).fill(pts[0] || { x: 0, y: 0 });
+  const seg = [0]; for (let i = 1; i < pts.length; i++) seg.push(seg[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  const L = seg[seg.length - 1] || 1, out = []; let j = 0;
+  for (let i = 0; i < n; i++) { const t = L * i / (n - 1); while (j < seg.length - 2 && seg[j + 1] < t) j++; const f = (t - seg[j]) / ((seg[j + 1] - seg[j]) || 1); out.push({ x: pts[j].x + (pts[j + 1].x - pts[j].x) * f, y: pts[j].y + (pts[j + 1].y - pts[j].y) * f }); }
+  return out;
+}
+const kwLen = a => a.reduce((s, p, i) => i ? s + Math.hypot(p.x - a[i - 1].x, p.y - a[i - 1].y) : 0, 0);
+const kwDist = (a, b) => a.reduce((s, p, i) => s + Math.hypot(p.x - b[i].x, p.y - b[i].y), 0) / a.length;
+/* compare one drawn stroke (resampled) with a model stroke → {ok, rev, d} */
+function kwCompare(u, m) {
+  const d = kwDist(u, m), dr = kwDist(u, m.slice().reverse()), lm = kwLen(m);
+  const span = a => Math.hypot(a[a.length - 1].x - a[0].x, a[a.length - 1].y - a[0].y), su = span(u), sm = span(m);
+  const tol = Math.max(13, Math.min(22, lm * 0.45));   // short strokes (dots) get a bit more slack
+  const lenOk = su > sm * 0.35 - 4 && su < sm * 2.2 + 10;   // start→end span (robust to wobbly ink)
+  return { ok: d < tol && lenOk, rev: dr < tol && dr < d && lenOk, d };
+}
+/* classify an attempt for stroke index k: ok | reversed | order (matches another not-yet-drawn stroke) | shape */
+function kwJudge(u, models, k, done) {
+  const c = kwCompare(u, models[k]);
+  if (c.ok) {   // parallel strokes (三, 目 …) are close together: if a later stroke fits clearly better, it's an order slip
+    for (let j = k + 1; j < models.length; j++) if (!done[j]) { const o = kwCompare(u, models[j]); if (o.ok && o.d < c.d * 0.6) return { r: "order", j }; }
+    return { r: "ok" };
+  }
+  if (c.rev) return { r: "reversed" };
+  for (let j = 0; j < models.length; j++) if (j !== k && !done[j] && kwCompare(u, models[j]).ok) return { r: "order", j };
+  return { r: "shape" };
+}
+/* mount a writing pad. paths = KanjiVG strokes. opts.onDone({mistakes, misses[], gaveUp}) */
+function kwMount(el, paths, opts = {}) {
+  const models = paths.map(d => kwSample(d)), n = paths.length, done = Array(n).fill(false), misses = Array(n).fill(0);
+  let k = 0, mistakes = 0, fin = false, cur = null, last = "";
+  el.innerHTML = `<div class="kwpad"><svg class="kwsvg" viewBox="0 0 109 109" aria-label="Writing pad"><rect x="0" y="0" width="109" height="109" class="kwbg"/><line x1="54.5" y1="0" x2="54.5" y2="109" class="kwg"/><line x1="0" y1="54.5" x2="109" y2="54.5" class="kwg"/><g class="kwdone"></g><g class="kwflash"></g><path class="kwink" d=""/></svg></div>
+    <div class="kwbar"><span class="kwmsg muted" aria-live="polite">Write it here</span><span class="grow"></span><button class="btn sec small kwundo" type="button">↺ Clear</button></div>`;
+  const svg = el.querySelector(".kwsvg"), ink = el.querySelector(".kwink"), gd = el.querySelector(".kwdone"), gf = el.querySelector(".kwflash"), msg = el.querySelector(".kwmsg");
+  const pt = e => { const r = svg.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * 109, y: (e.clientY - r.top) / r.height * 109 }; };
+  const dstr = a => a.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("");
+  const flash = (d, cls, ms) => { const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", d); p.setAttribute("class", cls); gf.appendChild(p); setTimeout(() => p.remove(), ms); };
+  const finish = gaveUp => { if (fin) return; fin = true; el.classList.add("kwfin"); const res = { mistakes, misses: misses.slice(), gaveUp: !!gaveUp, strokes: n }; el.__kwResult = res; opts.onDone && opts.onDone(res); };
+  const reset = () => { if (fin) return; k = 0; done.fill(false); gd.innerHTML = ""; msg.textContent = "Write it here"; };
+  el.querySelector(".kwundo").onclick = reset;
+  const down = e => { if (fin || e.button > 0) return; e.preventDefault(); svg.setPointerCapture && svg.setPointerCapture(e.pointerId); cur = [pt(e)]; ink.setAttribute("d", dstr(cur)); };
+  const move = e => { if (!cur) return; e.preventDefault(); const p = pt(e), q = cur[cur.length - 1]; if (Math.hypot(p.x - q.x, p.y - q.y) > 0.8) { cur.push(p); ink.setAttribute("d", dstr(cur)); } };
+  const up = e => { if (!cur) return; const pts = cur; cur = null; ink.setAttribute("d", ""); if (pts.length < 2 && fin) return; kwStroke(pts.length < 2 ? [pts[0], { x: pts[0].x + 0.5, y: pts[0].y + 0.5 }] : pts); };
+  const kwStroke = raw => {
+    if (fin) return;
+    const u = kwResample(raw), j = kwJudge(u, models, k, done);
+    if (j.r === "ok") {
+      done[k] = true; const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", paths[k]); p.setAttribute("class", "kwok"); gd.appendChild(p);
+      k++; last = "ok"; msg.textContent = k < n ? `${k} ✓` : (mistakes ? `Done · ${mistakes} slip${mistakes === 1 ? "" : "s"}` : "Done · clean!");
+      if (k >= n) finish(false); return;
+    }
+    mistakes++; misses[k]++; last = j.r;
+    flash(dstr(raw), "kwbad", 700);
+    msg.textContent = j.r === "reversed" ? "Right stroke, wrong direction" : j.r === "order" ? "Wrong order — that stroke comes later" : "Not quite — try that stroke again";
+    // hint only after the attempt: the expected stroke flashes briefly (longer after repeated misses)
+    setTimeout(() => flash(paths[k], misses[k] >= 3 ? "kwhint strong" : "kwhint", misses[k] >= 3 ? 1600 : 900), 250);
+  };
+  svg.addEventListener("pointerdown", down); svg.addEventListener("pointermove", move); svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+  return { giveUp: () => finish(true), result: () => el.__kwResult || null, _stroke: kwStroke, _models: models, state: () => ({ k, mistakes, fin }) };
+}
+/* suggested self-rating from the writing result (the user still decides) */
+function kwSuggest(res) { if (!res || res.gaveUp) return 1; const m = res.mistakes; return m === 0 ? 3 : m <= 2 ? 2 : 1; }
+const kwSummary = res => !res ? "" : res.gaveUp ? `You stopped after ${res.mistakes} slip${res.mistakes === 1 ? "" : "s"}.` : res.mistakes ? `Written with ${res.mistakes} slip${res.mistakes === 1 ? "" : "s"} (${res.misses.map((m, i) => m ? `stroke ${i + 1}×${m}` : "").filter(Boolean).join(", ")}).` : `Written cleanly — every stroke in order and direction.`;
+
+/* ---- standalone "Write it" practice for a level's kanji (practice only: no grading, no schedule changes) ---- */
+async function kwPractice(l, back) {
+  const gen = viewGen; view.innerHTML = topbar("✍️ Write it") + `<div class="panel"><p>Loading strokes…</p></div>`; bindBack(back);
+  await loadKanji(l); await loadStrokes(l); if (gen !== viewGen) return;
+  const list = KJL[l].list, learned = list.filter(c => JS.cards[c]), pool = lwShuffle((learned.length ? learned : list.slice(0, kjUnlockedCount(l))).filter(c => KJ[c] && KJ[c].paths && KJ[c].paths.length), Date.now() % 1e9).slice(0, 10);
+  if (!pool.length) { view.querySelector(".panel").innerHTML = `<p>No stroke data for these kanji yet.</p>`; return; }
+  let i = 0, clean = 0;
+  const next = () => {
+    if (i >= pool.length) { view.innerHTML = topbar("✍️ Write it") + `<div class="panel" style="text-align:center"><div class="big">✍️</div><h2>${clean}/${pool.length} written cleanly</h2><p class="muted">Practice only — your kanji reviews aren't changed.</p><div class="btnrow"><button class="btn" id="kwAgain">Again</button><button class="btn sec" id="kwDone">Done</button></div></div>`; bindBack(back); $("#kwAgain").onclick = () => kwPractice(l, back); $("#kwDone").onclick = () => go(back); return; }
+    const c = pool[i], k = KJ[c];
+    view.innerHTML = topbar(`✍️ ${i + 1}/${pool.length}`) + `<div class="panel kwcard"><div class="qtype">Write the kanji for</div><div class="kwkw">${esc(String(k.mean).split(/[,;]/)[0])}</div><p class="muted" style="text-align:center;margin:2px 0 6px">${esc(kjReading(k))}</p><div id="kwHost"></div>
+      <div class="btnrow" style="justify-content:center"><button class="btn sec" id="kwGive">Show answer</button></div><div id="kwRes"></div></div>`;
+    bindBack(back);
+    const show = res => { if (res && !res.gaveUp && !res.mistakes) clean++; $("#kwGive").remove();
+      $("#kwRes").innerHTML = `<div class="kwreveal"><div class="rkk jp">${esc(c)}</div>${rkStrokeSVG(k.paths, { size: 130 })}</div><p class="kwsum">${esc(kwSummary(res))}</p><div class="btnrow" style="justify-content:center"><button class="btn" id="kwNext">Next ▶</button></div>`;
+      $("#kwNext").onclick = () => { i++; next(); }; };
+    const pad = kwMount($("#kwHost"), k.paths, { onDone: show });
+    $("#kwGive").onclick = () => pad.giveUp();
+  };
+  next();
+}
+window.__KW = { kwSample, kwResample, kwCompare, kwJudge, kwMount, kwSuggest, kwPractice };
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -13961,7 +14084,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "cb24cb8415e5";
+const BUILD = "5a4d53dc282e";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
