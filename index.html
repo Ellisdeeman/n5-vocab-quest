@@ -4644,7 +4644,7 @@ function sniperRun(l, host, back, again) {
   let order = pool.slice(), raf = 0, last = 0, cur = null, waveT = null;
   const mult = () => Math.min(4, 1 + Math.floor(st.combo / 3) * 0.5);
   const hud = () => { $("#gLives").innerHTML = gHearts(st.lives); $("#gMult").textContent = "x" + mult(); $("#gscore").textContent = st.score; };
-  const playCur = () => { if (!cur) return; if (kana) gPlay(`k/${kFile(cur.item)}.mp3`, cur.item.id, 0.8); else if (cur.sent) playSentence(sentenceAudioPath(cur.sent), cur.sent[0]); else gPlay(wordPath(cur.item), speechText(cur.item)); };
+  const playCur = () => { if (!cur) return; if (kana) gPlay(`k/${kFile(cur.item)}.mp3`, cur.item.id, 0.8); else gPlay(wordPath(cur.item), speechText(cur.item)); };
   const nextWave = () => {
     if (st.over || !arena.isConnected) return;
     arena.querySelectorAll(".gtarget").forEach(t => t.remove()); msg.textContent = ""; st.busy = false;
@@ -4655,15 +4655,15 @@ function sniperRun(l, host, back, again) {
     if (kana) { item = KITEMS[id]; opts = shuffle([item, ...kDistractors(item, n - 1, pool)]); label = o => o.id; }
     else {
       item = WORDS[id];
-      const hard = st.wave > 8 && ex(id).length && ex(id)[0][0].length <= 28;
-      if (hard) { sent = ex(id)[0]; opts = shuffle([item, ...distractors(item, n - 1, x => x.jp, "reverse")]); label = o => o.jp; }
+      const hard = st.wave > 8;   // v50: hard waves = Japanese-script targets; still plays ONLY the word (before v50 they played the example sentence)
+      if (hard) { opts = shuffle([item, ...distractors(item, n - 1, x => x.jp, "reverse")]); label = o => o.jp; }
       else { opts = shuffle([item, ...distractors(item, n - 1, x => shortEn(x), "meaning")]); label = o => shortEn(o); }
     }
     cur = st.cur = { item, sent, opts };
     const W = arena.clientWidth, H = arena.clientHeight, laneH = H / n, speed = (reduced ? 0.4 : 1) * Math.min(200, 55 + st.wave * 7);
     st.correct = opts.indexOf(item); st.targets = [];
     opts.forEach((o, i) => {
-      const b = document.createElement("button"); b.className = "gtarget" + (kana || sent ? " jp" : ""); b.dataset.i = i; b.textContent = label(o);
+      const b = document.createElement("button"); b.className = "gtarget" + (kana || label(item) === item.jp ? " jp" : ""); b.dataset.i = i; b.textContent = label(o);
       b.style.top = (i * laneH + (laneH - 58) / 2) + "px"; arena.appendChild(b);
       const w = b.offsetWidth, dir = i % 2 ? -1 : 1, start = dir > 0 ? -w * 0.6 - rand(40) - i * 24 : W - w * 0.4 + rand(40) + i * 24;
       const t = { el: b, x: start, w, dir, v: speed * (0.9 + Math.random() * 0.25), ok: o === item };
@@ -14109,7 +14109,7 @@ function renderCredits() {
 const hum = Object.values(HUMAN);
 $("#credits").innerHTML = `Vocabulary: ${LEVELS.map(l => `${LNAME(l)} ${LV[l].loaded ? LV[l].ids.length : LV[l].info.count}`).join(" · ")} words from <a href="https://github.com/jamsinclair/open-anki-jlpt-decks" target="_blank" rel="noopener">open-anki-jlpt-decks</a> (each word listed once, at its easiest level).<br>
   Example sentences (${LEVELS.map(l => `${LNAME(l)} ${LV[l].loaded ? LV[l].exCount : LV[l].info.ex}`).join(" · ")} words covered): <a href="https://tatoeba.org" target="_blank" rel="noopener">Tatoeba</a> contributors, licensed <a href="https://creativecommons.org/licenses/by/2.0/fr/" target="_blank" rel="noopener">CC BY 2.0 FR</a> (Tanaka Corpus word index).<br>
-  Voices: Microsoft Edge neural voices (Keita, Nanami). Audio: words, kana &amp; most sentences are pre-generated with Microsoft neural TTS voice <b>ja-JP-KeitaNeural</b> (via edge-tts); <b>ja-JP-NanamiNeural</b> speaks female and second-speaker lines in dialogues; Pitch accent trainer only: VOICEVOX:玄野武宏 (pitch set from Kanjium)${hum.length ? `; ${hum.length} sentences (in loaded levels) use human recordings from Tatoeba by ${[...new Set(hum.map(h => h[0]))].map(u => `<a href="https://tatoeba.org/en/user/profile/${encodeURIComponent(u)}" target="_blank" rel="noopener">${esc(u)}</a>`).join(", ")} (${[...new Set(hum.map(h => h[1]))].join(", ")})` : ""}.<br>
+  Voices: Microsoft Edge neural voices (Keita, Nanami). Audio: words, kana &amp; most sentences are pre-generated with Microsoft neural TTS voice <b>ja-JP-KeitaNeural</b> (via edge-tts); <b>ja-JP-NanamiNeural</b> speaks female and second-speaker lines in dialogues; Pitch accent trainer only: VOICEVOX:玄野武宏 (pitch set from Kanjium); Genki-only words (Genki decks, ${typeof GENKI !== "undefined" && GENKI.gw ? GENKI.gw.length : ""} words not in the JLPT lists): <b>ja-JP-KeitaNeural</b> (via edge-tts), word list from a public Genki 3rd ed. learner list (unofficial)${hum.length ? `; ${hum.length} sentences (in loaded levels) use human recordings from Tatoeba by ${[...new Set(hum.map(h => h[0]))].map(u => `<a href="https://tatoeba.org/en/user/profile/${encodeURIComponent(u)}" target="_blank" rel="noopener">${esc(u)}</a>`).join(", ")} (${[...new Set(hum.map(h => h[1]))].join(", ")})` : ""}.<br>
   Kanji: meanings, readings, stroke counts & frequency from <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT, David Gouveia), derived from <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a> (EDRDG, CC BY-SA 4.0), with JLPT levels from Jonathan Waller's <a href="http://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">JLPT resources</a>. Stroke order & look-alike shapes from <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> © Ulrich Apel (CC BY-SA 3.0). The kanji data files (data/kanji-*.json) are shared under CC BY-SA.<br>
   Pimsleur words: <b>unofficial, compiled from learner notes; not affiliated with Pimsleur</b> — word lists only (word, reading, meaning, lesson), cross-checked from ${PIMS.meta.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a>`).join(", ")}; the ${PIMS.pm.length} words not in the JLPT lists use the same NanamiNeural TTS. Pimsleur is a trademark of its owner.<br>
   Games: Sentence Scramble uses the Tatoeba sentences above (CC BY 2.0 FR), split into word tiles offline with <a href="https://github.com/polm/fugashi" target="_blank" rel="noopener">fugashi</a> (MIT) + <a href="https://github.com/polm/unidic-lite" target="_blank" rel="noopener">unidic-lite</a> (UniDic, BSD); Kanji Builder parts come from KanjiVG element groups (CC BY-SA 3.0). The game data files (data/games-*.json) are shared under CC BY-SA.<br>
@@ -14131,7 +14131,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "3ec6d5b7d78a";
+const BUILD = "f3cffbb1d933";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
