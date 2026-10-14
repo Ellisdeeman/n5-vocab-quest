@@ -65,3 +65,5 @@ audio/en/: English gloss clips (Hands-free flashcards only) synthesized offline 
 
 Pitch accent trainer (pt/<level>/<index>.mp3, used only by the pitch trainer): VOICEVOX:玄野武宏 (ノーマル), https://voicevox.hiroshiba.jp/
 Generated offline with the VOICEVOX engine; per-mora pitch set from Kanjium accent data (word + が). Used per the VOICEVOX and 玄野武宏 terms (credit "VOICEVOX:玄野武宏").
+
+Genki-only words (gk/w/<index>.mp3, ids 60000+): same edge-tts ja-JP-KeitaNeural voice (-10%), read from the kana; word list from a public Genki 3rd ed. learner list (cemulate), unofficial.
