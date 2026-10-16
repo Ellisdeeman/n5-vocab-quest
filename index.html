@@ -4964,7 +4964,7 @@ const SNAPKEY = "jlptVocabQuest.snapshot.v1";  // safety snapshot taken before a
 const GIST_DESC = "JLPT Vocab Quest sync", GIST_FILE = "jlpt-quest-sync.json", BK_APP = "jlpt-vocab-quest", BK_VER = 1;
 /* Remembering the Kanji (app40): its own store, completely separate from vocab/kanji/kana — synced alongside them */
 const RKEY = "jlptVocabQuest.rtk.v1";
-const rkDefault = () => ({ cards: {}, frame: 0, perDay: 10, notes: {}, newLog: {} });
+const rkDefault = () => ({ cards: {}, frame: 0, notes: {}, newLog: {} });
 let RTKS; try { RTKS = Object.assign(rkDefault(), JSON.parse(localStorage.getItem(RKEY) || "{}")); } catch (e) { RTKS = rkDefault(); }
 ["cards", "notes", "newLog"].forEach(k => { if (!RTKS[k] || typeof RTKS[k] !== "object" || Array.isArray(RTKS[k])) RTKS[k] = {}; });
 function rksave() { try { localStorage.setItem(RKEY, JSON.stringify(RTKS)); } catch (e) {} if (typeof syncTouch === "function") syncTouch(); }
@@ -13149,7 +13149,7 @@ function duoSettingsHTML() {
   return `<div class="bksec" id="duoSec"><h3 class="bkh">🦉 Duolingo</h3>
     <div class="row"><span>Duolingo profile<br><small class="muted">Profile link (duolingo.com/profile/NAME) or username</small></span><input type="text" id="duoIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="duolingo.com/profile/…" value="${esc(S.duoUser || "")}"></div>
     <div class="btnrow" style="justify-content:flex-end"><button class="btn small sec" id="duoClr"${S.duoUser ? "" : " disabled"}>Remove</button><button class="btn small" id="duoSave">Save</button></div>
-    <p class="muted" id="duoNote" style="font-size:.82rem">Your Duolingo profile must be <b>public</b> (Duolingo → Settings → Privacy). The “done today” check runs on the reminder server for invited users and needs Gist sync; your username only travels encrypted. Saved on this device and synced.</p>${typeof duoPosHTML === "function" ? duoPosHTML() : ""}${typeof gkPosHTML === "function" ? gkPosHTML() : ""}</div>`;
+    <p class="muted" id="duoNote" style="font-size:.82rem">Your Duolingo profile must be <b>public</b> (Duolingo → Settings → Privacy). The “done today” check runs on the reminder server for invited users and needs Gist sync; your username only travels encrypted. Saved on this device and synced.</p>${typeof duoPosHTML === "function" ? duoPosHTML() : ""}${typeof gkPosHTML === "function" ? gkPosHTML() : ""}${typeof RTKS !== "undefined" ? `<div class="duopos" id="rkSetPos"><label class="row"><span style="text-align:left">🧠 RTK: frame you're on<br><small class="muted">Frames 1–N are all in your RTK reviews; higher frames are left out</small></span><input type="number" id="rkFrameS" min="0" max="${RK_INFO.n}" inputmode="numeric" value="${+RTKS.frame || ""}" placeholder="e.g. 120" style="width:96px"></label></div>` : ""}</div>`;
 }
 function bindDuoSettings(root) {
   const q = s => root.querySelector(s); if (!q("#duoSave")) return;
@@ -13161,7 +13161,7 @@ function bindDuoSettings(root) {
     msg(u ? `Saved <b>${esc(u)}</b>. Make sure the profile is public.` : "Removed.");
     if (ch && u) duoRefresh(true); toast(u ? "🦉 Duolingo profile saved" : "Duolingo profile removed");
   };
-  if (typeof bindDuoPos === "function") bindDuoPos(root); if (typeof bindGkPos === "function") bindGkPos(root);
+  if (typeof bindDuoPos === "function") bindDuoPos(root); if (typeof bindGkPos === "function") bindGkPos(root); { const rf = root.querySelector("#rkFrameS"); if (rf) rf.onchange = e => { const v = Math.max(0, Math.min(RK_INFO.n, Math.round(+e.target.value || 0))); RTKS.frame = v; rksave(); if (typeof rkBadgeReset === "function") rkBadgeReset(); e.target.value = v || ""; toast(v ? `🧠 RTK frames 1–${v} in reviews` : "🧠 RTK frame cleared"); }; }
   q("#duoClr").onclick = () => { duoSet(""); q("#duoIn").value = ""; q("#duoClr").disabled = true; msg("Removed."); toast("Duolingo profile removed"); if (typeof pnUpload === "function") pnUpload("duo"); };
 }
 function duoEdit() {
@@ -13553,7 +13553,7 @@ const pitchTileHTML = () => `<button class="mode pttile-home" data-m="pitch"><di
    Store RTKS (jlptVocabQuest.rtk.v1, app11): cards { frame: card with its own FSRS state f }, frame = the frame you're on,
    perDay = new frames introduced per day, notes { frame: your story }, newLog { day: [frames introduced] }.
    Nothing here touches S/JS/KS: no effect on vocab or kanji reviews, the new-word cap, the goal ring, Due counts or
-   reminders. Frames 1..RTKS.frame join gradually (RTKS.perDay a day, in frame order).
+   reminders. v52: frames 1..RTKS.frame are ALL in reviews at once; no daily drip, no automatic progression (N changes only when he types it).
    Data (lazy, pub repo): data/rtk.json — frame, kanji, keyword, primitive names (community list sdcr/heisig-kanjis,
    frames cross-checked with Kanjium); data/rtk-s-K.json — KanjiVG stroke paths (CC BY-SA 3.0). No Heisig stories or
    explanations ship: the story field is yours.
@@ -13567,12 +13567,15 @@ function rkStrokes(fr) { const k = Math.floor((fr - 1) / RK_INFO.ch); if (RKS[k]
   if (!rkSP[k]) rkSP[k] = fetchT(rkSUrl(k), 30000).then(r => { if (!r.ok) throw 0; return r.json(); }).then(d => (RKS[k] = d.paths)).catch(() => { delete rkSP[k]; return null; });
   return rkSP[k].then(p => (p ? p[fr - 1 - k * RK_INFO.ch] || [] : [])); }
 const rkItem = fr => RKD && RKD[fr - 1];
-const RK_PERDAY = [3, 5, 10, 15, 20, 30];
 const rkToday = () => (Array.isArray(RTKS.newLog[todayStr()]) ? RTKS.newLog[todayStr()] : []);
-const rkNewLeft = () => Math.max(0, (+RTKS.perDay || 10) - rkToday().length);
+/* v52: the frame you're on (N) puts ALL frames 1..N in your RTK reviews right away (no daily drip); frames above N are
+   excluded (their history is kept and comes back if N is raised). */
+const rkN = () => Math.min(+RTKS.frame || 0, RK_INFO.n);
+const rkIn = f => f >= 1 && f <= rkN();
+const rkNewLeft = () => rkUnseen().length;
 const rkUnseen = () => { const o = []; for (let f = 1; f <= Math.min(+RTKS.frame || 0, RK_INFO.n); f++) if (!RTKS.cards[f]) o.push(f); return o; };
-const rkDue = (now = Date.now()) => Object.keys(RTKS.cards).map(Number).filter(f => RTKS.cards[f].due <= now).sort((a, b) => RTKS.cards[a].due - RTKS.cards[b].due);
-const rkLearned = () => Object.keys(RTKS.cards).length;
+const rkDue = (now = Date.now()) => Object.keys(RTKS.cards).map(Number).filter(f => rkIn(f) && RTKS.cards[f].due <= now).sort((a, b) => RTKS.cards[a].due - RTKS.cards[b].due);
+const rkLearned = () => Object.keys(RTKS.cards).filter(f => rkIn(+f)).length;
 function rkGrade(fr, r, now = Date.now()) {
   const c = RTKS.cards[fr] || (RTKS.cards[fr] = { ok: 0, bad: 0, f: null, due: now });
   c.f = fsrsNext(c.f, r, now, fCfg()); c.due = c.f.due; c.t = now; r > 1 ? c.ok++ : c.bad++; c.box = boxFromF(c.f);
@@ -13593,10 +13596,9 @@ async function rtkHome(back = home) {
   view.innerHTML = topbar("🧠 Remembering the Kanji") + `<div class="largetitle">Remembering the Kanji</div>
     <p class="subtitle">6th edition frames · its own reviews, separate from everything else</p>
     ${!okd ? `<div class="panel"><p>Couldn't load the frame list (offline?).</p><button class="btn" id="rkRetry">Try again</button></div>` : `
-    <div class="panel rkset"><label class="row"><span>Frame you're on<br><small class="muted">Frames 1–${fr || "N"} join your RTK reviews gradually</small></span><input type="number" id="rkFrame" min="0" max="${RK_INFO.n}" inputmode="numeric" value="${fr || ""}" placeholder="e.g. 120" style="width:96px"></label>
-      <label class="row"><span>New frames per day</span><select id="rkPer">${RK_PERDAY.map(n => `<option value="${n}" ${+RTKS.perDay === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-      <small class="muted" id="rkFrameInfo">${fr ? `Up to #${fr} ${esc(rkItem(fr) ? rkItem(fr)[2] : "")} · ${rkLearned()} in reviews · ${un} still to add` : "Set your frame to start."}</small></div>
-    <div class="hero ${due || nl ? "" : "done"}"><div class="ic">🧠</div><div><h2>${due ? `${due} due` : "Nothing due"}${nl ? ` · ${nl} new today` : ""}</h2><p>Keyword → write the kanji → check</p></div><button class="btn" id="rkGo" ${due || nl ? "" : "disabled"}>Start ▶</button></div>
+    <div class="panel rkset"><label class="row rkframe"><span><b style="font-size:1.15rem">I'm on frame</b><br><small class="muted">All frames 1–${fr || "N"} are in your RTK reviews</small></span><input type="number" id="rkFrame" min="0" max="${RK_INFO.n}" inputmode="numeric" value="${fr || ""}" placeholder="e.g. 120" style="width:110px;font-size:1.4rem;font-weight:700;text-align:center"></label>
+      <small class="muted" id="rkFrameInfo">${fr ? `Up to #${fr} ${esc(rkItem(fr) ? rkItem(fr)[2] : "")} · ${rkLearned()} studied · ${un} new ready` : "Set your frame to start."}</small></div>
+    <div class="hero ${due || nl ? "" : "done"}"><div class="ic">🧠</div><div><h2>${due ? `${due} due` : "Nothing due"}${nl ? ` · ${nl} new` : ""}</h2><p>Keyword → write the kanji → check</p></div><button class="btn" id="rkGo" ${due || nl ? "" : "disabled"}>Start ▶</button></div>
     <div class="panel rkrand"><div class="row"><span><b>🔀 Random review</b><br><small class="muted">Shuffled frames you've added, anytime · doesn't push due dates</small></span></div>
       <label class="row"><span>From</span><select id="rkRN">${RK_RAND.map(n => `<option value="${n}" ${rkRandN() === n ? "selected" : ""}>${n ? `Last ${n} frames` : "All added frames"}</option>`).join("")}</select></label>
       <button class="btn" id="rkRand" ${rkLearned() ? "" : "disabled"}>🔀 Random review (${Math.min(RK_RAND_LEN, rkRandPool().length)})</button></div>
@@ -13605,8 +13607,7 @@ async function rtkHome(back = home) {
   bindBack(back);
   const rt = $("#rkRetry"); if (rt) rt.onclick = () => rtkHome(back);
   if (!okd) return;
-  $("#rkFrame").onchange = e => { const v = Math.max(0, Math.min(RK_INFO.n, Math.round(+e.target.value || 0))); RTKS.frame = v; rksave(); toast(v ? `🧠 Frame ${v} · ${rkItem(v)[2]}` : "🧠 Frame cleared"); rtkHome(back); };
-  $("#rkPer").onchange = e => { RTKS.perDay = +e.target.value; rksave(); rtkHome(back); };
+  $("#rkFrame").onchange = e => { const v = Math.max(0, Math.min(RK_INFO.n, Math.round(+e.target.value || 0))); RTKS.frame = v; rksave(); if (typeof rkBadgeReset === "function") rkBadgeReset(); toast(v ? `🧠 Frame ${v} · ${rkItem(v)[2]}` : "🧠 Frame cleared"); rtkHome(back); };
   $("#rkGo").onclick = () => { sfx.click(); go(() => rkSession(() => rtkHome(back))); };
   $("#rkRN").onchange = e => { try { localStorage.setItem("n5vq.rkRandN", e.target.value); } catch (x) {} rtkHome(back); };
   $("#rkRand").onclick = () => { sfx.click(); go(() => rkSession(() => rtkHome(back), { random: true })); };
@@ -13673,7 +13674,7 @@ function rkSession(back, opt = {}) {
    to ~10 min from now, so the next regular RTK review grades the lapse through FSRS as usual. */
 const RK_RAND = [0, 25, 50, 100, 200], RK_RAND_LEN = 20;
 const rkRandN = () => { try { const v = +localStorage.getItem("n5vq.rkRandN"); return RK_RAND.includes(v) ? v : 0; } catch (e) { return 0; } };
-const rkRandPool = () => { const fs = Object.keys(RTKS.cards).map(Number).sort((a, b) => a - b), n = rkRandN(); return n ? fs.slice(-n) : fs; };
+const rkRandPool = () => { const fs = Object.keys(RTKS.cards).map(Number).filter(rkIn).sort((a, b) => a - b), n = rkRandN(); return n ? fs.slice(-n) : fs; };
 const rkShuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 function rkRandGrade(fr, r, now = Date.now()) {
   const c = RTKS.cards[fr]; if (!c) return null;
@@ -14155,7 +14156,7 @@ async function earlyStart(back = dueView) {
 function rkHomeHTML() {
   if (typeof RTKS === "undefined" || !(RTKS.frame || Object.keys(RTKS.cards).length)) return "";
   const d = rkDue().length, nl = Math.min(rkNewLeft(), rkUnseen().length);
-  return `<div class="panel rkhome" id="rkHome"><div class="row"><span class="ic">🧠</span><span class="grow" style="text-align:left"><b>Remembering the Kanji</b><br><small class="muted">${d ? `${d} due` : "Nothing due"}${nl ? ` · ${nl} new today` : ""} · separate from vocab</small></span>
+  return `<div class="panel rkhome" id="rkHome"><div class="row"><span class="ic">🧠</span><span class="grow" style="text-align:left"><b>Remembering the Kanji</b><br><small class="muted">${d ? `${d} due` : "Nothing due"}${nl ? ` · ${nl} new` : ""} · frames 1–${rkN()} · separate from vocab</small></span>
     ${d || nl ? `<button class="btn small" id="rkHomeGo">Review ${d ? `(${d})` : "▶"}</button>` : `<button class="btn small sec" id="rkHomeRand" ${rkLearned() ? "" : "disabled"}>🔀 Random review</button>`}</div></div>`;
 }
 function bindRkHome(root = document) {
@@ -14170,7 +14171,7 @@ let RK_SET = null;
 function rkKnown() {
   if (RK_SET) return RK_SET;
   if (typeof RKD === "undefined" || !RKD || typeof RTKS === "undefined") return null;
-  const s = new Map(); for (const f of Object.keys(RTKS.cards).map(Number)) { const it = RKD[f - 1]; if (it && it[1]) s.set(it[1], f); }
+  const s = new Map(); for (const f of Object.keys(RTKS.cards).map(Number).filter(rkIn)) { const it = RKD[f - 1]; if (it && it[1]) s.set(it[1], f); }
   return (RK_SET = s);
 }
 const rkBadgeReset = () => { RK_SET = null; };
@@ -14210,7 +14211,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "784744de36b3";
+const BUILD = "bb86cad94cca";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
