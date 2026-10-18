@@ -1924,6 +1924,7 @@ function fsrsNext(f0, r, now, o = {}) {
 }
 
 /* ---------- app glue ---------- */
+const LF_HOLD = 8e15;   // v57 sentinel due date for focus-batch words
 const fCfg = () => ({ ret: [0.85, 0.9, 0.95].includes(+S.retention) ? +S.retention : 0.9, max: +S.maxIvl || 1095, fuzz: true });
 const MASTER_S = 21;   // "mastered" = reading-track stability ≥ 21 days (or a carried-over Leitner box ≥ 4 that hasn't lapsed since)
 const boxFromF = f => !f ? 0 : f.st === 1 ? (f.sp >= 1 ? 1 : 0) : f.st === 3 ? 1 : f.s < 7 ? 2 : f.s < MASTER_S ? 3 : f.s < 60 ? 4 : f.s < 180 ? 5 : 6;
@@ -1931,6 +1932,7 @@ function fsrsSync(c) {   // recompute the legacy fields every other part of the 
   if (!c.f) return c;
   c.box = Math.max(boxFromF(c.f), +c.lb || 0);
   c.due = c.L ? Math.min(c.f.due, c.L.due) : c.f.due;
+  if (c.hold) c.due = LF_HOLD;   // v57: in the leech focus batch → out of every normal review queue (FSRS still updates in c.f)
   return c;
 }
 const fNew = now => ({ st: 1, sp: 0, s: null, d: null, lr: null, due: now });
@@ -2767,6 +2769,7 @@ function bindDailyBtn(D, back, key) {
 function dueOrPractice() { if (totalDue()) dueView(); else { const ps = pathState(); if (ps.cur === "kana") kanaSession("k2r"); else if (LV[ps.cur].loaded) quiz("mixed", LV[ps.cur].ids.filter(id => S.cards[id]).concat(LV[ps.cur].ids).slice(0, 400), "🎲 Extra practice"); else quiz("mixed", unlockedIds(), "🎲 Extra practice"); } }
 /* ---------- Home ---------- */
 function home() {
+  if (typeof lfBatch === "function") try { lfBatch(); } catch (e) {}   // v57: keep focus-batch holds current
   const m = masteredCount(), seen = seenCount(), total = ALL_IDS.length, now = Date.now();
   const due = ALL_IDS.filter(id => S.cards[id] && card(id).due <= now).length;
   const pct = m / total, C = 2 * Math.PI * 40;
@@ -3857,7 +3860,7 @@ function historyView(range = 7, asTab = false) {
 const fmtIn = ms => ms < 90e3 ? "in 1 min" : ms < 3600e3 ? `in ${Math.round(ms / 60e3)} min` : ms < 2 * DAY ? `in ${Math.round(ms / 3600e3)} h` : `in ${Math.round(ms / DAY)} d`;
 function dueScan(filter) {       // vocab cards straight from saved state: works for levels that aren't loaded yet
   const now = Date.now(), ids = []; let next = Infinity;
-  for (const k in S.cards) { const id = +k; if (filter && !filter(id)) continue; const d = S.cards[k].due; if (d <= now) ids.push(id); else if (d < next) next = d; }
+  for (const k in S.cards) { const id = +k; if (filter && !filter(id)) continue; const d = S.cards[k].due; if (S.cards[k].hold) continue; if (d <= now) ids.push(id); else if (d < next) next = d; }
   ids.sort((a, b) => card(a).box - card(b).box || card(a).due - card(b).due);
   return { ids, next: next === Infinity ? null : next - now };
 }
@@ -5679,7 +5682,7 @@ function amCanvas(secs, opt = {}) {
 function amBoxText(c) {
   if (!c) return "Not seen yet";
   const b = +c.box || 0, s = b >= 5 ? 6 : b + 1, now = Date.now();
-  return `${AM_STN[s]} · box ${b}/${MAX_BOX}${c.due <= now ? " · due now" : ` · due ${fmtIn(c.due - now)}`} · ✔ ${+c.ok || 0} · ✘ ${+c.bad || 0}${c.f && c.f.s ? ` · stability ${fmtDays(c.f.s * F_DAY)}` : ""}${c.L ? ` · 🎧 ${c.L.due <= now ? "due now" : "in " + fmtDays(c.L.due - now)}` : ""}`;
+  return `${AM_STN[s]} · box ${b}/${MAX_BOX}${c.hold ? " · 🎯 in focus batch" : c.due <= now ? " · due now" : ` · due ${fmtIn(c.due - now)}`} · ✔ ${+c.ok || 0} · ✘ ${+c.bad || 0}${c.f && c.f.s ? ` · stability ${fmtDays(c.f.s * F_DAY)}` : ""}${c.L ? ` · 🎧 ${c.L.due <= now ? "due now" : "in " + fmtDays(c.L.due - now)}` : ""}`;
 }
 /* detail sheet: word, reading, meaning, audio, SRS status and "Study now" (loads the level's words first if needed) */
 async function amDetail(kind, id) {
@@ -13915,7 +13918,7 @@ const HF_SR = 16000, HF_VER = 1, HF_DB = "n5vq-hf";
 const hfCfg = () => Object.assign({ dir: "je", gap: 3 }, S.hf || {});
 let HF_EN = null, HF_EL = null, HF_T = null;   // en manifest · audio element · {key, chapters, dur, n}
 function hfKnown() {   // learned words with real review history (answered right at least once) — Duolingo/Genki "seen" cards don't count
-  return Object.keys(S.cards).map(Number).filter(id => { const c = S.cards[id]; if (!c || id >= 50000) return false; return (+c.ok || 0) >= 1 && ((+c.ok || 0) + (+c.bad || 0)) >= 1; }).sort((a, b) => a - b);
+  return Object.keys(S.cards).map(Number).filter(id => { const c = S.cards[id]; if (!c || c.hold || id >= 50000) return false; return (+c.ok || 0) >= 1 && ((+c.ok || 0) + (+c.bad || 0)) >= 1; }).sort((a, b) => a - b);
 }
 const hfLvl = id => LEVELS.slice().reverse().find(l => id >= LOFF[l]);
 function hfKey(ids, c) { let h = 2166136261; for (const x of `${HF_VER}|${c.dir}|${c.gap}|${ids.join(",")}`) { h ^= x.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h.toString(36) + "-" + ids.length; }
@@ -14132,7 +14135,7 @@ const EARLY_N = 20;
 const earlyOrder = () => { try { return localStorage.getItem("n5vq.earlyOrder") === "random" ? "random" : "weak"; } catch (e) { return "weak"; } };
 const earlyR = (c, now) => c.f && c.f.s > 0 && c.f.lr ? fRet(Math.max(0, now - c.f.lr) / DAY, c.f.s) : 1;
 function earlyPool(order = earlyOrder(), now = Date.now()) {
-  const ids = Object.keys(S.cards).map(Number).filter(id => { const c = S.cards[id]; return WORDS[id] && c && c.f && c.f.lr && c.due > now && !(typeof duoFresh === "function" && duoFresh(c)); });
+  const ids = Object.keys(S.cards).map(Number).filter(id => { const c = S.cards[id]; return WORDS[id] && c && !c.hold && c.f && c.f.lr && c.due > now && !(typeof duoFresh === "function" && duoFresh(c)); });
   if (order === "random") return shuffle(ids);
   return ids.sort((a, b) => earlyR(S.cards[a], now) - earlyR(S.cards[b], now) || (S.cards[b].lapses || 0) - (S.cards[a].lapses || 0) || a - b);
 }
@@ -14243,15 +14246,38 @@ const lfS = () => { if (!S.lf || typeof S.lf !== "object") S.lf = {}; const L = 
   if (!Array.isArray(L.b)) L.b = []; if (!L.g || typeof L.g !== "object") L.g = {}; if (!L.done || typeof L.done !== "object") L.done = {}; return L; };
 const lfN = () => { const n = +lfS().n; return n >= 3 && n <= 10 ? n : 5; };
 const lfRank = (a, b) => (card(b).lapses || 0) - (card(a).lapses || 0) || card(b).bad - card(a).bad || a - b;
+/* v57: batch words are held out of normal reviews (c.hold → due = LF_HOLD via fsrsSync); grades still update c.f */
+let LF_CH = 0;
+function lfHold(id, on, how) {
+  const c = S.cards[id]; if (!c) return;
+  if (on) { if (!c.hold) { c.hold = 1; fsrsSync(c); LF_CH = 1; } return; }
+  if (!c.hold && how !== "fresh") return;
+  LF_CH = 1;
+  delete c.hold; const now = Date.now();
+  if (how === "fresh") {   // graduated: fresh start — due tomorrow, modest stability, counters cleared so it isn't re-flagged at once
+    const due = now + 864e5; c.lapses = 0; c.bad = 0; c.run = 0;
+    if (c.f) c.f = Object.assign({}, c.f, { st: 2, s: Math.max(2, Math.min(+c.f.s || 0, 4)), due, lapses: 0, lr: now });
+    if (c.L) c.L = Object.assign({}, c.L, { due: Math.max(c.L.due || 0, due) });
+    if (c.f) fsrsSync(c); c.due = due;
+  } else {   // dropped from the batch (size shrank, etc.): back in normal reviews, due now
+    if (c.f) c.f = Object.assign({}, c.f, { due: Math.min(c.f.due, now) });
+    if (c.f) fsrsSync(c); c.due = Math.min(c.due, now);
+  }
+}
 function lfBatch() {
-  const L = lfS(), lee = new Set(leechIds());
-  L.b = L.b.filter(id => WORDS[id] && lee.has(id));
+  const L = lfS(), lee = new Set(leechIds()), old = L.b.slice();
+  L.b = L.b.filter(id => !WORDS[id] ? !!S.cards[id] : (lee.has(id) || (S.cards[id] && S.cards[id].hold && !isLeech(id) && (lfGrad(id), false))));
   for (const id of Object.keys(L.done)) if ((card(+id).lapses || 0) > L.done[id]) delete L.done[id];   // lapsed again → may re-enter
   const pool = [...lee].filter(id => !L.b.includes(id) && L.done[id] == null).sort(lfRank);
   while (L.b.length > lfN()) L.b.pop();
   while (L.b.length < lfN() && pool.length) L.b.push(pool.shift());
+  old.filter(id => !L.b.includes(id) && L.done[id] == null).forEach(id => lfHold(id, false));
+  L.b.forEach(id => lfHold(id, true));
+  for (const k in S.cards) if (S.cards[k].hold && WORDS[k] && !L.b.includes(+k) && L.done[k] == null) lfHold(+k, false);   // stray holds (e.g. synced)
+  if (LF_CH || old.join() !== L.b.join()) { LF_CH = 0; save(); }
   return L.b.slice();
 }
+function lfGrad(id) { const L = lfS(); lfHold(id, false, "fresh"); L.done[id] = 0; delete L.g[id]; if (L.t) delete L.t[id]; L.b = L.b.filter(x => x !== id); }
 const lfDays = id => (lfS().g[id] || []).length;
 /* v56: three levels per word — r = recall, l = listen & type, w = write from memory. A level counts for today when its
    FIRST attempt in a focus session that day is right. A day counts toward graduation once all three passed that day. */
@@ -14262,14 +14288,14 @@ function lfRecord(id, lv, firstOk) {
   const L = lfS(), d = todayStr(), t = lfToday(id);
   if (firstOk && t[lv] == null) t[lv] = 1; else if (t[lv] == null) t[lv] = 0;
   if (LF_LV.every(([k]) => t[k] === 1)) { const g = L.g[id] || (L.g[id] = []); if (!g.includes(d)) g.push(d); }
-  if (lfDays(id) >= 2 || !isLeech(id)) { L.done[id] = card(id).lapses || 0; delete L.g[id]; delete L.t[id]; L.b = L.b.filter(x => x !== id); return true; }
+  if (lfDays(id) >= 2 || !isLeech(id)) { lfGrad(id); lfBatch(); return true; }
   return false;
 }
 function lfPanelHTML() {
   const b = lfBatch(); save();
   const rows = b.map(id => { const w = WORDS[id], k = lfDays(id), t = lfToday(id); return `<div class="row lfrow" data-id="${id}"><span><b class="jp" style="font-size:1.3rem">${esc(w.jp)}</b><br><span class="lflv" aria-label="Today's levels">${LF_LV.map(([c, n], i) => `<i class="${t[c] === 1 ? "ok" : t[c] === 0 ? "bad" : ""}" title="${n}">${i + 2} ${n}</i>`).join("")}</span></span><span style="text-align:right"><span class="lfdots" aria-label="${k} of 2 days">${[0, 1].map(i => `<i class="${i < k ? "on" : ""}"></i>`).join("")}</span><br><small class="muted">${k}/2 days · ${card(id).lapses || 0} lapses</small></span></div>`; }).join("");
   const grad = Object.keys(lfS().done).length;
-  return `<div class="panel lfpanel" id="lfPanel"><div class="row" style="border:none"><span><b>🎯 Focus batch</b><br><small class="muted">Your ${b.length} worst leeches · relearn, then recall · graduates after passing recall, listen and write (first try) on 2 different days${grad ? ` · ${grad} graduated` : ""}</small></span>
+  return `<div class="panel lfpanel" id="lfPanel"><div class="row" style="border:none"><span><b>🎯 Focus batch</b><br><small class="muted">Your ${b.length} worst leeches · relearn, then recall · graduates after passing recall, listen and write (first try) on 2 different days${grad ? ` · ${grad} graduated` : ""}</small>${b.length ? `<br><small class="lfnote">These ${b.length} skip regular reviews until they graduate.</small>` : ""}</span>
     <select id="lfN" aria-label="Focus batch size">${LF_SIZES.map(n => `<option value="${n}" ${n === lfN() ? "selected" : ""}>${n}</option>`).join("")}</select></div>
     ${rows || `<p class="muted">No active leeches to focus on.</p>`}
     <div class="btnrow"><button class="btn" id="lfGo" ${b.length ? "" : "disabled"}>🎯 Focus session (${b.length})</button></div></div>`;
@@ -14435,7 +14461,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "c028151c70ef";
+const BUILD = "d6c5ebc4a3de";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -14485,7 +14511,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { RK_INFO, rkLoad, rkStrokes, rkItem, rkDue, rkUnseen, rkNewLeft, rkGrade, rkRandGrade, earlyPool, earlyGrade, earlyStart, get EARLY_IDS() { return EARLY_IDS; }, rkHomeHTML, rkKnown, lfBatch, lfRecord, lfStart, lfN, lwIds, lfToday, rkMapHTML, rkCardView, rkMapView, get RKMAP() { return window.__rkmap; }, kanjiPageFn, rkRandPool, rtkHome, rkSession, RK: () => RTKS, rksave, PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { RK_INFO, rkLoad, rkStrokes, rkItem, rkDue, rkUnseen, rkNewLeft, rkGrade, rkRandGrade, earlyPool, earlyGrade, earlyStart, get EARLY_IDS() { return EARLY_IDS; }, rkHomeHTML, rkKnown, lfBatch, lfRecord, lfStart, lfN, lwIds, lfToday, lfHold, hfKnown, rkMapHTML, rkCardView, rkMapView, get RKMAP() { return window.__rkmap; }, kanjiPageFn, rkRandPool, rtkHome, rkSession, RK: () => RTKS, rksave, PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
