@@ -3130,7 +3130,9 @@ function leechView() {
     <textarea class="notebox" data-lnote="${id}" placeholder="💡 Mnemonic for ${esc(w.jp)}…">${esc(S.notes[id] || "")}</textarea></div>`; }).join("");
   $("#llist").addEventListener("input", e => { const t = e.target.closest("[data-lnote]"); if (!t) return; const id = +t.dataset.lnote, v = t.value.trim(); if (v) S.notes[id] = v; else delete S.notes[id]; save(); });
   $("#llist").addEventListener("click", e => { const r = e.target.closest(".row"); if (r) wordModal(WORDS[+r.dataset.id]); });
-  const drill = mode => go(() => runSession({ title: mode === "typing" ? "⌨️ Leech typing drill" : "🎯 Leech drill", mode, pool: ids, back: leechView, peekNote: true }));
+  const free = ids.filter(id => !(S.cards[id] && S.cards[id].hold));   // v58: focus-batch words are practiced only in the focus quiz
+  if (!free.length) ["#drill", "#drillType", "#detention"].forEach(s => { const b = $(s); if (b) { b.disabled = true; b.title = "All your leeches are in the focus batch"; } });
+  const drill = mode => free.length && go(() => runSession({ title: mode === "typing" ? "⌨️ Leech typing drill" : "🎯 Leech drill", mode, pool: free, back: leechView, peekNote: true }));
   $("#drill").onclick = () => drill("mixed");
   $("#drillType").onclick = () => drill("typing");
   $("#detention").onclick = () => { sfx.click(); go(() => detentionPick(leechView)); };
@@ -5730,7 +5732,7 @@ function allMapCardHTML() {
    Afterwards an optional quick recall check (answer hidden) that IS graded normally. */
 const DET_N = 10;
 function detentionPick(back = leechView) {
-  const ids = leechIds().sort((a, b) => card(b).bad - card(a).bad);
+  const ids = leechIds().filter(id => !(S.cards[id] && S.cards[id].hold)).sort((a, b) => card(b).bad - card(a).bad);   // v58: focus-batch words only in the focus quiz
   view.innerHTML = topbar("📝 Detention", `<span class="muted">${ids.length} leeches</span>`) +
     `<div class="detintro"><div class="chalk">Detention</div><p>Pick the leeches that stay after class. Write each reading <b>${DET_N}×</b> — copy it while you look at it. Copying doesn't change your review schedule.</p></div>
     ${ids.length ? `<div class="btnrow detsel"><button class="btn ghost small" id="detAll">Select all</button><button class="btn ghost small" id="detNone">Clear</button></div>
@@ -14461,7 +14463,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "d6c5ebc4a3de";
+const BUILD = "5f5784c4c2b9";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
