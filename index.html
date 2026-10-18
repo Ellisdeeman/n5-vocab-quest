@@ -2793,6 +2793,7 @@ function home() {
   <div class="grid">
     ${(() => { const td = totalDue(), nx = [dueScan().next, kanaDueScan().next, kjDueScan().next, grDueScan().next].filter(x => x != null).sort((a, b) => a - b)[0];
       return `<button class="mode duecard" data-m="due"><div class="ic">⏰</div><h3>Due Reviews ${td ? `<span class="badge">${td}</span>` : ""}</h3><p>${td ? `${td} due across levels, kanji, kana & grammar` : `Nothing due${nx != null ? ` · next ${fmtIn(nx)}` : ""}`}</p></button>`; })()}
+    <button class="mode leechtile-home" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing + mnemonics</p></button>
     ${(() => { const gd = grDueScan().ids.length, gl = grLearned();
       return `<button class="mode grtile-home" data-m="grammar"><div class="ic">文</div><h3>Grammar ${gd ? `<span class="badge">${gd}</span>` : ""}</h3><p>${gl ? `${gl}/${GR_DATA.length} N5 points` : `${GR_DATA.length} N5 points`} · lessons & drills</p></button>`; })()}
     ${(() => { const rd = RD_DATA.filter(x => x.id in rdDoneMap()).length;
@@ -2815,7 +2816,6 @@ function home() {
     <button class="mode" data-m="speed"><div class="ic">⚡</div><h3>Speed Round</h3><p>60 seconds! Best: ${S.bestSpeed}</p></button>
     <button class="mode" data-m="match"><div class="ic">🧩</div><h3>Matching Pairs</h3><p>Match 6 words to meanings</p></button>
     <button class="mode" data-m="sets"><div class="ic">📚</div><h3>Word Sets</h3><p>${SETS.length} topics · ${unlockedCount} unlocked</p></button>
-    <button class="mode" data-m="leeches"><div class="ic">🧛</div><h3>Leeches ${leeches ? `<span class="badge">${leeches}</span>` : ""}</h3><p>Words you keep missing + mnemonics</p></button>
     <button class="mode" data-m="browse"><div class="ic">🗂️</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
     <button class="mode" data-m="games"><div class="ic">🎮</div><h3>Games</h3><p>Sniper · Builder · Scramble · Boss</p></button>
   </div>
@@ -14455,7 +14455,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "9e8511292e08";
+const BUILD = "a6466f72f8de";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
