@@ -1282,6 +1282,7 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .lfdots{display:inline-flex;gap:4px}.lfdots i{width:10px;height:10px;border-radius:50%;background:var(--fill2);display:inline-block}.lfdots i.on{background:var(--good)}.lfstrokes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0}.lfk{width:96px;height:96px;display:flex;align-items:center;justify-content:center}.lfk svg{width:96px;height:96px}
 .lflv{display:inline-flex;gap:4px;margin-top:2px}.lflv i{font-style:normal;font-size:.68rem;padding:1px 6px;border-radius:8px;background:var(--fill2);color:var(--muted)}.lflv i.ok{background:var(--good);color:#fff}.lflv i.bad{background:var(--bad);color:#fff}.lfplay{font-size:1.3rem;margin:14px auto;display:block}
 .lfrow{padding:8px 0;border-bottom:1px solid var(--line,#e5e5e5)}.lfrow .lflv{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.lfrow .lflv i{white-space:nowrap}
+.lfcmp{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0}.lfcol{display:flex;flex-direction:column;align-items:center;width:64px}.lfmine{width:60px;height:60px;border:1px solid var(--line,#ccc);border-radius:8px}.lfmine .kwok{stroke-width:6}.lfkana{font-size:2.6rem;line-height:1.1}
 </style>
 </head>
 <body>
@@ -14454,7 +14455,8 @@ function lfInkPad(el) {
 }
 function lfWrite(w, next, back, left) {   // v59: always write the READING in kana, one plain box per kana — no kanji, no stroke checking
   studyScreen = true; window.__lfCur = w.id;
-  const chars = [...w.kana]; let i = 0;
+  const chars = [...w.kana], drawn = []; let i = 0;   // v62: drawn[i] = his ink for box i (SVG paths)
+  const keep = () => { const g = host && host.querySelector(".lfinked"); if (g && i < chars.length) drawn[i] = g.innerHTML; };
   view.innerHTML = topbar("🎯 Focus · level 6 · write in kana", `<span class="muted">${left} left</span>`) + `<div class="card lfwrite" id="lfWrite">
     <div class="qtype">Write it from memory — in kana</div>
     <div class="prompt" style="font-size:1.4rem">${esc(w.en)}</div>
@@ -14464,8 +14466,9 @@ function lfWrite(w, next, back, left) {   // v59: always write the READING in ka
   bindBack(back);
   const host = $("#lfPad");
   const reveal = () => {
-    $("#lfWBtns").remove(); host.innerHTML = ""; $("#lfPos").textContent = "";
-    $("#lfRes").innerHTML = `<div class="lfans"><div class="prompt jp">${esc(w.kana)}</div>${w.hasKanji ? `<div class="muted jp" style="font-size:1.2rem">${esc(w.jp)}</div>` : ""}
+    keep(); $("#lfWBtns").remove(); host.innerHTML = ""; $("#lfPos").textContent = "";
+    const cmp = `<div class="lfcmp" aria-label="Your handwriting beside the correct kana">${chars.map((c, k) => `<div class="lfcol"><svg class="lfmine" viewBox="0 0 109 109" aria-label="Your box ${k + 1}"><rect width="109" height="109" class="kwbg"/><g class="lfinked">${drawn[k] || ""}</g></svg><div class="lfkana jp">${esc(c)}</div></div>`).join("")}</div>`;
+    $("#lfRes").innerHTML = `<div class="lfans"><div class="muted" style="font-size:.85rem">Yours ↑ · correct ↓</div>${cmp}${w.hasKanji ? `<div class="muted jp" style="font-size:1.2rem">${esc(w.jp)}</div>` : ""}
       <p>Did you write it correctly?</p><div class="btnrow" style="justify-content:center"><button class="btn bad" id="lfAgain">✗ Again</button><button class="btn" id="lfGood">✓ Good</button></div></div>`;
     const rate = ok => { grade(w.id, ok); next(ok); };
     $("#lfAgain").onclick = () => rate(false); $("#lfGood").onclick = () => rate(true);
@@ -14476,7 +14479,7 @@ function lfWrite(w, next, back, left) {   // v59: always write the READING in ka
     lfInkPad(host);
     if (i === chars.length - 1) $("#lfNextCh").textContent = "Done → check";
   };
-  $("#lfNextCh").onclick = () => { i++; show(); };
+  $("#lfNextCh").onclick = () => { keep(); i++; show(); };
   $("#lfShow").onclick = reveal;
   show();
 }
@@ -14512,7 +14515,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "e8ad854bed46";
+const BUILD = "0af4eeaa6dbe";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
