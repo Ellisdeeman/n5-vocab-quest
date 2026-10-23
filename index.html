@@ -1480,7 +1480,7 @@ let SETS = [], ALL_IDS = [], KANJI_IDS = [];
 const ex = id => (EXAMPLES[id] || []);
 /* precomputed helpers for distractors / answer checking */
 const glossPhrases = en => en.toLowerCase().replace(/\(.*?\)/g, " ").split(/[,;/]/).map(p => p.replace(/^\s*(to|a|an|the)\s+/, "").replace(/[^a-z0-9~' ]/g, "").trim()).filter(Boolean);
-const POS_FIX = {"66":"n","147":"n","237":"n","288":"n","295":"n","300":"n","316":"n","355":"n","358":"n","431":"n","440":"n","598":"n","700":"n","701":"n","706":"n","10008":"adv","10397":"adv","21471":"adv"};   // v66: corrected part-of-speech tags (Starter set; e.g. 電話 is a noun, not a verb)
+const POS_FIX = {"66":"n","147":"n","237":"n","288":"n","295":"n","300":"n","316":"n","355":"n","358":"n","431":"n","440":"n","598":"n","700":"n","701":"n","706":"n","10008":"adv","10397":"adv","21471":"adv","279":"n","10002":"adv","10187":"v","20058":"adv","20327":"pn","20417":"exp","20447":"adv","20622":"adv","20713":"adv","20725":"n","20797":"suf","20995":"adv","21684":"adv","21822":"adv","21960":"adv","21982":"n","22118":"adv","30137":"pn","30169":"adv","30924":"adv","31297":"adv","31332":"adv","31346":"adv","31401":"adv","31415":"adv","31455":"na","31585":"adv","40269":"adv","40303":"adv","40318":"adv","40629":"adv","40708":"adv","40846":"adv","40848":"adv","40961":"adv","40964":"adv","40965":"adv","41075":"adv","41220":"adv","41441":"adv","41658":"na","41715":"adv","42060":"na","42107":"na","42108":"adv","42300":"adv","42614":"adv","42694":"adv","681":"adv","10390":"v","10559":"v","30188":"n","40198":"v","40401":"n","42671":"n"};   // v66: corrected part-of-speech tags (Starter set; e.g. 電話 is a noun, not a verb)
 function addLevel(l, d) {
   const off = LOFF[l], L = LV[l];
   if (L.loaded) return;
@@ -1512,7 +1512,7 @@ function loadLevel(l) {
 }
 function activeLevels() { const a = (S.levels || ["n5"]).filter(l => LV[l] && LV[l].loaded); return a.length ? a : ["n5"]; }
 function refreshPool() { const a = activeLevels(); ALL_IDS = a.flatMap(l => LV[l].ids); KANJI_IDS = a.flatMap(l => LV[l].kanjiIds); SETS = a.flatMap(l => LV[l].sets); }
-const levelLabel = () => { const a = activeLevels(); return a.length === LEVELS.length ? "All levels" : a.map(LNAME).join(" + "); };
+const levelLabel = () => { const a = activeLevels(); return a.length === LEVELS.length ? "All levels" : LEVELS.filter(l => a.includes(l)).map(LNAME).join(" + "); };
 
 /* ================= Romaji ⇄ kana ================= */
 const ROMA = (() => {
@@ -2873,11 +2873,11 @@ function kanaCardHTML(list) {
 }
 function levelPickerHTML(list = false) {
   const act = activeLevels(), all = act.length === LEVELS.length;
-  if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${stCardHTML()}${pimsCardHTML()}${gkCardHTML()}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
+  if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${stCardHTML()}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
       return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Open ${LNAME(l)}">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`)}
         <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">${LNAME(l)} · ${st.total} words</b><small>${st.mast} mastered · ${st.seen} seen${st.due ? ` · ${st.due} due` : ""}${LV[l].loaded || l === "n5" ? "" : " · tap to download"}</small>
         <span class="minibar"><i style="width:${st.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${st.mast / tot * 100}%"></i></span></span>
-        <button class="lvchk" data-tog="${l}" aria-label="${on ? "Remove" : "Add"} ${LNAME(l)} ${on ? "from" : "to"} the mixed deck">${on ? "☑" : "☐"}</button></div>`; }).join("")}
+        <button class="lvchk" data-tog="${l}" aria-label="${on ? "Remove" : "Add"} ${LNAME(l)} ${on ? "from" : "to"} the mixed deck">${on ? "☑" : "☐"}</button></div>`; }).join("")}${pimsCardHTML()}${gkCardHTML()}
       <div class="lvcard ${all ? "on" : ""}" data-lv="all" role="button" tabindex="0" aria-label="Mixed: all levels"><span class="lvring" style="--lc:var(--indigo)"><span class="lvmix">🎲</span></span><span class="lvtxt"><b style="font-size:1rem;color:var(--label)">Mixed · all levels</b><small>${Object.keys(S.cards).length} words seen in total</small></span></div></div>
     <p class="lvhelp">Tap a level to open it (Today&rsquo;s session, due reviews, all modes). Tick the box to combine levels into one mixed deck. Currently: <b>${esc(levelLabel())}</b>.</p>`;
   const card_ = l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
@@ -2885,7 +2885,7 @@ function levelPickerHTML(list = false) {
       <small>${st.mast}/${st.total} mastered</small><div class="minibar"><i style="width:${st.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${st.mast / tot * 100}%"></i></div>
       <small class="muted">${st.seen} seen${st.due ? ` · ${st.due} due` : ""}${LV[l].loaded || l === "n5" ? "" : " · ⬇"}</small>
       <button class="lvchk" data-tog="${l}" title="${on ? "Remove from" : "Add to"} mixed deck" aria-label="combine ${LNAME(l)}">${on ? "☑" : "☐"}</button></div>`; };
-  return `<div class="lvpanel"><div class="lvgrid">${kanaCardHTML(false)}${LEVELS.map(card_).join("")}
+  return `<div class="lvpanel"><div class="lvgrid">${kanaCardHTML(false)}${stCardHTML(false)}${LEVELS.map(card_).join("")}
     <div class="lvcard mixall ${all ? "on" : ""}" data-lv="all" role="button" tabindex="0"><b>🎲 Mixed</b><small>all levels</small><small class="muted">${Object.keys(S.cards).length} seen</small></div></div>
     <p class="muted lvhelp">Studying <b>${esc(levelLabel())}</b> · tap a level to open it, tick ☐ to combine levels into a mixed deck.</p></div>`;
 }
@@ -3933,7 +3933,7 @@ function renderDue() {
       <button class="btn ${total ? "" : "ghost"}" data-review="all">${total ? "Review everything due" : "Nothing due"}</button>${total ? `<button class="btn ghost small flopt" id="dueFlash">🃏 Due as flashcards</button>` : ""}${vAll.ids.length ? `<button class="btn ghost small flopt" id="dueSpeak">🎤 Speak due words</button>` : ""}</div>
     ${typeof earlyPanelHTML === "function" ? earlyPanelHTML() : ""}
     <div class="panel duepanel"><h2>Levels</h2>
-      ${dueRow("kana:h", "あ", "Kana · Hiragana", secs["kana:h"].r)}${dueRow("kana:k", "ア", "Kana · Katakana", secs["kana:k"].r)}
+      ${dueRow("kana:h", "あ", "Kana · Hiragana", secs["kana:h"].r)}${dueRow("kana:k", "ア", "Kana · Katakana", secs["kana:k"].r)}${secs.st && (secs.st.r.ids.length || secs.st.r.next != null) ? dueRow("st", "🌱", "Starter 1.5k · Starter-only words", secs.st.r, "Starter 1.5k words not in the JLPT lists") : ""}
       ${LEVELS.map(l => { const sec = secs[l], sets = LV[l].sets.map(s => ["set:" + s.id, secs["set:" + s.id]]).filter(x => x[1]), dueSets = sets.filter(x => x[1].r.ids.length);
         const kjs = secs["kanji:" + l], kjRow = kjs.r.ids.length || kjs.r.next != null ? dueRow("kanji:" + l, "字", kjs.name, kjs.r) : "";
         return dueRow(l, sec.icon, sec.name, sec.r, LV[l].loaded ? `${LV[l].ids.length} words` : (levelStats(l).seen ? "" : "not started")) + kjRow +
@@ -3942,7 +3942,6 @@ function renderDue() {
     </div>
     ${secs.pm.r.ids.length || secs.pm.r.next != null ? `<div class="panel duepanel"><h2>Pimsleur</h2>${dueRow("pm", "📼", "Pimsleur set", secs.pm.r, "words not in the JLPT lists")}</div>` : ""}
     ${secs.gk && (secs.gk.r.ids.length || secs.gk.r.next != null) ? `<div class="panel duepanel"><h2>Genki</h2>${dueRow("gk", "📗", "Genki-only words", secs.gk.r, "Genki words not in the JLPT lists")}</div>` : ""}
-    ${secs.st && (secs.st.r.ids.length || secs.st.r.next != null) ? `<div class="panel duepanel"><h2>Starter</h2>${dueRow("st", "🌱", "Starter-only words", secs.st.r, "Starter 1.5k words not in the JLPT lists")}</div>` : ""}
     ${grLearned() || gAll.ids.length ? `<div class="panel duepanel"><h2>Grammar</h2>${dueRow("grammar", "文", "Grammar · N5", gAll, `${grLearned()} of ${GR_DATA.length} points learned`)}</div>` : ""}
     <div class="panel duepanel"><h2>Leeches</h2>${dueRow("leech", "🧛", "Leeches", secs.leech.r, "words you keep missing")}</div>
 `;
@@ -5561,7 +5560,7 @@ const AMS = { z: 0, lv: "all", st: "all", kj: false };
 try { Object.assign(AMS, JSON.parse(localStorage.getItem(AMKEY) || "{}")); } catch (e) {}
 const amSave = () => { try { localStorage.setItem(AMKEY, JSON.stringify(AMS)); } catch (e) {} };
 const AM_T = [9, 15, 28], AM_G = [1, 2, 3], AM_HEAD = 42, AM_PAD = 14;
-const AM_LVNAMES = { all: "All", kana: "Kana", n5: "N5", n4: "N4", n3: "N3", n2: "N2", n1: "N1", pm: "Pimsleur" };
+const AM_LVNAMES = { all: "All", kana: "Kana", st: "Starter", n5: "N5", n4: "N4", n3: "N3", n2: "N2", n1: "N1", pm: "Pimsleur" };
 const AM_ST = [["all", "All"], ["due", "Due now"], ["leech", "Leeches"], ["mast", "Mastered"], ["unseen", "Unseen"]];
 const AM_STN = ["New", "Seen", "Learning", "Reviewing", "Familiar", "Mastered", "Rock-solid"];
 /* status byte: low 3 bits = 0 unseen · 1 seen (box 0) · 2 box 1 · 3 box 2 · 4 box 3 · 5 box 4 (mastered) · 6 box 5–6; 16 = due now; 32 = leech */
@@ -5578,6 +5577,7 @@ function amSections() {
   const now = Date.now(), out = [];
   const add = (key, lv, name, kind, ids, loaded) => { const st = new Uint8Array(ids.length); for (let i = 0; i < ids.length; i++) st[i] = amStatus(kind, ids[i], now); out.push({ key, lv, name, kind, ids, st, loaded }); };
   add("kana", "kana", "Kana · hiragana & katakana", "k", KALL.filter(id => KITEMS[id].g !== "ext" || KS.ext), true);
+  if (typeof ST_IDS !== "undefined") add("st", "st", "Starter 1.5k · frequency order", "v", ST_IDS, true);   // v67: own chip only — never counted in "All"
   for (const l of LEVELS) {
     const L = LV[l], n = L.loaded ? L.ids.length : (L.info.count || 0);
     add(l, l, `${LNAME(l)} vocabulary`, "v", L.loaded ? L.ids : Array.from({ length: n }, (_, i) => LOFF[l] + i), L.loaded);
@@ -5595,13 +5595,13 @@ function amTotals(secs) {
 let AMV = null;   // live map state (for redraws / tests)
 function allMapView() {
   const t0 = performance.now();
-  const all = amSections(), inLv = s => AMS.lv === "all" || s.lv === AMS.lv;
+  const all = amSections(), inLv = s => AMS.lv === "all" ? s.lv !== "st" : s.lv === AMS.lv;
   const secs = all.filter(inLv), tot = amTotals(secs), per = {};
   for (const s of all) { const p = per[s.lv] || (per[s.lv] = { n: 0, m: 0 }); const t = amTotals([s]); p.n += t.n; p.m += t.m; }
-  const allT = amTotals(all);
+  const allT = amTotals(all.filter(s => s.lv !== "st"));
   view.innerHTML = topbar("🗺️ All words", `<span class="muted" id="amTot">${amFmt(tot.m)} / ${amFmt(tot.n)} mastered</span>`) + `
     <div class="amsum"><b>${amFmt(tot.m)}</b> / ${amFmt(tot.n)} mastered <span class="muted">· ${amFmt(tot.seen)} seen · ${amFmt(tot.due)} due now · ${amFmt(tot.lee)} leeches</span></div>
-    <div class="amchips" id="amLv" role="radiogroup" aria-label="Level">${["all", "kana", ...LEVELS, "pm"].map(l => { const p = l === "all" ? allT : per[l] || { n: 0, m: 0 };
+    <div class="amchips" id="amLv" role="radiogroup" aria-label="Level">${["all", "kana", "st", ...LEVELS, "pm"].map(l => { const p = l === "all" ? allT : per[l] || { n: 0, m: 0 };
       return `<button role="radio" aria-checked="${AMS.lv === l}" class="amchip ${AMS.lv === l ? "on" : ""}" data-lv="${l}"><b>${AM_LVNAMES[l]}</b><small>${amFmt(p.n)} · ${p.n ? Math.round(p.m / p.n * 100) : 0}%</small></button>`; }).join("")}</div>
     <div class="row amkjrow"><span>字 Include kanji<br><small class="muted">${amFmt(LEVELS.reduce((n, l) => n + ((KJINFO[l] && KJINFO[l].chars) || "").length, 0))} kanji, grouped by level</small></span><button class="switch ${AMS.kj ? "on" : ""}" id="amKj" role="switch" aria-checked="${AMS.kj}" aria-label="Include kanji"></button></div>
     <div class="amlegend" aria-label="Legend">${AM_STN.map((n, i) => `<span><i class="amk${i}"></i>${n}</span>`).join("")}<span><i class="amdue"></i>due now</span><span><i class="amlee"></i>leech</span></div>
@@ -5747,7 +5747,7 @@ async function amDetail(kind, id) {
   const b3 = md.querySelector("#amMore"); if (b3) b3.onclick = more;
 }
 function allMapCardHTML() {
-  const a = amSections(), t = amTotals(a);
+  const a = amSections().filter(s => s.lv !== "st"), t = amTotals(a);
   return `<div class="panel ammini"><h2>🗺️ All words map</h2><p><b id="amMiniM">${amFmt(t.m)}</b> / ${amFmt(t.n)} mastered <span class="muted">· ${amFmt(t.seen)} seen · Kana, N5–N1${LV.pm ? ", Pimsleur" : ""}${AMS.kj ? " + kanji" : ""}</span></p>
     <div class="minibar"><i style="width:${t.n ? t.seen / t.n * 100 : 0}%;background:var(--fill2)"></i><i style="width:${t.n ? t.m / t.n * 100 : 0}%"></i></div>
     <button class="btn" id="amOpen">Open the map</button></div>`;
@@ -6035,8 +6035,8 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
 /* ---------- Home: Flashcards card for the guided-path level (switch to another active level, Kana, or all due) ---------- */
 function flHomeOpts() {
   const cur = pathState().cur, o = [["path", "📍 " + PNAME(cur)]];
-  activeLevels().forEach(l => { if (l !== cur) o.push([l, LNAME(l)]); });
   if (cur !== "kana" && Object.keys(KS.cards).length) o.push(["kana", "Kana"]);
+  LEVELS.filter(l => activeLevels().includes(l)).forEach(l => { if (l !== cur) o.push([l, LNAME(l)]); });
   o.push(["all", "All due"]);
   return o;
 }
@@ -6142,7 +6142,7 @@ function memBars(vals, labels, o = {}) {
 function memStatsHTML() { queueMicrotask(memMount); return `<div class="panel memstats" id="memStats"></div>`; }
 function memMount() {
   const host = $("#memStats"); if (!host) return;
-  const lvs = ["all", ...activeLevels()]; if (!lvs.includes(memSel.lv)) memSel.lv = "all";
+  const lvs = ["all", ...LEVELS.filter(l => activeLevels().includes(l))]; if (!lvs.includes(memSel.lv)) memSel.lv = "all";
   const t0 = performance.now(), M = memStats(memSel.lv, memSel.tr), ms = performance.now() - t0;
   const pct = x => x == null ? "—" : Math.round(x * 100) + "%";
   const retCell = (x, d) => `<div class="memret ${x && x.r < M.target - 0.05 ? "low" : ""}"><b>${x ? pct(x.r) : "—"}</b><small>true retention · ${d} days${x ? ` · ${x.n} reviews` : " · no reviews yet"}</small></div>`;
@@ -14534,8 +14534,9 @@ function stStats() {
   for (const id of ST_IDS) { const c = S.cards[id]; if (!c) continue; seen++; if (c.box >= MASTER_BOX) mast++; if (c.due <= now) due++; }
   return { seen, mast, due, total: ST_IDS.length, only: ST_IDS.filter(id => id >= LOFF.st).length };
 }
-function stCardHTML() {
+function stCardHTML(list = true) {
   const k = stStats(), tot = k.total || 1;
+  if (!list) return `<div class="lvcard" data-lv="starter" role="button" tabindex="0" title="Open Starter 1.5k"><b>Starter</b><small>${k.mast}/${k.total} mastered</small><div class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></div></div>`;   // v67: Home grid (Kana, Starter, N5–N1)
   return `<div class="lvcard" data-lv="starter" role="button" tabindex="0" aria-label="Open Starter 1.5k">${lvRing("🌱", k.mast / tot, "var(--accent)")}
       <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">Starter 1.5k · ${k.total} words</b><small>${k.mast} mastered · ${k.seen} seen${k.due ? ` · ${k.due} due` : ""} · most frequent words first</small>
       <span class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></span></span>${k.due ? `<span class="badge stbadge">${k.due}</span>` : ""}<span class="lvchk" aria-hidden="true">${I("chevronR")}</span></div>`;
@@ -14625,7 +14626,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "32abde343beb";
+const BUILD = "30a71c925466";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
