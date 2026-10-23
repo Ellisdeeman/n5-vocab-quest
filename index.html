@@ -580,6 +580,8 @@ details.duesets{border-bottom:0}details.duesets summary{color:var(--accent);padd
 .tokrow input{flex:1 1 180px;min-width:0;min-height:54px;font-size:16px;padding:0 14px;border:2px solid var(--border);border-radius:14px;background:var(--card2);color:var(--label);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .tokrow input:focus{outline:none;border-color:var(--accent)}
 .tokrow .btn{min-height:54px}
+.tokcopy{justify-content:flex-start;margin:2px 0 6px}.tokcopy .btn{flex:0 0 auto;margin:0}
+#tokMask.tokfull{word-break:break-all;user-select:all;-webkit-user-select:all}
 .bkerr{color:var(--bad);font-size:15px;display:block;margin:6px 0}
 .syncbox #syncStatus{margin:8px 0;font-size:15px}
 .bkbtns{flex-wrap:wrap;justify-content:flex-start}.bkbtns .btn{flex:1 1 200px}
@@ -5303,6 +5305,13 @@ function syncErrText(code) {
     http: "GitHub had a problem. Try again in a few minutes."
   })[code] || "Sync didn't finish. Try again later.";
 }
+async function copyText(txt) {   // clipboard API, falling back to a selected textarea + execCommand (older iOS Safari / non-secure contexts)
+  if (!txt) return false;
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(txt); return true; } } catch (e) {}
+  const ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px"; document.body.appendChild(ta);
+  ta.focus(); ta.select(); try { ta.setSelectionRange(0, txt.length); } catch (e) {}
+  let ok = false; try { ok = document.execCommand("copy"); } catch (e) {} ta.remove(); return ok;
+}
 const maskToken = t => t ? (t.length > 12 ? t.slice(0, 4) + "••••••••" + t.slice(-4) : "••••••••") : "";
 function syncStatusUI(busy) {
   const el = $("#syncStatus"); if (!el) return;
@@ -5329,6 +5338,7 @@ function syncBoxHTML() {
     <small class="bkerr" id="tokErr"></small>
     ${tokenHelpHTML()}`;
   return `<div class="row"><span>🔄 Gist sync<br><small class="muted">Token <span class="jp" id="tokMask">${esc(maskToken(SY.token))}</span> · saved only on this device</small></span><button class="btn small ghost" id="tokRemove">Remove token</button></div>
+    <div class="btnrow tokcopy"><button class="btn small sec" id="tokCopy" aria-live="polite">📋 Copy token</button><button class="btn small ghost" id="tokShow" aria-pressed="false">Show</button></div>
     <p id="syncStatus" class="muted" role="status" aria-live="polite"></p>
     <div class="btnrow bkbtns"><button class="btn" id="syncNow">🔄 Sync now</button><button class="btn sec" id="syncHist">Restore a previous version…</button></div>
     ${SY.gistId ? `<small class="muted">Gist: <a href="https://gist.github.com/${encodeURIComponent(SY.gistId)}" target="_blank" rel="noopener">${esc(SY.gistId.slice(0, 8))}…</a> (secret)</small>` : ""}
@@ -5373,6 +5383,15 @@ function bindSyncBox(root) {
   };
   const rm = q("#tokRemove");
   if (rm) rm.onclick = () => { SY.token = ""; SY.gistId = ""; SY.err = ""; SY.lastSync = 0; sysave(); bkRefresh(); toast("Token removed from this device"); };
+  const cp = q("#tokCopy"); if (cp) cp.onclick = async () => {   // v65: copy this device's saved token (e.g. to paste on another device)
+    const ok = await copyText(SY.token); clearTimeout(cp._t);
+    cp.textContent = ok ? "Copied ✓" : "Couldn't copy"; if (ok) toast("📋 Token copied — paste it into Gist sync on your other device"); else toast("Couldn't copy — tap Show and copy it by hand");
+    cp._t = setTimeout(() => { cp.textContent = "📋 Copy token"; }, 2000);
+  };
+  const sh = q("#tokShow"); if (sh) sh.onclick = () => {
+    const m = q("#tokMask"), on = sh.getAttribute("aria-pressed") !== "true"; if (!m) return;
+    m.textContent = on ? SY.token : maskToken(SY.token); m.classList.toggle("tokfull", on); sh.textContent = on ? "Hide" : "Show"; sh.setAttribute("aria-pressed", String(on));
+  };
   const sn = q("#syncNow"); if (sn) sn.onclick = async () => { const r = await syncNow("manual"); if (r && r.ok) toast(r.pulled ? "☁️ Synced — progress from your other devices was merged" : "☁️ Synced"); };
   const hi = q("#syncHist"); if (hi) hi.onclick = () => historySheet();
   syncStatusUI();
@@ -14606,7 +14625,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "77b2ed90e31e";
+const BUILD = "743044d0ee59";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
