@@ -3722,10 +3722,27 @@ async function downloadAllAudio(btn, info, levels = ["n5"]) {
 /* ================= Study time tracker & daily goals (shared by all levels + Kana Dojo) =================
    Counts active seconds only while a study screen is open, the tab is visible and there was input in the last 60 s. */
 const TKEY = "jlptVocabQuest.time.v1", IDLE_MS = 60e3, GOAL_OPTS = [5, 10, 15, 20, 30, 45, 60];
-const timeDefault = () => ({ goalMin: 15, goalItems: 0, goalNew: 0, days: {} });
+/* v71: defaults show four Home rings — minutes, items (dailyTarget 20), new words (newLimit 15), + leeches when a batch exists.
+   gv>=71 means the 0→default migrate already ran, so Set goal → 0 still hides that ring. */
+const timeDefault = () => ({ goalMin: 15, goalItems: 20, goalNew: 15, days: {} });
+function timeMigrate(T) {
+  if (!T || typeof T !== "object") return T;
+  if ((+T.gv || 0) >= 71) return T;
+  if (!(+T.goalItems > 0)) T.goalItems = 20;   // old unset default was 0
+  if (!(+T.goalNew > 0)) T.goalNew = 15;
+  T.gv = 71; return T;
+}
 let TS;
-try { TS = Object.assign(timeDefault(), JSON.parse(localStorage.getItem(TKEY) || "{}")); } catch (e) { TS = timeDefault(); }
+try {
+  const raw = JSON.parse(localStorage.getItem(TKEY) || "null");
+  if (raw && typeof raw === "object") {
+    TS = Object.assign({}, timeDefault(), raw);
+    if (raw.gv == null) delete TS.gv;   // don't keep a synthetic gv from defaults — pre-v71 stores must migrate
+  } else TS = timeDefault();
+} catch (e) { TS = timeDefault(); }
+timeMigrate(TS);
 if (!TS.days || typeof TS.days !== "object") TS.days = {};
+try { localStorage.setItem(TKEY, JSON.stringify(TS)); } catch (e) {}   // persist migrate so sync pushes the new defaults once
 let studyScreen = false, lastAct = Date.now(), tDirty = 0, lastTick = Date.now(), tickCarry = 0, lastDayShown = null;
 function tsave() { try { localStorage.setItem(TKEY, JSON.stringify(TS)); } catch (e) {} tDirty = 0; if (typeof syncTouch === "function") syncTouch(); }
 const tday = (d = todayStr()) => TS.days[d] || (TS.days[d] = { sec: 0, items: 0, newW: 0 });
@@ -3818,8 +3835,8 @@ function goalSettings(after) {
     <p class="muted" style="font-size:.85rem">Active study time counts while you're on a quiz / game screen with the tab visible (pauses after 60 s without input). Shared by all levels, including Kana.</p>
     <div class="row"><span>⏱️ Minutes per day</span><span class="seg gseg" id="gMin">${GOAL_OPTS.map(m => `<button class="${m === TS.goalMin ? "on" : ""}" data-m="${m}">${m}</button>`).join("")}<button class="${custom ? "on" : ""}" data-m="custom">…</button></span></div>
     <div class="row" id="gCustomRow" style="${custom ? "" : "display:none"}"><span>Custom minutes</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gCustom" min="1" max="600" value="${TS.goalMin}"></div>
-    <div class="row"><span>🔁 Items reviewed per day<br><small class="muted">0 = no item goal</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gItems" min="0" max="2000" value="${TS.goalItems}"></div>
-    <div class="row"><span>🆕 New words per day<br><small class="muted">0 = no new-word goal · also caps new words per day</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gNew" min="0" max="200" value="${TS.goalNew}"></div>
+    <div class="row"><span>🔁 Items reviewed per day<br><small class="muted">Default 20 · 0 = hide this ring</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gItems" min="0" max="2000" value="${TS.goalItems}"></div>
+    <div class="row"><span>🆕 New words per day<br><small class="muted">Default 15 · 0 = hide this ring · also caps new words per day</small></span><input type="number" inputmode="numeric" pattern="[0-9]*" id="gNew" min="0" max="200" value="${TS.goalNew}"></div>
     <div style="text-align:right;margin-top:12px"><button class="btn" id="gDone">Done</button></div></div>`;
   document.body.appendChild(md);
   const setMin = v => { TS.goalMin = Math.max(1, Math.min(600, v | 0 || 15)); tsave(); };
@@ -3827,9 +3844,17 @@ function goalSettings(after) {
     if (b.dataset.m === "custom") { md.querySelector("#gCustomRow").style.display = ""; md.querySelector("#gCustom").focus(); } else { md.querySelector("#gCustomRow").style.display = "none"; setMin(+b.dataset.m); } };
   md.querySelector("#gCustom").onchange = e => { if (md.querySelector("#gCustomRow").style.display === "none") return; setMin(parseInt(e.target.value, 10)); e.target.value = TS.goalMin; };
   md.querySelector("#gCustom").oninput = e => { const v = parseInt(e.target.value, 10); if (v >= 1) setMin(v); };
-  md.querySelector("#gItems").onchange = e => { TS.goalItems = Math.max(0, Math.min(2000, parseInt(e.target.value, 10) || 0)); e.target.value = TS.goalItems; tsave(); };
-  md.querySelector("#gNew").onchange = e => { TS.goalNew = Math.max(0, Math.min(200, parseInt(e.target.value, 10) || 0)); e.target.value = TS.goalNew; tsave(); };
-  md.onclick = e => { if (e.target === md || e.target.id === "gDone") { md.querySelectorAll("input").forEach(i => i.dispatchEvent(new Event("change"))); md.remove(); checkGoal(); after ? after() : go(curView || home); } };
+  md.querySelector("#gItems").onchange = e => { const v = Math.max(0, Math.min(2000, parseInt(e.target.value, 10) || 0)); e.target.value = v; if (v !== TS.goalItems) { TS.goalItems = v; tsave(); } };
+  md.querySelector("#gNew").onchange = e => { const v = Math.max(0, Math.min(200, parseInt(e.target.value, 10) || 0)); e.target.value = v; if (v !== TS.goalNew) { TS.goalNew = v; tsave(); } };
+  md.onclick = e => { if (e.target !== md && e.target.id !== "gDone") return;
+    // flush typed-but-unblurred values only when they differ — avoids re-stamping unchanged gNew/gItems for gist LWW
+    const gi = md.querySelector("#gItems"), gn = md.querySelector("#gNew"), gc = md.querySelector("#gCustom");
+    let ch = false;
+    const ni = Math.max(0, Math.min(2000, parseInt(gi.value, 10) || 0)); if (ni !== TS.goalItems) { TS.goalItems = ni; ch = true; }
+    const nn = Math.max(0, Math.min(200, parseInt(gn.value, 10) || 0)); if (nn !== TS.goalNew) { TS.goalNew = nn; ch = true; }
+    if (md.querySelector("#gCustomRow").style.display !== "none") { const nm = Math.max(1, Math.min(600, parseInt(gc.value, 10) || 15)); if (nm !== TS.goalMin) { TS.goalMin = nm; ch = true; } }
+    if (ch) tsave();
+    md.remove(); checkGoal(); after ? after() : go(curView || home); };
 }
 let statsRange = 7;
 function statsView(range) { historyView(range || statsRange, true); }
@@ -5130,7 +5155,7 @@ function applyStores(stores, mod) {
   if (!Array.isArray(S.levels) || !S.levels.length) S.levels = ["n5"]; S.levels = S.levels.filter(l => LOFF.hasOwnProperty(l)); if (!S.levels.length) S.levels = ["n5"];
   KS = Object.assign(kanaDefault(), g(KKEY)); ["cards", "sel"].forEach(k => { if (!isObj(KS[k])) KS[k] = {}; }); ["unlocked", "mastered"].forEach(k => { if (!Array.isArray(KS[k])) KS[k] = []; });
   JS = Object.assign({ cards: {} }, g(JKEY)); if (!isObj(JS.cards)) JS.cards = {};
-  TS = Object.assign(timeDefault(), g(TKEY)); if (!isObj(TS.days)) TS.days = {};
+  { const raw = g(TKEY); TS = Object.assign({}, timeDefault(), raw); if (raw.gv == null) delete TS.gv; if (typeof timeMigrate === "function") timeMigrate(TS); if (!isObj(TS.days)) TS.days = {}; }
   AL = Object.assign(alDefault(), g(AKEY)); if (!isObj(AL.log)) AL.log = {};
   RTKS = Object.assign(rkDefault(), g(RKEY)); ["cards", "notes", "newLog"].forEach(k => { if (!isObj(RTKS[k])) RTKS[k] = {}; });
   try { if (typeof duoPrune === "function") { duoPrune(); duoSchedule(); } } catch (e) {}   // Duolingo marks: drop unanswered ones a newer position removed, re-meter releases (app35)
@@ -14737,7 +14762,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "406c2df43000";
+const BUILD = "b05a64b22cdc";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
