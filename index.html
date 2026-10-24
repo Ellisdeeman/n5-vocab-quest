@@ -26,7 +26,7 @@
   --accent:#0f766e;--accent-ink:#ffffff;--accentT:rgba(15,118,110,.12);
   --good:#15803d;--goodT:rgba(22,163,74,.12);--bad:#dc2626;--badT:rgba(220,38,38,.1);--idk:#a16207;
   --orange:#c2410c;--yellow:#a16207;--purple:#9333ea;--pink:#db2777;--teal:#0d9488;--indigo:#4f46e5;--mint:#0e7490;--cyan:#0369a1;--blue:#2563eb;--lime:#4d7c0f;--rose:#e11d48;--gray:#64748b;
-  --kana:#86198f;--n5:#1d4ed8;--n4:#6d28d9;--n3:#be185d;--n2:#92400e;--n1:#9a3412;
+  --kana:#86198f;--st:#0f766e;--n5:#1d4ed8;--n4:#6d28d9;--n3:#be185d;--n2:#92400e;--n1:#9a3412;
   --ring1:#e11d48;--ring2:#65a30d;--ring3:#0284c7;
   --s1:#ea580c;--s2:#d97706;--s3:#65a30d;--s4:#14b8a6;--s5:#0f766e;
   --pillmix:#000;--navbg:rgba(246,247,249,.92);--shadow:none;--mark:#fde68a;--toastbg:rgba(17,20,24,.92);color-scheme:light
@@ -37,7 +37,7 @@
   --accent:#2dd4bf;--accent-ink:#04201c;--accentT:rgba(45,212,191,.14);
   --good:#22c55e;--goodT:rgba(34,197,94,.14);--bad:#ef4444;--badT:rgba(239,68,68,.14);--idk:#fbbf24;
   --orange:#fb923c;--yellow:#fbbf24;--purple:#c084fc;--pink:#f472b6;--teal:#5eead4;--indigo:#818cf8;--mint:#67e8f9;--cyan:#38bdf8;--blue:#60a5fa;--lime:#a3e635;--rose:#fb7185;--gray:#94a3b8;
-  --kana:#e879f9;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
+  --kana:#e879f9;--st:#2dd4bf;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
   --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;
   --s1:#fb923c;--s2:#fbbf24;--s3:#a3e635;--s4:#5eead4;--s5:#2dd4bf;
   --pillmix:#fff;--navbg:rgba(14,17,22,.92);--shadow:none;--mark:rgba(251,191,36,.3);--toastbg:rgba(29,34,43,.96);color-scheme:dark}}
@@ -47,7 +47,7 @@
   --accent:#2dd4bf;--accent-ink:#04201c;--accentT:rgba(45,212,191,.14);
   --good:#22c55e;--goodT:rgba(34,197,94,.14);--bad:#ef4444;--badT:rgba(239,68,68,.14);--idk:#fbbf24;
   --orange:#fb923c;--yellow:#fbbf24;--purple:#c084fc;--pink:#f472b6;--teal:#5eead4;--indigo:#818cf8;--mint:#67e8f9;--cyan:#38bdf8;--blue:#60a5fa;--lime:#a3e635;--rose:#fb7185;--gray:#94a3b8;
-  --kana:#e879f9;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
+  --kana:#e879f9;--st:#2dd4bf;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
   --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;
   --s1:#fb923c;--s2:#fbbf24;--s3:#a3e635;--s4:#5eead4;--s5:#2dd4bf;
   --pillmix:#fff;--navbg:rgba(14,17,22,.92);--shadow:none;--mark:rgba(251,191,36,.3);--toastbg:rgba(29,34,43,.96);color-scheme:dark}
@@ -1471,7 +1471,8 @@ function forms(s, withParen) {
 const POS_NAMES = { n: "noun", v: "verb", ai: "い-adjective", na: "な-adjective", adv: "adverb", pn: "pronoun", suf: "suffix/counter", num: "number", exp: "expression", conj: "conjunction", other: "word" };
 /* ================= Levels (N5 embedded, N4–N1 loaded on demand from data/nX.json) =================
    Global word id = level offset + index in that level's list (N5 ids 0..717 are unchanged from v1). */
-const LEVELS = ["n5", "n4", "n3", "n2", "n1"], LOFF = { n5: 0, n4: 10000, n3: 20000, n2: 30000, n1: 40000 };
+const LEVELS = ["n5", "n4", "n3", "n2", "n1"], LOFF = { n5: 0, n4: 10000, n3: 20000, n2: 30000, n1: 40000, st: 70000 };
+const SLEVELS = ["st", ...LEVELS];   // v68: selectable vocab levels in progression order — Starter 1.5k first after Kana, then N5→N1
 const LNAME = l => l === "pm" ? "Pimsleur" : l === "gk" ? "Genki" : l === "st" ? "Starter" : l.toUpperCase();
 const lvlOf = id => id >= 70000 ? "st" : id >= 60000 ? "gk" : id >= 50000 ? "pm" : LEVELS[Math.floor(id / 10000)];   // ≥50000: Pimsleur word set (app12)
 const WORDS = [], EXAMPLES = [], THEME = [], HUMAN = {};
@@ -1504,6 +1505,7 @@ function fetchT(url, ms = 20000) {
   return Promise.race([fetch(url, ac ? { signal: ac.signal } : undefined), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms + 50))]).finally(() => clearTimeout(t));
 }
 function loadLevel(l) {
+  if (l === "st") return stLoad();   // v68: Starter = 1,500 ids across N5–N1/Genki + Starter-only words (app64)
   if (!LV[l]) return Promise.resolve(false);
   if (LV[l].loaded) return Promise.resolve(true);
   if (!levelPromises[l]) levelPromises[l] = fetchT(`data/${l}.json?v=${LV[l].info.v || 1}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -1511,8 +1513,8 @@ function loadLevel(l) {
   return levelPromises[l];
 }
 function activeLevels() { const a = (S.levels || ["n5"]).filter(l => LV[l] && LV[l].loaded); return a.length ? a : ["n5"]; }
-function refreshPool() { const a = activeLevels(); ALL_IDS = a.flatMap(l => LV[l].ids); KANJI_IDS = a.flatMap(l => LV[l].kanjiIds); SETS = a.flatMap(l => LV[l].sets); }
-const levelLabel = () => { const a = activeLevels(); return a.length === LEVELS.length ? "All levels" : LEVELS.filter(l => a.includes(l)).map(LNAME).join(" + "); };
+function refreshPool() { const a = activeLevels(); ALL_IDS = [...new Set(a.flatMap(l => LV[l].ids))];   /* shared Starter/N5 words: one card, listed once */ KANJI_IDS = a.flatMap(l => LV[l].kanjiIds); SETS = a.flatMap(l => LV[l].sets); }
+const levelLabel = () => { const a = activeLevels(); return a.length === SLEVELS.length ? "All levels" : SLEVELS.filter(l => a.includes(l)).map(l => l === "st" ? "Starter 1.5k" : LNAME(l)).join(" + "); };
 
 /* ================= Romaji ⇄ kana ================= */
 const ROMA = (() => {
@@ -1608,7 +1610,7 @@ function normAscii(s) {
 /* ================= State / persistence ================= */
 const KEY = "n5VocabQuest.v1";
 const defaultState = () => ({ cards: {}, xp: 0, streak: 0, lastDay: null, sound: true, romaji: true, speech: true, autoSpeak: false, bestSpeed: 0, bestMatch: 0, answered: 0,
-  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, retype: true, retypeMC: false, retention: 0.9, maxIvl: 1095, newLimit: 15, kjLimit: 10, newLog: {}, newLogK: {}, leechSeen: [], levels: ["n5"] });
+  notes: {}, newPerDay: 10, dailyTarget: 20, daily: null, dailyHistory: {}, unlockAll: false, unlockedSets: [], autoAdvance: true, listenType: false, retype: true, retypeMC: false, retention: 0.9, maxIvl: 1095, newLimit: 15, kjLimit: 10, newLog: {}, newLogK: {}, leechSeen: [], levels: ["st", "n5"] });
 let S;
 try { S = Object.assign(defaultState(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { S = defaultState(); }
 if (!S.notes || typeof S.notes !== "object") S.notes = {};
@@ -1655,6 +1657,7 @@ const masteredCount = (ids = ALL_IDS) => ids.reduce((n, id) => n + (card(id).box
 const seenCount = (ids = ALL_IDS) => ids.reduce((n, id) => n + (S.cards[id] ? 1 : 0), 0);
 /* per-level stats straight from saved cards (works before a level's data is loaded) */
 function levelStats(l) {
+  if (l === "st") { const k = stStats(); return { seen: k.seen, mast: k.mast, due: k.due, total: k.total }; }
   const lo = LOFF[l], hi = lo + 10000, now = Date.now(); let seen = 0, mast = 0, due = 0;
   for (const k in S.cards) { const id = +k; if (id >= lo && id < hi) { seen++; const c = S.cards[k]; if (c.box >= MASTER_BOX) mast++; if (c.due <= now) due++; } }
   return { seen, mast, due, total: LV[l].loaded ? LV[l].ids.length : (LV[l].info.count || 0) };
@@ -2675,10 +2678,15 @@ function quiz(mode, pool = ALL_IDS, title, back) {
 function newWordsForToday(n, exclude, levels = activeLevels()) {
   n = Math.min(n, newLeft());   // daily new-word limit
   // per selected level: unseen words from unlocked sets first (in set order), then locked ones; levels are interleaved round-robin
-  const lists = levels.filter(l => LV[l].loaded).map(l => { const L = LV[l].sets, ordered = L.filter(setUnlocked).concat(L.filter(s => !setUnlocked(s))), out = [];
+  // v68: Starter 1.5k is the first level after Kana — its unseen words come first, in frequency order, before N5–N1 words
+  const seen = new Set(exclude), first = [];
+  if (levels.includes("st") && LV.st.loaded) for (const id of LV.st.ids) if (first.length < n && !S.cards[id] && !seen.has(id)) { first.push(id); seen.add(id); }
+  if (first.length >= n) return first;
+  exclude = seen;
+  const lists = levels.filter(l => l !== "st" && LV[l].loaded).map(l => { const L = LV[l].sets, ordered = L.filter(setUnlocked).concat(L.filter(s => !setUnlocked(s))), out = [];
     for (const s of ordered) for (const id of s.ids) if (!S.cards[id] && !exclude.has(id)) out.push(id);
     return out; });
-  const out = [];
+  const out = first;
   for (let r = 0; out.length < n && lists.some(x => r < x.length); r++) for (const x of lists) if (r < x.length && out.length < n) out.push(x[r]);
   return out;
 }
@@ -2872,7 +2880,7 @@ function kanaCardHTML(list) {
   return `<div class="lvcard" data-lv="kana" role="button" tabindex="0" title="Open Kana"><b>Kana</b><small>${k.mast}/${k.total} mastered</small><div class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></div><small class="muted">${k.seen} seen${k.due ? ` · ${k.due} due` : ""}</small></div>`;
 }
 function levelPickerHTML(list = false) {
-  const act = activeLevels(), all = act.length === LEVELS.length;
+  const act = activeLevels(), all = act.length === SLEVELS.length;
   if (list) return `<div class="group lvlist">${kanaCardHTML(true)}${stCardHTML()}${LEVELS.map(l => { const st = levelStats(l), on = act.includes(l), tot = st.total || 1;
       return `<div class="lvcard ${on ? "on" : ""}" data-lv="${l}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Open ${LNAME(l)}">${lvRing(LNAME(l), st.mast / tot, `var(--${l})`)}
         <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">${LNAME(l)} · ${st.total} words</b><small>${st.mast} mastered · ${st.seen} seen${st.due ? ` · ${st.due} due` : ""}${LV[l].loaded || l === "n5" ? "" : " · tap to download"}</small>
@@ -2896,16 +2904,16 @@ function bindLevelPicker() {
       if (c.dataset.lv === "kana") { go(kanaHome); return; }
       if (c.dataset.lv === "pims") { go(pimsView); return; }
       if (c.dataset.lv === "genki") { go(gkView); return; }
-      if (c.dataset.lv === "starter") { go(stView); return; }
       const t = e.target.closest("[data-tog]");
       if (t) { e.stopPropagation(); const l = t.dataset.tog, cur = activeLevels(); setLevels(cur.includes(l) ? cur.filter(x => x !== l) : cur.concat(l)); return; }
-      if (c.dataset.lv === "all") setLevels(LEVELS.slice()); else openLevel(c.dataset.lv);   // tap a level = open its page (and study it alone)
+      if (c.dataset.lv === "starter") { go(stView); return; }
+      if (c.dataset.lv === "all") setLevels(SLEVELS.slice()); else openLevel(c.dataset.lv);   // tap a level = open its page (and study it alone)
     };
     c.onclick = act; c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(e); } };
   });
 }
 async function setLevels(ls, render = true) {
-  ls = LEVELS.filter(l => ls.includes(l)); if (!ls.length) { toast("Keep at least one level selected"); return; }
+  ls = SLEVELS.filter(l => ls.includes(l)); if (!ls.length) { toast("Keep at least one level selected"); return; }
   const need = ls.filter(l => !LV[l].loaded);
   if (need.length) toast(`Loading ${need.map(LNAME).join(", ")}…`);
   const ok = await Promise.all(ls.map(loadLevel)), good = ls.filter((l, i) => ok[i]);
@@ -4083,7 +4091,7 @@ function kanaDueSession(ids, title, back, then) {
    New items come from the current frontier stage; due reviews from EVERY stage studied so far (vocab + kana) come
    first. The frontier advances when a stage reaches S.pathAdv % mastered; with overlap on, the next stage's new
    items start mixing in (half of the new slots) once the current one reaches S.pathOverlapAt %. */
-const PATH = ["kana", ...LEVELS];
+const PATH = ["kana", ...SLEVELS];   // v68: Starter 1.5k is the stage after Kana
 const PNAME = st => st === "kana" ? "Kana" : LNAME(st);
 const kanaPathOrder = () => KALL.filter(id => KITEMS[id].g !== "ext" && KITEMS[id].s === "h").concat(KALL.filter(id => KITEMS[id].g !== "ext" && KITEMS[id].s === "k"));
 function stageStats(st) {
@@ -4112,7 +4120,7 @@ function pathLevels() {
 function pathKanjiLevels() {
   if (S.pathKanji === false) return [];
   const ps = pathState(), need = new Set();
-  if (ps.cur !== "kana") need.add(ps.cur);
+  if (ps.cur !== "kana" && KJL[ps.cur]) need.add(ps.cur);   // Starter has no kanji list
   kjLevelsWithCards().forEach(l => { if (kjDueScan(l).ids.length) need.add(l); });
   return [...need];
 }
@@ -6036,7 +6044,7 @@ function flashcards(pool, title = "🃏 Flashcards", back, opts = {}) {
 function flHomeOpts() {
   const cur = pathState().cur, o = [["path", "📍 " + PNAME(cur)]];
   if (cur !== "kana" && Object.keys(KS.cards).length) o.push(["kana", "Kana"]);
-  LEVELS.filter(l => activeLevels().includes(l)).forEach(l => { if (l !== cur) o.push([l, LNAME(l)]); });
+  SLEVELS.filter(l => activeLevels().includes(l)).forEach(l => { if (l !== cur) o.push([l, l === "st" ? "Starter 1.5k" : LNAME(l)]); });
   o.push(["all", "All due"]);
   return o;
 }
@@ -6101,6 +6109,7 @@ function memItems(lv, tr) {
     for (const ch in JS.cards) { const c = JS.cards[ch]; if (lv !== "all" && c.l !== lv) continue; if (c.f) out.push({ key: ch, kind: "j", f: c.f, c }); }
     return { out, total };
   }
+  if (lv === "st") { for (const id of ST_IDS) { total++; const c = S.cards[id], f = c && (tr === "l" ? c.L : c.f); if (f) out.push({ key: id, kind: "w", f, c }); } return { out, total }; }   // v68
   for (const l of LEVELS) if (lv === "all" || l === lv) total += LV[l].loaded ? LV[l].ids.length : (LV[l].info.count || 0);
   for (const k in S.cards) { const id = +k, l = lvlOf(id); if (l === "pm" || l === "gk" || l === "st" || (lv !== "all" && l !== lv)) continue; const c = S.cards[k], f = tr === "l" ? c.L : c.f; if (f) out.push({ key: id, kind: "w", f, c }); }
   return { out, total };
@@ -6142,7 +6151,7 @@ function memBars(vals, labels, o = {}) {
 function memStatsHTML() { queueMicrotask(memMount); return `<div class="panel memstats" id="memStats"></div>`; }
 function memMount() {
   const host = $("#memStats"); if (!host) return;
-  const lvs = ["all", ...LEVELS.filter(l => activeLevels().includes(l))]; if (!lvs.includes(memSel.lv)) memSel.lv = "all";
+  const lvs = ["all", ...SLEVELS.filter(l => activeLevels().includes(l))]; if (!lvs.includes(memSel.lv)) memSel.lv = "all";
   const t0 = performance.now(), M = memStats(memSel.lv, memSel.tr), ms = performance.now() - t0;
   const pct = x => x == null ? "—" : Math.round(x * 100) + "%";
   const retCell = (x, d) => `<div class="memret ${x && x.r < M.target - 0.05 ? "low" : ""}"><b>${x ? pct(x.r) : "—"}</b><small>true retention · ${d} days${x ? ` · ${x.n} reviews` : " · no reviews yet"}</small></div>`;
@@ -13068,7 +13077,7 @@ document.addEventListener("click", e => {
    Tapping it raises today's cap by N (S.newExtra[today], synced, max-merged) and runs a short lesson with exactly those
    N new words (intro + recall). Nothing else ever lifts the cap. */
 const NEW_MORE = 5;
-function newMoreN() { if (newLimitV() === Infinity) return 0; const lv = activeLevels().filter(l => LV[l] && LV[l].loaded); let n = 0; for (const l of lv) for (const id of LV[l].ids) if (!S.cards[id] && isNewWord(id) && ++n >= NEW_MORE) return NEW_MORE; return n; }
+function newMoreN() { if (newLimitV() === Infinity) return 0; const lv = activeLevels().filter(l => LV[l] && LV[l].loaded); let n = 0; const dup = new Set(); for (const l of lv) for (const id of LV[l].ids) if (!S.cards[id] && !dup.has(id) && (dup.add(id), isNewWord(id)) && ++n >= NEW_MORE) return NEW_MORE; return n; }
 function newMoreStart(n, back = home) {
   n = Math.max(1, Math.min(NEW_MORE, n | 0 || NEW_MORE));
   newAddExtra(n);
@@ -14528,6 +14537,19 @@ LOFF.st = STARTER.st || 70000;
 LV.st = { loaded: false, ids: [], kanjiIds: [], sets: [], exCount: 0, info: { count: (STARTER.w || []).length } };
 addLevel("st", { words: STARTER.w || [], examples: [], pos: (STARTER.w || []).map((w, i) => (STARTER.p && STARTER.p[i]) || (/^to /.test(w[2]) ? "v" : "other")), sets: [], human: {}, source: "" });
 const ST_IDS = STARTER.o.slice();
+LV.st.only = LV.st.ids.slice(); LV.st.loaded = false;   // v68: "loaded" once every list its 1,500 words live in is in memory; ids = frequency order
+let stLoading = null;
+function stLoad() {
+  if (LV.st.loaded) return Promise.resolve(true);
+  if (!stLoading) stLoading = (async () => {
+    const need = [...new Set(ST_IDS.map(lvlOf))].filter(l => l !== "st" && LV[l] && !LV[l].loaded);
+    await Promise.all(need.map(l => loadLevel(l).catch(() => false)));
+    const ids = ST_IDS.filter(id => WORDS[id]); stLoading = null;
+    if (ids.length < ST_IDS.length * 0.9) return false;   // offline: N4–N1 lists missing — like a level that failed to download
+    LV.st.ids = ids; LV.st.loaded = true; return true;
+  })();
+  return stLoading;
+}
 const ST_RANK = (() => { const o = {}; ST_IDS.forEach((id, i) => o[id] = i + 1); return o; })();
 function stStats() {
   const now = Date.now(); let seen = 0, mast = 0, due = 0;
@@ -14536,10 +14558,11 @@ function stStats() {
 }
 function stCardHTML(list = true) {
   const k = stStats(), tot = k.total || 1;
-  if (!list) return `<div class="lvcard" data-lv="starter" role="button" tabindex="0" title="Open Starter 1.5k"><b>Starter</b><small>${k.mast}/${k.total} mastered</small><div class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></div></div>`;   // v67: Home grid (Kana, Starter, N5–N1)
-  return `<div class="lvcard" data-lv="starter" role="button" tabindex="0" aria-label="Open Starter 1.5k">${lvRing("🌱", k.mast / tot, "var(--accent)")}
+  const on = (S.levels || []).includes("st"), chk = `<button class="lvchk" data-tog="st" aria-label="${on ? "Remove" : "Add"} Starter 1.5k ${on ? "from" : "to"} your levels" title="${on ? "Remove from" : "Add to"} mixed deck">${on ? "☑" : "☐"}</button>`;
+  if (!list) return `<div class="lvcard ${on ? "on" : ""}" data-lv="starter" role="button" tabindex="0" title="Open Starter 1.5k"><b>Starter</b><small>${k.mast}/${k.total} mastered</small><div class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></div><small class="muted">${k.seen} seen${k.due ? ` · ${k.due} due` : ""}</small>${chk}</div>`;   // v67: Home grid (Kana, Starter, N5–N1)
+  return `<div class="lvcard ${on ? "on" : ""}" data-lv="starter" role="button" tabindex="0" aria-pressed="${on}" aria-label="Open Starter 1.5k">${lvRing("🌱", k.mast / tot, "var(--accent)")}
       <span class="lvtxt"><b style="font-size:1rem;color:var(--label)">Starter 1.5k · ${k.total} words</b><small>${k.mast} mastered · ${k.seen} seen${k.due ? ` · ${k.due} due` : ""} · most frequent words first</small>
-      <span class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></span></span>${k.due ? `<span class="badge stbadge">${k.due}</span>` : ""}<span class="lvchk" aria-hidden="true">${I("chevronR")}</span></div>`;
+      <span class="minibar"><i style="width:${k.seen / tot * 100}%;background:var(--fill2)"></i><i style="width:${k.mast / tot * 100}%"></i></span></span>${k.due ? `<span class="badge stbadge">${k.due}</span>` : ""}${chk}</div>`;
 }
 const stNext = n => ST_IDS.filter(id => !S.cards[id]).slice(0, Math.max(0, n));
 /* Learn: everything already started + only the next unseen words in frequency order, as many as today's new-word allowance */
@@ -14626,7 +14649,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "30a71c925466";
+const BUILD = "57194cc7c494";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
