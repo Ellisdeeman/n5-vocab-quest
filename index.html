@@ -27,7 +27,7 @@
   --good:#15803d;--goodT:rgba(22,163,74,.12);--bad:#dc2626;--badT:rgba(220,38,38,.1);--idk:#a16207;
   --orange:#c2410c;--yellow:#a16207;--purple:#9333ea;--pink:#db2777;--teal:#0d9488;--indigo:#4f46e5;--mint:#0e7490;--cyan:#0369a1;--blue:#2563eb;--lime:#4d7c0f;--rose:#e11d48;--gray:#64748b;
   --kana:#86198f;--st:#0f766e;--n5:#1d4ed8;--n4:#6d28d9;--n3:#be185d;--n2:#92400e;--n1:#9a3412;
-  --ring1:#e11d48;--ring2:#65a30d;--ring3:#0284c7;
+  --ring1:#e11d48;--ring2:#65a30d;--ring3:#0284c7;--ring4:#d97706;
   --s1:#ea580c;--s2:#d97706;--s3:#65a30d;--s4:#14b8a6;--s5:#0f766e;
   --pillmix:#000;--navbg:rgba(246,247,249,.92);--shadow:none;--mark:#fde68a;--toastbg:rgba(17,20,24,.92);color-scheme:light
 }
@@ -38,7 +38,7 @@
   --good:#22c55e;--goodT:rgba(34,197,94,.14);--bad:#ef4444;--badT:rgba(239,68,68,.14);--idk:#fbbf24;
   --orange:#fb923c;--yellow:#fbbf24;--purple:#c084fc;--pink:#f472b6;--teal:#5eead4;--indigo:#818cf8;--mint:#67e8f9;--cyan:#38bdf8;--blue:#60a5fa;--lime:#a3e635;--rose:#fb7185;--gray:#94a3b8;
   --kana:#e879f9;--st:#2dd4bf;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
-  --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;
+  --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;--ring4:#fbbf24;
   --s1:#fb923c;--s2:#fbbf24;--s3:#a3e635;--s4:#5eead4;--s5:#2dd4bf;
   --pillmix:#fff;--navbg:rgba(14,17,22,.92);--shadow:none;--mark:rgba(251,191,36,.3);--toastbg:rgba(29,34,43,.96);color-scheme:dark}}
 :root[data-theme=dark]{
@@ -48,7 +48,7 @@
   --good:#22c55e;--goodT:rgba(34,197,94,.14);--bad:#ef4444;--badT:rgba(239,68,68,.14);--idk:#fbbf24;
   --orange:#fb923c;--yellow:#fbbf24;--purple:#c084fc;--pink:#f472b6;--teal:#5eead4;--indigo:#818cf8;--mint:#67e8f9;--cyan:#38bdf8;--blue:#60a5fa;--lime:#a3e635;--rose:#fb7185;--gray:#94a3b8;
   --kana:#e879f9;--st:#2dd4bf;--n5:#60a5fa;--n4:#a78bfa;--n3:#f472b6;--n2:#fbbf24;--n1:#fb923c;
-  --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;
+  --ring1:#fb7185;--ring2:#a3e635;--ring3:#38bdf8;--ring4:#fbbf24;
   --s1:#fb923c;--s2:#fbbf24;--s3:#a3e635;--s4:#5eead4;--s5:#2dd4bf;
   --pillmix:#fff;--navbg:rgba(14,17,22,.92);--shadow:none;--mark:rgba(251,191,36,.3);--toastbg:rgba(29,34,43,.96);color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -3733,6 +3733,7 @@ function goalParts(d = todayStr()) {
   const x = tget(d), parts = [{ k: "min", label: "minutes", have: Math.floor(x.sec / 60), need: TS.goalMin }];
   if (TS.goalItems > 0) parts.push({ k: "items", label: "items reviewed", have: x.items, need: TS.goalItems });
   if (TS.goalNew > 0) parts.push({ k: "new", label: "new words", have: newWordsOn(d), need: Math.min(TS.goalNew, d === todayStr() && typeof newBaseV === "function" && newBaseV() !== Infinity ? newBaseV() : TS.goalNew) });   // same counter as the daily cap (unique words; kana/kanji/grammar not included)
+  if (d === todayStr() && typeof lfGoal === "function") { const g = lfGoal(); if (g.need > 0) parts.push({ k: "lee", label: "leeches worked", have: g.have, need: g.need }); }   // v69: hidden with no leech batch (like an unset goal)
   return parts;
 }
 /* today: judged live against the current goal; past days: met if it was reached that day (flag) or meets the current goal */
@@ -3786,19 +3787,19 @@ function updateTimePill() { const el = $("#sTime"); if (el) el.textContent = `${
 
 /* Apple-Fitness-style concentric rings: minutes (outer), items reviewed, new words (only rings for goals that are set) */
 function ringsSVG(parts, size = 118) {
-  const cols = { min: "var(--ring1)", items: "var(--ring2)", new: "var(--ring3)" }, W = 12, gap = 2.5;
+  const cols = { min: "var(--ring1)", items: "var(--ring2)", new: "var(--ring3)", lee: "var(--ring4)" }, W = 12, gap = 2.5;
   return `<svg class="goalrings" viewBox="0 0 ${size} ${size}" role="img" aria-label="${parts.map(p => `${p.have} of ${p.need} ${p.label}`).join(", ")}">${parts.map((p, k) => {
     const r = size / 2 - W / 2 - k * (W + gap), C = 2 * Math.PI * r, f = Math.min(1, p.have / p.need), over = p.have / p.need > 1;
-    return `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${cols[p.k]};opacity:.22" stroke-width="${W}"/>
-      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${cols[p.k]}" stroke-width="${W}" stroke-linecap="round" stroke-dasharray="${Math.max(f * C, f > 0 ? .01 : 0)} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/>`; }).join("")}</svg>`;
+    return `<g ${p.k === "lee" ? 'class="goallee" data-goal="lee" role="button" aria-label="Open leech focus" style="cursor:pointer;pointer-events:stroke"' : ""}><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${cols[p.k]};opacity:.22" stroke-width="${W}"/>
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${cols[p.k]}" stroke-width="${W}" stroke-linecap="round" stroke-dasharray="${Math.max(f * C, f > 0 ? .01 : 0)} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/></g>`; }).join("")}</svg>`;
 }
 function goalPanelHTML() {
   const x = tget(todayStr()), parts = goalParts(), met = goalMet(), gs = goalStreak();
-  const cols = { min: "var(--ring1)", items: "var(--ring2)", new: "var(--ring3)" };
+  const cols = { min: "var(--ring1)", items: "var(--ring2)", new: "var(--ring3)", lee: "var(--ring4)" };
   return `<div class="panel goalpanel ${met ? "met" : ""}"><div class="progress-big">
     ${ringsSVG(parts)}
     <div style="flex:1;min-width:0"><h2 style="margin:0 0 4px">${met ? "✅ Goal reached" : "Daily goal"}</h2>
-      ${parts.map(p => `<div class="goalrow"><span><i class="dot" style="background:${cols[p.k]}"></i><b style="font-variant-numeric:tabular-nums">${p.have}/${p.need}</b> ${p.label}${p.have >= p.need ? " ✔" : ""}</span></div>`).join("")}
+      ${parts.map(p => `<div class="goalrow" ${p.k === "lee" ? 'data-goal="lee" role="button" tabindex="0" style="cursor:pointer"' : ""}><span><i class="dot" style="background:${cols[p.k]}"></i><b style="font-variant-numeric:tabular-nums">${p.have}/${p.need}</b> ${p.label}${p.have >= p.need ? " ✔" : ""}</span></div>`).join("")}
       <div class="muted" style="font-size:.82rem;margin-top:4px">🎯 Goal streak <b id="goalStreak">${gs}</b> day${gs === 1 ? "" : "s"} · ${x.items} items today</div>
       <div class="btnrow" style="justify-content:flex-start;margin-top:8px"><button class="btn sec small" id="histBtn">📊 History</button><button class="btn ghost small" id="goalBtn">🎯 Set goal</button></div>
     </div></div>${typeof duoHomeHTML === "function" ? duoHomeHTML() : ""}</div>`;
@@ -3806,6 +3807,7 @@ function goalPanelHTML() {
 function bindGoalPanel() {
   const h = $("#histBtn"); if (h) h.onclick = () => { sfx.click(); go(() => historyView(7)); };
   const g = $("#goalBtn"); if (g) g.onclick = () => { sfx.click(); goalSettings(); };
+  document.querySelectorAll(".goalpanel [data-goal=lee]").forEach(el => { const f = e => { if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return; e.preventDefault(); sfx.click(); lfStart(curView || home); }; el.onclick = f; el.onkeydown = f; });   // v69
   if (typeof duoBind === "function") duoBind();
 }
 function goalSettings(after) {
@@ -14314,6 +14316,15 @@ function lfBatch() {
   if (LF_CH || old.join() !== L.b.join()) { LF_CH = 0; save(); }
   return L.b.slice();
 }
+/* v69: Home daily-goal ring — S.lf.dd = { d: day, n: batch size fixed for the day, ids: words that finished today's focus
+   run (relearn + recall + every level they reached; pass or fail; graduates included) }. n is taken from the stored batch
+   at the first look each day, so refills after a graduation don't move it; changing the batch-size picker re-bases it. */
+function lfDay() { const L = lfS(), d = todayStr();
+  if (!L.dd || L.dd.d !== d || !Array.isArray(L.dd.ids)) L.dd = { d, n: Math.min(lfN(), L.b.length), ids: [] };
+  if (!L.dd.n && L.b.length) L.dd.n = Math.min(lfN(), L.b.length);   // leeches appeared later today
+  return L.dd; }
+function lfGoal() { const x = lfDay(); return { have: Math.min(x.n, x.ids.length), need: x.n }; }
+function lfMarkDone(ids) { const x = lfDay(); ids.forEach(id => { if (!x.ids.includes(+id)) x.ids.push(+id); }); save(); if (typeof checkGoal === "function") checkGoal(); }
 function lfGrad(id) { const L = lfS(); lfHold(id, false, "fresh"); L.done[id] = 0; delete L.g[id]; if (L.t) delete L.t[id]; L.b = L.b.filter(x => x !== id); }
 const lfDays = id => (lfS().g[id] || []).length;
 /* v56: three levels per word — r = recall, l = listen & type, w = write from memory. A level counts for today when its
@@ -14339,7 +14350,7 @@ function lfPanelHTML() {
     <div class="btnrow"><button class="btn" id="lfGo" ${b.length ? "" : "disabled"}>🎯 Focus session (${b.length})</button></div></div>`;
 }
 function bindLf(root, back) {
-  const s = root.querySelector("#lfN"); if (s) s.onchange = () => { lfS().n = +s.value; lfBatch(); save(); go(back); };
+  const s = root.querySelector("#lfN"); if (s) s.onchange = () => { lfS().n = +s.value; lfBatch(); const x = lfDay(); x.n = new Set([...lfS().b, ...x.ids]).size; save(); go(back); };
   const g = root.querySelector("#lfGo"); if (g) g.onclick = () => { sfx.click(); lfStart(back); };
 }
 /* ---------- session ---------- */
@@ -14396,7 +14407,7 @@ function lfLevels(ids2, D, n0, back) {   // levels unlock in order per word: onl
     lfQueue(ids, (w, next, left) => render(w, next, back, left), (pass, first) => { F[lv] = first;
       Object.keys(first).forEach(id => { if (lfRecord(+id, lv, first[id])) D.grad.push(+id); }); save(); run(k + 1, shuffle([...pass])); });
   };
-  const finish = () => { const cnt = o => Object.values(o || {}).filter(Boolean).length;
+  const finish = () => { const cnt = o => Object.values(o || {}).filter(Boolean).length; lfMarkDone(Object.keys(D.first));
     view.innerHTML = topbar("🎯 Focus batch") + `<div class="panel" style="text-align:center"><div class="big">🎯</div><h2>First-try right</h2>
       <p>${LF_LV.filter(([k]) => N[k]).map(([k, n]) => `${n} ${cnt(F[k])}/${N[k]}`).join(" · ")}</p>
       <p class="muted">${D.grad.length ? `🎓 Graduated: ${D.grad.map(id => esc(WORDS[id].jp)).join(", ")} — the next leech joins your batch.` : "A word graduates after passing all 6 levels on its first try on 2 different days."}</p>
@@ -14649,7 +14660,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "57194cc7c494";
+const BUILD = "101c93e79284";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
