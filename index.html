@@ -13829,7 +13829,7 @@ function rkRandGrade(fr, r, now = Date.now()) {
 }
 const rkNoWrite = () => { try { return localStorage.getItem("n5vq.rkNoWrite") === "1"; } catch (e) { return false; } };
 const rtkTileHTML = () => { const d = rkDue().length; return `<button class="mode rktile-home" data-m="rtk"><div class="ic">🧠</div><h3>Remembering the Kanji ${d ? `<span class="badge">${d}</span>` : ""}</h3><p>${RTKS.frame ? `Frame ${RTKS.frame} · ${rkLearned()} in reviews` : "Heisig 6th ed. · set your frame"} · separate</p></button>`; };
-/* ---------- v42: Leeches handwriting worksheet (PDF made on-device, for GoodNotes + Apple Pencil) ----------
+/* ---------- v42/v74: Leeches handwriting worksheet (PDF made on-device, for GoodNotes + Apple Pencil) ----------
    iPad 4:3 portrait (197×263 mm). Part 1 study+practice (2 per page), Part 2 shuffled recall, Part 3 answer key.
    Pages are drawn on a canvas (system Japanese font, KanjiVG stroke paths) and wrapped into a tiny image-only PDF — no library, works offline. */
 const LW_W = 197, LW_H = 263, LW_PX = 6, LW_MAX = 30;
@@ -13910,7 +13910,10 @@ function lwKanjiCell(g, c, paths, x, y, s, mode) {   // mode: blank | trace | nu
   } else lwText(g, c, x + s / 2, y + s * 0.82, s * 2.2, { align: "center", col: mode === "trace" ? "#c4c4c4" : "#000" });
 }
 function lwFoot(g, s, date) { lwText(g, `Leeches worksheet · ${date} · ${s}`, 11, LW_H - 4.5, 7, { col: "#666" }); lwText(g, "strokes: KanjiVG CC BY-SA 3.0 · sentences: Tatoeba CC BY 2.0 FR", LW_W - 11, LW_H - 4.5, 7, { col: "#666", align: "right" }); }
-function lwBlockH(it) { return 41 + 18.6 * Math.max(1, it.ks.length) + 13 + 10; }
+function lwBlockH(it) {
+  /* kanji words: one stroke-practice row per kanji; kana-only: one whole-word practice row (never first-mora ×9) */
+  return 41 + 18.6 * Math.max(1, it.ks.length || 1) + 13 + 10;
+}
 function lwStudy(g, it, n, y0, P) {
   const x0 = 11, W = LW_W - 22, h = lwBlockH(it);
   g.lineWidth = 0.4; g.strokeStyle = "#000"; g.strokeRect(x0, y0, W, h);
@@ -13929,11 +13932,25 @@ function lwStudy(g, it, n, y0, P) {
     lwWrap(g, "Difference: " + it.diff, vx, y + 21.5, 64, 8, 3.5, { max: 4 });
   } else { lwText(g, "Don't confuse with", vx, y + 3.5, 8.5, { bold: true }); lwWrap(g, "No look-alike on file — write one you mix it up with:", vx, y + 9, 64, 8, 3.5); g.beginPath(); g.moveTo(vx, y + 24); g.lineTo(vx + 62, y + 24); g.stroke(); }
   y = y0 + 41; const bs = 16.5;
-  (it.ks.length ? it.ks : [it.jp[0]]).forEach(c => {
-    lwText(g, c, x, y + 5, 7); lwText(g, "trace 4", x, y + 8.5, 6.5, { col: "#333" }); lwText(g, "write 5", x, y + 11.5, 6.5, { col: "#333" });
-    for (let i = 0; i < 9; i++) lwKanjiCell(g, c, P[c], x + 13 + i * (bs + 0.8), y, bs, i < 4 ? "trace" : "blank");
+  if (it.ks.length) {
+    /* kanji: per-character stroke order practice (trace 4 + write 5) */
+    it.ks.forEach(c => {
+      lwText(g, c, x, y + 5, 7); lwText(g, "trace 4", x, y + 8.5, 6.5, { col: "#333" }); lwText(g, "write 5", x, y + 11.5, 6.5, { col: "#333" });
+      for (let i = 0; i < 9; i++) lwKanjiCell(g, c, P[c], x + 13 + i * (bs + 0.8), y, bs, i < 4 ? "trace" : "blank");
+      y += 18.6;
+    });
+  } else {
+    /* kana-only (そこ / いくつ / どの…): practice the WHOLE reading — never the first mora nine times */
+    const kc0 = [...it.kana], copies = 5, gap = 2.5;
+    const m0 = Math.min(bs, (W - 16 - (copies - 1) * gap) / Math.max(1, copies * kc0.length));
+    lwText(g, "word", x, y + 5, 7); lwText(g, "trace 1", x, y + 8.5, 6.5, { col: "#333" }); lwText(g, "write " + (copies - 1), x, y + 11.5, 6.5, { col: "#333" });
+    let wx = x + 13;
+    for (let r = 0; r < copies; r++) {
+      kc0.forEach((ch, i) => { lwBox(g, wx + i * m0, y, m0, true); if (r === 0) lwText(g, ch, wx + i * m0 + m0 / 2, y + m0 * 0.78, m0 * 2.0, { align: "center", col: "#c4c4c4" }); });
+      wx += kc0.length * m0 + gap;
+    }
     y += 18.6;
-  });
+  }
   const kc = [...it.kana], m = Math.min(11, 150 / (3 * kc.length + 1));
   lwText(g, "kana", x, y + 4.5, 7); lwText(g, "×3", x, y + 8, 6.5, { col: "#333" });
   let kx2 = x + 13;
@@ -13949,7 +13966,7 @@ async function lwPages(items, P, date, seed) {
   const layout = []; items.forEach((it, i) => { const h = lwBlockH(it) + 3; if (!layout.length || used + h > cap - (layout.length === 1 ? 12 : 0)) { layout.push([]); used = 0; } layout[layout.length - 1].push(i); used += h; });
   for (const grp of layout) {
     cur = lwCtx(); let y = 11;
-    if (!pn) { lwText(cur.g, "Part 1 · Study + practice", 11, y + 5, 15, { bold: true }); y += 8; y += lwWrap(cur.g, "For each leech: look at the stroke order and the difference from its look-alike, write a hook, trace 4, write 5 on your own, then spell the kana 3 times.", 11, y + 3, LW_W - 22, 9, 3.8) + 2; }
+    if (!pn) { lwText(cur.g, "Part 1 · Study + practice", 11, y + 5, 15, { bold: true }); y += 8; y += lwWrap(cur.g, "For each leech: study the word and its look-alike, write a hook, practice writing (kanji strokes, or the whole kana word if there is no kanji), then spell the kana 3 times.", 11, y + 3, LW_W - 22, 9, 3.8) + 2; }
     for (const i of grp) y += lwStudy(cur.g, items[i], i + 1, y, P) + 3;
     pn++; lwFoot(cur.g, `Part 1 · page ${pn}/${layout.length}`, date); pages.push(cur.c);
   }
@@ -14940,7 +14957,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "0c4ae22845f1";
+const BUILD = "1e0e665282f1";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
