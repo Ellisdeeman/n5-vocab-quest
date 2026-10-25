@@ -5016,7 +5016,9 @@ function gamesStatsHTML() {
    • Gist sync: each person pastes their OWN GitHub token (gist scope only). It lives only in this device's localStorage
      (SYKEY), is never logged, and is never part of a backup or the gist. Sync = pull → merge → push to a SECRET gist.
    • Merge: SRS cards keep the latest review (then most reviews), counters take the max, history days take the max per
-     field, lists are unioned, settings are latest-wins using per-field modified stamps (SMKEY). */
+     field, lists are unioned, settings are latest-wins using per-field modified stamps (SMKEY).
+   • v73: S.lf (leech focus batch) has its own merge — an empty/fresh batch never clobbers a populated one; graduation
+     days / drills / day-2 lock merge structurally. */
 const SYKEY = "jlptVocabQuest.sync.v1";        // this device only: token, gist id, status — never exported
 const SMKEY = "jlptVocabQuest.syncmeta.v1";    // per-field "modified at" stamps used by the merge
 const SNAPKEY = "jlptVocabQuest.snapshot.v1";  // safety snapshot taken before any restore (for Undo)
@@ -5041,7 +5043,7 @@ function smsave() { try { localStorage.setItem(SMKEY, JSON.stringify(SM)); } cat
 const MERGE_RULES = {
   S: { cards: "cards", xp: "max", answered: "max", bestSpeed: "max", bestMatch: "max", notes: "mapLww", dailyHistory: "mapMax", dailies: "dailies",
        unlockedSets: "union", leechSeen: "union", levels: "union", games: "games", streak: "streak", lastDay: "streak", daily: "dailies1",
-       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion", ktMiss: "mapUnion", ktImp: "mapMax", newExtra: "mapMax" },   // daily new-item logs: union per day, so the cap holds across devices
+       newLog: "mapUnion", newLogK: "mapUnionS", revLog: "days", gcards: "cards", newLogG: "mapUnionS", ccards: "cards", newLogC: "mapUnionS", cjTime: "mapMax", cjPref: "lww", cjHist: "lww", rdDone: "mapMax", rdDay: "mapUnionS", mock: "attempts", spkLog: "days", confuse: "days", loLog: "mapMax", drHist: "days", drBoost: "mapUnion", ktMiss: "mapUnion", ktImp: "mapMax", newExtra: "mapMax", lf: "lf" },   // daily new-item logs: union per day, so the cap holds across devices; v73 lf = leech focus batch
   KS: { cards: "cards", bestSpeed: "max", bestMatch: "max", unlocked: "union", mastered: "union" },
   JS: { cards: "cards", unl: "mapMax" },
   TS: { days: "days" },
@@ -5060,7 +5062,7 @@ function stampAll(silent) {
     const keys = new Set(Object.keys(o)); for (const p in SM.snap) if (p.startsWith(pre) && p.indexOf(".", pre.length) < 0) keys.add(p.slice(pre.length));
     for (const k of keys) {
       const r = R[k] || "lww";
-      if (r === "lww") chk(pre + k, o[k]);
+      if (r === "lww" || r === "lf") chk(pre + k, o[k]);   // v73: lf still stamped so n/dn/batch-list LWW knows which side edited
       else if (r === "mapLww") { const m = o[k] && typeof o[k] === "object" ? o[k] : {}, pk = pre + k + "."; const es = new Set(Object.keys(m)); for (const p in SM.snap) if (p.startsWith(pk)) es.add(p.slice(pk.length)); for (const e of es) chk(pk + e, m[e]); }
     }
   }
@@ -5096,6 +5098,58 @@ function mergeGames(x, y) {
   o.kb = mergeMap(x.kb, y.kb, (u, v) => [...new Set([...(Array.isArray(u) ? u : []), ...(Array.isArray(v) ? v : [])])]);
   return o;
 }
+
+/* v73: leech focus (S.lf). Choice: empty batch never beats a populated one (fresh PC opening Home used to
+   stamp an empty lf newer than the phone and wipe the batch). When both sides have members, batch list +
+   size/drill settings are LWW by S.lf stamp; g/t/dr/done/dd merge structurally so day credit isn't lost. */
+function mergeLf(x, y, ta, tb) {
+  if (!isObj(x) && !isObj(y)) return undefined;
+  if (!isObj(x)) return JSON.parse(JSON.stringify(y));
+  if (!isObj(y)) return JSON.parse(JSON.stringify(x));
+  const xb = Array.isArray(x.b) ? x.b : [], yb = Array.isArray(y.b) ? y.b : [];
+  const xPop = xb.length > 0, yPop = yb.length > 0;
+  let prim, sec;
+  if (xPop && !yPop) { prim = x; sec = y; }
+  else if (yPop && !xPop) { prim = y; sec = x; }
+  else if ((tb || 0) > (ta || 0)) { prim = y; sec = x; }
+  else { prim = x; sec = y; }
+  const o = { v: 61 };
+  const pickN = (a, b, lo, hi, def) => { const u = +a, v = +b; if (u >= lo && u <= hi) return u; if (v >= lo && v <= hi) return v; return def; };
+  o.n = pickN(prim.n, sec.n, 3, 10, undefined); if (o.n == null) delete o.n;
+  o.dn = pickN(prim.dn, sec.dn, 1, 5, undefined); if (o.dn == null) delete o.dn;
+  o.b = (Array.isArray(prim.b) ? prim.b : []).map(Number).filter(n => n === n);
+  o.g = mergeMap(x.g, y.g, (u, v) => [...new Set([...(Array.isArray(u) ? u : []), ...(Array.isArray(v) ? v : [])])].filter(Boolean).sort());
+  o.done = mergeMap(x.done, y.done, (u, v) => Math.max(+u || 0, +v || 0));
+  const xt = isObj(x.t) ? x.t : {}, yt = isObj(y.t) ? y.t : {}; o.t = {};
+  for (const id of new Set([...Object.keys(xt), ...Object.keys(yt)])) {
+    const u = xt[id], v = yt[id];
+    if (!isObj(u)) { if (isObj(v)) o.t[id] = Object.assign({}, v); continue; }
+    if (!isObj(v)) { o.t[id] = Object.assign({}, u); continue; }
+    if ((u.d || "") === (v.d || "")) {
+      const m = { d: u.d || v.d }; for (const k of ["r", "c", "m", "l", "w", "e"]) {
+        if (u[k] === 1 || v[k] === 1) m[k] = 1; else if (u[k] === 0 || v[k] === 0) m[k] = 0;
+      }
+      if (u.lock || v.lock) m.lock = 1; o.t[id] = m;
+    } else o.t[id] = Object.assign({}, (u.d || "") > (v.d || "") ? u : v);
+  }
+  const xdr = isObj(x.dr) ? x.dr : {}, ydr = isObj(y.dr) ? y.dr : {}; o.dr = {};
+  for (const id of new Set([...Object.keys(xdr), ...Object.keys(ydr)])) {
+    const u = xdr[id], v = ydr[id];
+    if (!isObj(u)) { if (isObj(v)) o.dr[id] = Object.assign({}, v); continue; }
+    if (!isObj(v)) { o.dr[id] = Object.assign({}, u); continue; }
+    if ((u.d || "") === (v.d || "")) o.dr[id] = { d: u.d, n: Math.max(+u.n || 0, +v.n || 0) };
+    else o.dr[id] = Object.assign({}, (u.d || "") > (v.d || "") ? u : v);
+  }
+  const xd = isObj(x.dd) ? x.dd : null, yd = isObj(y.dd) ? y.dd : null;
+  if (xd && yd && (xd.d || "") === (yd.d || "")) {
+    const ids = [...new Set([...(Array.isArray(xd.ids) ? xd.ids : []), ...(Array.isArray(yd.ids) ? yd.ids : [])].map(Number))];
+    o.dd = { d: xd.d, n: Math.max(+xd.n || 0, +yd.n || 0, ids.length), ids };
+  } else {
+    const w = !xd ? yd : !yd ? xd : ((xd.d || "") >= (yd.d || "") ? xd : yd);
+    if (w) o.dd = { d: w.d, n: +w.n || 0, ids: Array.isArray(w.ids) ? w.ids.map(Number) : [] };
+  }
+  return o;
+}
 function mergeStore(n, a, b, LM, RM, OM) {
   a = isObj(a) ? a : {}; b = isObj(b) ? b : {};
   const R = MERGE_RULES[n] || {}, o = {}, pre = n + ".";
@@ -5115,7 +5169,10 @@ function mergeStore(n, a, b, LM, RM, OM) {
     else if (r === "dailies1") { const w = x === undefined ? y : y === undefined ? x : sessionPick(x, y); if (w !== undefined) o[k] = w; }
     else if (r === "streak") continue;
     else if (r === "attempts") { const m = new Map(); for (const z of [...(Array.isArray(x) ? x : []), ...(Array.isArray(y) ? y : [])]) if (z && z.t && !m.has(z.t)) m.set(z.t, z); o[k] = [...m.values()].sort((p, q) => p.t - q.t).slice(-30); }
-    else if (r === "mapLww") {
+    else if (r === "lf") {
+      const ta = LM[p] || 0, tb = RM[p] || 0, w = mergeLf(x, y, ta, tb);
+      if (w !== undefined) o[k] = w; if (ta || tb) OM[p] = Math.max(ta, tb);
+    } else if (r === "mapLww") {
       const m = {}, xm = isObj(x) ? x : {}, ym = isObj(y) ? y : {}, pk = p + ".";
       const es = new Set([...Object.keys(xm), ...Object.keys(ym)]); for (const q of new Set([...Object.keys(LM), ...Object.keys(RM)])) if (q.startsWith(pk)) es.add(q.slice(pk.length));
       for (const e of es) { const ta = LM[pk + e] || 0, tb = RM[pk + e] || 0, u = xm[e], v = ym[e]; const w = tb > ta ? v : ta > tb ? u : (u !== undefined && u !== null ? u : v); if (w !== undefined && w !== null) m[e] = w; if (ta || tb) OM[pk + e] = Math.max(ta, tb); }
@@ -5166,7 +5223,9 @@ function applyStores(stores, mod) {
   RTKS = Object.assign(rkDefault(), g(RKEY)); ["cards", "notes", "newLog"].forEach(k => { if (!isObj(RTKS[k])) RTKS[k] = {}; });
   try { if (typeof duoPrune === "function") { duoPrune(); duoSchedule(); } } catch (e) {}   // Duolingo marks: drop unanswered ones a newer position removed, re-meter releases (app35)
   fsrsMigrateAll([S, KS, JS]);   // old-format (Leitner) backups / gists convert on the way in; new-format cards are left alone
-  window.__syncReady = false; save(); ksave(); jsave(); tsave(); alsave(); rksave(); window.__syncReady = true;
+  window.__syncReady = false;
+  try { if (typeof lfBatch === "function") lfBatch(); } catch (e) {}   // v73: re-hold synced focus-batch ids after merge (no syncTouch mid-apply)
+  save(); ksave(); jsave(); tsave(); alsave(); rksave(); window.__syncReady = true;
   SM = { mod: Object.assign({}, isObj(mod) ? mod : {}), snap: {} }; stampAll(true); smsave();
   applyTheme();
   const refresh = () => { try { updateHeader(); updateDueBadge(); if (!studyScreen && curView && !document.querySelector(".modal")) go(curView); } catch (e) {} };
@@ -14881,7 +14940,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "ef46b85410ec";
+const BUILD = "0c4ae22845f1";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -14931,7 +14990,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { JPN111F, JF_IDS, jfView, jfMapView, jfLearn, jfPool, jfStats, jfCardHTML, jfNext, STARTER, ST_IDS, stView, stMapView, stLearn, stPool, stStats, stCardHTML, stNext, newLeft, RK_INFO, rkLoad, rkStrokes, rkItem, rkDue, rkUnseen, rkNewLeft, rkGrade, rkRandGrade, earlyPool, earlyGrade, earlyStart, get EARLY_IDS() { return EARLY_IDS; }, rkHomeHTML, rkKnown, licensesView, lfBatch, lfRecord, lfStart, lfN, lfDn, lfDrillOf, lfDrillDone, lfStatus, lfAfterQuizWord, lfClearFailedLevels, lfCanEarnToday, lfEarnedToday, lfMarkDone, lfGrad, lfLevels, lfGoal, lwIds, lfToday, lfHold, hfKnown, rkMapHTML, rkCardView, rkMapView, get RKMAP() { return window.__rkmap; }, kanjiPageFn, rkRandPool, rtkHome, rkSession, RK: () => RTKS, rksave, PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeCard, applyStores, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { JPN111F, JF_IDS, jfView, jfMapView, jfLearn, jfPool, jfStats, jfCardHTML, jfNext, STARTER, ST_IDS, stView, stMapView, stLearn, stPool, stStats, stCardHTML, stNext, newLeft, RK_INFO, rkLoad, rkStrokes, rkItem, rkDue, rkUnseen, rkNewLeft, rkGrade, rkRandGrade, earlyPool, earlyGrade, earlyStart, get EARLY_IDS() { return EARLY_IDS; }, rkHomeHTML, rkKnown, licensesView, lfBatch, lfRecord, lfStart, lfN, lfDn, lfDrillOf, lfDrillDone, lfStatus, lfAfterQuizWord, lfClearFailedLevels, lfCanEarnToday, lfEarnedToday, lfMarkDone, lfGrad, lfLevels, lfGoal, lwIds, lfToday, lfHold, hfKnown, rkMapHTML, rkCardView, rkMapView, get RKMAP() { return window.__rkmap; }, kanjiPageFn, rkRandPool, rtkHome, rkSession, RK: () => RTKS, rksave, PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeLf, mergeCard, applyStores, MERGE_RULES, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
