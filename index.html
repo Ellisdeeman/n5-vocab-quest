@@ -17,6 +17,27 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<script>
+/* v75: visual UI mode only — separate from study store / theme / sync. Classic is default. */
+(function () {
+  try {
+    var KEY = "n5vq-ui-mode";
+    var q = new URLSearchParams(location.search).get("ui");
+    if (q === "modern" || q === "classic") {
+      try { localStorage.setItem(KEY, q); } catch (e) {}
+      if (history.replaceState) {
+        var u = new URL(location.href);
+        u.searchParams.delete("ui");
+        history.replaceState(null, "", u.pathname + u.search + u.hash);
+      }
+    }
+    var m = null;
+    try { m = localStorage.getItem(KEY); } catch (e) {}
+    if (m === "modern") document.documentElement.setAttribute("data-ui", "modern");
+    else document.documentElement.removeAttribute("data-ui");
+  } catch (e) {}
+})();
+</script>
 <style>
 /* ---------- design tokens: "Stats Trainer" style (dark default look, suggested light mapping); theme setting = auto | light | dark ---------- */
 :root{
@@ -1286,6 +1307,164 @@ ruby rt{font-size:.5em;color:var(--label2);font-weight:500}
 .lfrow{padding:8px 0;border-bottom:1px solid var(--line,#e5e5e5)}.lfrow .lflv{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.lfrow .lflv i{white-space:nowrap}
 .lfmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}.lfdrill{font-size:.72rem;padding:2px 8px;border-radius:8px;background:var(--fill2);color:var(--muted)}.lfdrill.ok{background:var(--good);color:#fff}.lfst{font-size:.72rem;color:var(--muted)}.lfst-makeup{color:var(--accent,#e67e22);font-weight:600}.lfst-locked{color:var(--bad)}.lfst-earned{color:var(--good)}.lfset select{margin-left:4px}
 .lfcmp{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0}.lfcol{display:flex;flex-direction:column;align-items:center;width:64px}.lfmine{width:60px;height:60px;border:1px solid var(--line,#ccc);border-radius:8px}.lfmine .kwok{stroke-width:6}.lfkana{font-size:2.6rem;line-height:1.1}
+/* ================= v75 modern UI (opt-in via data-ui="modern") =================
+   Visual only. Classic styles remain the default when data-ui is unset.
+   Tokens tuned to the approved mockup: warm off-white, ink text, jade #17685A. */
+html[data-ui=modern]{
+  --m-jade:#17685A;--m-jade-ink:#fff;--m-jade-soft:rgba(23,104,90,.12);--m-jade-line:rgba(23,104,90,.35);
+  --m-cream:#F4EFE6;--m-cream2:#FBF8F2;--m-card:#FFFcf7;--m-ink:#1C1917;--m-muted:#6B6560;--m-line:#E7E0D4;
+  --m-track:#E8E2D8;--m-choice:#F3EEE6;--m-r:16px;--m-rs:14px;
+  --bg:var(--m-cream);--bg2:var(--m-cream2);--card:var(--m-card);--card2:var(--m-choice);--border:var(--m-line);--track:var(--m-track);
+  --fill:rgba(28,25,23,.06);--fill2:rgba(28,25,23,.1);
+  --label:var(--m-ink);--label2:var(--m-muted);--label3:rgba(107,101,96,.7);--sep:var(--m-line);
+  --accent:var(--m-jade);--accent-ink:var(--m-jade-ink);--accentT:var(--m-jade-soft);
+  --navbg:rgba(244,239,230,.92);--toastbg:rgba(28,25,23,.92);
+  --ring1:#17685A;--ring2:#2563EB;--ring3:#CA8A04;--ring4:#E11D48;
+  color-scheme:light
+}
+@media (prefers-color-scheme:dark){html[data-ui=modern]:not([data-theme=light]){
+  --m-cream:#121816;--m-cream2:#171d1b;--m-card:#1b2220;--m-ink:#E8ECEA;--m-muted:#9AA4A0;--m-line:#2A3330;
+  --m-track:#262e2b;--m-choice:#222a27;--m-jade:#2AA88F;--m-jade-ink:#04201c;--m-jade-soft:rgba(42,168,143,.16);--m-jade-line:rgba(42,168,143,.4);
+  --bg:var(--m-cream);--bg2:var(--m-cream2);--card:var(--m-card);--card2:var(--m-choice);--border:var(--m-line);--track:var(--m-track);
+  --fill:rgba(232,236,234,.08);--fill2:rgba(232,236,234,.14);
+  --label:var(--m-ink);--label2:var(--m-muted);--label3:rgba(154,164,160,.65);--sep:var(--m-line);
+  --accent:var(--m-jade);--accent-ink:var(--m-jade-ink);--accentT:var(--m-jade-soft);
+  --navbg:rgba(18,24,22,.92);--toastbg:rgba(27,34,32,.96);
+  --ring1:#2AA88F;--ring2:#60A5FA;--ring3:#FBBF24;--ring4:#FB7185;
+  color-scheme:dark}}
+html[data-ui=modern][data-theme=dark]{
+  --m-cream:#121816;--m-cream2:#171d1b;--m-card:#1b2220;--m-ink:#E8ECEA;--m-muted:#9AA4A0;--m-line:#2A3330;
+  --m-track:#262e2b;--m-choice:#222a27;--m-jade:#2AA88F;--m-jade-ink:#04201c;--m-jade-soft:rgba(42,168,143,.16);--m-jade-line:rgba(42,168,143,.4);
+  --bg:var(--m-cream);--bg2:var(--m-cream2);--card:var(--m-card);--card2:var(--m-choice);--border:var(--m-line);--track:var(--m-track);
+  --fill:rgba(232,236,234,.08);--fill2:rgba(232,236,234,.14);
+  --label:var(--m-ink);--label2:var(--m-muted);--label3:rgba(154,164,160,.65);--sep:var(--m-line);
+  --accent:var(--m-jade);--accent-ink:var(--m-jade-ink);--accentT:var(--m-jade-soft);
+  --navbg:rgba(18,24,22,.92);--toastbg:rgba(27,34,32,.96);
+  --ring1:#2AA88F;--ring2:#60A5FA;--ring3:#FBBF24;--ring4:#FB7185;
+  color-scheme:dark}
+html[data-ui=modern][data-theme=light]{
+  --m-jade:#17685A;--m-jade-ink:#fff;--m-jade-soft:rgba(23,104,90,.12);--m-jade-line:rgba(23,104,90,.35);
+  --m-cream:#F4EFE6;--m-cream2:#FBF8F2;--m-card:#FFFcf7;--m-ink:#1C1917;--m-muted:#6B6560;--m-line:#E7E0D4;
+  --m-track:#E8E2D8;--m-choice:#F3EEE6;
+  --bg:var(--m-cream);--bg2:var(--m-cream2);--card:var(--m-card);--card2:var(--m-choice);--border:var(--m-line);--track:var(--m-track);
+  --fill:rgba(28,25,23,.06);--fill2:rgba(28,25,23,.1);
+  --label:var(--m-ink);--label2:var(--m-muted);--label3:rgba(107,101,96,.7);--sep:var(--m-line);
+  --accent:var(--m-jade);--accent-ink:var(--m-jade-ink);--accentT:var(--m-jade-soft);
+  --navbg:rgba(244,239,230,.92);
+  --ring1:#17685A;--ring2:#2563EB;--ring3:#CA8A04;--ring4:#E11D48;
+  color-scheme:light}
+
+/* Layout: calm Home shell; review stays comfortably centered */
+html[data-ui=modern] #app{max-width:860px;padding:14px calc(18px + var(--safe-r)) calc(100px + var(--safe-b)) calc(18px + var(--safe-l))}
+html[data-ui=modern] body.studying #app{max-width:720px}
+@media (min-width:900px){
+  html[data-ui=modern] #app{max-width:980px}
+  html[data-ui=modern] .mhome{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:18px 28px;align-items:start}
+  html[data-ui=modern] .mhome-main{grid-column:1}
+  html[data-ui=modern] .mhome-side{grid-column:2;grid-row:1 / span 6}
+  html[data-ui=modern] body.studying #app{max-width:720px}
+  html[data-ui=modern] body.studying .mhome{display:block}
+}
+
+html[data-ui=modern] .navbar{border-bottom-color:transparent;background:var(--navbg)}
+html[data-ui=modern] .navin{max-width:980px}
+html[data-ui=modern] .logo{font-size:.92rem;font-weight:600;color:var(--label2);letter-spacing:0}
+html[data-ui=modern] .logo b{color:var(--accent);font-weight:700}
+html[data-ui=modern] .pill{background:transparent;border:1px solid var(--border);color:var(--label2);font-weight:600}
+html[data-ui=modern] .xpline{height:2px;opacity:.7}
+html[data-ui=modern] .tabbar{border-top:1px solid var(--sep);background:var(--navbg)}
+html[data-ui=modern] .tabbar button{font-size:.7rem;font-weight:600;color:var(--label2);min-height:54px}
+html[data-ui=modern] .tabbar button.on{color:var(--accent)}
+html[data-ui=modern] .tabbar button .i{stroke-width:1.75}
+
+html[data-ui=modern] .largetitle{font-size:2.15rem;font-weight:800;letter-spacing:-.03em;margin:4px 2px 2px;color:var(--label)}
+html[data-ui=modern] .subtitle{color:var(--label2);font-size:.95rem;margin:0 2px 18px}
+html[data-ui=modern] .btn{background:var(--accent);color:var(--accent-ink);border-radius:var(--m-rs);min-height:52px;font-weight:700;letter-spacing:-.01em;box-shadow:none}
+html[data-ui=modern] .btn.ghost{background:var(--card2);color:var(--label);box-shadow:inset 0 0 0 1px var(--border)}
+html[data-ui=modern] .btn.sec{background:var(--accentT);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+html[data-ui=modern] .btn.primarywide{width:100%;display:flex;justify-content:center;min-height:54px;font-size:1.05rem;border-radius:14px}
+html[data-ui=modern] .mode{background:var(--card);border:1px solid var(--border);box-shadow:none;border-radius:var(--m-r)}
+html[data-ui=modern] .mode .ic{background:var(--accentT);color:var(--accent);font-size:0}
+html[data-ui=modern] .panel{background:var(--card);border:1px solid var(--border);box-shadow:none;border-radius:var(--m-r)}
+html[data-ui=modern] .hero{background:var(--card);border:1px solid var(--border);box-shadow:none}
+html[data-ui=modern] .smartbox,html[data-ui=modern] .homequick,html[data-ui=modern] .lvpanel{display:none!important} /* modern Home replaces these with a single primary CTA */
+
+/* Modern Home */
+html[data-ui=modern] .mhome-head{margin-bottom:4px}
+html[data-ui=modern] .mrings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:6px 0 18px}
+html[data-ui=modern] .mring{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center;background:transparent;border:0;padding:4px 2px;min-height:44px;color:inherit}
+html[data-ui=modern] .mring[data-goal=lee]{cursor:pointer}
+html[data-ui=modern] .mring svg{width:64px;height:64px;display:block}
+@media (max-width:393px){html[data-ui=modern] .mrings{gap:6px}html[data-ui=modern] .mring svg{width:56px;height:56px}}
+html[data-ui=modern] .mring .mlab{font-size:.72rem;font-weight:700;color:var(--label2);letter-spacing:.01em}
+html[data-ui=modern] .mring .mval{font-size:.78rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--label)}
+html[data-ui=modern] .mring-empty{opacity:.72}
+html[data-ui=modern] .mring-empty .mval{font-weight:600;color:var(--label2);font-size:.7rem}
+
+html[data-ui=modern] .mcta{margin:0 0 6px}
+html[data-ui=modern] .mctacap{text-align:center;color:var(--label2);font-size:.82rem;margin:0 0 16px}
+html[data-ui=modern] .mlist{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
+html[data-ui=modern] .mrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;text-align:left;color:var(--label);font-weight:600}
+html[data-ui=modern] .mrow:active{transform:scale(.99)}
+html[data-ui=modern] .mrow .mic{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:var(--accentT);color:var(--accent);flex:none}
+html[data-ui=modern] .mrow .mic .i{width:20px;height:20px}
+html[data-ui=modern] .mrow .grow{flex:1;min-width:0}
+html[data-ui=modern] .mrow .grow small{display:block;font-weight:500;color:var(--label2);font-size:.78rem}
+html[data-ui=modern] .mrow .mbadge{background:var(--accent);color:var(--accent-ink);border-radius:999px;font-size:.72rem;font-weight:700;padding:2px 8px;min-width:22px;text-align:center}
+html[data-ui=modern] .mrow .mstat{color:var(--accent);font-size:.82rem;font-weight:700}
+html[data-ui=modern] .mrow .mchev{color:var(--label3);display:inline-flex}
+html[data-ui=modern] .mmore{margin:4px 0 18px}
+html[data-ui=modern] .mmore > summary{list-style:none;cursor:pointer;font-weight:700;color:var(--accent);padding:10px 4px;min-height:44px;display:flex;align-items:center}
+html[data-ui=modern] .mmore > summary::-webkit-details-marker{display:none}
+html[data-ui=modern] .mmore[open] > summary{margin-bottom:8px}
+html[data-ui=modern] .mmore .grid{margin-top:4px}
+
+/* Review / quiz shell — modern only; grading/handlers unchanged */
+html[data-ui=modern] body.studying #app{max-width:720px;padding-left:calc(20px + var(--safe-l));padding-right:calc(20px + var(--safe-r))}
+@media (min-width:900px){
+  html[data-ui=modern] body.studying #app{max-width:720px;margin-left:auto;margin-right:auto}
+  html[data-ui=modern] body.studying .navbar .pill.hide-xs,
+  html[data-ui=modern] body.studying .navbar .pill.hide-sm{display:none}
+  html[data-ui=modern] body.studying .xpline{opacity:.25}
+}
+html[data-ui=modern] body.studying .stats .pill{opacity:.55;transform:scale(.96)}
+html[data-ui=modern] body.studying .topbar #score:empty{display:none}
+html[data-ui=modern] .topbar{background:transparent;border:0;padding:4px 0 8px;gap:8px;max-width:720px;margin:0 auto}
+html[data-ui=modern] .topbar b{font-weight:700;letter-spacing:-.01em}
+html[data-ui=modern] .backbtn{min-height:44px;min-width:44px;border-radius:12px;padding:8px 12px;background:transparent;color:var(--label);font-weight:600}
+html[data-ui=modern] .sprog{height:4px;background:var(--track);border-radius:999px;overflow:hidden;margin:0 auto 14px;max-width:720px}
+html[data-ui=modern] .sprog > div{background:var(--accent);height:100%;border-radius:999px}
+html[data-ui=modern] #qhost{max-width:680px;margin:0 auto}
+html[data-ui=modern] .card{background:transparent;border:0;box-shadow:none;padding:8px 8px 22px;position:relative;max-width:680px;margin:0 auto}
+html[data-ui=modern] .qtype{text-transform:none;letter-spacing:0;font-size:1rem;font-weight:600;color:var(--label2);margin-bottom:12px;text-align:center}
+html[data-ui=modern] .prompt.jp{font-size:clamp(3rem,8vw,4.75rem);font-weight:600;letter-spacing:.02em;margin:20px 0 12px;text-align:center;line-height:1.12}
+html[data-ui=modern] .prompt.en{font-size:clamp(1.45rem,4vw,2rem);text-align:center;font-weight:700}
+html[data-ui=modern] .card > .sub{text-align:center;font-size:.95rem;color:var(--label2)}
+html[data-ui=modern] .card > .sub.jp{font-size:1.15rem}
+html[data-ui=modern] .card .iconbtn,
+html[data-ui=modern] #spk{position:static;display:flex;margin:0 auto 10px;width:48px;height:48px;min-width:44px;min-height:44px;border-radius:50%;background:transparent;color:var(--accent);box-shadow:inset 0 0 0 2px var(--m-jade-line)}
+html[data-ui=modern] .card .iconbtn .i,
+html[data-ui=modern] #spk .i{width:22px;height:22px}
+html[data-ui=modern] .bigspk{width:64px;height:64px;min-width:44px;min-height:44px;border-radius:50%;margin:12px auto;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--accent);box-shadow:inset 0 0 0 2px var(--m-jade-line);font-size:1.6rem}
+html[data-ui=modern] .choices{display:grid;grid-template-columns:1fr;gap:12px;margin-top:24px;max-width:640px;width:100%;margin-left:auto;margin-right:auto}
+@media (min-width:560px){html[data-ui=modern] .choices{grid-template-columns:1fr 1fr;gap:14px}}
+html[data-ui=modern] .choice{background:var(--m-choice);border:1.5px solid var(--border);border-radius:14px;min-height:60px;padding:16px 18px;font-size:1.125rem;line-height:1.35;font-weight:600;color:var(--label);text-align:center;box-shadow:none}
+html[data-ui=modern] .choice .k{left:12px;top:50%;transform:translateY(-50%);opacity:.5;font-size:.7rem}
+html[data-ui=modern] .choice:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+html[data-ui=modern] .choice.right{background:var(--goodT);border-color:var(--good);color:var(--label)}
+html[data-ui=modern] .choice.wrong{background:var(--badT);border-color:var(--bad);color:var(--label)}
+html[data-ui=modern] .idkrow{max-width:640px;width:100%;margin:14px auto 0}
+html[data-ui=modern] .idkrow .idk{width:100%;min-height:48px;border-radius:14px;background:var(--m-choice);color:var(--label2);font-weight:600;box-shadow:inset 0 0 0 1px var(--border);font-size:1rem}
+html[data-ui=modern] .kbdhint{opacity:.7;max-width:680px;margin-left:auto;margin-right:auto}
+html[data-ui=modern] .kbdhint kbd{background:var(--fill);border:1px solid var(--border);border-radius:6px;padding:1px 6px;font-size:.75rem}
+@media (max-width:520px){
+  html[data-ui=modern] .prompt.jp{font-size:clamp(2.85rem,12vw,3.5rem)}
+  html[data-ui=modern] .choice{min-height:56px;font-size:1.05rem;padding:14px 16px}
+}
+/* Keep classic Home chrome available when not on modern Home branches */
+html[data-ui=modern] .goalpanel .progress-big{gap:16px}
+html[data-ui=modern] .settingsbox .row{border-color:var(--border)}
+html[data-ui=modern] #uiModeSeg button.on{background:var(--accentT);color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 </style>
 </head>
 <body>
@@ -2561,12 +2740,23 @@ function runSession(cfg) {
   studyScreen = true;
   let right = 0, total = 0, q = null, answered = false, advancing = null, cur = null, heldNew = 0, heldNewK = 0, learned = 0;
   const finite = !!cfg.items;
-  view.innerHTML = topbar(cfg.title, `<span class="muted" id="score">${finite ? "" : "0/0"}</span>`) +
+  /* Endless #score is correct/attempted (right/total), not queue position — classic kept "0/0";
+     modern hides the ambiguous 0/0 and labels it "N/M right" once answers exist (display only). */
+  const modernScore = typeof uiIsModern === "function" && uiIsModern();
+  view.innerHTML = topbar(cfg.title, `<span class="muted" id="score">${finite ? "" : (modernScore ? "" : "0/0")}</span>`) +
     (finite ? `<div class="sprog"><div id="sprog" style="width:0"></div></div>` : "") +
     (cfg.showNew ? newTodayHTML(cfg.showNew === "path") : "") + `<div id="qhost"></div><p class="muted kbdhint" style="text-align:center;font-size:.8rem">Keys <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>0</kbd> I don't know · <kbd>Enter</kbd> check / next</p>`;
   bindBack(cfg.back || home);
   const ntUpd = () => { const nt = $("#newToday"); if (nt) nt.outerHTML = newTodayHTML(cfg.showNew === "path"); };
-  const progress = () => { ntUpd(); if (finite) { const p = cfg.progress(); $("#sprog").style.width = (p.done / p.total * 100) + "%"; $("#score").textContent = `${p.done}/${p.total}`; } else $("#score").textContent = `${right}/${total}`; };
+  const progress = () => {
+    ntUpd();
+    const el = $("#score");
+    if (finite) { const p = cfg.progress(); const sp = $("#sprog"); if (sp) sp.style.width = (p.done / p.total * 100) + "%"; if (el) el.textContent = `${p.done}/${p.total}`; }
+    else if (el) {
+      if (modernScore) { el.textContent = total ? `${right}/${total} right` : ""; el.title = total ? `${right} correct of ${total} answered` : "No answers yet"; }
+      else el.textContent = `${right}/${total}`;
+    }
+  };
   const next = () => {
     clearTimeout(advancing); advancing = null; answered = false;
     let id, mode;
@@ -2794,6 +2984,12 @@ function home() {
   const D = pathReady ? ensureDaily("path") : null, leeches = leechIds().length;
   const dots = Array.from({ length: 7 }, (_, k) => { const d = daysAgo(6 - k); return `<span class="${S.dailyHistory[d] ? "on" : ""}" title="${d}">${["S", "M", "T", "W", "T", "F", "S"][new Date(d + "T12:00").getDay()]}</span>`; }).join("");
   const unlockedCount = SETS.filter(setUnlocked).length, act = activeLevels();
+  /* v75: modern Home is a visual layout branch only — same data, same actions, Classic markup preserved below. */
+  if (typeof uiIsModern === "function" && uiIsModern()) {
+    view.innerHTML = modernHomeHTML(D, leeches);
+    bindModernHome(D);
+    return;
+  }
   view.innerHTML = `
   <div class="largetitle">Today</div><p class="subtitle">${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} · studying <b>${esc(levelLabel())}</b></p>
   ${homeQuickHTML()}
@@ -3180,6 +3376,7 @@ function settings(page = false) {
   md.innerHTML = `<div class="box settingsbox" style="text-align:left;max-height:92vh;overflow:auto" role="dialog" aria-label="Settings"><h2 style="margin-top:0">Settings</h2>
     <button class="btn sec" id="licBtn" style="width:100%;margin-bottom:8px">📜 Licenses &amp; credits</button>
     <div class="row"><span>🌗 Appearance</span><span class="seg" id="themeSeg" style="min-width:210px">${[["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]].map(([k, t]) => `<button class="${(S.theme || "auto") === k ? "on" : ""}" data-t="${k}">${t}</button>`).join("")}</span></div>
+    ${typeof uiModeSegHTML === "function" ? uiModeSegHTML() : ""}
     ${sw("sound", "🔊 Sound effects", "Taps, answers & celebrations (not the word audio)")}
     <div class="row sfxrow"><span style="text-align:left">🎵 Sound style<br><small class="muted">Analog: soft marimba, kalimba & felt piano · Classic: the original beeps</small></span><span class="seg" id="sfxSeg" role="radiogroup" aria-label="Sound style">${[["analog", "Analog"], ["classic", "Classic"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.sfxStyle || "analog") === k}" class="${(S.sfxStyle || "analog") === k ? "on" : ""}" data-sfx="${k}">${t}</button>`).join("")}</span></div>
     <div class="row sfxrow"><span style="text-align:left">🔉 Effects volume</span><span class="seg" id="sfxVolSeg" role="radiogroup" aria-label="Effects volume">${[["soft", "Soft"], ["normal", "Normal"], ["loud", "Loud"]].map(([k, t]) => `<button role="radio" aria-checked="${(S.sfxVol || "soft") === k}" class="${(S.sfxVol || "soft") === k ? "on" : ""}" data-v="${k}">${t}</button>`).join("")}</span></div>
@@ -3242,6 +3439,7 @@ function settings(page = false) {
   segPick("#retSeg", b => { S.retention = +b.dataset.v; }); if (typeof bindFopt === "function") bindFopt(md); segPick("#maxIvlSeg", b => { S.maxIvl = +b.dataset.v; });
   segPick("#sfxSeg", b => { S.sfxStyle = b.dataset.sfx; }); segPick("#sfxVolSeg", b => { S.sfxVol = b.dataset.v; }); segPick("#musVolSeg", b => { S.musicVol = b.dataset.mv; if (typeof kmTick === "function") kmTick(); });
   md.querySelector("#themeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); md.querySelectorAll("#themeSeg button").forEach(x => x.classList.toggle("on", x === b)); };
+  if (typeof bindUiModeSeg === "function") bindUiModeSeg(md);
   md.querySelector("#goalSet").onclick = () => { if (page) goalSettings(settingsView); else { md.remove(); goalSettings(settings); } };
   bindAudioLessonSettings(md); bindBackupSettings(md); bindPnSettings(md); bindLadderSettings(md); bindPaceSettings(md);
   md.querySelector("#resetKanji").onclick = () => { if (confirm("Reset all kanji progress?")) { JS = { cards: {} }; jsave(); dropUntouched(); save(); updateDueBadge(); toast("Kanji progress reset"); } };
@@ -14922,6 +15120,225 @@ async function jfMapView() {
   window.__jfmap = amCanvas(secs, { t0, onCleanup: () => { window.__jfmap = null; } });
   $("#amSt").onclick = e => { const b = e.target.closest("button"); if (!b) return; sfx.click(); AMS.st = b.dataset.st; amSave(); go(jfMapView); };
 }
+/* ================= v75: Modern UI preview (visual preference only) =================
+   Stored in localStorage key n5vq-ui-mode — never written into the study store (S),
+   time store, Gist sync payload, FSRS, levels, goals, leeches, or licenses.
+   Classic remains the default until the user opts in via Settings or ?ui=modern. */
+const UI_MODE_KEY = "n5vq-ui-mode";
+function uiMode() {
+  try {
+    const m = localStorage.getItem(UI_MODE_KEY);
+    return m === "modern" ? "modern" : "classic";
+  } catch (e) { return "classic"; }
+}
+function uiIsModern() { return uiMode() === "modern"; }
+function applyUiMode(mode, opts = {}) {
+  const m = mode === "modern" ? "modern" : "classic";
+  try { localStorage.setItem(UI_MODE_KEY, m); } catch (e) {}
+  if (m === "modern") document.documentElement.setAttribute("data-ui", "modern");
+  else document.documentElement.removeAttribute("data-ui");
+  try {
+    const dark = document.documentElement.dataset.theme === "dark" ||
+      (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+    const lightBg = m === "modern" ? "#F4EFE6" : "#f6f7f9";
+    const darkBg = m === "modern" ? "#121816" : "#0e1116";
+    document.querySelectorAll('meta[name="theme-color"]').forEach(el => {
+      const media = el.getAttribute("media") || "";
+      if (media.includes("dark")) el.setAttribute("content", darkBg);
+      else if (media.includes("light")) el.setAttribute("content", lightBg);
+      else el.setAttribute("content", dark ? darkBg : lightBg);
+    });
+  } catch (e) {}
+  if (opts.rerender && typeof curView === "function" && !studyScreen && !document.querySelector(".modal")) {
+    try { go(curView); } catch (e) {}
+  }
+  return m;
+}
+/* Re-apply after bootstrap in case classic was forced; keep early head script as source of truth for FOUC. */
+try { applyUiMode(uiMode()); } catch (e) {}
+
+function uiModeSegHTML(id = "uiModeSeg") {
+  const cur = uiMode();
+  return `<div class="row"><span style="text-align:left">✨ App look<br><small class="muted">Preview the new design without changing your progress. Classic stays available.</small></span>
+    <span class="seg" id="${id}" role="radiogroup" aria-label="App look">${[["classic", "Classic look"], ["modern", "Try new look"]].map(([k, t]) =>
+      `<button role="radio" aria-checked="${cur === k}" class="${cur === k ? "on" : ""}" data-ui="${k}">${t}</button>`).join("")}</span></div>`;
+}
+function bindUiModeSeg(root, id = "uiModeSeg") {
+  const seg = root.querySelector("#" + id); if (!seg) return;
+  seg.onclick = e => {
+    const b = e.target.closest("button[data-ui]"); if (!b) return;
+    sfx.click();
+    applyUiMode(b.dataset.ui, { rerender: true });
+    seg.querySelectorAll("button").forEach(x => {
+      const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-checked", on);
+    });
+    toast(b.dataset.ui === "modern" ? "New look on — Classic is still in Settings" : "Classic look restored");
+  };
+}
+
+/* Separate horizontal rings matching the approved mockup.
+   Always four visual slots in modern Home. Empty/Off states are display-only —
+   goalParts()/goalMet()/streaks/scheduling are untouched. */
+function modernRingSlots() {
+  const live = Object.fromEntries(goalParts().map(p => [p.k, p]));
+  const slots = [];
+  slots.push(live.min || { k: "min", label: "minutes", have: Math.floor((typeof tget === "function" ? tget() : { sec: 0 }).sec / 60), need: (typeof TS !== "undefined" && TS.goalMin) || 15 });
+  if (typeof TS !== "undefined" && !(+TS.goalItems > 0)) slots.push({ k: "items", label: "items reviewed", have: 0, need: 0, off: true });
+  else slots.push(live.items || { k: "items", label: "items reviewed", have: (typeof tget === "function" ? tget().items : 0) || 0, need: TS.goalItems });
+  if (typeof TS !== "undefined" && !(+TS.goalNew > 0)) slots.push({ k: "new", label: "new words", have: 0, need: 0, off: true });
+  else slots.push(live.new || { k: "new", label: "new words", have: typeof newWordsOn === "function" ? newWordsOn() : 0, need: TS.goalNew });
+  if (live.lee) slots.push(live.lee);
+  else slots.push({ k: "lee", label: "leeches worked", have: 0, need: 0, empty: true });   // no focus batch today
+  return slots;
+}
+function modernRingsHTML() {
+  const parts = modernRingSlots(), cols = { min: "var(--ring1)", items: "var(--ring2)", new: "var(--ring3)", lee: "var(--ring4)" };
+  const short = { min: "Time", items: "Reviews", new: "New words", lee: "Leeches" };
+  const size = 64, W = 6;
+  return `<div class="mrings" role="group" aria-label="Daily goals">${parts.map(p => {
+    const r = size / 2 - W / 2, C = 2 * Math.PI * r;
+    const active = !p.off && !p.empty && p.need > 0;
+    const f = active ? Math.min(1, p.have / p.need) : 0;
+    const lee = p.k === "lee";
+    let val, aria;
+    if (p.off) { val = "Off"; aria = `${short[p.k]} off`; }
+    else if (p.empty || (lee && !(p.need > 0))) { val = "No leeches"; aria = "No leech focus batch"; }
+    else { val = `${p.have}/${p.need}${p.k === "min" ? " min" : ""}`; aria = `${p.have} of ${p.need} ${p.label}`; }
+    const cls = `mring${p.off || p.empty || (lee && !(p.need > 0)) ? " mring-empty" : ""}`;
+    return `<button type="button" class="${cls}" data-goal="${p.k}" aria-label="${lee ? "Open leech focus" : aria}" ${lee ? "" : "tabindex='-1'"}>
+      <svg viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${cols[p.k]};opacity:${active ? .22 : .14}" stroke-width="${W}"/>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${cols[p.k]};opacity:${active ? 1 : .35}" stroke-width="${W}" stroke-linecap="round" stroke-dasharray="${Math.max(f * C, f > 0 ? .01 : 0)} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>
+      <span class="mlab">${short[p.k]}</span><span class="mval">${val}</span></button>`;
+  }).join("")}</div>`;
+}
+
+function modernDeckSubtitle() {
+  try { return esc(levelLabel()); } catch (e) { return "Your deck"; }
+}
+function modernListRow(opts) {
+  const badge = opts.badge != null && opts.badge !== "" ? `<span class="mbadge">${esc(String(opts.badge))}</span>` : (opts.stat ? `<span class="mstat">${esc(String(opts.stat))}</span>` : "");
+  return `<button type="button" class="mrow" data-m="${esc(opts.m)}"><span class="mic" aria-hidden="true">${I(opts.ic)}</span><span class="grow"><b>${esc(opts.title)}</b>${opts.sub ? `<small>${esc(opts.sub)}</small>` : ""}</span>${badge}<span class="mchev" aria-hidden="true">${I("chevronR")}</span></button>`;
+}
+
+function modernHomeHTML(D, leeches) {
+  const p = D ? smartPlan(D) : null;
+  const ctaLabel = p ? (p.k === "due" ? "Continue studying" : p.k === "new" ? (D.pos ? "Continue studying" : "Continue studying") : p.label) : "Continue studying";
+  const cap = p ? p.line : "Getting today’s plan ready…";
+  const td = totalDue();
+  const lfN = (typeof lfBatch === "function" ? lfBatch() : []).length;
+  const drLeft = typeof drWanted === "function" && drWanted() && typeof drDoneToday === "function" && !drDoneToday() ? (typeof drCur === "function" ? (drCur().s || []).length || 5 : 5) : 0;
+  const levelsOn = activeLevels().length ? "On" : "Off";
+  return `<div class="mhome">
+    <div class="mhome-main mhome-head"><div class="largetitle">Today</div><p class="subtitle">${modernDeckSubtitle()}</p></div>
+    <div class="mhome-main">${modernRingsHTML()}
+      <div class="mcta"><button class="btn primarywide" id="mContinue" ${D ? "" : "disabled"}>${esc(ctaLabel)}</button></div>
+      <p class="mctacap" id="mContinueCap">${esc(cap)}</p>
+      <div class="mlist" id="mQuickList">
+        ${modernListRow({ m: "leeches", ic: "bulb", title: "Leech focus", sub: lfN ? `${lfN} in your focus batch` : "Words you keep missing", badge: leeches || lfN || "" })}
+        ${modernListRow({ m: "daily-reading", ic: "clock", title: "Daily Reading", sub: "Short read with today’s words", badge: drLeft || "" })}
+        ${modernListRow({ m: "levels", ic: "book", title: "Your levels", sub: "Open or combine decks", stat: levelsOn })}
+        ${modernListRow({ m: "due", ic: "alarm", title: "Due Reviews", sub: td ? `${td} waiting across tracks` : "Nothing due right now", badge: td || "" })}
+      </div>
+      <details class="mmore" id="mMoreTools"><summary>More study tools</summary>
+        <div class="grid" id="mToolGrid">
+          ${(() => { const gd = typeof grDueScan === "function" ? grDueScan().ids.length : 0, gl = typeof grLearned === "function" ? grLearned() : 0;
+            return `<button class="mode" data-m="grammar"><div class="ic">${I("textformat")}</div><h3>Grammar ${gd ? `<span class="badge">${gd}</span>` : ""}</h3><p>${gl ? `${gl} points learned` : "N5 lessons & drills"}</p></button>`; })()}
+          ${(() => { const rd = typeof RD_DATA !== "undefined" ? RD_DATA.filter(x => x.id in rdDoneMap()).length : 0;
+            return `<button class="mode" data-m="reading-stories"><div class="ic">${I("book")}</div><h3>Reading</h3><p>${rd ? `${rd} stories read` : "Graded N5 stories"}</p></button>`; })()}
+          ${typeof conjHomeTileHTML === "function" ? conjHomeTileHTML() : ""}
+          ${typeof drHomeTileHTML === "function" ? drHomeTileHTML() : ""}
+          ${typeof weekReportCardHTML === "function" ? weekReportCardHTML() : ""}
+          <button class="mode" data-m="listen-only"><div class="ic">${I("headphones")}</div><h3>Listening-only</h3><p>Hands-free stories & sentences</p></button>
+          ${typeof hfTileHTML === "function" ? hfTileHTML() : ""}
+          ${typeof pitchTileHTML === "function" ? pitchTileHTML() : ""}
+          ${typeof rtkTileHTML === "function" ? rtkTileHTML() : ""}
+          ${(() => { const H = typeof mkHist === "function" ? mkHist() : [], l = H[H.length - 1];
+            return `<button class="mode" data-m="mock"><div class="ic">${I("clipboard")}</div><h3>Mock JLPT N5</h3><p>${l ? `Last ${l.total}/180` : "Timed practice test"}</p></button>`; })()}
+          <button class="mode" data-m="meaning"><div class="ic">${I("meaning")}</div><h3>Meaning Quiz</h3><p>Japanese → English</p></button>
+          <button class="mode" data-m="reverse"><div class="ic">${I("reverse")}</div><h3>Reverse</h3><p>English → Japanese</p></button>
+          <button class="mode" data-m="reading"><div class="ic">${I("book")}</div><h3>Reading Quiz</h3><p>Kanji → kana</p></button>
+          <button class="mode" data-m="typing"><div class="ic">${I("keyboard")}</div><h3>Typing</h3><p>See English, type Japanese</p></button>
+          ${canAudio() ? `<button class="mode" data-m="listen"><div class="ic">${I("headphones")}</div><h3>Listening</h3><p>Hear it, pick the meaning</p></button>` : ""}
+          <button class="mode" data-m="speed"><div class="ic">${I("bolt")}</div><h3>Speed Round</h3><p>60 seconds · best ${S.bestSpeed}</p></button>
+          <button class="mode" data-m="match"><div class="ic">${I("grid")}</div><h3>Matching Pairs</h3><p>Match words to meanings</p></button>
+          <button class="mode" data-m="sets"><div class="ic">${I("stack")}</div><h3>Word Sets</h3><p>${SETS.length} topics</p></button>
+          <button class="mode" data-m="browse"><div class="ic">${I("list")}</div><h3>Word List</h3><p>Browse, listen & notes</p></button>
+          <button class="mode" data-m="games"><div class="ic">${I("sparkles")}</div><h3>Games</h3><p>Sniper · Builder · Scramble · Boss</p></button>
+        </div>
+      </details>
+    </div>
+    <div class="mhome-side">
+      ${typeof flHomeHTML === "function" && D ? flHomeHTML() : ""}
+      ${typeof paceHomeHTML === "function" ? paceHomeHTML() : ""}
+      ${typeof audioLessonHTML === "function" ? audioLessonHTML() : ""}
+      ${typeof homeKjHTML === "function" ? homeKjHTML() : ""}
+      ${typeof duoHomeHTML === "function" ? duoHomeHTML() : ""}
+      <div class="panel" style="margin-top:8px"><div class="row" style="border:none;cursor:pointer" id="mGoalSet" role="button" tabindex="0"><span><b>Daily goal</b><br><small class="muted">Adjust time, reviews, new words</small></span><span class="muted">Set ›</span></div></div>
+    </div>
+  </div>`;
+}
+
+function bindModernHome(D) {
+  const cont = $("#mContinue");
+  if (cont && D) cont.onclick = () => { sfx.click(); smartPlan(D).run(); };
+  document.querySelectorAll(".mring[data-goal=lee]").forEach(el => {
+    el.onclick = () => { sfx.click(); if (typeof lfStart === "function") lfStart(home); };
+  });
+  const list = $("#mQuickList");
+  if (list) list.onclick = e => {
+    const b = e.target.closest(".mrow"); if (!b) return;
+    sfx.click();
+    const m = b.dataset.m;
+    if (m === "levels") return go(levelsView);
+    if (m === "leeches") return go(leechView);
+    if (m === "daily-reading") return go(() => drView(home));
+    if (m === "due") return go(dueView);
+  };
+  const g = $("#mGoalSet"); if (g) g.onclick = () => { sfx.click(); goalSettings(home); };
+  view.querySelectorAll("#mToolGrid button.mode").forEach(b => b.onclick = () => {
+    sfx.click(); const m = b.dataset.m;
+    const special = { due: dueView, speed, match: () => match(), browse, sets: setsView, leeches: leechView, games: gamesView, grammar: grammarHome, conjugation: conjHome, "week-report": weekReportView, "reading-stories": readingHome, "daily-reading": () => drView(home), mock: mockHome, "listen-only": () => loHome(home), pitch: () => pitchHome(home), rtk: () => rtkHome(home), "hands-free": () => hfView(home) };
+    go(special[m] || (() => quiz(m)));
+  });
+  if (typeof bindFlHome === "function") bindFlHome();
+  if (typeof bindPaceHome === "function") bindPaceHome();
+  if (typeof bindAudioLesson === "function") bindAudioLesson();
+  if (typeof bindHomeKj === "function") bindHomeKj();
+  if (typeof duoBind === "function") duoBind();
+}
+
+
+/* Keep theme-color meta in sync with modern palette when Appearance changes. */
+(function patchThemeColors() {
+  if (typeof applyTheme !== "function" || applyTheme.__modernPatched) return;
+  const orig = applyTheme;
+  applyTheme = function () {
+    orig();
+    if (uiIsModern()) applyUiMode("modern");
+  };
+  applyTheme.__modernPatched = true;
+})();
+
+/* Modern-only polish for MC speaker control (handlers unchanged). */
+(function patchModernSpeaker() {
+  const wrap = fn => function (mode, w, onAnswer, opts) {
+    const r = fn(mode, w, onAnswer, opts);
+    if (uiIsModern()) {
+      const host = (opts && opts.host) || $("#qhost");
+      const spk = host && host.querySelector("#spk");
+      if (spk && !spk.querySelector("svg")) spk.innerHTML = I("speaker");
+      const big = host && host.querySelector("#bigspk");
+      if (big && !big.querySelector("svg") && !/[ぁ-んァ-ン一-龯]/.test(big.textContent || "")) big.innerHTML = I("speakerWave");
+      const idk = host && host.querySelector(".idk");
+      if (idk) idk.innerHTML = `I don’t know <kbd>0</kbd>`;
+    }
+    return r;
+  };
+  // Deferred until renderMC exists (app2 loads before app75 in build order — rebind after both).
+  const tryPatch = () => { if (typeof renderMC === "function" && !renderMC.__modernPatched) { renderMC = wrap(renderMC); renderMC.__modernPatched = true; } };
+  tryPatch();
+  setTimeout(tryPatch, 0);
+})();
 /* ================= Boot ================= */
 if (fsrsMigrateAll()) { save(); ksave(); jsave(); }   // one-time Leitner → FSRS conversion (idempotent; old stores kept under PREFSRS_KEY)
 $("#homeLogo").onclick = () => go(home);
@@ -14957,7 +15374,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "1e0e665282f1";
+const BUILD = "e6145c13f173";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
@@ -15007,7 +15424,7 @@ function reportError(msg) {
 }
 addEventListener("error", e => { if (e && e.message) reportError(e.message + (e.filename ? "" : "")); });
 addEventListener("unhandledrejection", e => { const r = e && e.reason; reportError(r && (r.message || r.name) ? `${r.name || "Error"}: ${r.message || ""}` : String(r)); });
-window.kjGradeT = kjGrade; window.__N5 = { JPN111F, JF_IDS, jfView, jfMapView, jfLearn, jfPool, jfStats, jfCardHTML, jfNext, STARTER, ST_IDS, stView, stMapView, stLearn, stPool, stStats, stCardHTML, stNext, newLeft, RK_INFO, rkLoad, rkStrokes, rkItem, rkDue, rkUnseen, rkNewLeft, rkGrade, rkRandGrade, earlyPool, earlyGrade, earlyStart, get EARLY_IDS() { return EARLY_IDS; }, rkHomeHTML, rkKnown, licensesView, lfBatch, lfRecord, lfStart, lfN, lfDn, lfDrillOf, lfDrillDone, lfStatus, lfAfterQuizWord, lfClearFailedLevels, lfCanEarnToday, lfEarnedToday, lfMarkDone, lfGrad, lfLevels, lfGoal, lwIds, lfToday, lfHold, hfKnown, rkMapHTML, rkCardView, rkMapView, get RKMAP() { return window.__rkmap; }, kanjiPageFn, rkRandPool, rtkHome, rkSession, RK: () => RTKS, rksave, PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeLf, mergeCard, applyStores, MERGE_RULES, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
+window.kjGradeT = kjGrade; window.__N5 = { uiMode, uiIsModern, applyUiMode, UI_MODE_KEY, modernHomeHTML, modernRingsHTML, JPN111F, JF_IDS, jfView, jfMapView, jfLearn, jfPool, jfStats, jfCardHTML, jfNext, STARTER, ST_IDS, stView, stMapView, stLearn, stPool, stStats, stCardHTML, stNext, newLeft, RK_INFO, rkLoad, rkStrokes, rkItem, rkDue, rkUnseen, rkNewLeft, rkGrade, rkRandGrade, earlyPool, earlyGrade, earlyStart, get EARLY_IDS() { return EARLY_IDS; }, rkHomeHTML, rkKnown, licensesView, lfBatch, lfRecord, lfStart, lfN, lfDn, lfDrillOf, lfDrillDone, lfStatus, lfAfterQuizWord, lfClearFailedLevels, lfCanEarnToday, lfEarnedToday, lfMarkDone, lfGrad, lfLevels, lfGoal, lwIds, lfToday, lfHold, hfKnown, rkMapHTML, rkCardView, rkMapView, get RKMAP() { return window.__rkmap; }, kanjiPageFn, rkRandPool, rtkHome, rkSession, RK: () => RTKS, rksave, PITCH, pitchOf, moras, ptHL, ptGraph, ptPool, ptPairs, pitchHome, ptSession, homeKjHTML, GENKI, gkTarget, gkApply, gkPreview, gkView, gkLessonView, gkCur, gkGr, DUO_MAP, duoTarget, duoPreview, duoSchedule, duoPrune, duoApply, duoMaint, duoFresh, duoQuota, duoPicker, duoNudgeDue, duoNudgeHTML, duoPosHTML, duoLabel, duoIdx, duoPendingN, duoDueFreshN, duoParse, duoStatus, duoSet, duoRefresh, duoTl, capPool, kGrade, newBaseV, newExtraV, newWordsOn, newAddExtra, newMoreN, newMoreStart, goalParts, capView, newLeft, newToday, CJ_FORM, cjParse, cjFormsFor, kjDistractors: typeof kjDistractors === 'function' ? kjDistractors : null, grRenderDrill, cjRenderType, renderCloze, stSent, ST_TOK, GR_DATA, CJ_CLOZE, ktExportData, ktExportText, ktValidate, ktAnalyse, ktApply, ktImportText, ktKey, ktSettingsHTML, ktCopy, drWordSheet, drNumInfo, drNumVal, DR, DR_BY, DR_WORD, DR_THEMES, DR_BONUS, drPick, drCur, drTargets, drBenefit, drMakeQs, drView, drQuiz, drTok, drDoneToday, drWanted, drHomeTileHTML, drQuickHTML, smartPlan, conjHome, conjHomeTileHTML, cjSession, cjDueScan, cjGrade, cjConjugate, cjGroup, cjEligibleWord, cjPoolItems, cjKnownPool, cjFormView, cjTableView, cjGuideView, cjPref, cjSavePref, cjRungOf, cjReg, cjSpeakForm, ccards, newLeftC, cjHist, cjGuide, cjEn, cjEnPast, cjJpForm, cjAudioName, weekReportView, weekReportData, homeQuickHTML, bindHomeQuick, n5ReadyEstimate, home, get PN() { return PN; }, pnTimeline, pnEncrypt, pnUpload, pnEnable, pnDisable, pnTest, pnStatus, pnStatusUI, pnRender, pnGoDue, pnSetDataPub: k => { PN_DATA_PUB = k; }, renderMC, renderTyping, kRenderMC, kRenderType, kanaMatch, flHideA, paceToday, paceCompute, paceAcc, paceForecast, paceHomeHTML, newPerSessionV, get LO() { return LO; }, get LO_EL() { return LO_EL; }, loHome, loPlayer, loStart, loBuild, loToggle, loJump, loStop, loOpts, loSilence, rdKnownPct, RD, readingHome, runSession, startDueReview, get CUR() { return window.__n5cur; }, ladderStep, ladderRaw, ladderMode, ladderHTML, clozeEx, LADDER_S, LADDER_OK, cfPattern, cfFind, cfKanjiNote, cfPickHTML, cfTypedHTML, cfParticleHTML, confPairs, confDrill, leechView, settingsView, wordModal, spkCanon, spkMatch, spkForms, spkDigits, spkStart, spkSession, spkPool, spkStatsHTML, spkModeNow, get SPK() { return SPK; }, rdSetHard: ms => { RD_HARD_MS = ms; }, allAudioPaths, MK_BANK, MK_FORMAT, MK_PART, MK_PASS, mkBuild, mkScore, mkPool, mkPerm, mkRun, mockHome, mkResults, mkPassOf, get MK() { return MK; }, mkSetLeft: ms => { if (MK) MK.deadline = Date.now() + ms; }, RD, RD_DATA, RD_MAP, rdToken, rdWordIds, rdSeenPct, rdAddWord, readingHome, rdStory, rdQuiz, rdNext, rdToday, smartPlanK: D => smartPlan(D).k, WORDS, GR, GR_DATA, gcards, grDueScan, grGrade, grSession, grLesson, grammarHome, newLeftG, grLimitV, grStatus, grNextNew, KA_ART, foptAutoCheck, FOPT_STATE, bindFopt, FLOG, FOPT, foptRun, foptApply, foptRevert, fsrsApplyW, FSRS_W, FSRS_DEF, foptSamples, flogAdd, smartPlan, flQueue, flKanjiPool, kaKanjiN, kaHandSize, kaShopRoll, kmRender, kaShop, kaBlindScreen, KM, kmPlay, kmStop, kmMood, kmTick, kmDebug, kanaatroGame, kaLib, kaIsDisc, KA_DISC, kaGradeWord, flushUnlocks, queueUnlock, get GAME_ON() { return GAME_ON; }, PENDING_UNLOCKS, kaRenderHand, kaRenderTable, kaBeginBlind, kaSummary, kaStart, kaScore, kaPossible, kaLookup, kaSpellings, kaNorm, kaBrush, kaFlip, kaDict, kaBuildDeck, kaChipTable, kaFreq, kaPickId, kaUseCon, kaBuy, kaTarget, KA_JOKERS, KA_BOSSES, KA_CATS, KA_TARGETS, get KA() { return KA; }, gOpen, detentionPick, detentionRun, detentionCheck, flashcards, flHomeHTML, flHomeDeck, flHomeOpts, flHomeSel, flHomeCounts, flKanaPool, flPreview, flIvl, flQueue, memStats, memMount, memItems, memTrueRet, memSel: v => (v ? Object.assign(memSel, v) : memSel), backIn, nextReviewListHTML, get SG() { return SESSION_GRADED; }, revLogAdd, fsrsNextT: (...a) => fsrsNext(...a), fCfg, home, leechView, statsView, match, dailySession, kanjiLearnSession, capReached, newToday, newTodayK, newLeft, newLeftK, newLimitV, kjLimitV, isNewWord, isNewKj, markNew, markNewK, capPool, capView, newTodayText, kjLearn, pickNext, grade, kGrade, go, RT, retypePending, retypeAfterMiss, quiz, speed, kanaSpeed, kanaSession, sfx, sfxRender, SFX_NAMES, sfxActx: () => actx, allMapView, AMS, amap: () => AMV, amDetail, amSections, amStatus, KITEMS, KALL, KJINFO, PIMS, pimsAddLesson, pimsUndo, pimsView, pimsLessonView, pimsCompleted, pimsDrill, pimsLessonIds, alKey, alTimes, get SY() { return SY; }, get SM() { return SM; }, syncNow, buildPayload, mergeStore, mergeLf, mergeCard, applyStores, MERGE_RULES, exportBackup, stampAll, validatePayload, undoRestore, getSnapshot, syncErrText, gsave: save, GS, GD, loadGames, gamesView, sniperGame, builderGame, scrambleGame, bossView, bossFight, bossList, gBadges, kbUnlocked, get gs() { return gState; }, jcard, kcard, kjRender, combo: v => (v != null ? (combo = v) : combo), sq: () => sessionQueue, kq: () => kQueue, fsrsNext, fsrsMigrateCard, fsrsMigrateAll, srsAnswer, autoRating, rateThresholds, QT, qStart, boxFromF, F_LADDER, trackMode, retentionNow, PREFSRS_KEY, MASTER_S, fsrsSync, mixedMode, AL: () => AL, alMarkDone, alUndo, alCleanUrl, alStats, loadStrokes, playStrokes, JS: () => JS, KJ, KJL, loadKanji, kjStats, kjDueScan, kjUnlockedCount, kjNewFor, kanjiPageFn, kanjiForSession, pathState, stageFrac, buildPath, pathLevels, BUILD, checkForUpdate, reportError, applyUpdate, showUpdateBar, aheadScan, nothingDueSheet, timeTick, flushTime, todayStr, dailies, ensureDaily, openLevel, levelPageFn, startDueReview, card, settingsView, kanaStats, levelsView, statsView, applyTheme, iconize, dueScan, kanaDueScan, totalDue, dueSections, dueView, TS: () => TS, tget, goalMet, goalStreak, isTracking, historyView, LV, LEVELS, loadLevel, setLevels, activeLevels, levelStats, setById, setUnlocked, unlockedIds, wordAudioPath, sentenceAudioPath, EXAMPLES, ALL: () => ({ ALL_IDS, KANJI_IDS, SETS }), buildDaily, playFile, allAudioPaths, audioState: () => ({ audioOK, fails: [...audioFail] }), kFile, kSimilar, KITEMS, KS: () => KS, kDistractors, kReadableWords, kPool, WORDS, ROMA, romajiToKana, normAns, normAscii, acceptedAnswers, distractors, conflicts, get SETS() { return SETS; }, S: () => S, isLeech };
 /* load the saved level selection (plus any level still referenced by today's unfinished session), then show home */
 (async () => {
   try {
