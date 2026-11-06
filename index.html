@@ -18,7 +18,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <script>
-/* v75: visual UI mode only — separate from study store / theme / sync. Classic is default. */
+/* v76: visual UI mode only — separate from study store / theme / sync. Modern is default; Classic stays available. */
 (function () {
   try {
     var KEY = "n5vq-ui-mode";
@@ -32,10 +32,13 @@
       }
     }
     var m = null;
-    try { m = localStorage.getItem(KEY); } catch (e) {}
-    if (m === "modern") document.documentElement.setAttribute("data-ui", "modern");
-    else document.documentElement.removeAttribute("data-ui");
-  } catch (e) {}
+    try { m = localStorage.getItem(KEY); } catch (e) { m = null; }
+    /* Explicit classic → Classic. Unset, invalid, modern, or storage failure → Modern (default). */
+    if (m === "classic") document.documentElement.removeAttribute("data-ui");
+    else document.documentElement.setAttribute("data-ui", "modern");
+  } catch (e) {
+    try { document.documentElement.setAttribute("data-ui", "modern"); } catch (e2) {}
+  }
 })();
 </script>
 <style>
@@ -15120,16 +15123,18 @@ async function jfMapView() {
   window.__jfmap = amCanvas(secs, { t0, onCleanup: () => { window.__jfmap = null; } });
   $("#amSt").onclick = e => { const b = e.target.closest("button"); if (!b) return; sfx.click(); AMS.st = b.dataset.st; amSave(); go(jfMapView); };
 }
-/* ================= v75: Modern UI preview (visual preference only) =================
+/* ================= v76: Modern UI default (visual preference only) =================
    Stored in localStorage key n5vq-ui-mode — never written into the study store (S),
    time store, Gist sync payload, FSRS, levels, goals, leeches, or licenses.
-   Classic remains the default until the user opts in via Settings or ?ui=modern. */
+   Modern is the default when unset/invalid/storage fails; explicit "classic" keeps Classic.
+   ?ui=modern|classic and Settings still switch; no study-data migration. */
 const UI_MODE_KEY = "n5vq-ui-mode";
 function uiMode() {
   try {
     const m = localStorage.getItem(UI_MODE_KEY);
-    return m === "modern" ? "modern" : "classic";
-  } catch (e) { return "classic"; }
+    if (m === "classic") return "classic";
+    return "modern";   // "modern", null, "", garbage → modern default
+  } catch (e) { return "modern"; }
 }
 function uiIsModern() { return uiMode() === "modern"; }
 function applyUiMode(mode, opts = {}) {
@@ -15159,8 +15164,8 @@ try { applyUiMode(uiMode()); } catch (e) {}
 
 function uiModeSegHTML(id = "uiModeSeg") {
   const cur = uiMode();
-  return `<div class="row"><span style="text-align:left">✨ App look<br><small class="muted">Preview the new design without changing your progress. Classic stays available.</small></span>
-    <span class="seg" id="${id}" role="radiogroup" aria-label="App look">${[["classic", "Classic look"], ["modern", "Try new look"]].map(([k, t]) =>
+  return `<div class="row"><span style="text-align:left">✨ App look<br><small class="muted">New look is the default. Classic stays available — your progress is unchanged.</small></span>
+    <span class="seg" id="${id}" role="radiogroup" aria-label="App look">${[["modern", "New look"], ["classic", "Classic"]].map(([k, t]) =>
       `<button role="radio" aria-checked="${cur === k}" class="${cur === k ? "on" : ""}" data-ui="${k}">${t}</button>`).join("")}</span></div>`;
 }
 function bindUiModeSeg(root, id = "uiModeSeg") {
@@ -15172,7 +15177,7 @@ function bindUiModeSeg(root, id = "uiModeSeg") {
     seg.querySelectorAll("button").forEach(x => {
       const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-checked", on);
     });
-    toast(b.dataset.ui === "modern" ? "New look on — Classic is still in Settings" : "Classic look restored");
+    toast(b.dataset.ui === "modern" ? "New look on" : "Classic look on — switch back anytime in Settings");
   };
 }
 
@@ -15374,7 +15379,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
    comes back to the foreground, before the first tap. It used to reload up to 2 s after ANY screen change, so a tap on
    e.g. "Review all due" could turn into a white "new window" (and hang while the network was slow). Otherwise a small
    "New version ready" bar offers the update, and it's applied automatically the next time the app is reopened. */
-const BUILD = "e6145c13f173";
+const BUILD = "364f0798f801";
 let lastUpdCheck = 0, updReady = false, lastVisibleAt = Date.now(), lastTapAt = 0;
 addEventListener("pointerdown", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
 addEventListener("touchstart", () => { lastTapAt = Date.now(); }, { capture: true, passive: true });
